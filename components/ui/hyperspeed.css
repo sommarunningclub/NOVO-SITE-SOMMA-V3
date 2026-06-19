@@ -1,0 +1,13 @@
+#lights {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  position: absolute;
+  inset: 0;
+  pointer-events: none; /* background passivo — não bloqueia cliques nos botões */
+}
+
+#lights canvas {
+  width: 100%;
+  height: 100%;
+}
