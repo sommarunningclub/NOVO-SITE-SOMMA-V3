@@ -17,8 +17,10 @@
 # debug
 npm-debug.log*
 
-# local env files
-.env*.local
+# env files (segredos) — nunca commitar; exceto os *.example
+.env
+.env.*
+!.env*.example
 
 # typescript
 *.tsbuildinfo
