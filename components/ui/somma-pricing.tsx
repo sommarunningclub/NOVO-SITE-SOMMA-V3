@@ -104,7 +104,7 @@ function PlanCard({ plan, billing }: { plan: AdvisoryPlanCard; billing: Billing 
               transition={{ duration: 0.2, ease: "easeOut" }}
               className="mt-1 block text-sm text-muted"
             >
-              {billing === "mensal" ? "cobrado por mês" : plan.note}
+              {billing === "mensal" ? plan.parcelas ?? "cobrado por mês" : plan.note}
             </motion.span>
           </AnimatePresence>
         </div>

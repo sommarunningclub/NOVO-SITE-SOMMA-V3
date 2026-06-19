@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { getSupabase } from "@/lib/supabase";
+import { getServiceSupabase } from "@/lib/supabase";
 import { PARQ_IDS, computeApto } from "@/lib/parq";
 
 // Recebe as respostas do Par-Q e atualiza o cadastro do aluno
@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
       normalized[id] = v;
     }
 
-    const supabase = getSupabase();
+    const supabase = getServiceSupabase();
     if (!supabase) {
       console.warn("[parq] Supabase não configurado. Respostas não persistidas:", { cpf });
       return NextResponse.json({ success: true, persisted: false });

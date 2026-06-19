@@ -1,16 +1,15 @@
-import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
+import { getServiceSupabase } from '@/lib/supabase'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
-
 export async function GET() {
   try {
+    const supabase = getServiceSupabase()
+    if (!supabase) {
+      return NextResponse.json({ proximo_evento: null, historico: [] }, { status: 200 })
+    }
     const today = new Date().toISOString().split('T')[0]
 
     // Próximos eventos (futuros ou abertos/bloqueados, excluindo encerrados e ocultos)

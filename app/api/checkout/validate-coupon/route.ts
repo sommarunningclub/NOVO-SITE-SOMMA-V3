@@ -1,4 +1,29 @@
 import { NextResponse } from "next/server"
+import { getServiceSupabase } from "@/lib/supabase"
+
+// Fonte de verdade = tabela `coupons` da GESTÃO (v0-sistema-somma-de-gestao-l7,
+// scripts/create-coupons-table.sql). Espelha a validação do
+// app/api/checkout/validate-coupon/route.ts da GESTÃO (status ACTIVE,
+// expiration_date, usage_limit/usage_count). Mantemos os cupons hardcoded
+// abaixo APENAS como fallback para os códigos ativos ainda não migrados ao DB.
+type NormalizedCoupon = { type: "PERCENTAGE" | "FIXED"; value: number; description: string }
+
+async function lookupCouponDB(code: string): Promise<NormalizedCoupon | { error: string } | null> {
+  const supabase = getServiceSupabase()
+  if (!supabase) return null // sem DB → cai no fallback
+  const { data, error } = await supabase
+    .from("coupons")
+    .select("code, type, value, description, status, expiration_date, usage_limit, usage_count")
+    .eq("code", code)
+    .single()
+  if (error || !data) return null // não está no DB → fallback
+  if (data.status !== "ACTIVE") return { error: "Cupom expirado ou inativo" }
+  if (data.expiration_date && new Date(data.expiration_date) < new Date())
+    return { error: "Cupom expirado ou inativo" }
+  if (data.usage_limit != null && (data.usage_count ?? 0) >= data.usage_limit)
+    return { error: "Cupom esgotado" }
+  return { type: data.type, value: Number(data.value), description: data.description ?? "Desconto" }
+}
 
 // Cupons cadastrados - edite aqui para adicionar/remover cupons
 const COUPONS: Record<string, { type: "PERCENTAGE" | "FIXED"; value: number; description: string; active: boolean; professor?: string; planType?: string }> = {
@@ -92,34 +117,35 @@ export async function GET(request: Request) {
       )
     }
 
-    const coupon = COUPONS[code]
-
-    if (!coupon) {
-      return NextResponse.json(
-        { valid: false, error: "Cupom não encontrado" },
-        { status: 404 }
-      )
+    // 1) Fonte de verdade: tabela `coupons` (GESTÃO). 2) Fallback: hardcoded.
+    let coupon: NormalizedCoupon
+    const dbResult = await lookupCouponDB(code)
+    if (dbResult && "error" in dbResult) {
+      return NextResponse.json({ valid: false, error: dbResult.error }, { status: 400 })
     }
-
-    if (!coupon.active) {
-      return NextResponse.json(
-        { valid: false, error: "Cupom expirado ou inativo" },
-        { status: 400 }
-      )
-    }
-
-    if (coupon.professor && coupon.professor !== professor) {
-      return NextResponse.json(
-        { valid: false, error: "Cupom inválido" },
-        { status: 400 }
-      )
-    }
-
-    if (coupon.planType && coupon.planType !== planType) {
-      return NextResponse.json(
-        { valid: false, error: "Cupom inválido" },
-        { status: 400 }
-      )
+    if (dbResult) {
+      coupon = dbResult
+    } else {
+      const hc = COUPONS[code]
+      if (!hc) {
+        return NextResponse.json(
+          { valid: false, error: "Cupom não encontrado" },
+          { status: 404 }
+        )
+      }
+      if (!hc.active) {
+        return NextResponse.json(
+          { valid: false, error: "Cupom expirado ou inativo" },
+          { status: 400 }
+        )
+      }
+      if (hc.professor && hc.professor !== professor) {
+        return NextResponse.json({ valid: false, error: "Cupom inválido" }, { status: 400 })
+      }
+      if (hc.planType && hc.planType !== planType) {
+        return NextResponse.json({ valid: false, error: "Cupom inválido" }, { status: 400 })
+      }
+      coupon = { type: hc.type, value: hc.value, description: hc.description }
     }
 
     // Valor mínimo exigido pelo Asaas para cartão de crédito

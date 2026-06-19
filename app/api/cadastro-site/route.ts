@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabase } from "@/lib/supabase";
+import { getServiceSupabase } from "@/lib/supabase";
 import { signupSchema, brDateToISO } from "@/lib/validation";
 
 // Espelha o padrão do site atual (app/api/cadastro-site → tabela `cadastro_site`):
@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
       "$1.$2.$3-$4"
     );
 
-    const supabase = getSupabase();
+    const supabase = getServiceSupabase();
     if (!supabase) {
       console.warn(
         "[cadastro-site] Supabase não configurado (.env.local). Lead não persistido:",

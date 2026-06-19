@@ -263,6 +263,20 @@ export function CheckoutForm({ plan, initialProfessors }: CheckoutFormProps) {
       const customerResult = await customerRes.json()
       if (!customerRes.ok) throw new Error(customerResult.error || "Erro ao salvar dados")
 
+      // Vínculo aluno↔professor (base do repasse, espelha GESTÃO). Best-effort: não bloqueia o checkout.
+      fetch("/api/professores/clientes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          professor_nome: professor,
+          asaas_customer_id: customerResult.id,
+          customer_name: customerData.name,
+          customer_email: customerData.email,
+          customer_cpf_cnpj: customerData.cpfCnpj?.replace(/\D/g, ""),
+          tag: "alunoprofessor",
+        }),
+      }).catch(() => {})
+
       // 2a. PIX à vista — novo fluxo
       if (paymentMethod === "pix" && plan.type === "installment") {
         const pixPaymentRes = await fetch("/api/asaas/subscription", {

@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { createClient as createAnonClient } from "@supabase/supabase-js"
+import { getServiceSupabase } from "@/lib/supabase"
 
 export async function POST(request: NextRequest) {
   try {
@@ -23,14 +23,10 @@ export async function POST(request: NextRequest) {
       status_pagamento,
     } = body
 
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-    if (!supabaseUrl || !supabaseKey) {
+    const supabase = getServiceSupabase()
+    if (!supabase) {
       return NextResponse.json({ error: "Configuração ausente" }, { status: 500 })
     }
-
-    const supabase = createAnonClient(supabaseUrl, supabaseKey)
 
     const today = new Date().toISOString().split("T")[0]
     const diaVencimento = new Date().getDate()

@@ -112,6 +112,7 @@ export type AdvisoryPlanCard = {
   period?: string;
   description: string;
   note?: string;
+  parcelas?: string; // texto exibido na visão "Por mês"
   isRecommended?: boolean;
   buttonText: string;
   href: string;
@@ -144,6 +145,7 @@ export const ADVISORY_PLANS: AdvisoryPlanCard[] = [
     total: 220,
     description: "Flexível, sem fidelidade.",
     note: "Cancele quando quiser",
+    parcelas: "Sem fidelidade",
     buttonText: "Quero o Mensal",
     href: "/checkout/mensal",
     features: [...COMMON, { name: "Kit grátis (ecobag + camiseta)", included: false }],
@@ -155,6 +157,7 @@ export const ADVISORY_PLANS: AdvisoryPlanCard[] = [
     total: 1200,
     description: "O equilíbrio ideal entre preço e compromisso.",
     note: "R$ 1.200 em 6x sem juros · economia de R$ 120",
+    parcelas: "6x sem juros",
     isRecommended: true,
     buttonText: "Quero o Semestral",
     href: "/checkout/semestral",
@@ -167,6 +170,7 @@ export const ADVISORY_PLANS: AdvisoryPlanCard[] = [
     total: 2160,
     description: "O melhor custo-benefício do Somma.",
     note: "R$ 2.160 em 12x sem juros · economia de R$ 480",
+    parcelas: "12x sem juros",
     buttonText: "Quero o Anual",
     href: "/checkout/anual",
     features: [...COMMON, { name: "Kit grátis (ecobag + camiseta)", included: true }],

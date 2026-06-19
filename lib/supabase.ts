@@ -8,3 +8,14 @@ export function getSupabase(): SupabaseClient | null {
   if (!url || !key) return null;
   return createClient(url, key);
 }
+
+// Cliente service-role (server-only) — espelha o padrão da GESTÃO
+// (v0-sistema-somma-de-gestao-l7) para webhook/cupom/professor_clients.
+// Bypassa RLS — usar APENAS em rotas server-side confiáveis.
+export function getServiceSupabase(): SupabaseClient | null {
+  const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key =
+    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !key) return null;
+  return createClient(url, key, { auth: { autoRefreshToken: false, persistSession: false } });
+}
