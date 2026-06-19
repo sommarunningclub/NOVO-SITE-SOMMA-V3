@@ -41,22 +41,43 @@ export async function POST(request: NextRequest) {
     }
 
     // Dedup por CPF (compara contra dígitos e formatado).
-    const { data: existing, error: checkError } = await supabase
+    const { data: byCpf, error: cpfError } = await supabase
       .from("cadastro_site")
       .select("id")
       .in("cpf", [cpfDigits, cpfFormatted])
       .limit(1);
 
-    if (checkError) {
-      console.error("[cadastro-site] Erro ao verificar CPF:", checkError);
+    if (cpfError) {
+      console.error("[cadastro-site] Erro ao verificar CPF:", cpfError);
       return NextResponse.json(
         { error: "Erro ao validar cadastro. Tente novamente." },
         { status: 500 }
       );
     }
-    if (existing && existing.length > 0) {
+    if (byCpf && byCpf.length > 0) {
       return NextResponse.json(
         { error: "Este CPF já está cadastrado em nossa base." },
+        { status: 409 }
+      );
+    }
+
+    // Dedup por e-mail (case-insensitive). `email` já vem normalizado em minúsculas.
+    const { data: byEmail, error: emailError } = await supabase
+      .from("cadastro_site")
+      .select("id")
+      .ilike("email", email)
+      .limit(1);
+
+    if (emailError) {
+      console.error("[cadastro-site] Erro ao verificar e-mail:", emailError);
+      return NextResponse.json(
+        { error: "Erro ao validar cadastro. Tente novamente." },
+        { status: 500 }
+      );
+    }
+    if (byEmail && byEmail.length > 0) {
+      return NextResponse.json(
+        { error: "Este e-mail já está cadastrado em nossa base." },
         { status: 409 }
       );
     }
