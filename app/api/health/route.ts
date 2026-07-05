@@ -13,6 +13,17 @@ export async function GET(request: Request) {
     VIP_EMAIL_FROM: has(process.env.VIP_EMAIL_FROM),
   };
 
+  // Análise estrutural do VIP_EMAIL_FROM — NÃO expõe o valor, só o formato.
+  const from = process.env.VIP_EMAIL_FROM || "";
+  const fromShape = {
+    length: from.length,
+    startsWithQuote: /^["']/.test(from),
+    endsWithQuote: /["']$/.test(from),
+    hasAngleBrackets: from.includes("<") && from.includes(">"),
+    hasAt: from.includes("@"),
+    hasLeadingOrTrailingSpace: from !== from.trim(),
+  };
+
   // ?email=1 → faz um envio de teste real via Resend (endereço de teste que sempre "entrega").
   const url = new URL(request.url);
   if (url.searchParams.get("email") === "1") {
@@ -20,8 +31,8 @@ export async function GET(request: Request) {
       nome: "Teste Diagnóstico",
       email: "delivered@resend.dev",
     });
-    return NextResponse.json({ env, emailTest: result });
+    return NextResponse.json({ env, fromShape, emailTest: result });
   }
 
-  return NextResponse.json({ env });
+  return NextResponse.json({ env, fromShape });
 }
