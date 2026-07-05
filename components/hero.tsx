@@ -15,7 +15,9 @@ export function Hero() {
         fill
         priority
         quality={90}
-        sizes="100vw"
+        // No mobile a imagem é recortada em cover numa tela alta; pedimos mais resolução
+        // (a compressão AVIF mantém o peso baixo). No desktop, 100vw normal.
+        sizes="(max-width: 768px) 165vw, 100vw"
         className="object-cover object-center"
       />
       {/* Overlay escuro + spotlight (mecânica do Marun) */}
