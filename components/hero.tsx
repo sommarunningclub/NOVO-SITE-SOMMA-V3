@@ -55,7 +55,7 @@ export function Hero() {
               <ArrowRight className="h-4 w-4" />
             </a>
             <a
-              href={SOMMA.links.proximoTreino}
+              href="/check-in"
               className="inline-flex items-center justify-center gap-2 rounded-full border border-white/40 px-7 py-3.5 text-base font-semibold text-white transition-colors hover:bg-white/10"
             >
               Ver próximo treino
