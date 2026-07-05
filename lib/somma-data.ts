@@ -25,6 +25,7 @@ export const SOMMA = {
     strava:
       "https://www.strava.com/clubs/1608501?share_sig=D8C84ECD1759146345&_branch_match_id=1315308772546708809&_branch_referrer=H4sIAAAAAAAAA8soKSkottLXLy4pSixL1EcsKNDLzczL1jcxdsmPCgmrNA5Psq8rSk1LLSrKzEuPTyrKLy9OLbJ1zijKz00FAFnkwLM9AAAA",
     instagram: "https://instagram.com/somma.club",
+    tiktok: "https://www.tiktok.com/@somma.club",
     whatsapp: "https://wa.me/5561995372477",
     whatsappAssessoria:
       "https://wa.me/5561995372477?text=" +

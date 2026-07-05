@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { sendCadastroSiteWelcomeEmail } from "@/lib/emails/cadastro-site";
 import { getServiceSupabase } from "@/lib/supabase";
 import { signupSchema, brDateToISO } from "@/lib/validation";
 
@@ -114,6 +115,10 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    void sendCadastroSiteWelcomeEmail({ nome: nome_completo, email }).catch((err) => {
+      console.error("[cadastro-site] Erro ao enviar e-mail de boas-vindas:", err);
+    });
 
     return NextResponse.json({ success: true, persisted: true, data });
   } catch (err) {

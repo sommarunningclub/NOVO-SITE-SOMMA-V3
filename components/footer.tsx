@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Instagram, Mail, Phone, MapPin } from "lucide-react";
 import { SOMMA } from "@/lib/somma-data";
 import { StravaIcon } from "./icons/strava";
+import { TikTokIcon } from "./icons/tiktok";
 
 // Mensagens de WhatsApp (mesmas do site atual)
 const WA = "https://wa.me/5561995372477?text=";
@@ -34,6 +35,15 @@ export function Footer() {
               className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/5 transition-colors hover:bg-primary"
             >
               <Instagram className="h-5 w-5" />
+            </a>
+            <a
+              href={SOMMA.links.tiktok}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="TikTok do SOMMA Club"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/5 transition-colors hover:bg-primary"
+            >
+              <TikTokIcon className="h-5 w-5" />
             </a>
             <a
               href={SOMMA.links.strava}

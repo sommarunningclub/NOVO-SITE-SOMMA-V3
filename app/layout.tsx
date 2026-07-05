@@ -43,7 +43,7 @@ const jsonLd = {
       name: "SOMMA Club",
       description: "O maior running club do Distrito Federal.",
       url: "https://sommaclub.com.br",
-      sameAs: [SOMMA.links.instagram, SOMMA.links.strava],
+      sameAs: [SOMMA.links.instagram, SOMMA.links.tiktok, SOMMA.links.strava],
       address: {
         "@type": "PostalAddress",
         addressLocality: "Brasília",
