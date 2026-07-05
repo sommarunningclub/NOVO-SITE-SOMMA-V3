@@ -353,7 +353,7 @@ export const PHOTOS = {
     `${IMG}/PDCSK217JAN-2433.jpg`,
     `${IMG}/PDCSK21FEV-1794.jpg`,
     `${IMG}/IMG_0888_JPG.jpg`,
-    `${IMG}/IMG_1479_JPG.jpg`,
+    `${IMG}/EXQTSMM-284.jpg`,
     `${IMG}/SMSPD-372.jpg`,
     `${IMG}/hero-background.jpg`,
   ],
