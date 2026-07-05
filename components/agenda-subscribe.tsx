@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarPlus, Download, ExternalLink } from "lucide-react";
+import { Download, ExternalLink } from "lucide-react";
 
 // Ícones oficiais (do projeto agenda-somma-club, em /public/agenda).
 const ICON = {
@@ -33,8 +33,9 @@ export function AgendaSubscribe() {
   return (
     <div className="mt-8 rounded-2xl border border-white/10 bg-white/[0.03] p-6 text-left">
       <div className="flex items-center gap-3">
-        <span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-primary/15 text-primary">
-          <CalendarPlus className="h-5 w-5" />
+        <span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-primary/15">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/favicon.svg" alt="Somma" className="h-6 w-6" />
         </span>
         <div>
           <h2 className="text-sm font-semibold uppercase tracking-wide text-white">
