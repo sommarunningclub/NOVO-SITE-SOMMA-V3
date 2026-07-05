@@ -2,6 +2,13 @@
 
 import { CalendarPlus, Download, ExternalLink } from "lucide-react";
 
+// Ícones oficiais (do projeto agenda-somma-club, em /public/agenda).
+const ICON = {
+  google: "/agenda/icon-google-calendar.svg",
+  apple: "/agenda/icon-apple-calendar.svg",
+  outlook: "/agenda/icon-outlook.svg",
+} as const;
+
 // Agenda Oficial do Somma — reusa a infra do projeto agenda-somma-club
 // (feeds ICS em https://agenda.sommaclub.com.br/api/calendar/<slug>.ics).
 const AGENDA_BASE = "https://agenda.sommaclub.com.br";
@@ -14,11 +21,12 @@ const outlookUrl = `https://outlook.office.com/calendar/0/addfromweb?url=${encod
   icsHttps
 )}&name=${encodeURIComponent("Agenda Somma Club")}`;
 
-const OPTIONS = [
-  { label: "Google Agenda", href: googleUrl, icon: CalendarPlus },
-  { label: "Apple / iPhone", href: webcal, icon: CalendarPlus },
-  { label: "Outlook", href: outlookUrl, icon: CalendarPlus },
-  { label: "Baixar .ics", href: icsHttps, icon: Download },
+type Option = { label: string; href: string; img?: string; lucide?: typeof Download };
+const OPTIONS: Option[] = [
+  { label: "Google Agenda", href: googleUrl, img: ICON.google },
+  { label: "Apple / iPhone", href: webcal, img: ICON.apple },
+  { label: "Outlook", href: outlookUrl, img: ICON.outlook },
+  { label: "Baixar .ics", href: icsHttps, lucide: Download },
 ];
 
 export function AgendaSubscribe() {
@@ -47,7 +55,12 @@ export function AgendaSubscribe() {
             rel="noopener noreferrer"
             className="flex items-center justify-center gap-2 rounded-xl border border-white/15 px-4 py-3 text-sm font-medium text-white transition-colors hover:border-primary hover:bg-white/5"
           >
-            <o.icon className="h-4 w-4 text-primary" />
+            {o.img ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={o.img} alt="" className="h-5 w-5" />
+            ) : o.lucide ? (
+              <o.lucide className="h-4 w-4 text-primary" />
+            ) : null}
             {o.label}
           </a>
         ))}
