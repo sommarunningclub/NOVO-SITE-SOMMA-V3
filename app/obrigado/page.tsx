@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { MessageCircle, PartyPopper } from "lucide-react";
+import { AgendaSubscribe } from "@/components/agenda-subscribe";
 
 // Mesma lógica do site atual: distribui aleatoriamente entre os grupos de WhatsApp.
 const WHATSAPP_GROUPS = [
@@ -51,6 +52,9 @@ export default function ObrigadoPage() {
             )}
           </ul>
         </div>
+
+        {/* Agenda Oficial do Somma (assinatura de calendário) */}
+        <AgendaSubscribe />
 
         {/* WhatsApp (grupo aleatório) */}
         <button
