@@ -1000,7 +1000,7 @@ export function CheckoutForm({ plan, initialProfessors }: CheckoutFormProps) {
                   value={cardData.holderName}
                   onChange={(e) => setCardData((p) => ({ ...p, holderName: e.target.value.toUpperCase() }))}
                   placeholder="Nome impresso no cartao"
-                  className={`${inputClass} uppercase text-sm`}
+                  className={`${inputClass} uppercase`}
                   autoComplete="cc-name"
                 />
                 <div className="grid grid-cols-3 gap-2 sm:gap-3">
@@ -1088,7 +1088,7 @@ export function CheckoutForm({ plan, initialProfessors }: CheckoutFormProps) {
                       onChange={(e) => { setCouponCode(e.target.value.toUpperCase()); setCouponError(null) }}
                       onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), validateCoupon())}
                       placeholder="CODIGO DO CUPOM"
-                      className={`flex-1 px-4 py-3 bg-white/[0.03] border rounded-lg text-sm text-white placeholder-white/25 focus:outline-none transition-all uppercase ${
+                      className={`flex-1 px-4 py-3 bg-white/[0.03] border rounded-lg text-base sm:text-sm text-white placeholder-white/25 focus:outline-none transition-all uppercase ${
                         couponError ? "border-red-500/50" : "border-white/10 focus:border-[#ff4f2d]"
                       }`}
                     />
