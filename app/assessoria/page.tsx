@@ -242,7 +242,8 @@ export default function AssessoriaPage() {
           </div>
         </section>
 
-        {/* DEPOIMENTOS */}
+        {/* DEPOIMENTOS — oculto por enquanto (trocar `false` por `true` para reexibir) */}
+        {false && (
         <section className="bg-light py-20 md:py-28">
           <div className="container-somma">
             <Reveal className="mx-auto max-w-2xl text-center">
@@ -273,6 +274,7 @@ export default function AssessoriaPage() {
             </div>
           </div>
         </section>
+        )}
 
         {/* PLANOS */}
         <section id="planos" className="relative isolate overflow-hidden bg-black py-20 text-white md:py-28">
