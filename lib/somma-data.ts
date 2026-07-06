@@ -122,6 +122,7 @@ export type AdvisoryPlanCard = {
 
 // Benefícios em comum a todos os planos (sempre inclusos).
 const COMMON: AdvisoryFeature[] = [
+  { name: "Sem taxa de matrícula", included: true },
   { name: "Treino personalizado via app", included: true },
   { name: "Integração com Strava/GPS", included: true },
   { name: "Acompanhamento de métricas", included: true },
