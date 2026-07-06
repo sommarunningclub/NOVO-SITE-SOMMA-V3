@@ -135,7 +135,7 @@ export function SpecialDayPopup() {
               <div className="mt-3 flex flex-wrap gap-1.5">
                 {[
                   { t: "18 JUL 2026", c: C.blue },
-                  { t: "8KM inédito", c: C.pink },
+                  { t: "4KM & 8KM", c: C.pink },
                   { t: "400 vagas", c: C.orange },
                 ].map((chip) => (
                   <span
