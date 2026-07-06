@@ -200,7 +200,8 @@ export default function MidiaKitPage() {
       </Slide>
 
       {/* ───────── SLIDE 3 · BIG NUMBERS ───────── */}
-      <Slide index={2} name="numeros" className="items-center justify-center bg-[#0A0A0A]">
+      <Slide index={2} name="numeros" className="relative items-center justify-center overflow-hidden">
+        <BgPhoto src={`${IMG}/crowd.jpg`} alt="300 pessoas todo sábado no Somma" overlay="cards" />
         <div className="container-somma relative z-10">
           <p className="reveal text-center text-xs font-semibold uppercase tracking-[0.3em] text-[#FF2C03]">
             Os números falam
@@ -225,16 +226,19 @@ export default function MidiaKitPage() {
             <Pillar
               icon={Users}
               title="Treinos toda semana"
+              img={`${IMG}/p1.jpg`}
               text="Encontros no Parque da Cidade que reúnem centenas de corredores — do iniciante ao avançado."
             />
             <Pillar
               icon={Target}
               title="Assessoria de corrida"
+              img={`${IMG}/p2.jpg`}
               text="Treinos personalizados, acompanhamento e evolução real com nossos professores. Estrutura profissional."
             />
             <Pillar
               icon={Sparkles}
               title="Eventos & engajamento"
+              img={`${IMG}/p3.jpg`}
               text="O ano todo: provas, ativações, ações com marcas e experiências que movem a comunidade."
             />
           </div>
@@ -267,7 +271,8 @@ export default function MidiaKitPage() {
       </Slide>
 
       {/* ───────── SLIDE 6 · AUDIÊNCIA / BASE ───────── */}
-      <Slide index={5} name="audiencia" className="items-center bg-[#0A0A0A]">
+      <Slide index={5} name="audiencia" className="relative items-center overflow-hidden">
+        <BgPhoto src={`${IMG}/comunidade.jpg`} alt="Comunidade Somma" overlay="cards" />
         <div className="container-somma relative z-10 grid items-center gap-10 md:grid-cols-2">
           <div>
             <p className="reveal text-xs font-semibold uppercase tracking-[0.3em] text-[#FF2C03]">A audiência</p>
@@ -300,7 +305,8 @@ export default function MidiaKitPage() {
       </Slide>
 
       {/* ───────── SLIDE 7 · COMO SUA MARCA APARECE ───────── */}
-      <Slide index={6} name="marca" className="items-center bg-[#0E0E0E]">
+      <Slide index={6} name="marca" className="relative items-center overflow-hidden">
+        <BgPhoto src={`${IMG}/ativacao.jpg`} alt="Ativação de marca no Somma" overlay="cards" />
         <div className="container-somma relative z-10">
           <p className="reveal text-xs font-semibold uppercase tracking-[0.3em] text-[#FF2C03]">Como sua marca entra</p>
           <h2 className="reveal mt-4 max-w-2xl text-3xl font-bold md:text-5xl">
@@ -330,7 +336,8 @@ export default function MidiaKitPage() {
       </Slide>
 
       {/* ───────── SLIDE 8 · POR QUE PATROCINAR ───────── */}
-      <Slide index={7} name="por-que" className="items-center bg-[#0A0A0A]">
+      <Slide index={7} name="por-que" className="relative items-center overflow-hidden">
+        <BgPhoto src={`${IMG}/wellness.jpg`} alt="Público que vive o bem-estar" overlay="cards" />
         <div className="container-somma relative z-10">
           <p className="reveal text-xs font-semibold uppercase tracking-[0.3em] text-[#FF2C03]">Por que patrocinar</p>
           <h2 className="reveal mt-4 max-w-3xl text-3xl font-bold leading-[1.05] md:text-5xl">
@@ -438,7 +445,7 @@ function BgPhoto({
 }: {
   src: string;
   alt: string;
-  overlay?: "strong" | "side";
+  overlay?: "strong" | "side" | "cards";
   priority?: boolean;
 }) {
   return (
@@ -451,10 +458,18 @@ function BgPhoto({
         sizes="100vw"
         className="parallax scale-110 object-cover object-center"
       />
-      {overlay === "strong" ? (
+      {overlay === "strong" && (
         <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/60 to-black/85" />
-      ) : (
+      )}
+      {overlay === "side" && (
         <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/70 to-black/30" />
+      )}
+      {/* para slides com muitos cards: escurece mais para manter tudo legível, mas a foto respira nas bordas */}
+      {overlay === "cards" && (
+        <>
+          <div className="absolute inset-0 bg-black/82" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+        </>
       )}
     </div>
   );
@@ -497,18 +512,28 @@ function Pillar({
   icon: Icon,
   title,
   text,
+  img,
 }: {
   icon: typeof Users;
   title: string;
   text: string;
+  img?: string;
 }) {
   return (
-    <div className="reveal rounded-3xl border border-white/10 bg-white/[0.03] p-7">
-      <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-[#FF2C03]/15 text-[#FF2C03]">
-        <Icon className="h-6 w-6" />
-      </span>
-      <h3 className="mt-5 text-xl font-bold">{title}</h3>
-      <p className="mt-2 text-sm leading-relaxed text-white/65">{text}</p>
+    <div className="reveal overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03]">
+      {img && (
+        <div className="relative aspect-[16/9] w-full overflow-hidden">
+          <Image src={img} alt={title} fill sizes="380px" className="object-cover object-center" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0E0E0E] via-transparent to-transparent" />
+        </div>
+      )}
+      <div className="p-7">
+        <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-[#FF2C03]/15 text-[#FF2C03]">
+          <Icon className="h-6 w-6" />
+        </span>
+        <h3 className="mt-5 text-xl font-bold">{title}</h3>
+        <p className="mt-2 text-sm leading-relaxed text-white/65">{text}</p>
+      </div>
     </div>
   );
 }
