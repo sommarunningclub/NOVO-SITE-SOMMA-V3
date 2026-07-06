@@ -18,9 +18,6 @@ import {
   Heart,
   Globe,
   Zap,
-  Megaphone,
-  QrCode,
-  Send,
   CalendarClock,
   Bell,
   RefreshCw,
@@ -403,39 +400,43 @@ export default function MidiaKitPage() {
       </Slide>
 
       {/* ───────── SLIDE 9 · ESPAÇOS DE MÍDIA ───────── */}
-      <Slide index={8} name="espacos" className="relative items-center overflow-hidden">
-        <BgPhoto src={`${IMG}/espacos.jpg`} alt="Espaços de mídia do Somma" overlay="cards" />
+      <Slide index={8} name="espacos" className="items-center bg-[#0E0E0E]">
         <div className="container-somma relative z-10">
           <p className="reveal text-xs font-semibold uppercase tracking-[0.3em] text-[#FF2C03]">
             Espaços de mídia próprios
           </p>
           <h2 className="reveal mt-4 max-w-3xl text-3xl font-bold md:text-5xl">
-            Sua marca em vários canais que <span className="text-[#FF2C03]">a gente controla</span>.
+            Onde a sua marca <span className="text-[#FF2C03]">aparece</span>.
           </h2>
-          <p className="reveal mt-4 max-w-xl text-base text-white/65">
-            Não é só um post. São pontos de contato que ativamos quando e como faz sentido pra você.
+          <p className="reveal mt-4 max-w-2xl text-base text-white/65">
+            Não é só um post. São pontos de contato que a gente controla e ativa quando faz sentido pra você — veja
+            como fica na prática:
           </p>
-          <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <Value
-              icon={Megaphone}
+          <div className="mt-9 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <ChannelCard
               title="Pop-up no site"
-              text="Sua campanha em destaque no sommaclub.com.br, como um pop-up para milhares de visitantes."
-            />
-            <Value
-              icon={QrCode}
+              text="Campanha em destaque no sommaclub.com.br para milhares de visitantes."
+            >
+              <MockPopup />
+            </ChannelCard>
+            <ChannelCard
               title="Área de check-in"
-              text="Centenas de pessoas passam toda semana pelo check-in. Mídia e ativação com público presencial garantido."
-            />
-            <Value
-              icon={Send}
+              text="Centenas passam toda semana pelo check-in — mídia com público presencial."
+            >
+              <MockCheckin />
+            </ChannelCard>
+            <ChannelCard
               title="E-mail marketing"
-              text="Disparos constantes para a base de +6 mil membros — sua marca direto na caixa de entrada."
-            />
-            <Value
-              icon={CalendarClock}
+              text="Disparos constantes para a base de +6 mil membros, direto na caixa de entrada."
+            >
+              <MockEmail />
+            </ChannelCard>
+            <ChannelCard
               title="Agenda dedicada"
-              text="Um espaço da sua marca na Agenda oficial, direto no calendário dos membros."
-            />
+              text="Uma ação da sua marca no calendário pessoal de quem corre com o Somma."
+            >
+              <MockAgenda />
+            </ChannelCard>
           </div>
         </div>
       </Slide>
@@ -686,6 +687,138 @@ function Stat({
         </span>
       </div>
       <p className="mt-2 text-base font-medium text-white/70 md:text-lg">{label}</p>
+    </div>
+  );
+}
+
+/* ── Mockups (simulação dos espaços de mídia) ─────────────────────────── */
+
+function ChannelCard({
+  children,
+  title,
+  text,
+}: {
+  children: React.ReactNode;
+  title: string;
+  text: string;
+}) {
+  return (
+    <div className="reveal overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03]">
+      <div className="flex h-44 items-center justify-center overflow-hidden bg-gradient-to-b from-white/[0.05] to-transparent p-4">
+        {children}
+      </div>
+      <div className="border-t border-white/10 p-5">
+        <h3 className="text-base font-bold">{title}</h3>
+        <p className="mt-1.5 text-[13px] leading-relaxed text-white/60">{text}</p>
+      </div>
+    </div>
+  );
+}
+
+function MockPopup() {
+  return (
+    <div className="w-full max-w-[250px] overflow-hidden rounded-lg shadow-2xl">
+      <div className="flex items-center gap-1.5 bg-[#2a2a2a] px-2.5 py-1.5">
+        <span className="h-1.5 w-1.5 rounded-full bg-[#ff5f56]" />
+        <span className="h-1.5 w-1.5 rounded-full bg-[#ffbd2e]" />
+        <span className="h-1.5 w-1.5 rounded-full bg-[#27c93f]" />
+        <span className="ml-1.5 flex-1 rounded bg-black/40 px-2 py-0.5 text-[8px] text-white/50">
+          sommaclub.com.br
+        </span>
+      </div>
+      <div className="relative h-24 bg-[#f4f4f4] p-2.5">
+        <div className="h-2 w-14 rounded bg-black/15" />
+        <div className="mt-1.5 h-1.5 w-24 rounded bg-black/[0.07]" />
+        <div className="mt-1 h-1.5 w-20 rounded bg-black/[0.07]" />
+        <div className="mt-1 h-1.5 w-24 rounded bg-black/[0.07]" />
+        <div className="absolute bottom-2 right-2 w-[48%] rounded-lg bg-[#0A0A0A] p-2 shadow-xl">
+          <div className="text-[7px] font-bold uppercase tracking-wider text-[#FF2C03]">Campanha</div>
+          <div className="text-[11px] font-black leading-tight text-white">SUA MARCA</div>
+          <div className="mt-1.5 rounded bg-[#FF2C03] py-0.5 text-center text-[7px] font-bold text-white">
+            Saiba mais
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MockCheckin() {
+  return (
+    <div className="w-[112px] rounded-[1.3rem] border-4 border-[#1c1c1c] bg-black p-2.5 shadow-2xl">
+      <div className="text-center text-[7px] font-bold uppercase tracking-wider text-[#FF2C03]">
+        Somma · Check-in
+      </div>
+      <div className="mt-2 space-y-1.5">
+        <div className="rounded-md bg-white/[0.06] px-2 py-1.5">
+          <div className="h-1.5 w-14 rounded bg-white/25" />
+          <div className="mt-1 h-1 w-9 rounded bg-white/10" />
+        </div>
+        <div className="rounded-md bg-white/[0.06] px-2 py-1.5">
+          <div className="h-1.5 w-12 rounded bg-white/25" />
+          <div className="mt-1 h-1 w-10 rounded bg-white/10" />
+        </div>
+      </div>
+      <div className="mt-2 rounded-md bg-[#FF2C03] px-2 py-1.5 text-center">
+        <div className="text-[8px] font-black text-white">SUA MARCA</div>
+        <div className="text-[6px] text-white/85">patrocinador oficial</div>
+      </div>
+    </div>
+  );
+}
+
+function MockEmail() {
+  return (
+    <div className="w-full max-w-[230px] overflow-hidden rounded-lg bg-white shadow-2xl">
+      <div className="flex items-center gap-2 border-b border-black/10 px-3 py-2">
+        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#FF2C03] text-[9px] font-black text-white">
+          S
+        </span>
+        <div className="leading-tight">
+          <div className="text-[9px] font-bold text-black">Somma Club</div>
+          <div className="text-[7px] text-black/40">para +6 mil membros</div>
+        </div>
+      </div>
+      <div className="p-2.5">
+        <div className="rounded-md bg-[#0A0A0A] p-2 text-center">
+          <div className="text-[6px] font-bold uppercase tracking-wider text-[#FF2C03]">Espaço da marca</div>
+          <div className="text-[11px] font-black text-white">SUA MARCA</div>
+        </div>
+        <div className="mt-2 space-y-1">
+          <div className="h-1.5 w-full rounded bg-black/[0.07]" />
+          <div className="h-1.5 w-4/5 rounded bg-black/[0.07]" />
+          <div className="h-1.5 w-3/5 rounded bg-black/[0.07]" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MockAgenda() {
+  const rows = [
+    { d: "SÁB 11", t: "Encontro de sábado", c: "bg-white/25", brand: false },
+    { d: "SÁB 18", t: "Somma Special Day", c: "bg-white/25", brand: false },
+    { d: "SÁB 25", t: "Ação · SUA MARCA", c: "bg-[#FF2C03]", brand: true },
+  ];
+  return (
+    <div className="w-[122px] rounded-[1.3rem] border-4 border-[#1c1c1c] bg-[#0A0A0A] p-2.5 shadow-2xl">
+      <div className="text-[7px] font-bold text-white/60">Julho 2026 · Agenda Somma</div>
+      <div className="mt-2 space-y-1.5">
+        {rows.map((r) => (
+          <div
+            key={r.d}
+            className={`flex items-center gap-1.5 rounded-md px-1.5 py-1 ${
+              r.brand ? "bg-[#FF2C03]/15 ring-1 ring-[#FF2C03]/40" : "bg-white/[0.05]"
+            }`}
+          >
+            <span className={`h-5 w-0.5 rounded-full ${r.c}`} />
+            <div>
+              <div className="text-[6px] font-semibold text-white/50">{r.d}</div>
+              <div className={`text-[7px] font-bold ${r.brand ? "text-[#FF2C03]" : "text-white/85"}`}>{r.t}</div>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
