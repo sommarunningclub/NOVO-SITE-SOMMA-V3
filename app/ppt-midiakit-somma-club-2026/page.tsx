@@ -39,8 +39,18 @@ const SLIDES = [
   "instagram",
   "marca",
   "por-que",
+  "parceiros",
   "contato",
 ] as const;
+
+const PARTNERS = [
+  { nome: "Red Bull", logo: `${IMG}/logos/redbull.png` },
+  { nome: "BigBox", logo: `${IMG}/logos/bigbox.png` },
+  { nome: "Track&Field", logo: `${IMG}/logos/track.png` },
+  { nome: "Dobro", logo: `${IMG}/logos/dobro.png` },
+  { nome: "Academia Evolve", logo: `${IMG}/logos/evolve.svg` },
+  { nome: "Estamina Recovery", logo: `${IMG}/logos/estamina.jpg` },
+];
 
 export default function MidiaKitPage() {
   const scroller = useRef<HTMLDivElement>(null);
@@ -335,6 +345,21 @@ export default function MidiaKitPage() {
               Reels que passam de 20 mil views
             </span>
           </div>
+
+          <div className="reveal mt-6 grid gap-3 sm:grid-cols-2 md:max-w-2xl">
+            <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+              <p className="text-2xl font-black leading-none text-[#FF2C03]">66,2%</p>
+              <p className="mt-1.5 text-sm text-white/70">
+                do alcance vem de <strong className="text-white">seguidores</strong> — audiência fiel e recorrente.
+              </p>
+            </div>
+            <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+              <p className="text-2xl font-black leading-none text-[#FF2C03]">15h</p>
+              <p className="mt-1.5 text-sm text-white/70">
+                horário de <strong className="text-white">pico</strong> — a melhor janela para ativar a sua marca.
+              </p>
+            </div>
+          </div>
         </div>
       </Slide>
 
@@ -407,8 +432,35 @@ export default function MidiaKitPage() {
         </div>
       </Slide>
 
-      {/* ───────── SLIDE 10 · CONTATO / CTA ───────── */}
-      <Slide index={9} name="contato" className="relative items-center justify-center overflow-hidden text-center">
+      {/* ───────── SLIDE 10 · PARCEIROS / PROVA SOCIAL ───────── */}
+      <Slide index={9} name="parceiros" className="items-center bg-[#0E0E0E]">
+        <div className="container-somma relative z-10 text-center">
+          <p className="reveal text-xs font-semibold uppercase tracking-[0.3em] text-[#FF2C03]">
+            Quem já ativou com a gente
+          </p>
+          <h2 className="reveal mx-auto mt-4 max-w-2xl text-3xl font-bold md:text-5xl">
+            Marcas que já viveram o Somma.
+          </h2>
+          <p className="reveal mx-auto mt-4 max-w-xl text-base text-white/65">
+            De grandes marcas a negócios locais — quem ativa com a nossa comunidade, volta.
+          </p>
+          <div className="mt-12 grid grid-cols-2 gap-3 sm:grid-cols-3 md:gap-4">
+            {PARTNERS.map((p) => (
+              <div
+                key={p.nome}
+                className="reveal flex h-24 items-center justify-center rounded-2xl bg-white p-6 md:h-28"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={p.logo} alt={p.nome} className="max-h-12 w-auto max-w-[75%] object-contain md:max-h-14" />
+              </div>
+            ))}
+          </div>
+          <p className="reveal mt-8 text-sm text-white/40">e muitas outras a cada edição do Somma Special Day.</p>
+        </div>
+      </Slide>
+
+      {/* ───────── SLIDE 11 · CONTATO / CTA ───────── */}
+      <Slide index={10} name="contato" className="relative items-center justify-center overflow-hidden text-center">
         <BgPhoto src={`${IMG}/eixao3.jpg`} alt="Somma Club" overlay="strong" />
         <div className="container-somma relative z-10">
           {/* eslint-disable-next-line @next/next/no-img-element */}
