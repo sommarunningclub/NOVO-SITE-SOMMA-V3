@@ -25,7 +25,8 @@ export default function Home() {
         <Paces />
         <AdvisoryTeaser />
         <Gallery />
-        <Testimonials />
+        {/* Depoimentos oculto por enquanto (trocar `false` por `true` para reexibir) */}
+        {false && <Testimonials />}
         <StravaCta />
         <Faq />
         <SignupSection />
