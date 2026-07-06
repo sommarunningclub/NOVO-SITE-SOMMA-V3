@@ -18,6 +18,12 @@ import {
   Heart,
   Globe,
   Zap,
+  Megaphone,
+  QrCode,
+  Send,
+  CalendarClock,
+  Bell,
+  RefreshCw,
 } from "lucide-react";
 
 const WHATSAPP =
@@ -38,6 +44,8 @@ const SLIDES = [
   "audiencia",
   "instagram",
   "marca",
+  "espacos",
+  "agenda",
   "por-que",
   "parceiros",
   "contato",
@@ -394,8 +402,96 @@ export default function MidiaKitPage() {
         </div>
       </Slide>
 
-      {/* ───────── SLIDE 9 · POR QUE PATROCINAR ───────── */}
-      <Slide index={8} name="por-que" className="relative items-center overflow-hidden">
+      {/* ───────── SLIDE 9 · ESPAÇOS DE MÍDIA ───────── */}
+      <Slide index={8} name="espacos" className="relative items-center overflow-hidden">
+        <BgPhoto src={`${IMG}/espacos.jpg`} alt="Espaços de mídia do Somma" overlay="cards" />
+        <div className="container-somma relative z-10">
+          <p className="reveal text-xs font-semibold uppercase tracking-[0.3em] text-[#FF2C03]">
+            Espaços de mídia próprios
+          </p>
+          <h2 className="reveal mt-4 max-w-3xl text-3xl font-bold md:text-5xl">
+            Sua marca em vários canais que <span className="text-[#FF2C03]">a gente controla</span>.
+          </h2>
+          <p className="reveal mt-4 max-w-xl text-base text-white/65">
+            Não é só um post. São pontos de contato que ativamos quando e como faz sentido pra você.
+          </p>
+          <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <Value
+              icon={Megaphone}
+              title="Pop-up no site"
+              text="Sua campanha em destaque no sommaclub.com.br, como um pop-up para milhares de visitantes."
+            />
+            <Value
+              icon={QrCode}
+              title="Área de check-in"
+              text="Centenas de pessoas passam toda semana pelo check-in. Mídia e ativação com público presencial garantido."
+            />
+            <Value
+              icon={Send}
+              title="E-mail marketing"
+              text="Disparos constantes para a base de +6 mil membros — sua marca direto na caixa de entrada."
+            />
+            <Value
+              icon={CalendarClock}
+              title="Agenda dedicada"
+              text="Um espaço da sua marca na Agenda oficial, direto no calendário dos membros."
+            />
+          </div>
+        </div>
+      </Slide>
+
+      {/* ───────── SLIDE 10 · AGENDA COMO MÍDIA ───────── */}
+      <Slide index={9} name="agenda" className="items-center bg-[#0A0A0A]">
+        <div className="container-somma relative z-10">
+          <p className="reveal text-xs font-semibold uppercase tracking-[0.3em] text-[#FF2C03]">
+            Agenda oficial · agenda.sommaclub.com.br
+          </p>
+          <h2 className="reveal mt-4 max-w-3xl text-3xl font-bold leading-[1.05] md:text-5xl">
+            A mídia que mora no <span className="text-[#FF2C03]">calendário</span> dos membros.
+          </h2>
+          <p className="reveal mt-5 max-w-2xl text-base text-white/70 md:text-lg">
+            Os membros assinam a Agenda do Somma uma única vez (Apple, Google ou Outlook). A partir daí, cada treino,
+            corrida e evento — <strong className="text-white">inclusive as ações da sua marca</strong> — aparece
+            sozinho no calendário pessoal deles, com lembrete.
+          </p>
+
+          <div className="reveal mt-6 flex flex-wrap items-center gap-2.5">
+            {[
+              ["icon-apple-calendar", "Apple"],
+              ["icon-google-calendar", "Google"],
+              ["icon-outlook", "Outlook"],
+            ].map(([file, name]) => (
+              <span key={file} className="inline-flex items-center gap-2 rounded-xl bg-white px-3 py-2">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={`/agenda/${file}.svg`} alt={name} className="h-5 w-5" />
+                <span className="text-sm font-semibold text-black">{name}</span>
+              </span>
+            ))}
+            <span className="text-sm text-white/45">assina uma vez, recebe pra sempre</span>
+          </div>
+
+          <div className="mt-9 grid grid-cols-1 gap-4 md:grid-cols-3">
+            <Value
+              icon={Bell}
+              title="Assinatura única"
+              text="O membro conecta uma vez e nunca mais precisa fazer nada — tudo cai no calendário dele automaticamente."
+            />
+            <Value
+              icon={RefreshCw}
+              title="Atualiza sozinho"
+              text="Publicamos no nosso painel e a atualização propaga sozinha para o calendário de todo mundo que assinou."
+            />
+            <Value
+              icon={CalendarClock}
+              title="Espaço da sua marca"
+              text="Sua ação entra na agenda oficial e vive no dia a dia de quem corre com o Somma — presença recorrente e útil."
+            />
+          </div>
+        </div>
+      </Slide>
+
+      {/* ───────── SLIDE 11 · POR QUE PATROCINAR ───────── */}
+      <Slide index={10} name="por-que" className="relative items-center overflow-hidden">
         <BgPhoto src={`${IMG}/wellness.jpg`} alt="Público que vive o bem-estar" overlay="cards" />
         <div className="container-somma relative z-10">
           <p className="reveal text-xs font-semibold uppercase tracking-[0.3em] text-[#FF2C03]">Por que patrocinar</p>
@@ -432,8 +528,8 @@ export default function MidiaKitPage() {
         </div>
       </Slide>
 
-      {/* ───────── SLIDE 10 · PARCEIROS / PROVA SOCIAL ───────── */}
-      <Slide index={9} name="parceiros" className="items-center bg-[#0E0E0E]">
+      {/* ───────── SLIDE 12 · PARCEIROS / PROVA SOCIAL ───────── */}
+      <Slide index={11} name="parceiros" className="items-center bg-[#0E0E0E]">
         <div className="container-somma relative z-10 text-center">
           <p className="reveal text-xs font-semibold uppercase tracking-[0.3em] text-[#FF2C03]">
             Quem já ativou com a gente
@@ -459,8 +555,8 @@ export default function MidiaKitPage() {
         </div>
       </Slide>
 
-      {/* ───────── SLIDE 11 · CONTATO / CTA ───────── */}
-      <Slide index={10} name="contato" className="relative items-center justify-center overflow-hidden text-center">
+      {/* ───────── SLIDE 13 · CONTATO / CTA ───────── */}
+      <Slide index={12} name="contato" className="relative items-center justify-center overflow-hidden text-center">
         <BgPhoto src={`${IMG}/eixao3.jpg`} alt="Somma Club" overlay="strong" />
         <div className="container-somma relative z-10">
           {/* eslint-disable-next-line @next/next/no-img-element */}
