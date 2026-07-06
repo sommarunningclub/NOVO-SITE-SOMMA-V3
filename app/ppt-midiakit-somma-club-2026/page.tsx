@@ -15,6 +15,9 @@ import {
   Target,
   Mail,
   MessageCircle,
+  Heart,
+  Globe,
+  Zap,
 } from "lucide-react";
 
 const WHATSAPP =
@@ -34,6 +37,7 @@ const SLIDES = [
   "special-day",
   "audiencia",
   "marca",
+  "por-que",
   "contato",
 ] as const;
 
@@ -325,8 +329,45 @@ export default function MidiaKitPage() {
         </div>
       </Slide>
 
-      {/* ───────── SLIDE 8 · CONTATO / CTA ───────── */}
-      <Slide index={7} name="contato" className="relative items-center justify-center overflow-hidden text-center">
+      {/* ───────── SLIDE 8 · POR QUE PATROCINAR ───────── */}
+      <Slide index={7} name="por-que" className="items-center bg-[#0A0A0A]">
+        <div className="container-somma relative z-10">
+          <p className="reveal text-xs font-semibold uppercase tracking-[0.3em] text-[#FF2C03]">Por que patrocinar</p>
+          <h2 className="reveal mt-4 max-w-3xl text-3xl font-bold leading-[1.05] md:text-5xl">
+            Sua marca na mente de quem <span className="text-[#FF2C03]">vive o bem-estar</span>.
+          </h2>
+          <p className="reveal mt-5 max-w-2xl text-base text-white/70 md:text-lg">
+            Patrocinar o Somma é ficar no topo da lembrança — e no dia a dia — de um público que respira saúde,
+            wellness e estilo de vida ativo. Com membros de <strong className="text-white">todos os cantos do DF e de
+            todas as classes</strong>, sua marca ganha alcance amplo, diverso e com conexão real.
+          </p>
+          <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <Value
+              icon={Heart}
+              title="Conexão com wellness"
+              text="Um público que valoriza saúde, performance e bem-estar todos os dias — e associa isso à sua marca."
+            />
+            <Value
+              icon={Globe}
+              title="Todo o DF, todas as classes"
+              text="Membros de todas as regiões de Brasília e de todos os perfis sociais. Alcance amplo e diverso."
+            />
+            <Value
+              icon={Users}
+              title="Comunidade engajada"
+              text="Centenas de pessoas presentes toda semana, com vínculo real, recorrente e espontâneo."
+            />
+            <Value
+              icon={Zap}
+              title="Presença física + digital"
+              text="Da rua ao feed: ativação no evento, camisas, grupo VIP, redes sociais e base própria ativável."
+            />
+          </div>
+        </div>
+      </Slide>
+
+      {/* ───────── SLIDE 9 · CONTATO / CTA ───────── */}
+      <Slide index={8} name="contato" className="relative items-center justify-center overflow-hidden text-center">
         <BgPhoto src={`${IMG}/eixao3.jpg`} alt="Somma Club" overlay="strong" />
         <div className="container-somma relative z-10">
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -468,6 +509,26 @@ function Pillar({
       </span>
       <h3 className="mt-5 text-xl font-bold">{title}</h3>
       <p className="mt-2 text-sm leading-relaxed text-white/65">{text}</p>
+    </div>
+  );
+}
+
+function Value({
+  icon: Icon,
+  title,
+  text,
+}: {
+  icon: typeof Users;
+  title: string;
+  text: string;
+}) {
+  return (
+    <div className="reveal flex flex-col rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+      <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-[#FF2C03]/15 text-[#FF2C03]">
+        <Icon className="h-5 w-5" />
+      </span>
+      <h3 className="mt-4 text-base font-bold leading-snug">{title}</h3>
+      <p className="mt-1.5 text-[13px] leading-relaxed text-white/60">{text}</p>
     </div>
   );
 }
