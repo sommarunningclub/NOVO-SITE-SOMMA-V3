@@ -36,6 +36,7 @@ const SLIDES = [
   "fazemos",
   "special-day",
   "audiencia",
+  "instagram",
   "marca",
   "por-que",
   "contato",
@@ -304,8 +305,41 @@ export default function MidiaKitPage() {
         </div>
       </Slide>
 
-      {/* ───────── SLIDE 7 · COMO SUA MARCA APARECE ───────── */}
-      <Slide index={6} name="marca" className="relative items-center overflow-hidden">
+      {/* ───────── SLIDE 7 · INSTAGRAM ───────── */}
+      <Slide index={6} name="instagram" className="relative items-center overflow-hidden">
+        <BgPhoto src={`${IMG}/treino2.jpg`} alt="Conteúdo do Somma no Instagram" overlay="cards" />
+        <div className="container-somma relative z-10">
+          <p className="reveal text-xs font-semibold uppercase tracking-[0.3em] text-[#FF2C03]">
+            Instagram · @somma.club
+          </p>
+          <h2 className="reveal mt-4 max-w-3xl text-3xl font-bold leading-[1.05] md:text-5xl">
+            Sua marca em <span className="text-[#FF2C03]">centenas de milhares</span> de telas.
+          </h2>
+          <p className="reveal mt-3 text-sm text-white/55">Desempenho dos últimos 90 dias.</p>
+
+          <div className="mt-10 grid grid-cols-2 gap-x-8 gap-y-9 md:grid-cols-4">
+            <IgStat count={13813} label="seguidores" note="e crescendo" />
+            <IgStat count={430946} label="visualizações" note="últimos 90 dias" />
+            <IgStat count={42722} label="contas alcançadas" note="últimos 90 dias" />
+            <IgStat count={1900} label="cliques em links" note="últimos 90 dias" />
+          </div>
+
+          <div className="reveal mt-10 flex flex-wrap items-center gap-2.5 text-sm text-white/75">
+            <span className="rounded-full bg-white/10 px-3 py-1.5">
+              Stories <strong className="text-white">62,8%</strong>
+            </span>
+            <span className="rounded-full bg-white/10 px-3 py-1.5">
+              Reels <strong className="text-white">37,1%</strong>
+            </span>
+            <span className="rounded-full bg-[#FF2C03]/15 px-3 py-1.5 font-semibold text-[#FF2C03]">
+              Reels que passam de 20 mil views
+            </span>
+          </div>
+        </div>
+      </Slide>
+
+      {/* ───────── SLIDE 8 · COMO SUA MARCA APARECE ───────── */}
+      <Slide index={7} name="marca" className="relative items-center overflow-hidden">
         <BgPhoto src={`${IMG}/ativacao.jpg`} alt="Ativação de marca no Somma" overlay="cards" />
         <div className="container-somma relative z-10">
           <p className="reveal text-xs font-semibold uppercase tracking-[0.3em] text-[#FF2C03]">Como sua marca entra</p>
@@ -335,8 +369,8 @@ export default function MidiaKitPage() {
         </div>
       </Slide>
 
-      {/* ───────── SLIDE 8 · POR QUE PATROCINAR ───────── */}
-      <Slide index={7} name="por-que" className="relative items-center overflow-hidden">
+      {/* ───────── SLIDE 9 · POR QUE PATROCINAR ───────── */}
+      <Slide index={8} name="por-que" className="relative items-center overflow-hidden">
         <BgPhoto src={`${IMG}/wellness.jpg`} alt="Público que vive o bem-estar" overlay="cards" />
         <div className="container-somma relative z-10">
           <p className="reveal text-xs font-semibold uppercase tracking-[0.3em] text-[#FF2C03]">Por que patrocinar</p>
@@ -373,8 +407,8 @@ export default function MidiaKitPage() {
         </div>
       </Slide>
 
-      {/* ───────── SLIDE 9 · CONTATO / CTA ───────── */}
-      <Slide index={8} name="contato" className="relative items-center justify-center overflow-hidden text-center">
+      {/* ───────── SLIDE 10 · CONTATO / CTA ───────── */}
+      <Slide index={9} name="contato" className="relative items-center justify-center overflow-hidden text-center">
         <BgPhoto src={`${IMG}/eixao3.jpg`} alt="Somma Club" overlay="strong" />
         <div className="container-somma relative z-10">
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -504,6 +538,18 @@ function Stat({
         </span>
       </div>
       <p className="mt-2 text-base font-medium text-white/70 md:text-lg">{label}</p>
+    </div>
+  );
+}
+
+function IgStat({ count, label, note }: { count: number; label: string; note: string }) {
+  return (
+    <div className="reveal">
+      <div className="text-4xl font-black leading-none tracking-tight text-white md:text-5xl">
+        <span data-count={count}>0</span>
+      </div>
+      <p className="mt-2 text-sm font-semibold text-white/85">{label}</p>
+      <p className="text-xs text-white/40">{note}</p>
     </div>
   );
 }
