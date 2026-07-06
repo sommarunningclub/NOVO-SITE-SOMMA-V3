@@ -98,3 +98,20 @@ body {
     scroll-behavior: auto !important;
   }
 }
+
+/* Insider Conect — comportamento "padrão app": wrapper sem caixa (não afeta layout) */
+.insider-app {
+  display: contents;
+}
+
+/* No mobile, força 16px em todos os campos do insider para o iOS NÃO dar o
+   auto-zoom ao focar (o gatilho é font-size < 16px). No desktop (>=640px) o
+   design volta ao text-sm original. Especificidade (.insider-app + elemento)
+   vence o `text-sm` do Tailwind sem !important. */
+@media (max-width: 639px) {
+  .insider-app input,
+  .insider-app select,
+  .insider-app textarea {
+    font-size: 16px;
+  }
+}
