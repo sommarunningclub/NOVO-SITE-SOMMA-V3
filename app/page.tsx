@@ -11,6 +11,7 @@ import { StravaCta } from "@/components/strava-cta";
 import { Faq } from "@/components/faq";
 import { SignupSection } from "@/components/signup-section";
 import { Footer } from "@/components/footer";
+import { AgendaPopup } from "@/components/agenda-popup";
 
 export default function Home() {
   return (
@@ -30,6 +31,7 @@ export default function Home() {
         <SignupSection />
       </main>
       <Footer />
+      <AgendaPopup />
     </>
   );
 }
