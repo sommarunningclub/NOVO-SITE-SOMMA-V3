@@ -1,8 +1,11 @@
 import { NextResponse } from 'next/server'
 import { getSupabase } from '@/lib/supabase'
 
-export const dynamic = 'force-dynamic'
-export const revalidate = 0
+// Cache curto (ISR 15s): esta rota é chamada em TODO load do /check-in. Sem cache,
+// centenas de pessoas num sábado de evento = centenas de leituras idênticas no banco.
+// Com 15s, o Supabase é consultado ~1x a cada 15s e o resto sai do cache do edge.
+// (dado de evento muda pouco; 15s de defasagem é imperceptível para o check-in.)
+export const revalidate = 15
 
 // `eventos` é dado PÚBLICO (RLS permite leitura anon). Usar a anon key desacopla
 // a listagem da service-role — o check-in aberto na gestão sempre aparece no site.

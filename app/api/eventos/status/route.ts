@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { requireInsiderAuth } from '@/lib/auth/insider'
 import { getServiceSupabase } from '@/lib/supabase'
 
-export const dynamic = 'force-dynamic'
-export const revalidate = 0
+// GET é leitura pública e barata (status encerrado de 1 evento). Cache curto no
+// edge (por evento_id) evita bater no banco a cada chamada. PATCH nunca é cacheado.
+const CACHE_HEADERS = { 'Cache-Control': 'public, s-maxage=15, stale-while-revalidate=30' }
 
 export async function GET(req: NextRequest) {
   try {
@@ -25,14 +26,14 @@ export async function GET(req: NextRequest) {
 
     // Se o erro é sobre coluna não existente, retornar false
     if (error?.message?.includes('column') || error?.message?.includes('evento_encerrado')) {
-      return NextResponse.json({ encerrado: false })
+      return NextResponse.json({ encerrado: false }, { headers: CACHE_HEADERS })
     }
 
     if (error || !data) {
-      return NextResponse.json({ encerrado: false })
+      return NextResponse.json({ encerrado: false }, { headers: CACHE_HEADERS })
     }
 
-    return NextResponse.json({ encerrado: !!data.evento_encerrado })
+    return NextResponse.json({ encerrado: !!data.evento_encerrado }, { headers: CACHE_HEADERS })
   } catch {
     return NextResponse.json({ encerrado: false })
   }

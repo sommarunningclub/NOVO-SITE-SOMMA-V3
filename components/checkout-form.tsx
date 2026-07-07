@@ -210,8 +210,20 @@ export function CheckoutForm({ plan, initialProfessors }: CheckoutFormProps) {
     if (pageState !== "pix" || !pixPaymentId) return
 
     let pollInterval: NodeJS.Timeout | null = null
+    let attempts = 0
+    // Teto de ~20 min (400 x 3s): evita que uma aba de PIX abandonada fique batendo
+    // na Asaas para sempre. Se o pagamento cair depois, o webhook confirma no servidor.
+    const MAX_ATTEMPTS = 400
+
+    const stop = () => {
+      if (pollInterval) {
+        clearInterval(pollInterval)
+        pollInterval = null
+      }
+    }
 
     const checkPaymentStatus = async () => {
+      attempts++
       try {
         const res = await fetch(`/api/asaas/payment-status?paymentId=${pixPaymentId}`)
         const data = await res.json()
@@ -223,11 +235,16 @@ export function CheckoutForm({ plan, initialProfessors }: CheckoutFormProps) {
 
         // Se pagamento foi confirmado, ir para tela de sucesso
         if (data.paid) {
-          if (pollInterval) clearInterval(pollInterval)
+          stop()
           setPageState("success")
         }
       } catch (err) {
         console.error("Erro no polling:", err)
+      } finally {
+        if (attempts >= MAX_ATTEMPTS) {
+          stop()
+          console.warn("[checkout] Polling do PIX encerrado após o limite de tentativas.")
+        }
       }
     }
 
