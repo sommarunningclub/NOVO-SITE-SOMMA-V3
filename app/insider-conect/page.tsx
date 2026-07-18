@@ -54,7 +54,7 @@ type EventoOption = {
   checkin_status: 'aberto' | 'bloqueado' | 'encerrado'
 }
 
-type Modulo = 'home' | 'membros' | 'checkins' | 'validar' | 'validar-shakeout' | 'sorteio' | 'transferencias'
+type Modulo = 'home' | 'membros' | 'checkins' | 'validar' | 'validar-shakeout' | 'validar-tfsports' | 'sorteio' | 'transferencias'
 
 type ShakeoutCheckin = {
   id: string
@@ -67,6 +67,17 @@ type ShakeoutCheckin = {
   validacao_do_checkin: boolean
   validated_at: string | null
   data_de_cadastro: string
+}
+
+type TfSportsCheckin = {
+  id: number
+  nome_atleta: string
+  documento: string
+  genero: string | null
+  tamanho_camiseta: string | null
+  validacao_do_checkin: boolean
+  validated_at: string | null
+  created_at: string
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -751,6 +762,132 @@ function ModuloValidarShakeout() {
                 <div className="flex items-center gap-3 mt-0.5 flex-wrap">
                   <span className="text-zinc-500 text-xs font-mono">{c.cpf ? formatCPF(c.cpf) : '—'}</span>
                   {c.uf && <span className="text-xs text-[#ff2c03]">{c.uf}</span>}
+                </div>
+                <p className={`text-xs mt-0.5 font-medium ${c.validacao_do_checkin ? 'text-green-400' : 'text-zinc-500'}`}>
+                  {c.validacao_do_checkin ? 'Entrada liberada' : 'Aguardando validação'}
+                </p>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// ─── Módulo: Validar Check-in · TF Sports (Treinão Special Day) ───────────────
+
+function ModuloValidarTfSports() {
+  const [checkins, setCheckins] = useState<TfSportsCheckin[]>([])
+  const [busca, setBusca] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [validando, setValidando] = useState<number | null>(null)
+
+  const buscarCheckins = useCallback(async (q: string) => {
+    setLoading(true)
+    try {
+      const params = new URLSearchParams()
+      if (q) params.set('busca', q)
+      const res = await insiderFetch(`/api/tf-sports/validar?${params}`)
+      const data = await res.json()
+      setCheckins(data.checkins || [])
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => { buscarCheckins('') }, [buscarCheckins])
+
+  useEffect(() => {
+    const t = setTimeout(() => buscarCheckins(busca), 400)
+    return () => clearTimeout(t)
+  }, [busca, buscarCheckins])
+
+  async function toggleValidacao(id: number, atual: boolean) {
+    setValidando(id)
+    try {
+      const res = await insiderFetch('/api/tf-sports/validar', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, validacao_do_checkin: !atual }),
+      })
+      // Só reflete na tela se o banco REALMENTE salvou (evita falso "liberado")
+      if (res.ok) {
+        setCheckins(prev => prev.map(c => c.id === id ? { ...c, validacao_do_checkin: !atual } : c))
+      } else {
+        alert('Não foi possível salvar a validação. Tente de novo.')
+      }
+    } finally {
+      setValidando(null)
+    }
+  }
+
+  const validados = checkins.filter(c => c.validacao_do_checkin).length
+
+  return (
+    <div className="space-y-4">
+      <div className="bg-[#ff2c03]/10 border border-[#ff2c03]/30 rounded-xl p-3.5">
+        <p className="text-[#ff2c03] text-xs font-semibold uppercase tracking-widest">Evento especial</p>
+        <p className="text-white text-sm font-semibold mt-0.5">Treinão · Somma Special Day (TF Sports)</p>
+      </div>
+
+      <div className="grid grid-cols-2 gap-2">
+        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-3 text-center">
+          <p className="text-2xl font-bold text-white">{checkins.length}</p>
+          <p className="text-zinc-500 text-xs mt-0.5">Total inscritos</p>
+        </div>
+        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-3 text-center">
+          <p className="text-2xl font-bold text-green-400">{validados}</p>
+          <p className="text-zinc-500 text-xs mt-0.5">Entradas liberadas</p>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-3">
+        <div className="flex-1 relative">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+          <input
+            type="text"
+            value={busca}
+            onChange={e => setBusca(e.target.value)}
+            placeholder="Buscar por nome ou CPF..."
+            className="w-full bg-zinc-900 border border-zinc-700 focus:border-[#ff2c03] text-white placeholder:text-zinc-600 rounded-xl pl-10 pr-4 py-3 text-sm outline-none transition-all"
+          />
+        </div>
+        <button onClick={() => buscarCheckins(busca)} className="p-3 bg-zinc-900 border border-zinc-700 rounded-xl text-zinc-400 hover:text-white hover:border-zinc-500 transition-all">
+          <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+        </button>
+      </div>
+
+      <div className="space-y-2">
+        {loading && checkins.length === 0 ? (
+          <div className="flex justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-zinc-500" /></div>
+        ) : checkins.length === 0 ? (
+          <div className="py-12 text-center text-zinc-500 text-sm">Nenhum inscrito encontrado.</div>
+        ) : checkins.map(c => (
+          <div
+            key={c.id}
+            className={`border rounded-xl p-4 transition-all ${c.validacao_do_checkin ? 'bg-green-900/10 border-green-800/40' : 'bg-zinc-900 border-zinc-800'}`}
+          >
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => toggleValidacao(c.id, c.validacao_do_checkin)}
+                disabled={validando === c.id}
+                className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-all ${
+                  c.validacao_do_checkin ? 'bg-green-500 hover:bg-red-500' : 'bg-zinc-800 hover:bg-green-600'
+                } disabled:opacity-50`}
+              >
+                {validando === c.id
+                  ? <Loader2 className="w-4 h-4 animate-spin text-white" />
+                  : c.validacao_do_checkin
+                    ? <Check className="w-4 h-4 text-white" />
+                    : <X className="w-4 h-4 text-zinc-400" />
+                }
+              </button>
+              <div className="flex-1 min-w-0">
+                <p className="text-white font-medium text-sm">{c.nome_atleta?.trim() || '—'}</p>
+                <div className="flex items-center gap-3 mt-0.5 flex-wrap">
+                  <span className="text-zinc-500 text-xs font-mono">{c.documento ? formatCPF(c.documento) : '—'}</span>
+                  {c.tamanho_camiseta && <span className="text-xs text-[#ff2c03]">Camisa {c.tamanho_camiseta}</span>}
                 </div>
                 <p className={`text-xs mt-0.5 font-medium ${c.validacao_do_checkin ? 'text-green-400' : 'text-zinc-500'}`}>
                   {c.validacao_do_checkin ? 'Entrada liberada' : 'Aguardando validação'}
@@ -1700,6 +1837,12 @@ function Painel({ insider, onLogout }: { insider: Insider; onLogout: () => void 
       icone: ShieldCheck,
     },
     {
+      id: 'validar-tfsports' as Modulo,
+      titulo: 'Validar Check-in · TF Sports',
+      descricao: 'Libere a entrada do Treinão do Somma Special Day',
+      icone: ShieldCheck,
+    },
+    {
       id: 'sorteio' as Modulo,
       titulo: 'Sorteio',
       descricao: 'Realize sorteios entre os participantes do evento',
@@ -1787,6 +1930,8 @@ function Painel({ insider, onLogout }: { insider: Insider; onLogout: () => void 
           <ModuloValidar />
         ) : modulo === 'validar-shakeout' ? (
           <ModuloValidarShakeout />
+        ) : modulo === 'validar-tfsports' ? (
+          <ModuloValidarTfSports />
         ) : modulo === 'transferencias' ? (
           <ModuloTransferencias insiderNome={insider.nome} />
         ) : (
