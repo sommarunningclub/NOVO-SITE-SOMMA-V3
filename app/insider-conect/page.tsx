@@ -5,8 +5,10 @@ import {
   Search, LogOut, Users, ClipboardList, CheckSquare,
   MessageCircle, Check, X, ShieldCheck, ChevronRight,
   ArrowLeft, Loader2, RefreshCw, Lock, ChevronDown,
-  Trophy, Dices, Filter, Clock, Repeat, Plus, Eye, EyeOff,
+  Trophy, Dices, Filter, Clock, Repeat, Plus, Eye, EyeOff, Shuffle,
 } from 'lucide-react'
+import { fisherYatesShuffle } from '@/lib/sorteio/utils'
+import { LISTA_TREINAO_SPECIAL_DAY } from '@/lib/sorteio/lista-treinao-special-day'
 import type { ParticipanteSorteio } from '@/lib/sorteio/types'
 import SorteioMachine from '@/components/sorteio/SorteioMachine'
 import GanhadorCard from '@/components/sorteio/GanhadorCard'
@@ -54,7 +56,7 @@ type EventoOption = {
   checkin_status: 'aberto' | 'bloqueado' | 'encerrado'
 }
 
-type Modulo = 'home' | 'membros' | 'checkins' | 'validar' | 'validar-shakeout' | 'validar-tfsports' | 'sorteio' | 'transferencias'
+type Modulo = 'home' | 'membros' | 'checkins' | 'validar' | 'validar-shakeout' | 'validar-tfsports' | 'sorteio' | 'sorteio-lista' | 'transferencias'
 
 type ShakeoutCheckin = {
   id: string
@@ -771,6 +773,144 @@ function ModuloValidarShakeout() {
           </div>
         ))}
       </div>
+    </div>
+  )
+}
+
+// ─── Módulo: Sorteio por Lista (só nomes) ─────────────────────────────────────
+
+function parseNomes(texto: string): string[] {
+  const seen = new Set<string>()
+  const out: string[] = []
+  for (const raw of texto.split('\n')) {
+    const n = raw.trim()
+    if (!n) continue
+    if (/^nome( do)?( atleta| completo)?$/i.test(n)) continue // ignora cabeçalho
+    const key = n.toLowerCase()
+    if (seen.has(key)) continue // remove duplicados (sorteio justo)
+    seen.add(key)
+    out.push(n)
+  }
+  return out
+}
+
+function ModuloSorteioLista() {
+  const [texto, setTexto] = useState(LISTA_TREINAO_SPECIAL_DAY)
+  const [qtd, setQtd] = useState(1)
+  const [ganhadores, setGanhadores] = useState<string[]>([])
+  const [sorteando, setSorteando] = useState(false)
+  const [nomeAtual, setNomeAtual] = useState('')
+  const [editando, setEditando] = useState(false)
+
+  const nomes = parseNomes(texto)
+  const max = Math.max(1, nomes.length)
+
+  function sortear() {
+    if (sorteando || nomes.length === 0) return
+    const n = Math.max(1, Math.min(qtd || 1, nomes.length))
+    setSorteando(true)
+    setGanhadores([])
+    const winners = fisherYatesShuffle(nomes).slice(0, n)
+    const inicio = Date.now()
+    const tick = () => {
+      setNomeAtual(nomes[Math.floor(Math.random() * nomes.length)])
+      if (Date.now() - inicio < 2500) {
+        setTimeout(tick, 60)
+      } else {
+        setGanhadores(winners)
+        setNomeAtual('')
+        setSorteando(false)
+      }
+    }
+    tick()
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="bg-[#ff2c03]/10 border border-[#ff2c03]/30 rounded-xl p-3.5 flex items-center justify-between">
+        <div>
+          <p className="text-[#ff2c03] text-xs font-semibold uppercase tracking-widest">Sorteio por lista</p>
+          <p className="text-white text-sm font-semibold mt-0.5">{nomes.length} nomes na disputa</p>
+        </div>
+        <Shuffle className="w-5 h-5 text-[#ff2c03]" />
+      </div>
+
+      {/* Editor da lista (colapsável) */}
+      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-3">
+        <button
+          onClick={() => setEditando(v => !v)}
+          className="w-full flex items-center justify-between text-zinc-300 text-sm font-medium"
+        >
+          <span>Lista de nomes ({nomes.length})</span>
+          <ChevronDown className={`w-4 h-4 transition-transform ${editando ? 'rotate-180' : ''}`} />
+        </button>
+        {editando && (
+          <textarea
+            value={texto}
+            onChange={e => setTexto(e.target.value)}
+            rows={10}
+            spellCheck={false}
+            placeholder="Um nome por linha..."
+            className="mt-3 w-full bg-black border border-zinc-700 focus:border-[#ff2c03] text-white placeholder:text-zinc-600 rounded-lg px-3 py-2.5 text-sm outline-none transition-all resize-y font-mono leading-relaxed"
+          />
+        )}
+      </div>
+
+      {/* Controles */}
+      <div className="flex items-end gap-3">
+        <div>
+          <label className="block text-zinc-500 text-xs mb-1.5">Qtd. ganhadores</label>
+          <input
+            type="number"
+            min={1}
+            max={max}
+            value={qtd}
+            onChange={e => setQtd(Math.max(1, Math.min(Number(e.target.value) || 1, max)))}
+            disabled={sorteando}
+            className="w-24 bg-zinc-900 border border-zinc-700 focus:border-[#ff2c03] text-white rounded-xl px-4 py-3 text-sm outline-none transition-all disabled:opacity-50"
+          />
+        </div>
+        <button
+          onClick={sortear}
+          disabled={sorteando || nomes.length === 0}
+          className="flex-1 bg-[#ff2c03] hover:bg-[#cc2402] disabled:bg-zinc-800 disabled:text-zinc-600 text-white font-semibold py-3 rounded-xl flex items-center justify-center gap-2 transition-all disabled:cursor-not-allowed"
+        >
+          {sorteando
+            ? <><Loader2 className="w-4 h-4 animate-spin" /> Sorteando...</>
+            : <><Shuffle className="w-4 h-4" /> Sortear</>}
+        </button>
+      </div>
+
+      {/* Resultado */}
+      {sorteando ? (
+        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl py-12 px-4 text-center">
+          <p className="text-zinc-500 text-xs uppercase tracking-widest mb-3">Sorteando...</p>
+          <p className="text-2xl sm:text-3xl font-bold text-white break-words min-h-[2.5rem]">{nomeAtual || '—'}</p>
+        </div>
+      ) : ganhadores.length > 0 ? (
+        <div className="space-y-2">
+          <p className="text-green-400 text-xs font-semibold uppercase tracking-widest">
+            {ganhadores.length > 1 ? `${ganhadores.length} ganhadores` : 'Ganhador'} 🎉
+          </p>
+          {ganhadores.map((g, i) => (
+            <div key={i} className="bg-green-900/15 border border-green-700/40 rounded-2xl p-4 flex items-center gap-3">
+              <span className="w-10 h-10 rounded-xl bg-green-500 flex items-center justify-center flex-shrink-0">
+                <Trophy className="w-5 h-5 text-white" />
+              </span>
+              <div className="min-w-0">
+                {ganhadores.length > 1 && <p className="text-green-500/70 text-xs font-semibold">{i + 1}º</p>}
+                <p className="text-white font-bold text-lg break-words">{g}</p>
+              </div>
+            </div>
+          ))}
+          <button
+            onClick={sortear}
+            className="w-full mt-2 border border-zinc-700 hover:border-zinc-500 text-zinc-300 hover:text-white font-semibold py-3 rounded-xl flex items-center justify-center gap-2 transition-all text-sm"
+          >
+            <RefreshCw className="w-4 h-4" /> Sortear de novo
+          </button>
+        </div>
+      ) : null}
     </div>
   )
 }
@@ -1849,6 +1989,12 @@ function Painel({ insider, onLogout }: { insider: Insider; onLogout: () => void 
       icone: Dices,
     },
     {
+      id: 'sorteio-lista' as Modulo,
+      titulo: 'Sorteio por Lista',
+      descricao: 'Cole uma lista de nomes e sorteie os ganhadores',
+      icone: Shuffle,
+    },
+    {
       id: 'transferencias' as Modulo,
       titulo: 'Transferências',
       descricao: 'Veja o histórico e registre transferências manuais',
@@ -1932,6 +2078,8 @@ function Painel({ insider, onLogout }: { insider: Insider; onLogout: () => void 
           <ModuloValidarShakeout />
         ) : modulo === 'validar-tfsports' ? (
           <ModuloValidarTfSports />
+        ) : modulo === 'sorteio-lista' ? (
+          <ModuloSorteioLista />
         ) : modulo === 'transferencias' ? (
           <ModuloTransferencias insiderNome={insider.nome} />
         ) : (
