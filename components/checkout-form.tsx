@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import {
   CreditCard,
   Loader2,
@@ -127,6 +127,7 @@ export function CheckoutForm({ plan, initialProfessors }: CheckoutFormProps) {
 
   const [professors, setProfessors] = useState<Professor[]>(initialProfessors)
   const [professor, setProfessor] = useState("")
+  const welcomeEmailSentRef = useRef(false)
   const [shirtSize, setShirtSize] = useState("")
   const [installments, setInstallments] = useState(plan.installments)
 
@@ -206,6 +207,22 @@ export function CheckoutForm({ plan, initialProfessors }: CheckoutFormProps) {
   }
 
   // ─── PIX Payment Polling ──────────────────────────────────────────────────
+  // O destinatário não vai daqui: a rota confirma a compra no Asaas e tira nome e
+  // e-mail do cadastro do cliente. Por isso só o id do pagamento é enviado.
+  const sendWelcomeEmail = useCallback(
+    (payment: { paymentId?: string; subscriptionId?: string }) => {
+      if (welcomeEmailSentRef.current) return
+      welcomeEmailSentRef.current = true
+
+      fetch("/api/assessoria/boas-vindas-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...payment, plano: plan.name, professor }),
+      }).catch((err) => console.error("[checkout] Erro ao enviar e-mail de boas-vindas:", err))
+    },
+    [professor, plan.name]
+  )
+
   useEffect(() => {
     if (pageState !== "pix" || !pixPaymentId) return
 
@@ -236,6 +253,7 @@ export function CheckoutForm({ plan, initialProfessors }: CheckoutFormProps) {
         // Se pagamento foi confirmado, ir para tela de sucesso
         if (data.paid) {
           stop()
+          sendWelcomeEmail({ paymentId: pixPaymentId })
           setPageState("success")
         }
       } catch (err) {
@@ -257,7 +275,7 @@ export function CheckoutForm({ plan, initialProfessors }: CheckoutFormProps) {
     return () => {
       if (pollInterval) clearInterval(pollInterval)
     }
-  }, [pageState, pixPaymentId])
+  }, [pageState, pixPaymentId, sendWelcomeEmail])
 
   // ─── Submit ──────────────────────────────────────────────────────────────
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -416,6 +434,12 @@ export function CheckoutForm({ plan, initialProfessors }: CheckoutFormProps) {
         }),
       })
 
+      // Mensal cria assinatura; Semestral/Anual, cobrança parcelada.
+      sendWelcomeEmail(
+        plan.type === "recurring"
+          ? { subscriptionId: paymentResult.subscription?.id }
+          : { paymentId: paymentResult.payment?.id }
+      )
       setPageState("success")
     } catch (err: any) {
       setError(err.message)
