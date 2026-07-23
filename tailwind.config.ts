@@ -24,6 +24,9 @@ const config: Config = {
         sans: ["var(--font-geist-sans)", "system-ui", "sans-serif"],
         // Condensada, usada nos decks comerciais (ex.: /ppt-michelob)
         display: ["var(--font-display)", "var(--font-geist-sans)", "sans-serif"],
+        // Ultra Balance Challenge: condensada nos títulos, limpa nos textos
+        title: ["var(--font-ubc-title)", "var(--font-display)", "sans-serif"],
+        copy: ["var(--font-ubc-body)", "var(--font-geist-sans)", "sans-serif"],
       },
       maxWidth: {
         container: "1200px",

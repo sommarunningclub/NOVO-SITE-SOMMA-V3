@@ -701,7 +701,239 @@ function slide08Challenge() {
   footer(s);
 }
 
-function slide09SocialRun() {
+/* ── Ultra Balance Challenge: a plataforma por trás do desafio ─────────── */
+
+const UBC_URL = "sommaclub.com.br/ultra-balance-challenge";
+
+/** Rodapé com o link da página dedicada do challenge. */
+function ubcLink(s: Slide) {
+  s.addText(`Detalhamento completo da plataforma em ${UBC_URL}`, {
+    x: M, y: H - 0.95, w: 9, h: 0.28,
+    fontFace: SANS, fontSize: 9.5, color: GOLD, valign: "middle",
+  });
+}
+
+function slide09ChallengePlataforma() {
+  const s = newSlide(
+    "O Ultra Balance Challenge é a plataforma digital que sustenta os 21 dias. Cadastro, missões, pontuação, " +
+      "rankings e recompensas rodam no navegador, sem aplicativo para baixar. Há uma página dedicada explicando " +
+      "a plataforma inteira em " + UBC_URL + ".",
+  );
+  kicker(s, "Ultra Balance Challenge · a plataforma");
+  title(s, [{ text: "Um passaporte digital de " }, { text: "21 dias", color: RED }]);
+  lead(
+    s,
+    "Cadastro, missões, pontuação e recompensas no navegador. Sem aplicativo para baixar, sem fricção para entrar.",
+    { y: 2.72, w: 9.4 },
+  );
+
+  const etapas: [string, string][] = [
+    ["Cadastro", "Dados básicos e aceites, direto no navegador."],
+    ["Escolha do perfil", "Performance, comunidade, diversão ou equilíbrio."],
+    ["Entrada em uma crew", "O participante passa a competir junto com um grupo."],
+    ["Cumprimento das missões", "Tarefas diárias e semanais nos três pilares."],
+    ["Desbloqueio de recompensas", "Badges, sorteios e benefícios por faixa de progresso."],
+    ["Experiência no Social Run", "O progresso vira acesso e personalização no evento."],
+  ];
+  const cw = (CW - 0.5) / 3;
+  etapas.forEach(([t, d], i) => {
+    const x = M + (i % 3) * (cw + 0.25);
+    const y = 3.6 + Math.floor(i / 3) * 1.5;
+    card(s, { x, y, w: cw, h: 1.35 });
+    s.addShape(pptx.ShapeType.rect, { x: x + 0.3, y: y + 0.3, w: 0.06, h: 0.14, fill: { color: GOLD } });
+    s.addText(`${String(i + 1).padStart(2, "0")}  ${t.toUpperCase()}`, {
+      x: x + 0.46, y: y + 0.22, w: cw - 0.76, h: 0.32,
+      fontFace: DISPLAY, fontSize: 15, bold: true, color: WHITE, valign: "middle",
+    });
+    s.addText(d, {
+      x: x + 0.3, y: y + 0.6, w: cw - 0.6, h: 0.6,
+      fontFace: SANS, fontSize: 10.5, color: BODY, valign: "top", lineSpacingMultiple: 1.15,
+    });
+  });
+
+  ubcLink(s);
+  footer(s);
+}
+
+function slide10ChallengeMissoes() {
+  const s = newSlide(
+    "Os três pilares do desafio e como cada atividade é comprovada e pontuada. " +
+      "A validação do MVP não depende de Garmin ou Strava: funciona com QR Code, upload, indicação e autodeclaração. " +
+      "A pontuação premia consistência, então um iniciante compete com um avançado.",
+  );
+  kicker(s, "Ultra Balance Challenge · missões e pontos");
+  title(s, [{ text: "Três pilares, uma " }, { text: "só régua", color: RED }]);
+
+  const pilares: [string, string, string[]][] = [
+    ["Movimento", NAVY, ["Realizar um treino", "Correr 3 km ou 5 km", "Treino Somma com check-in"]],
+    ["Conexão", "C25A2E", ["Correr com alguém novo", "Convidar um amigo", "Atividade com a crew"]],
+    ["Diversão", "2E9E7B", ["Ritual de equilíbrio", "Momento com amigos", "Missão surpresa"]],
+  ];
+  const cw = (CW - 0.5) / 3;
+  pilares.forEach(([t, color, itens], i) => {
+    const x = M + i * (cw + 0.25);
+    card(s, { x, y: 2.5, w: cw, h: 2.15 });
+    s.addShape(pptx.ShapeType.rect, { x, y: 2.5, w: cw, h: 0.06, fill: { color } });
+    s.addText(t.toUpperCase(), {
+      x: x + 0.3, y: 2.72, w: cw - 0.6, h: 0.36,
+      fontFace: DISPLAY, fontSize: 20, bold: true, color, valign: "middle",
+    });
+    bullets(s, itens, { x: x + 0.3, y: 3.2, w: cw - 0.6, color, textColor: OFF, size: 11, gap: 0.32 });
+  });
+
+  // validação
+  s.addText("COMO A ATIVIDADE É COMPROVADA", {
+    x: M, y: 4.95, w: 6, h: 0.26,
+    fontFace: DISPLAY, fontSize: 9.5, bold: true, color: DIM, charSpacing: 2.2, valign: "middle",
+  });
+  ["QR Code", "Foto ou vídeo", "Código de convite", "Autodeclaração"].forEach((t, i) => {
+    const x = M + i * 1.62;
+    s.addShape(pptx.ShapeType.roundRect, {
+      x, y: 5.28, w: 1.5, h: 0.44, rectRadius: 0.22,
+      fill: { color: BG, transparency: 40 }, line: { color: GOLD, width: 1 },
+    });
+    s.addText(t, {
+      x, y: 5.28, w: 1.5, h: 0.44,
+      fontFace: SANS, fontSize: 9.5, color: OFF, align: "center", valign: "middle",
+    });
+  });
+  s.addText("O MVP não depende de Garmin ou Strava.", {
+    x: M, y: 5.85, w: 6.5, h: 0.28,
+    fontFace: SANS, fontSize: 10.5, color: BODY, italic: true, valign: "middle",
+  });
+
+  // pesos da pontuação
+  const px = 7.9;
+  s.addText("COMO A PONTUAÇÃO É DISTRIBUÍDA", {
+    x: px, y: 4.95, w: 4.5, h: 0.26,
+    fontFace: DISPLAY, fontSize: 9.5, bold: true, color: DIM, charSpacing: 2.2, valign: "middle",
+  });
+  const pesos: [string, number, string][] = [
+    ["Consistência", 40, NAVY],
+    ["Missões concluídas", 30, RED],
+    ["Conexão com a comunidade", 20, "C25A2E"],
+    ["Desafios especiais", 10, "2E9E7B"],
+  ];
+  pesos.forEach(([l, v, color], i) => {
+    const y = 5.3 + i * 0.32;
+    s.addText(l, {
+      x: px, y, w: 2.1, h: 0.28,
+      fontFace: SANS, fontSize: 10, color: OFF, valign: "middle",
+    });
+    s.addShape(pptx.ShapeType.rect, { x: px + 2.15, y: y + 0.09, w: 1.6, h: 0.1, fill: { color: "FFFFFF", transparency: 88 } });
+    s.addShape(pptx.ShapeType.rect, { x: px + 2.15, y: y + 0.09, w: (v / 100) * 1.6, h: 0.1, fill: { color } });
+    s.addText(`${v}%`, {
+      x: px + 3.85, y, w: 0.6, h: 0.28,
+      fontFace: DISPLAY, fontSize: 12, bold: true, color: WHITE, valign: "middle",
+    });
+  });
+
+  footer(s);
+}
+
+function slide11ChallengeDados() {
+  const s = newSlide(
+    "O que o desafio devolve para as marcas: recompensas por faixa de progresso, integração com a máquina de fotos " +
+      "por QR Code pessoal e um painel com dados em tempo real durante toda a campanha, não só no relatório final.",
+  );
+  kicker(s, "Ultra Balance Challenge · recompensa e dado");
+  title(s, [{ text: "Recompensa, experiência e " }, { text: "dado", color: RED }]);
+
+  // recompensas por faixa
+  s.addText("RECOMPENSAS POR FAIXA", {
+    x: M, y: 2.62, w: 5, h: 0.26,
+    fontFace: DISPLAY, fontSize: 9.5, bold: true, color: DIM, charSpacing: 2.2, valign: "middle",
+  });
+  const rec: [string, string][] = [
+    ["7 dias", "Badge digital e card compartilhável"],
+    ["14 dias", "Sorteios e experiência especial"],
+    ["21 dias", "Acesso prioritário, área exclusiva e produto personalizado"],
+  ];
+  rec.forEach(([marco, t], i) => {
+    const y = 3.0 + i * 1.05;
+    card(s, { x: M, y, w: 5.9, h: 0.92, highlight: i === 2 });
+    s.addShape(pptx.ShapeType.roundRect, {
+      x: M + 0.25, y: y + 0.24, w: 0.95, h: 0.42, rectRadius: 0.21,
+      fill: { color: i === 2 ? RED : NAVY },
+    });
+    s.addText(marco, {
+      x: M + 0.25, y: y + 0.24, w: 0.95, h: 0.42,
+      fontFace: DISPLAY, fontSize: 12, bold: true, color: WHITE, align: "center", valign: "middle",
+    });
+    s.addText(t, {
+      x: M + 1.34, y: y + 0.18, w: 4.4, h: 0.56,
+      fontFace: SANS, fontSize: 11, color: OFF, valign: "middle", lineSpacingMultiple: 1.15,
+    });
+  });
+
+  s.addText("O QR Code pessoal liga os 21 dias à máquina de fotos: a arte já sai com nome, crew, perfil e pontuação.", {
+    x: M, y: 6.25, w: 5.9, h: 0.5,
+    fontFace: SANS, fontSize: 10.5, color: BODY, valign: "top", lineSpacingMultiple: 1.2,
+  });
+
+  // painel da marca
+  const px = 7.35;
+  s.addText("PAINEL EM TEMPO REAL", {
+    x: px, y: 2.62, w: 5, h: 0.26,
+    fontFace: DISPLAY, fontSize: 9.5, bold: true, color: DIM, charSpacing: 2.2, valign: "middle",
+  });
+  const kpis: [string, string][] = [
+    ["1.240", "cadastrados"],
+    ["968", "ativos"],
+    ["54%", "conclusão"],
+    ["1.836", "check-ins"],
+    ["2.107", "fotos"],
+    ["389", "indicações"],
+  ];
+  const kw = (CW - (px - M) - 0.3) / 3;
+  kpis.forEach(([v, l], i) => {
+    const x = px + (i % 3) * (kw + 0.15);
+    const y = 3.0 + Math.floor(i / 3) * 0.95;
+    card(s, { x, y, w: kw, h: 0.82 });
+    s.addText(v, {
+      x: x + 0.16, y: y + 0.1, w: kw - 0.32, h: 0.4,
+      fontFace: DISPLAY, fontSize: 20, bold: true, color: WHITE, valign: "middle",
+    });
+    s.addText(l, {
+      x: x + 0.16, y: y + 0.48, w: kw - 0.32, h: 0.26,
+      fontFace: SANS, fontSize: 9, color: DIM, valign: "middle",
+    });
+  });
+
+  // funil
+  s.addText("FUNIL DE PARTICIPAÇÃO", {
+    x: px, y: 4.98, w: 5, h: 0.26,
+    fontFace: DISPLAY, fontSize: 9.5, bold: true, color: DIM, charSpacing: 2.2, valign: "middle",
+  });
+  const funil: [string, number][] = [
+    ["Cadastros", 1240],
+    ["Ativos", 968],
+    ["Concluíram 21 dias", 670],
+    ["Presentes no evento", 583],
+  ];
+  funil.forEach(([l, v], i) => {
+    const y = 5.32 + i * 0.34;
+    s.addText(l, {
+      x: px, y, w: 2.0, h: 0.28,
+      fontFace: SANS, fontSize: 10, color: OFF, valign: "middle",
+    });
+    const bw = (v / 1240) * 2.1;
+    s.addShape(pptx.ShapeType.rect, { x: px + 2.05, y: y + 0.09, w: 2.1, h: 0.1, fill: { color: "FFFFFF", transparency: 88 } });
+    s.addShape(pptx.ShapeType.rect, {
+      x: px + 2.05, y: y + 0.09, w: bw, h: 0.1,
+      fill: { color: i === funil.length - 1 ? RED : NAVY },
+    });
+    s.addText(v.toLocaleString("pt-BR"), {
+      x: px + 4.25, y, w: 0.75, h: 0.28,
+      fontFace: DISPLAY, fontSize: 11, bold: true, color: WHITE, valign: "middle",
+    });
+  });
+
+  ubcLink(s);
+  footer(s);
+}
+
+function slide12SocialRun() {
   const s = newSlide(
     "O treino especial: sábado pela manhã, 5 km e 10 km, com pelotões divididos por ritmo e perfil. " +
       "As crews dão a cada participante um lugar, inclusive para quem nunca correu. " +
@@ -745,7 +977,7 @@ function slide09SocialRun() {
   footer(s);
 }
 
-function slide10Percurso() {
+function slide13Percurso() {
   const s = newSlide(
     "Três ativações transformam o percurso em experiência: o Ultra Pace Point registra o ritmo, " +
       "o Enjoyment Kilometer entrega o último km com música e torcida, e a Social Finish Line leva direto ao espaço da marca. " +
@@ -792,7 +1024,7 @@ function slide10Percurso() {
   footer(s);
 }
 
-function slide11AfterRun() {
+function slide14AfterRun() {
   const s = newSlide(
     "O Ultra After Run é o território da marca: é aqui que a Michelob Ultra deixa de ser patrocinadora e vira anfitriã. " +
       "Sempre com consumo responsável e público maior de 18 anos.",
@@ -843,7 +1075,7 @@ function slide11AfterRun() {
 }
 
 /** Totem de fotos: ativação proprietária dentro do Ultra After Run. */
-function slide12Totem() {
+function slide15Totem() {
   const s = newSlide(
     "O totem de fotos é a ativação proprietária dentro do Ultra After Run. Cabine vestida de Michelob Ultra, " +
       "foto na hora com moldura da campanha e três formatos de saída. Para receber a foto a pessoa deixa o contato, " +
@@ -918,7 +1150,7 @@ function slide12Totem() {
   footer(s);
 }
 
-function slide13Conteudo() {
+function slide16Conteudo() {
   const s = newSlide(
     "O conteúdo transforma a ativação em narrativa: pessoas reais que sabem equilibrar movimento, trabalho e diversão. " +
       "Um filme principal sustenta a campanha, e o resto alimenta os canais durante todo o período.",
@@ -977,7 +1209,7 @@ function slide13Conteudo() {
   footer(s);
 }
 
-function slide14Entrega() {
+function slide17Entrega() {
   const s = newSlide(
     "O que o Somma coloca na mesa: comunidade, execução da experiência, conteúdo, dados e a possibilidade de continuidade. " +
       "Mais de 6 mil membros e presença recorrente todo sábado. " +
@@ -1031,7 +1263,7 @@ function slide14Entrega() {
   footer(s);
 }
 
-function slide15Indicadores() {
+function slide18Indicadores() {
   const s = newSlide(
     "Como o resultado é medido: alcance, base captada, mídia, conteúdo, produto experimentado, " +
       "percepção de marca e eficiência. Relatório consolidado entregue pelo Somma até 15 dias depois.",
@@ -1127,7 +1359,7 @@ function mockReport(s: Slide, x: number, y: number) {
   });
 }
 
-function slide16Formatos() {
+function slide19Formatos() {
   const s = newSlide(
     "Três formas de executar. O formato Campanha é a recomendação: entrega desejo antes, experiência durante " +
       "e memória depois, sem o compromisso de temporada inteira.",
@@ -1205,7 +1437,7 @@ function slide16Formatos() {
   footer(s);
 }
 
-function slide17Recomendacao() {
+function slide20Recomendacao() {
   const s = newSlide(
     "Nossa recomendação é o formato Campanha: ele conecta marca, comunidade, conteúdo e dados " +
       "em uma única jornada de antes, durante e depois. " +
@@ -1247,7 +1479,7 @@ function slide17Recomendacao() {
   footer(s);
 }
 
-function slide18Fechamento() {
+function slide21Fechamento() {
   const s = newSlide(
     "Fechamento. Michelob Ultra Social Run aproxima a marca de uma comunidade real, ativa e influente. " +
       "Não é sobre correr. É sobre o que acontece depois da linha de chegada.",
@@ -1314,16 +1546,19 @@ async function main() {
   slide06ComoFunciona();
   slide07Aquecimento();
   slide08Challenge();
-  slide09SocialRun();
-  slide10Percurso();
-  slide11AfterRun();
-  slide12Totem();
-  slide13Conteudo();
-  slide14Entrega();
-  slide15Indicadores();
-  slide16Formatos();
-  slide17Recomendacao();
-  slide18Fechamento();
+  slide09ChallengePlataforma();
+  slide10ChallengeMissoes();
+  slide11ChallengeDados();
+  slide12SocialRun();
+  slide13Percurso();
+  slide14AfterRun();
+  slide15Totem();
+  slide16Conteudo();
+  slide17Entrega();
+  slide18Indicadores();
+  slide19Formatos();
+  slide20Recomendacao();
+  slide21Fechamento();
 
   const out = path.join("output", "somma-michelob-ultra-social-run.pptx");
   fs.mkdirSync("output", { recursive: true });
