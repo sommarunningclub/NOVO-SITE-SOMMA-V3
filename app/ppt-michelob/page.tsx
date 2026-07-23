@@ -24,6 +24,7 @@ const SLIDES = [
   "social-run",
   "percurso",
   "after-run",
+  "totem",
   "conteudo",
   "entrega",
   "indicadores",
@@ -187,7 +188,7 @@ export default function MichelobDeck() {
   return (
     <div
       ref={scroller}
-      className="h-screen w-full snap-y snap-mandatory overflow-y-auto overflow-x-hidden bg-[#060B1C] text-white antialiased"
+      className="h-screen w-full snap-y snap-proximity overflow-y-auto md:snap-mandatory overflow-x-hidden bg-[#060B1C] text-white antialiased"
       style={{ scrollbarWidth: "none" }}
     >
       {/* Progresso do deck */}
@@ -223,13 +224,22 @@ export default function MichelobDeck() {
       <Slide index={0} name="capa" className="justify-center">
         <div className="absolute inset-0 overflow-hidden">
           <Image
-            src={`${IMG}/capa.jpg`}
+            src={`${IMG}/m-capa.jpg`}
             alt="Corredor do Somma Club na Ponte JK, em Brasília"
+            fill
+            quality={90}
+            sizes="100vw"
+            className="parallax scale-105 object-cover object-center md:hidden"
+          />
+          <Image
+            src={`${IMG}/capa.jpg`}
+            alt=""
+            aria-hidden
             fill
             priority
             quality={90}
             sizes="100vw"
-            className="parallax scale-105 object-cover object-center"
+            className="parallax hidden scale-105 object-cover object-center md:block"
           />
           {/* Véu lateral: o texto respira à esquerda e o corredor continua visível. */}
           <div className="absolute inset-0 bg-gradient-to-r from-[#060B1C] via-[#060B1C]/80 to-[#060B1C]/25" />
@@ -244,7 +254,7 @@ export default function MichelobDeck() {
               Proposta de campanha · 2026
             </p>
             <div className="a-mask mt-5 overflow-hidden py-1">
-              <h1 className="font-display text-5xl font-bold uppercase leading-[0.88] tracking-tight md:text-8xl">
+              <h1 className="font-display text-[2.6rem] font-bold uppercase leading-[0.9] tracking-tight sm:text-5xl md:text-8xl">
                 Michelob Ultra
                 <br />
                 <span style={{ color: RED }}>Social Run</span>
@@ -265,7 +275,7 @@ export default function MichelobDeck() {
 
       {/* ═══════════ 02 · A OPORTUNIDADE ═══════════ */}
       <Slide index={1} name="oportunidade">
-        <BgPhoto src={`${IMG}/comunidade.jpg`} alt="Corredora do Somma Club no meio do pelotão" />
+        <BgPhoto name="comunidade" alt="Corredora do Somma Club no meio do pelotão" />
         <div className="container-somma relative z-10">
           <Kicker>A oportunidade</Kicker>
           <H2>
@@ -296,7 +306,7 @@ export default function MichelobDeck() {
 
       {/* ═══════════ 03 · O DESAFIO ═══════════ */}
       <Slide index={2} name="desafio">
-        <BgPhoto src={`${IMG}/marca.jpg`} alt="Corredores do Somma Club em ativação de marca" />
+        <BgPhoto name="marca" alt="Corredores do Somma Club em ativação de marca" />
         <div className="container-somma relative z-10">
           <Kicker>O desafio da marca</Kicker>
           <H2 className="max-w-4xl">
@@ -305,7 +315,7 @@ export default function MichelobDeck() {
           <Lead>Marca que só aparece vira paisagem. Marca que cria experiência vira assunto.</Lead>
 
           <div className="mt-11 grid grid-cols-1 gap-4 md:grid-cols-2">
-            <div className="a-up rounded-3xl border border-white/10 bg-white/[0.02] p-7">
+            <div className="a-up rounded-3xl border border-white/10 bg-white/[0.02] p-5 sm:p-7">
               <p className="font-display text-lg font-semibold uppercase tracking-wide text-white/45">
                 Patrocínio comum
               </p>
@@ -320,7 +330,7 @@ export default function MichelobDeck() {
               <p className="mt-7 text-sm italic text-white/30">Aparece no sábado. Some na segunda.</p>
             </div>
 
-            <div className="a-up relative overflow-hidden rounded-3xl border p-7" style={{ borderColor: `${RED}66`, backgroundColor: `${RED}0F` }}>
+            <div className="a-up relative overflow-hidden rounded-3xl border p-5 sm:p-7" style={{ borderColor: `${RED}66`, backgroundColor: `${RED}0F` }}>
               <Corners />
               <p className="font-display text-lg font-semibold uppercase tracking-wide" style={{ color: RED }}>
                 Experiência proprietária
@@ -341,11 +351,11 @@ export default function MichelobDeck() {
 
       {/* ═══════════ 04 · A GRANDE IDEIA ═══════════ */}
       <Slide index={3} name="grande-ideia" className="justify-center">
-        <BgPhoto src={`${IMG}/pelotao.jpg`} alt="Pelotão do Somma Club" veil="cover" />
+        <BgPhoto name="pelotao" alt="Pelotão do Somma Club" veil="cover" />
         <div className="container-somma relative z-10 text-center">
           <Kicker className="justify-center">A grande ideia</Kicker>
           <div className="a-mask mt-5 overflow-hidden py-1">
-            <h2 className="mx-auto max-w-4xl font-display text-5xl font-bold uppercase leading-[0.9] tracking-tight md:text-7xl">
+            <h2 className="mx-auto max-w-4xl font-display text-[2.2rem] font-bold uppercase leading-[0.92] tracking-tight sm:text-4xl md:text-7xl">
               Michelob Ultra <span style={{ color: RED }}>Social Run</span>
             </h2>
           </div>
@@ -373,7 +383,7 @@ export default function MichelobDeck() {
 
       {/* ═══════════ 05 · THE SOCIAL PACE ═══════════ */}
       <Slide index={4} name="social-pace">
-        <BgPhoto src={`${IMG}/social-pace.jpg`} alt="Amigos do Somma Club depois do treino" />
+        <BgPhoto name="social-pace" alt="Amigos do Somma Club depois do treino" />
         <div className="container-somma relative z-10 grid items-center gap-12 lg:grid-cols-[1fr_auto]">
           <div>
             <Kicker>O conceito criativo</Kicker>
@@ -431,7 +441,7 @@ export default function MichelobDeck() {
 
       {/* ═══════════ 07 · AQUECIMENTO DIGITAL ═══════════ */}
       <Slide index={6} name="aquecimento">
-        <BgPhoto src={`${IMG}/digital.jpg`} alt="Corredores do Somma Club em treino" />
+        <BgPhoto name="digital" alt="Corredores do Somma Club em treino" />
         <div className="container-somma relative z-10 grid items-center gap-12 lg:grid-cols-[1.15fr_1fr]">
           <div>
             <Kicker>Momento 01</Kicker>
@@ -473,7 +483,7 @@ export default function MichelobDeck() {
 
       {/* ═══════════ 08 · ULTRA BALANCE CHALLENGE ═══════════ */}
       <Slide index={7} name="challenge">
-        <BgPhoto src={`${IMG}/desafio.jpg`} alt="Comunidade Somma Club comemorando" />
+        <BgPhoto name="desafio" alt="Comunidade Somma Club comemorando" />
         <div className="container-somma relative z-10">
           <Kicker>Ultra Balance Challenge</Kicker>
           <H2 className="max-w-4xl">
@@ -491,13 +501,13 @@ export default function MichelobDeck() {
                     ["Diversão", "Mostrar seu ritual de equilíbrio"],
                   ].map(([p, m]) => (
                     <tr key={p} className="border-b border-white/[0.07] last:border-0">
-                      <td className="w-px whitespace-nowrap py-5 pl-6 pr-5">
-                        <span className="flex items-center gap-3 font-display text-lg font-semibold uppercase tracking-wide">
+                      <td className="w-px whitespace-nowrap py-4 pl-4 pr-3 sm:py-5 sm:pl-6 sm:pr-5">
+                        <span className="flex items-center gap-2.5 font-display text-base font-semibold uppercase tracking-wide sm:gap-3 sm:text-lg">
                           <RibbonMark gold />
                           {p}
                         </span>
                       </td>
-                      <td className="py-5 pr-6 text-[15px] text-white/65">{m}</td>
+                      <td className="py-4 pr-4 text-[13px] text-white/65 sm:py-5 sm:pr-6 sm:text-[15px]">{m}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -507,7 +517,7 @@ export default function MichelobDeck() {
               </div>
             </div>
 
-            <div className="a-up relative overflow-hidden rounded-3xl border p-7" style={{ borderColor: `${RED}59`, backgroundColor: `${RED}0F` }}>
+            <div className="a-up relative overflow-hidden rounded-3xl border p-5 sm:p-7" style={{ borderColor: `${RED}59`, backgroundColor: `${RED}0F` }}>
               <Corners />
               <p className="font-display text-lg font-semibold uppercase tracking-wide" style={{ color: RED }}>
                 Quem completa, desbloqueia
@@ -527,7 +537,7 @@ export default function MichelobDeck() {
 
       {/* ═══════════ 09 · O TREINO ESPECIAL ═══════════ */}
       <Slide index={8} name="social-run">
-        <BgPhoto src={`${IMG}/treino.jpg`} alt="Treino do Somma Club no Eixão" />
+        <BgPhoto name="treino" alt="Treino do Somma Club no Eixão" />
         <div className="container-somma relative z-10">
           <Kicker>Momento 02</Kicker>
           <H2>
@@ -561,7 +571,7 @@ export default function MichelobDeck() {
 
       {/* ═══════════ 10 · PONTOS DE EXPERIÊNCIA ═══════════ */}
       <Slide index={9} name="percurso">
-        <BgPhoto src={`${IMG}/percurso.jpg`} alt="Pelotão do Somma Club na via" />
+        <BgPhoto name="percurso" alt="Pelotão do Somma Club na via" />
         <div className="container-somma relative z-10">
           <Kicker>Pontos de experiência</Kicker>
           <H2>
@@ -605,7 +615,7 @@ export default function MichelobDeck() {
 
       {/* ═══════════ 11 · ULTRA AFTER RUN ═══════════ */}
       <Slide index={10} name="after-run">
-        <BgPhoto src={`${IMG}/afterrun.jpg`} alt="Espaço de convivência depois do treino" />
+        <BgPhoto name="afterrun" alt="Espaço de convivência depois do treino" />
         <div className="container-somma relative z-10">
           <Kicker>Momento 03</Kicker>
           <H2 className="max-w-4xl">
@@ -641,9 +651,79 @@ export default function MichelobDeck() {
         </div>
       </Slide>
 
-      {/* ═══════════ 12 · CONTEÚDO ═══════════ */}
-      <Slide index={11} name="conteudo">
-        <BgPhoto src={`${IMG}/conteudo.jpg`} alt="Registro de conteúdo no treino do Somma Club" />
+      {/* ═══════════ 12 · TOTEM DE FOTOS ═══════════ */}
+      <Slide index={11} name="totem" className="bg-[#080F26]">
+        <Grid />
+        <div className="container-somma relative z-10">
+          <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:gap-16">
+            {/* Render do totem */}
+            <div className="a-up order-1 flex justify-center">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={`${IMG}/totem.png`}
+                alt="Totem de fotos Michelob Ultra Club x Somma"
+                className="h-[230px] w-auto drop-shadow-[0_35px_60px_rgba(0,0,0,0.55)] sm:h-[330px] lg:h-[470px]"
+              />
+            </div>
+
+            <div className="order-2">
+              <Kicker>Ativação proprietária</Kicker>
+              <H2 className="max-w-xl">
+                O totem que vira <Accent>conteúdo</Accent>
+              </H2>
+              <Lead className="max-w-lg">
+                Uma cabine de fotos vestida de Michelob Ultra no meio do Ultra After Run. A pessoa entra, posa e sai
+                com a arte pronta para postar.
+              </Lead>
+
+              <div className="mt-7 grid grid-cols-2 gap-2.5 sm:gap-3">
+                {[
+                  ["Marca em 360°", "O totem inteiro vestido de Michelob Ultra Club e Somma, do topo à base."],
+                  ["Foto na hora", "Tela sensível ao toque, câmera com flash e moldura da campanha já aplicada."],
+                  ["Três formatos de saída", "Stories, polaroid e horizontal, cada um pronto para uma rede."],
+                  ["Cadastro na fonte", "Para receber a foto a pessoa deixa o contato. Cada clique vira dado."],
+                ].map(([t, d]) => (
+                  <div key={t} className="a-up rounded-2xl border border-white/10 bg-white/[0.03] p-4 sm:p-5">
+                    <div className="flex items-center gap-2.5">
+                      <RibbonMark />
+                      <h3 className="font-display text-base font-semibold uppercase leading-tight tracking-tight sm:text-lg">{t}</h3>
+                    </div>
+                    <p className="mt-2 text-[12px] leading-relaxed text-white/60 sm:text-[13px]">{d}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Saídas de foto */}
+              <div className="a-up mt-8">
+                <p className="text-xs uppercase tracking-[0.25em] text-white/40">Saídas de foto</p>
+                <div className="mt-4 flex flex-wrap items-end gap-3">
+                  {[
+                    ["totem-saida-1", "Stories", "h-28 sm:h-36"],
+                    ["totem-saida-2", "Polaroid", "h-28 sm:h-36"],
+                    ["totem-saida-3", "Horizontal", "h-20 sm:h-24"],
+                  ].map(([f, label, h]) => (
+                    <figure key={f} className="flex flex-col items-center gap-2">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={`${IMG}/${f}.png`}
+                        alt={`Saída de foto no formato ${label}`}
+                        className={`${h} w-auto rounded-md ring-1 ring-white/15`}
+                      />
+                      <figcaption className="font-mono text-[9px] uppercase tracking-[0.2em] text-white/35">
+                        {label}
+                      </figcaption>
+                    </figure>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Slide>
+
+      {/* ═══════════ 13 · CONTEÚDO ═══════════ */}
+      <Slide index={12} name="conteudo">
+        <BgPhoto name="conteudo" alt="Registro de conteúdo no treino do Somma Club" />
         <div className="container-somma relative z-10 grid items-center gap-12 lg:grid-cols-2">
           <div>
             <Kicker>Conteúdo</Kicker>
@@ -685,40 +765,44 @@ export default function MichelobDeck() {
       </Slide>
 
       {/* ═══════════ 13 · O QUE O SOMMA ENTREGA ═══════════ */}
-      <Slide index={12} name="entrega">
-        <BgPhoto src={`${IMG}/entrega.jpg`} alt="Comunidade do Somma Club reunida" />
+      <Slide index={13} name="entrega">
+        <BgPhoto name="entrega" alt="Comunidade do Somma Club reunida" />
         <div className="container-somma relative z-10">
           <Kicker>O que o Somma entrega</Kicker>
           <H2>
             Cinco frentes, <Accent>uma execução</Accent>
           </H2>
+          <Lead>
+            Somos o maior running club de Brasília, com mais de 6 mil membros. É essa estrutura inteira que entra na
+            campanha.
+          </Lead>
 
-          <div className="mt-10 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
+          <div className="mt-10 grid grid-cols-2 gap-3 lg:grid-cols-5">
             {[
-              ["Comunidade", "Mais de 5 mil membros e presença toda semana."],
+              ["Comunidade", "Mais de 6 mil membros e presença toda semana."],
               ["Experiência", "Treino, pelotões, professores, percurso e equipe de apoio."],
               ["Conteúdo", "Produção e distribuição nos canais do Somma, professores e insiders."],
               ["Dados", "Landing page, inscrições, aceite, perfil, presença e relatório final."],
               ["Continuidade", "Pode virar plataforma mensal ou trimestral com a marca."],
             ].map(([t, d]) => (
-              <div key={t} className="a-up flex flex-col rounded-2xl border border-white/10 bg-white/[0.04] p-6 backdrop-blur-sm">
+              <div key={t} className="a-up flex flex-col rounded-2xl border border-white/10 bg-white/[0.04] p-5 backdrop-blur-sm sm:p-6">
                 <div className="a-rail h-0.5 w-8 origin-left" style={{ backgroundColor: GOLD }} />
-                <h3 className="mt-5 font-display text-2xl font-semibold uppercase tracking-tight">{t}</h3>
+                <h3 className="mt-4 font-display text-xl font-semibold uppercase tracking-tight sm:mt-5 sm:text-2xl">{t}</h3>
                 <p className="mt-2 text-[13px] leading-relaxed text-white/60">{d}</p>
               </div>
             ))}
           </div>
 
-          <div className="a-up mt-9 flex flex-wrap items-baseline gap-x-12 gap-y-4">
-            <BigStat count={5000} suffix="+" label="membros na comunidade" />
+          <div className="a-up mt-8 flex flex-wrap items-baseline gap-x-8 gap-y-5 sm:gap-x-12">
+            <BigStat count={6000} suffix="+" label="membros na comunidade" />
             <BigStat count={300} label="pessoas todo sábado" />
-            <BigStat staticValue="#1" label="running club do DF" />
+            <BigStat staticValue="#1" label="maior running club de Brasília" />
           </div>
         </div>
       </Slide>
 
       {/* ═══════════ 14 · INDICADORES ═══════════ */}
-      <Slide index={13} name="indicadores" className="bg-[#080F26]">
+      <Slide index={14} name="indicadores" className="bg-[#080F26]">
         <Grid />
         <div className="container-somma relative z-10">
           <Kicker>Indicadores</Kicker>
@@ -728,11 +812,11 @@ export default function MichelobDeck() {
 
           <div className="mt-10 grid gap-5 lg:grid-cols-[1.35fr_1fr]">
             <div className="a-up overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03]">
-              <table className="w-full text-left text-sm">
+              <table className="w-full table-fixed text-left text-xs sm:text-sm">
                 <thead>
                   <tr className="border-b border-white/10">
-                    <th className="px-6 py-4 font-display text-xs font-semibold uppercase tracking-[0.25em] text-white/40">Dimensão</th>
-                    <th className="px-6 py-4 font-display text-xs font-semibold uppercase tracking-[0.25em] text-white/40">Indicadores</th>
+                    <th className="px-4 py-3.5 font-display text-[10px] font-semibold uppercase tracking-[0.2em] text-white/40 sm:px-6 sm:py-4 sm:text-xs sm:tracking-[0.25em]">Dimensão</th>
+                    <th className="px-4 py-3.5 font-display text-[10px] font-semibold uppercase tracking-[0.2em] text-white/40 sm:px-6 sm:py-4 sm:text-xs sm:tracking-[0.25em]">Indicadores</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -746,10 +830,10 @@ export default function MichelobDeck() {
                     ["Eficiência", "Custo por participante impactado"],
                   ].map(([dim, ind]) => (
                     <tr key={dim} className="border-b border-white/[0.06] last:border-0">
-                      <td className="whitespace-nowrap px-6 py-3.5 font-display text-base font-semibold uppercase tracking-wide">
+                      <td className="w-[34%] px-4 py-3 align-top font-display text-sm font-semibold uppercase leading-tight tracking-wide sm:w-[26%] sm:px-6 sm:py-3.5 sm:text-base">
                         {dim}
                       </td>
-                      <td className="px-6 py-3.5 text-white/60">{ind}</td>
+                      <td className="px-4 py-3 align-top leading-snug text-white/60 sm:px-6 sm:py-3.5">{ind}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -767,7 +851,7 @@ export default function MichelobDeck() {
       </Slide>
 
       {/* ═══════════ 15 · FORMATOS ═══════════ */}
-      <Slide index={14} name="formatos">
+      <Slide index={15} name="formatos">
         <Grid />
         <div className="container-somma relative z-10">
           <Kicker>Formatos comerciais</Kicker>
@@ -809,8 +893,8 @@ export default function MichelobDeck() {
       </Slide>
 
       {/* ═══════════ 16 · RECOMENDAÇÃO ═══════════ */}
-      <Slide index={15} name="recomendacao">
-        <BgPhoto src={`${IMG}/recomendacao.jpg`} alt="Grupo do Somma Club correndo" />
+      <Slide index={16} name="recomendacao">
+        <BgPhoto name="recomendacao" alt="Grupo do Somma Club correndo" />
         <div className="container-somma relative z-10">
           <Kicker>Nossa recomendação</Kicker>
           <H2>
@@ -828,7 +912,7 @@ export default function MichelobDeck() {
             ].map(([k, t, d], i) => (
               <div
                 key={k}
-                className="a-up relative overflow-hidden rounded-3xl border p-7 backdrop-blur-sm"
+                className="a-up relative overflow-hidden rounded-3xl border p-5 backdrop-blur-sm sm:p-7"
                 style={
                   i === 1
                     ? { borderColor: `${RED}59`, backgroundColor: `${RED}12` }
@@ -848,12 +932,12 @@ export default function MichelobDeck() {
       </Slide>
 
       {/* ═══════════ 17 · FECHAMENTO ═══════════ */}
-      <Slide index={16} name="fechamento" className="justify-center">
-        <BgPhoto src={`${IMG}/fechamento.jpg`} alt="Comunidade do Somma Club no fim de tarde" veil="cover" />
+      <Slide index={17} name="fechamento" className="justify-center">
+        <BgPhoto name="fechamento" alt="Comunidade do Somma Club no fim de tarde" veil="cover" />
         <div className="container-somma relative z-10 text-center">
           <Kicker className="justify-center">Fechamento</Kicker>
           <div className="a-mask mt-5 overflow-hidden py-1">
-            <h2 className="mx-auto max-w-4xl font-display text-4xl font-bold uppercase leading-[0.95] tracking-tight md:text-6xl">
+            <h2 className="mx-auto max-w-4xl font-display text-[1.9rem] font-bold uppercase leading-[0.98] tracking-tight sm:text-4xl md:text-6xl">
               Vamos criar o ponto de encontro mais desejado da corrida em <Accent>Brasília</Accent>
             </h2>
           </div>
@@ -896,7 +980,7 @@ function Slide({
     <section
       data-slide={name}
       data-index={index}
-      className={`relative flex min-h-screen w-full snap-start flex-col justify-center px-2 py-16 md:py-20 ${className}`}
+      className={`relative flex min-h-screen w-full snap-start flex-col justify-center px-2 py-14 md:py-20 ${className}`}
     >
       {children}
     </section>
@@ -904,17 +988,33 @@ function Slide({
 }
 
 function BgPhoto({
-  src,
+  name,
   alt,
   veil = "cards",
 }: {
-  src: string;
+  name: string;
   alt: string;
   veil?: "cover" | "cards";
 }) {
   return (
     <div className="absolute inset-0 overflow-hidden">
-      <Image src={src} alt={alt} fill sizes="100vw" className="parallax scale-105 object-cover object-center" />
+      {/* Recorte 9:16 no celular e 16:9 no desktop. As duas são lazy, então o
+          navegador só baixa a que está visível no breakpoint atual. */}
+      <Image
+        src={`${IMG}/m-${name}.jpg`}
+        alt={alt}
+        fill
+        sizes="100vw"
+        className="parallax scale-105 object-cover object-center md:hidden"
+      />
+      <Image
+        src={`${IMG}/${name}.jpg`}
+        alt=""
+        aria-hidden
+        fill
+        sizes="100vw"
+        className="parallax hidden scale-105 object-cover object-center md:block"
+      />
       {veil === "cover" ? (
         <div className="absolute inset-0 bg-gradient-to-b from-[#060B1C]/75 via-[#060B1C]/65 to-[#060B1C]/90" />
       ) : (
@@ -1015,7 +1115,7 @@ function Lockup({ className = "" }: { className?: string }) {
 function Kicker({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return (
     <p
-      className={`a-up flex items-center gap-3 font-display text-xs font-semibold uppercase tracking-[0.35em] ${className}`}
+      className={`a-up flex items-center gap-2.5 font-display text-[10px] font-semibold uppercase tracking-[0.22em] sm:gap-3 sm:text-xs sm:tracking-[0.35em] ${className}`}
       style={{ color: GOLD }}
     >
       <RibbonMark gold />
@@ -1027,7 +1127,7 @@ function Kicker({ children, className = "" }: { children: React.ReactNode; class
 function H2({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return (
     <div className="a-mask mt-5 overflow-hidden py-1">
-      <h2 className={`font-display text-4xl font-bold uppercase leading-[0.95] tracking-tight md:text-6xl ${className}`}>
+      <h2 className={`font-display text-[1.9rem] font-bold uppercase leading-[0.95] tracking-tight sm:text-4xl md:text-6xl ${className}`}>
         {children}
       </h2>
     </div>
@@ -1036,7 +1136,7 @@ function H2({ children, className = "" }: { children: React.ReactNode; className
 
 function Lead({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return (
-    <p className={`a-up mt-6 max-w-2xl text-base font-light leading-relaxed text-white/70 md:text-lg ${className}`}>
+    <p className={`a-up mt-5 max-w-2xl text-[15px] font-light leading-relaxed text-white/70 sm:mt-6 md:text-lg ${className}`}>
       {children}
     </p>
   );
@@ -1051,7 +1151,7 @@ function Accent({ children }: { children: React.ReactNode }) {
 function Card({ n, title, text, highlight }: { n: string; title: string; text: string; highlight?: boolean }) {
   return (
     <div
-      className="a-up relative flex flex-col overflow-hidden rounded-3xl border p-7 backdrop-blur-sm"
+      className="a-up relative flex flex-col overflow-hidden rounded-3xl border p-5 backdrop-blur-sm sm:p-7"
       style={
         highlight
           ? { borderColor: `${RED}59`, backgroundColor: `${RED}12` }
@@ -1062,7 +1162,7 @@ function Card({ n, title, text, highlight }: { n: string; title: string; text: s
       <span className="font-mono text-[10px] tracking-[0.3em]" style={{ color: highlight ? RED : GOLD }}>
         {n}
       </span>
-      <h3 className="mt-5 font-display text-2xl font-semibold uppercase leading-tight tracking-tight">{title}</h3>
+      <h3 className="mt-4 font-display text-xl font-semibold uppercase leading-tight tracking-tight sm:mt-5 sm:text-2xl">{title}</h3>
       <p className="mt-3 text-sm leading-relaxed text-white/60">{text}</p>
     </div>
   );
@@ -1081,7 +1181,7 @@ function BigStat({
 }) {
   return (
     <div>
-      <p className="font-display text-5xl font-bold leading-none tracking-tight md:text-6xl">
+      <p className="font-display text-4xl font-bold leading-none tracking-tight sm:text-5xl md:text-6xl">
         {staticValue ? (
           <span style={{ color: RED }}>{staticValue}</span>
         ) : (
@@ -1109,7 +1209,7 @@ function FormatCard({
 }) {
   return (
     <div
-      className={`a-up relative flex flex-col overflow-hidden rounded-3xl border p-7 backdrop-blur-sm ${recommended ? "lg:-my-3 lg:p-8" : ""}`}
+      className={`a-up relative flex flex-col overflow-hidden rounded-3xl border p-5 backdrop-blur-sm sm:p-7 ${recommended ? "lg:-my-3 lg:p-8" : ""}`}
       style={
         recommended
           ? { borderColor: RED, backgroundColor: `${RED}14` }

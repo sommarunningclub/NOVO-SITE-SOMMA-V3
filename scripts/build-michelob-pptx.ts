@@ -834,7 +834,81 @@ function slide11AfterRun() {
   footer(s);
 }
 
-function slide12Conteudo() {
+/** Totem de fotos: ativação proprietária dentro do Ultra After Run. */
+function slide12Totem() {
+  const s = newSlide(
+    "O totem de fotos é a ativação proprietária dentro do Ultra After Run. Cabine vestida de Michelob Ultra, " +
+      "foto na hora com moldura da campanha e três formatos de saída. Para receber a foto a pessoa deixa o contato, " +
+      "então cada clique também vira cadastro.",
+  );
+
+  // render do totem, fundo já recortado
+  s.addImage({ path: IMG("totem.png"), x: 1.0, y: 1.35, w: 2.19, h: 5.3 });
+
+  const X = 3.75;
+  const CWR = W - X - M; // largura da coluna de texto
+
+  kicker(s, "Ativação proprietária", 0.95, X);
+  s.addText(
+    [
+      { text: "O TOTEM QUE VIRA ", options: { color: WHITE } },
+      { text: "CONTEÚDO", options: { color: RED } },
+    ],
+    {
+      x: X, y: 1.42, w: CWR, h: 1.0,
+      fontFace: DISPLAY, fontSize: 40, bold: true, valign: "top", lineSpacingMultiple: 0.9,
+    },
+  );
+  s.addText(
+    "Uma cabine de fotos vestida de Michelob Ultra no meio do Ultra After Run. A pessoa entra, posa e sai com a arte pronta para postar.",
+    {
+      x: X, y: 2.55, w: CWR - 0.4, h: 0.7,
+      fontFace: SANS, fontSize: 14, color: BODY, valign: "top", lineSpacingMultiple: 1.22,
+    },
+  );
+
+  const cards: [string, string][] = [
+    ["Marca em 360°", "O totem inteiro vestido de Michelob Ultra Club e Somma, do topo à base."],
+    ["Foto na hora", "Tela sensível ao toque, câmera com flash e moldura da campanha já aplicada."],
+    ["Três formatos de saída", "Stories, polaroid e horizontal, cada um pronto para uma rede."],
+    ["Cadastro na fonte", "Para receber a foto a pessoa deixa o contato. Cada clique vira dado."],
+  ];
+  const cw = (CWR - 0.25) / 2;
+  cards.forEach(([t, d], i) => {
+    const cx = X + (i % 2) * (cw + 0.25);
+    const cy = 3.45 + Math.floor(i / 2) * 1.28;
+    card(s, { x: cx, y: cy, w: cw, h: 1.18 });
+    s.addShape(pptx.ShapeType.rect, { x: cx + 0.26, y: cy + 0.27, w: 0.06, h: 0.14, fill: { color: RED } });
+    s.addText(t.toUpperCase(), {
+      x: cx + 0.42, y: cy + 0.2, w: cw - 0.68, h: 0.3,
+      fontFace: DISPLAY, fontSize: 15, bold: true, color: WHITE, valign: "middle",
+    });
+    s.addText(d, {
+      x: cx + 0.26, y: cy + 0.54, w: cw - 0.52, h: 0.55,
+      fontFace: SANS, fontSize: 10, color: BODY, valign: "top", lineSpacingMultiple: 1.15,
+    });
+  });
+
+  // saídas de foto
+  s.addText("SAÍDAS DE FOTO", {
+    x: X, y: 6.05, w: 3, h: 0.24,
+    fontFace: DISPLAY, fontSize: 9.5, bold: true, color: DIM, charSpacing: 2.2, valign: "middle",
+  });
+  const outs: [string, number][] = [
+    ["totem-saida-1.png", 0.36],
+    ["totem-saida-2.png", 0.37],
+    ["totem-saida-3.png", 1.41],
+  ];
+  let ox = X;
+  outs.forEach(([f, w]) => {
+    s.addImage({ path: IMG(f), x: ox, y: 6.32, w, h: 0.7 });
+    ox += w + 0.16;
+  });
+
+  footer(s);
+}
+
+function slide13Conteudo() {
   const s = newSlide(
     "O conteúdo transforma a ativação em narrativa: pessoas reais que sabem equilibrar movimento, trabalho e diversão. " +
       "Um filme principal sustenta a campanha, e o resto alimenta os canais durante todo o período.",
@@ -893,7 +967,7 @@ function slide12Conteudo() {
   footer(s);
 }
 
-function slide13Entrega() {
+function slide14Entrega() {
   const s = newSlide(
     "O que o Somma coloca na mesa: comunidade, execução da experiência, conteúdo, dados e a possibilidade de continuidade. " +
       "Mais de 5 mil membros e presença recorrente todo sábado.",
@@ -901,9 +975,10 @@ function slide13Entrega() {
   bgPhoto(s, "entrega.jpg");
   kicker(s, "O que o Somma entrega");
   title(s, [{ text: "Cinco frentes, " }, { text: "uma execução", color: RED }]);
+  lead(s, "Somos o maior running club de Brasília, com mais de 6 mil membros. É essa estrutura inteira que entra na campanha.", { y: 2.62, w: 9.4 });
 
   const fronts = [
-    ["Comunidade", "Mais de 5 mil membros e presença toda semana."],
+    ["Comunidade", "Mais de 6 mil membros e presença toda semana."],
     ["Experiência", "Treino, pelotões, professores, percurso e equipe de apoio."],
     ["Conteúdo", "Produção e distribuição nos canais do Somma, professores e insiders."],
     ["Dados", "Landing page, inscrições, aceite, perfil, presença e relatório final."],
@@ -912,38 +987,38 @@ function slide13Entrega() {
   const cw = (CW - 0.6) / 5;
   fronts.forEach(([t, d], i) => {
     const x = M + i * (cw + 0.15);
-    card(s, { x, y: 3.05, w: cw, h: 2.25 });
-    s.addShape(pptx.ShapeType.rect, { x: x + 0.2, y: 3.35, w: 0.34, h: 0.02, fill: { color: GOLD } });
+    card(s, { x, y: 3.35, w: cw, h: 2.1 });
+    s.addShape(pptx.ShapeType.rect, { x: x + 0.2, y: 3.62, w: 0.34, h: 0.02, fill: { color: GOLD } });
     s.addText(t.toUpperCase(), {
-      x: x + 0.2, y: 3.55, w: cw - 0.4, h: 0.42,
+      x: x + 0.2, y: 3.8, w: cw - 0.4, h: 0.42,
       fontFace: DISPLAY, fontSize: 17, bold: true, color: WHITE, valign: "top",
     });
     s.addText(d, {
-      x: x + 0.2, y: 4.0, w: cw - 0.4, h: 1.15,
+      x: x + 0.2, y: 4.24, w: cw - 0.4, h: 1.1,
       fontFace: SANS, fontSize: 10.5, color: BODY, valign: "top", lineSpacingMultiple: 1.18,
     });
   });
 
   const stats: [string, string][] = [
-    ["5.000+", "membros na comunidade"],
+    ["6.000+", "membros na comunidade"],
     ["300", "pessoas todo sábado"],
-    ["#1", "running club do DF"],
+    ["#1", "maior running club de Brasília"],
   ];
   stats.forEach(([v, l], i) => {
     const x = M + i * 3.5;
     s.addText(v, {
-      x, y: 5.5, w: 3.3, h: 0.62,
+      x, y: 5.68, w: 3.3, h: 0.62,
       fontFace: DISPLAY, fontSize: 44, bold: true, color: i === 2 ? RED : WHITE, valign: "middle",
     });
     s.addText(l, {
-      x, y: 6.1, w: 3.3, h: 0.3,
+      x, y: 6.28, w: 3.3, h: 0.3,
       fontFace: SANS, fontSize: 11, color: DIM, valign: "middle",
     });
   });
   footer(s);
 }
 
-function slide14Indicadores() {
+function slide15Indicadores() {
   const s = newSlide(
     "Como o resultado é medido: alcance, base captada, mídia, conteúdo, produto experimentado, " +
       "percepção de marca e eficiência. Relatório consolidado entregue pelo Somma até 15 dias depois.",
@@ -1039,7 +1114,7 @@ function mockReport(s: Slide, x: number, y: number) {
   });
 }
 
-function slide15Formatos() {
+function slide16Formatos() {
   const s = newSlide(
     "Três formas de executar. O formato Campanha é a recomendação: entrega desejo antes, experiência durante " +
       "e memória depois, sem o compromisso de temporada inteira.",
@@ -1117,7 +1192,7 @@ function slide15Formatos() {
   footer(s);
 }
 
-function slide16Recomendacao() {
+function slide17Recomendacao() {
   const s = newSlide(
     "Nossa recomendação é o formato Campanha: ele conecta marca, comunidade, conteúdo e dados " +
       "em uma única jornada de antes, durante e depois.",
@@ -1157,7 +1232,7 @@ function slide16Recomendacao() {
   footer(s);
 }
 
-function slide17Fechamento() {
+function slide18Fechamento() {
   const s = newSlide(
     "Fechamento. Michelob Ultra Social Run aproxima a marca de uma comunidade real, ativa e influente. " +
       "Não é sobre correr. É sobre o que acontece depois da linha de chegada.",
@@ -1227,12 +1302,13 @@ async function main() {
   slide09SocialRun();
   slide10Percurso();
   slide11AfterRun();
-  slide12Conteudo();
-  slide13Entrega();
-  slide14Indicadores();
-  slide15Formatos();
-  slide16Recomendacao();
-  slide17Fechamento();
+  slide12Totem();
+  slide13Conteudo();
+  slide14Entrega();
+  slide15Indicadores();
+  slide16Formatos();
+  slide17Recomendacao();
+  slide18Fechamento();
 
   const out = path.join("output", "somma-michelob-ultra-social-run.pptx");
   fs.mkdirSync("output", { recursive: true });
