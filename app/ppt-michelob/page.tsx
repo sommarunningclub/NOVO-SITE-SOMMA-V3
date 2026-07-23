@@ -4,30 +4,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import {
-  Activity,
-  BarChart3,
-  Camera,
-  ChevronDown,
-  Database,
-  Flag,
-  Gift,
-  Handshake,
-  Heart,
-  Music,
-  Play,
-  Repeat,
-  Share2,
-  Smartphone,
-  Sparkles,
-  Timer,
-  Trophy,
-  Users,
-} from "lucide-react";
 
 const IMG = "/michelob";
 
-/** Paleta Michelob Ultra — amostrada da própria logo. */
+/** Paleta Michelob Ultra, amostrada da própria logo. */
 const NAVY = "#283280";
 const RED = "#D22030";
 const GOLD = "#C6A664";
@@ -54,6 +34,7 @@ const SLIDES = [
 
 export default function MichelobDeck() {
   const scroller = useRef<HTMLDivElement>(null);
+  const bar = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState(0);
 
   useEffect(() => {
@@ -62,18 +43,53 @@ export default function MichelobDeck() {
     gsap.registerPlugin(ScrollTrigger);
 
     const ctx = gsap.context(() => {
+      // Barra de progresso do deck inteiro.
+      if (bar.current) {
+        gsap.fromTo(
+          bar.current,
+          { scaleX: 0 },
+          {
+            scaleX: 1,
+            ease: "none",
+            scrollTrigger: { scroller: el, start: 0, end: "max", scrub: 0.3 },
+          },
+        );
+      }
+
       gsap.utils.toArray<HTMLElement>("[data-slide]").forEach((section, i) => {
-        const targets = section.querySelectorAll<HTMLElement>(".reveal");
-        if (targets.length) {
-          gsap.from(targets, {
-            y: 44,
-            opacity: 0,
-            duration: 0.85,
-            ease: "power3.out",
-            stagger: 0.1,
-            scrollTrigger: { trigger: section, scroller: el, start: "top 65%", once: true },
-          });
+        const tl = gsap.timeline({
+          scrollTrigger: { trigger: section, scroller: el, start: "top 70%", once: true },
+        });
+
+        // Títulos sobem por trás de uma máscara.
+        const masked = section.querySelectorAll<HTMLElement>(".a-mask > *");
+        if (masked.length) {
+          tl.from(masked, { yPercent: 115, duration: 1.05, ease: "power4.out", stagger: 0.08 }, 0);
         }
+        // Fios e trilhos crescem da esquerda.
+        const rails = section.querySelectorAll<HTMLElement>(".a-rail");
+        if (rails.length) {
+          tl.from(rails, { scaleX: 0, duration: 1.1, ease: "power3.inOut", stagger: 0.06 }, 0.15);
+        }
+        // Blocos de conteúdo.
+        const ups = section.querySelectorAll<HTMLElement>(".a-up");
+        if (ups.length) {
+          tl.from(
+            ups,
+            { y: 30, opacity: 0, duration: 0.8, ease: "power3.out", stagger: 0.07 },
+            0.2,
+          );
+        }
+        // Fotos internas abrem com leve zoom-out.
+        const imgs = section.querySelectorAll<HTMLElement>(".a-img");
+        if (imgs.length) {
+          tl.from(
+            imgs,
+            { scale: 1.18, opacity: 0, duration: 1.1, ease: "power3.out", stagger: 0.08 },
+            0.15,
+          );
+        }
+
         ScrollTrigger.create({
           trigger: section,
           scroller: el,
@@ -83,9 +99,10 @@ export default function MichelobDeck() {
         });
       });
 
+      // Parallax das fotos de fundo.
       gsap.utils.toArray<HTMLElement>(".parallax").forEach((img) => {
         gsap.to(img, {
-          yPercent: 12,
+          yPercent: 10,
           ease: "none",
           scrollTrigger: {
             trigger: img.parentElement!,
@@ -97,17 +114,42 @@ export default function MichelobDeck() {
         });
       });
 
+      // Contadores.
       gsap.utils.toArray<HTMLElement>("[data-count]").forEach((node) => {
         const target = Number(node.dataset.count || "0");
         const obj = { n: 0 };
         gsap.to(obj, {
           n: target,
-          duration: 1.6,
+          duration: 1.7,
           ease: "power2.out",
           scrollTrigger: { trigger: node, scroller: el, start: "top 85%", once: true },
           onUpdate: () => {
             node.textContent = Math.round(obj.n).toLocaleString("pt-BR");
           },
+        });
+      });
+
+      // Grade de 21 dias preenche em sequência.
+      gsap.utils.toArray<HTMLElement>("[data-grid-day]").forEach((node, i) => {
+        gsap.from(node, {
+          scale: 0.2,
+          opacity: 0,
+          duration: 0.5,
+          ease: "back.out(2)",
+          delay: i * 0.025,
+          scrollTrigger: { trigger: node.parentElement!, scroller: el, start: "top 85%", once: true },
+        });
+      });
+
+      // Barras do relatório sobem da base.
+      gsap.utils.toArray<HTMLElement>("[data-bar]").forEach((node, i) => {
+        gsap.from(node, {
+          scaleY: 0,
+          transformOrigin: "bottom",
+          duration: 0.8,
+          ease: "power3.out",
+          delay: i * 0.07,
+          scrollTrigger: { trigger: node.parentElement!, scroller: el, start: "top 85%", once: true },
         });
       });
     }, scroller);
@@ -122,7 +164,6 @@ export default function MichelobDeck() {
     el.querySelector<HTMLElement>(`[data-index="${clamped}"]`)?.scrollIntoView({ behavior: "smooth" });
   }, []);
 
-  // Navegação por teclado — apresentar sem depender do scroll.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (["ArrowRight", "ArrowDown", "PageDown", " "].includes(e.key)) {
@@ -149,27 +190,22 @@ export default function MichelobDeck() {
       className="h-screen w-full snap-y snap-mandatory overflow-y-auto overflow-x-hidden bg-[#060B1C] text-white antialiased"
       style={{ scrollbarWidth: "none" }}
     >
-      {/* Lockup fixo da collab */}
-      <div className="pointer-events-none fixed left-5 top-5 z-50 flex items-center gap-3 md:left-8 md:top-7">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={`${IMG}/logo-somma-white.png`} alt="Somma Club" className="h-4 w-auto opacity-80 md:h-[18px]" />
-        <span className="text-[10px] font-light text-white/35">×</span>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={`${IMG}/logo-michelob-white.png`} alt="Michelob Ultra" className="h-4 w-auto opacity-80 md:h-[18px]" />
+      {/* Progresso do deck */}
+      <div className="fixed left-0 top-0 z-50 h-[2px] w-full bg-white/[0.07]">
+        <div
+          ref={bar}
+          className="h-full w-full origin-left"
+          style={{ background: `linear-gradient(90deg, ${GOLD}, ${RED})` }}
+        />
       </div>
 
-      {/* Progresso lateral */}
-      <div className="fixed right-4 top-1/2 z-50 hidden -translate-y-1/2 flex-col gap-2.5 md:flex">
+      {/* Navegação lateral */}
+      <div className="fixed right-5 top-1/2 z-50 hidden -translate-y-1/2 flex-col gap-2.5 md:flex">
         {SLIDES.map((_, i) => (
-          <button
-            key={i}
-            onClick={() => goTo(i)}
-            aria-label={`Ir para slide ${i + 1}`}
-            className="group flex items-center justify-end"
-          >
+          <button key={i} onClick={() => goTo(i)} aria-label={`Ir para slide ${i + 1}`} className="group flex justify-end">
             <span
               className={`h-1.5 rounded-full transition-all duration-300 ${
-                active === i ? "w-6" : "w-1.5 bg-white/25 group-hover:bg-white/50"
+                active === i ? "w-7" : "w-1.5 bg-white/25 group-hover:bg-white/60"
               }`}
               style={active === i ? { backgroundColor: RED } : undefined}
             />
@@ -177,235 +213,212 @@ export default function MichelobDeck() {
         ))}
       </div>
 
-      <div className="fixed bottom-5 left-5 z-50 font-mono text-[10px] tracking-[0.2em] text-white/35 md:left-8">
-        {String(active + 1).padStart(2, "0")} / {String(SLIDES.length).padStart(2, "0")}
+      <div className="fixed bottom-6 left-6 z-50 flex items-baseline gap-1.5 font-mono text-[11px] tracking-[0.2em] md:left-9">
+        <span className="text-white/70">{String(active + 1).padStart(2, "0")}</span>
+        <span className="text-white/20">/</span>
+        <span className="text-white/30">{SLIDES.length}</span>
       </div>
 
       {/* ═══════════ 01 · CAPA ═══════════ */}
-      <Slide index={0} name="capa" className="items-center justify-center text-center">
-        <BgPhoto src={`${IMG}/capa.jpg`} alt="Corredores do Somma Club" priority overlay="cover" />
-        <div className="container-somma relative z-10">
-          <div className="reveal flex items-center justify-center gap-6 md:gap-10">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={`${IMG}/logo-somma-white.png`} alt="Somma Club" className="h-7 w-auto md:h-11" />
-            <span className="text-2xl font-extralight md:text-4xl" style={{ color: GOLD }}>
-              ×
-            </span>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={`${IMG}/logo-michelob-white.png`} alt="Michelob Ultra" className="h-8 w-auto md:h-12" />
-          </div>
-
-          <div className="reveal mx-auto mt-10 h-px w-16" style={{ backgroundColor: GOLD, opacity: 0.6 }} />
-
-          <p
-            className="reveal mt-8 font-display text-xs font-semibold uppercase tracking-[0.45em]"
-            style={{ color: GOLD }}
-          >
-            Proposta de campanha · 2026
-          </p>
-          <h1 className="reveal mx-auto mt-5 max-w-5xl font-display text-5xl font-bold uppercase leading-[0.9] tracking-tight md:text-8xl">
-            Michelob Ultra
-            <br />
-            <span style={{ color: RED }}>Social Run</span>
-          </h1>
-          <p className="reveal mx-auto mt-7 max-w-lg text-lg font-light text-white/80 md:text-2xl">
-            Corra pelo momento.
-            <br />
-            Fique pela experiência.
-          </p>
+      <Slide index={0} name="capa" className="justify-center">
+        <div className="absolute inset-0 overflow-hidden">
+          <Image
+            src={`${IMG}/capa.jpg`}
+            alt="Corredor do Somma Club na Ponte JK, em Brasília"
+            fill
+            priority
+            quality={90}
+            sizes="100vw"
+            className="parallax scale-105 object-cover object-center"
+          />
+          {/* Véu lateral: o texto respira à esquerda e o corredor continua visível. */}
+          <div className="absolute inset-0 bg-gradient-to-r from-[#060B1C] via-[#060B1C]/80 to-[#060B1C]/25" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#060B1C] via-transparent to-[#060B1C]/45" />
         </div>
-        <button
-          onClick={() => goTo(1)}
-          className="absolute bottom-10 left-1/2 z-10 -translate-x-1/2 text-white/50 transition-colors hover:text-white"
-          aria-label="Avançar"
-        >
-          <ChevronDown className="h-7 w-7 animate-bounce" />
-        </button>
+
+        <div className="container-somma relative z-10">
+          <div className="max-w-2xl">
+            <Lockup className="a-up" />
+            <div className="a-rail mt-9 h-px w-24 origin-left" style={{ backgroundColor: GOLD }} />
+            <p className="a-up mt-7 font-display text-xs font-semibold uppercase tracking-[0.45em]" style={{ color: GOLD }}>
+              Proposta de campanha · 2026
+            </p>
+            <div className="a-mask mt-5 overflow-hidden py-1">
+              <h1 className="font-display text-5xl font-bold uppercase leading-[0.88] tracking-tight md:text-8xl">
+                Michelob Ultra
+                <br />
+                <span style={{ color: RED }}>Social Run</span>
+              </h1>
+            </div>
+            <p className="a-up mt-7 text-lg font-light leading-snug text-white/85 md:text-2xl">
+              Corra pelo momento.
+              <br />
+              Fique pela experiência.
+            </p>
+          </div>
+        </div>
+
+        <p className="absolute bottom-6 right-6 z-10 text-[11px] text-white/30 md:right-9">
+          Consumo responsável. Para maiores de 18 anos.
+        </p>
       </Slide>
 
       {/* ═══════════ 02 · A OPORTUNIDADE ═══════════ */}
-      <Slide index={1} name="oportunidade" className="items-center">
-        <BgPhoto src={`${IMG}/comunidade.jpg`} alt="Comunidade Somma correndo" overlay="cards" />
+      <Slide index={1} name="oportunidade">
+        <BgPhoto src={`${IMG}/comunidade.jpg`} alt="Corredora do Somma Club no meio do pelotão" />
         <div className="container-somma relative z-10">
           <Kicker>A oportunidade</Kicker>
-          <H2 className="max-w-4xl">
+          <H2>
             A corrida virou <Accent>ponto de encontro</Accent>
           </H2>
-          <Lead className="max-w-2xl">
-            A corrida hoje é mais do que performance. É comunidade, estilo de vida, pertencimento e conexão social.
-          </Lead>
+          <Lead>Ninguém corre só pelo relógio. Corre pela turma que espera na chegada.</Lead>
 
           <div className="mt-12 grid grid-cols-1 gap-4 md:grid-cols-3">
             <Card
-              icon={Repeat}
-              title="Comunidade recorrente"
-              text="Centenas de pessoas no mesmo lugar, toda semana, por vontade própria. Não é audiência comprada — é hábito."
+              n="01"
+              title="Todo sábado, sem convite"
+              text="Centenas de pessoas no mesmo lugar, por vontade própria. Isso é hábito, não audiência comprada."
             />
             <Card
-              icon={Users}
-              title="Momento social no pós-treino"
-              text="O treino termina e ninguém vai embora. É ali, depois da linha de chegada, que a conversa começa."
+              n="02"
+              title="O treino acaba, a galera fica"
+              text="É depois da última passada que a conversa começa. Ali está o espaço mais valioso da manhã."
             />
             <Card
-              icon={Sparkles}
-              title="Território natural para Michelob Ultra"
-              text="Uma marca de estilo de vida ativo entrando em um ritual que já existe — e que já é social por natureza."
+              n="03"
+              title="Feito para Michelob Ultra"
+              text="Vida ativa de manhã, encontro social depois. A marca não precisa inventar o ritual, ele já existe."
               highlight
             />
           </div>
         </div>
       </Slide>
 
-      {/* ═══════════ 03 · O DESAFIO DA MARCA ═══════════ */}
-      <Slide index={2} name="desafio" className="items-center">
-        <BgPhoto src={`${IMG}/marca.jpg`} alt="Marca presente em evento de corrida" overlay="cards" />
+      {/* ═══════════ 03 · O DESAFIO ═══════════ */}
+      <Slide index={2} name="desafio">
+        <BgPhoto src={`${IMG}/marca.jpg`} alt="Corredores do Somma Club em ativação de marca" />
         <div className="container-somma relative z-10">
           <Kicker>O desafio da marca</Kicker>
           <H2 className="max-w-4xl">
-            Como entrar na comunidade sem parecer <Accent>só patrocínio</Accent>
+            Como entrar sem parecer <Accent>só patrocínio</Accent>
           </H2>
-          <Lead className="max-w-2xl">
-            O risco é ser apenas uma marca presente no evento. A oportunidade é criar uma experiência que a comunidade
-            queira viver, registrar e compartilhar.
-          </Lead>
+          <Lead>Marca que só aparece vira paisagem. Marca que cria experiência vira assunto.</Lead>
 
           <div className="mt-11 grid grid-cols-1 gap-4 md:grid-cols-2">
-            <div className="reveal rounded-3xl border border-white/10 bg-white/[0.02] p-7">
+            <div className="a-up rounded-3xl border border-white/10 bg-white/[0.02] p-7">
               <p className="font-display text-lg font-semibold uppercase tracking-wide text-white/45">
                 Patrocínio comum
               </p>
               <ul className="mt-5 space-y-3">
                 {["Logo", "Produto", "Presença pontual"].map((t) => (
                   <li key={t} className="flex items-center gap-3 text-base text-white/45">
-                    <span className="h-px w-4 bg-white/20" />
+                    <span className="h-px w-5 bg-white/20" />
                     {t}
                   </li>
                 ))}
               </ul>
-              <p className="mt-6 text-sm text-white/30">A marca aparece. E é esquecida na segunda-feira.</p>
+              <p className="mt-7 text-sm italic text-white/30">Aparece no sábado. Some na segunda.</p>
             </div>
 
-            <div
-              className="reveal rounded-3xl border p-7"
-              style={{ borderColor: `${RED}66`, backgroundColor: `${RED}0F` }}
-            >
+            <div className="a-up relative overflow-hidden rounded-3xl border p-7" style={{ borderColor: `${RED}66`, backgroundColor: `${RED}0F` }}>
+              <Corners />
               <p className="font-display text-lg font-semibold uppercase tracking-wide" style={{ color: RED }}>
                 Experiência proprietária
               </p>
               <ul className="mt-5 space-y-3">
                 {["Narrativa", "Participação", "Conteúdo", "Dados", "Continuidade"].map((t) => (
                   <li key={t} className="flex items-center gap-3 text-base font-medium text-white">
-                    <span className="h-px w-4" style={{ backgroundColor: RED }} />
+                    <RibbonMark />
                     {t}
                   </li>
                 ))}
               </ul>
-              <p className="mt-6 text-sm text-white/60">A marca é vivida. E vira história que a comunidade conta.</p>
+              <p className="mt-7 text-sm italic text-white/60">Vira história que a comunidade conta sozinha.</p>
             </div>
           </div>
         </div>
       </Slide>
 
       {/* ═══════════ 04 · A GRANDE IDEIA ═══════════ */}
-      <Slide index={3} name="grande-ideia" className="items-center justify-center text-center">
-        <BgPhoto src={`${IMG}/pelotao.jpg`} alt="Pelotão do Somma Club" overlay="cover" />
-        <div className="container-somma relative z-10">
+      <Slide index={3} name="grande-ideia" className="justify-center">
+        <BgPhoto src={`${IMG}/pelotao.jpg`} alt="Pelotão do Somma Club" veil="cover" />
+        <div className="container-somma relative z-10 text-center">
           <Kicker className="justify-center">A grande ideia</Kicker>
-          <h2 className="reveal mx-auto mt-5 max-w-4xl font-display text-5xl font-bold uppercase leading-[0.92] tracking-tight md:text-7xl">
-            Michelob Ultra <span style={{ color: RED }}>Social Run</span>
-          </h2>
-          <p className="reveal mx-auto mt-6 max-w-2xl text-lg font-light text-white/80 md:text-2xl">
-            Uma experiência que começa na corrida e termina em um encontro social premium.
+          <div className="a-mask mt-5 overflow-hidden py-1">
+            <h2 className="mx-auto max-w-4xl font-display text-5xl font-bold uppercase leading-[0.9] tracking-tight md:text-7xl">
+              Michelob Ultra <span style={{ color: RED }}>Social Run</span>
+            </h2>
+          </div>
+          <p className="a-up mx-auto mt-6 max-w-xl text-lg font-light text-white/80 md:text-2xl">
+            Começa na corrida. Termina em encontro.
           </p>
 
           <div className="mx-auto mt-14 grid max-w-4xl grid-cols-1 gap-4 md:grid-cols-3">
             {[
-              { v: "Run", t: "Corrida que inspira movimento", i: Activity },
-              { v: "Connect", t: "Comunidade que aproxima pessoas", i: Handshake },
-              { v: "Celebrate", t: "Experiências que viram memória", i: Sparkles },
-            ].map(({ v, t, i: Icon }) => (
-              <div
-                key={v}
-                className="reveal rounded-3xl border border-white/10 bg-white/[0.04] px-6 py-8 backdrop-blur-sm"
-              >
-                <Icon className="mx-auto h-6 w-6" style={{ color: GOLD }} />
-                <p className="mt-5 font-display text-3xl font-bold uppercase tracking-tight md:text-4xl">{v}</p>
-                <p className="mt-2 text-sm text-white/60">{t}</p>
+              ["Run", "Movimento que junta gente"],
+              ["Connect", "Gente que vira turma"],
+              ["Celebrate", "Turma que vira memória"],
+            ].map(([v, t], i) => (
+              <div key={v} className="a-up relative rounded-3xl border border-white/10 bg-white/[0.04] px-6 py-9 backdrop-blur-sm">
+                <span className="font-mono text-[10px] tracking-[0.3em]" style={{ color: GOLD }}>
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <p className="mt-4 font-display text-4xl font-bold uppercase tracking-tight md:text-5xl">{v}</p>
+                <p className="mt-3 text-sm text-white/60">{t}</p>
               </div>
             ))}
           </div>
         </div>
       </Slide>
 
-      {/* ═══════════ 05 · O CONCEITO CRIATIVO ═══════════ */}
-      <Slide index={4} name="social-pace" className="items-center">
-        <BgPhoto src={`${IMG}/social-pace.jpg`} alt="Amigos no pós-treino" overlay="cards" />
+      {/* ═══════════ 05 · THE SOCIAL PACE ═══════════ */}
+      <Slide index={4} name="social-pace">
+        <BgPhoto src={`${IMG}/social-pace.jpg`} alt="Amigos do Somma Club depois do treino" />
         <div className="container-somma relative z-10 grid items-center gap-12 lg:grid-cols-[1fr_auto]">
           <div>
             <Kicker>O conceito criativo</Kicker>
-            <H2 className="max-w-2xl">
+            <H2 className="max-w-xl">
               The <Accent>Social Pace</Accent>
             </H2>
-            <Lead className="max-w-xl">
-              Todo corredor tem dois ritmos: o pace da corrida e o pace da vida.
-            </Lead>
-            <div
-              className="reveal mt-9 max-w-md border-l-2 pl-5 text-lg font-light italic leading-snug text-white/85 md:text-xl"
-              style={{ borderColor: GOLD }}
-            >
-              “A gente mede o tempo da corrida. Os melhores momentos não precisam de relógio.”
-            </div>
+            <Lead className="max-w-lg">Todo corredor tem dois ritmos, e o relógio só marca um deles.</Lead>
+            <PaceTicks />
+            <blockquote className="a-up mt-8 max-w-md border-l-2 pl-5 text-lg font-light italic leading-snug text-white/85 md:text-xl" style={{ borderColor: GOLD }}>
+              “A gente cronometra a corrida. Os melhores momentos ninguém cronometra.”
+            </blockquote>
           </div>
 
           <div className="flex flex-col gap-4 sm:flex-row lg:flex-col">
-            <PaceCard run="5:20/km" life="sem pressa" lifeLabel="Meu pace com os amigos" />
-            <PaceCard run="6:40/km" life="o dia inteiro" lifeLabel="Meu pace para aproveitar" />
+            <PaceCard run="5:20/km" lifeLabel="Meu pace com os amigos" life="sem pressa" />
+            <PaceCard run="6:40/km" lifeLabel="Meu pace para aproveitar" life="o dia inteiro" />
           </div>
         </div>
       </Slide>
 
       {/* ═══════════ 06 · COMO FUNCIONA ═══════════ */}
-      <Slide index={5} name="como-funciona" className="items-center bg-[#080F26]">
+      <Slide index={5} name="como-funciona" className="bg-[#080F26]">
         <Grid />
         <div className="container-somma relative z-10">
           <Kicker>Como funciona</Kicker>
-          <H2 className="max-w-3xl">
+          <H2>
             A campanha em <Accent>três momentos</Accent>
           </H2>
 
-          <div className="relative mt-14">
-            {/* trilho do fluxo */}
-            <div className="absolute left-0 right-0 top-6 hidden h-px bg-gradient-to-r from-white/5 via-white/25 to-white/5 md:block" />
-            <div className="grid grid-cols-1 gap-8 md:grid-cols-3 md:gap-6">
+          <div className="relative mt-16">
+            <div className="a-rail absolute left-0 right-0 top-7 hidden h-px origin-left bg-gradient-to-r from-white/10 via-white/30 to-white/5 md:block" />
+            <div className="grid grid-cols-1 gap-10 md:grid-cols-3 md:gap-6">
               {[
-                {
-                  n: "01",
-                  t: "Aquecimento digital",
-                  d: "Inscrição, escolha do perfil, cards compartilháveis e desafio.",
-                  i: Smartphone,
-                },
-                {
-                  n: "02",
-                  t: "Michelob Ultra Social Run",
-                  d: "Treino especial de 5 km e 10 km, pelotões, experiências e conteúdo.",
-                  i: Flag,
-                },
-                {
-                  n: "03",
-                  t: "Ultra After Run",
-                  d: "Música, recovery, convivência, experimentação responsável e socialização.",
-                  i: Music,
-                },
-              ].map(({ n, t, d, i: Icon }, idx) => (
-                <div key={n} className="reveal relative">
+                ["01", "Aquecimento digital", "Inscrição, escolha de perfil, card para compartilhar e o desafio no ar."],
+                ["02", "Michelob Ultra Social Run", "5 km e 10 km, pelotões por ritmo e experiências no percurso."],
+                ["03", "Ultra After Run", "Música, recovery, experimentação responsável e o resto da manhã livre."],
+              ].map(([n, t, d], i) => (
+                <div key={n} className="a-up relative">
                   <div
-                    className="relative z-10 flex h-12 w-12 items-center justify-center rounded-full border-2 bg-[#080F26] font-display text-base font-bold"
-                    style={{ borderColor: idx === 1 ? RED : `${GOLD}80`, color: idx === 1 ? RED : GOLD }}
+                    className="relative z-10 flex h-14 w-14 items-center justify-center rounded-full border-2 bg-[#080F26] font-display text-lg font-bold"
+                    style={{ borderColor: i === 1 ? RED : `${GOLD}99`, color: i === 1 ? RED : GOLD }}
                   >
                     {n}
                   </div>
-                  <Icon className="mt-7 h-5 w-5 text-white/35" />
-                  <h3 className="mt-4 font-display text-2xl font-semibold uppercase leading-tight tracking-tight md:text-3xl">
+                  <h3 className="mt-7 font-display text-2xl font-semibold uppercase leading-tight tracking-tight md:text-3xl">
                     {t}
                   </h3>
                   <p className="mt-3 max-w-xs text-sm leading-relaxed text-white/60">{d}</p>
@@ -413,31 +426,26 @@ export default function MichelobDeck() {
               ))}
             </div>
           </div>
-
-          <p className="reveal mt-14 text-sm text-white/40">
-            Desejo antes · experiência durante · memória depois.
-          </p>
         </div>
       </Slide>
 
       {/* ═══════════ 07 · AQUECIMENTO DIGITAL ═══════════ */}
-      <Slide index={6} name="aquecimento" className="items-center">
-        <BgPhoto src={`${IMG}/digital.jpg`} alt="Corredoras do Somma Club" overlay="cards" />
+      <Slide index={6} name="aquecimento">
+        <BgPhoto src={`${IMG}/digital.jpg`} alt="Corredores do Somma Club em treino" />
         <div className="container-somma relative z-10 grid items-center gap-12 lg:grid-cols-[1.15fr_1fr]">
           <div>
-            <Kicker>Momento 01 · Antes do evento</Kicker>
+            <Kicker>Momento 01</Kicker>
             <H2 className="max-w-xl">
-              Antes do evento: <Accent>desejo e identificação</Accent>
+              Desejo antes da <Accent>largada</Accent>
             </H2>
             <Lead className="max-w-lg">
-              Por uma a duas semanas, Somma e Michelob Ultra fazem uma única pergunta:{" "}
-              <strong className="font-medium text-white">qual é o seu motivo para correr?</strong>
+              Uma pergunta só, duas semanas antes: qual é o seu motivo para correr?
             </Lead>
 
-            <p className="reveal mt-8 text-sm uppercase tracking-[0.2em] text-white/40">
+            <p className="a-up mt-9 text-xs uppercase tracking-[0.25em] text-white/40">
               Na landing page, o participante escolhe um perfil
             </p>
-            <div className="reveal mt-4 flex flex-wrap gap-2.5">
+            <div className="a-up mt-4 flex flex-wrap gap-2.5">
               {["Performance", "Comunidade", "Diversão", "Equilíbrio"].map((p) => (
                 <span
                   key={p}
@@ -449,45 +457,43 @@ export default function MichelobDeck() {
               ))}
             </div>
 
-            <div className="reveal mt-8 rounded-2xl border border-white/10 bg-white/[0.04] p-5">
-              <p className="text-xs uppercase tracking-[0.2em] text-white/40">Cada um recebe um card compartilhável</p>
+            <div className="a-up mt-8 rounded-2xl border border-white/10 bg-white/[0.04] p-5">
+              <p className="text-xs uppercase tracking-[0.25em] text-white/40">E sai com um card para postar</p>
               <p className="mt-2 font-display text-xl font-semibold leading-snug md:text-2xl">
                 “Meu pace é 6:10. Meu motivo é <span style={{ color: RED }}>encontrar minha galera</span>.”
               </p>
             </div>
           </div>
 
-          <div className="reveal flex justify-center lg:justify-end">
+          <div className="a-up flex justify-center lg:justify-end">
             <MockLanding />
           </div>
         </div>
       </Slide>
 
       {/* ═══════════ 08 · ULTRA BALANCE CHALLENGE ═══════════ */}
-      <Slide index={7} name="challenge" className="items-center">
-        <BgPhoto src={`${IMG}/desafio.jpg`} alt="Comunidade Somma comemorando" overlay="cards" />
+      <Slide index={7} name="challenge">
+        <BgPhoto src={`${IMG}/desafio.jpg`} alt="Comunidade Somma Club comemorando" />
         <div className="container-somma relative z-10">
           <Kicker>Ultra Balance Challenge</Kicker>
           <H2 className="max-w-4xl">
-            Um desafio para a campanha durar <Accent>mais que um dia</Accent>
+            21 dias, <Accent>não um sábado</Accent>
           </H2>
-          <Lead className="max-w-2xl">
-            Durante 21 dias, a comunidade cumpre missões simples ligadas a movimento, conexão e diversão.
-          </Lead>
+          <Lead>Missões simples de movimento, conexão e diversão para a campanha respirar antes do evento.</Lead>
 
           <div className="mt-10 grid gap-5 lg:grid-cols-[1.25fr_1fr]">
-            <div className="reveal overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03]">
+            <div className="a-up overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03]">
               <table className="w-full text-left">
                 <tbody>
                   {[
-                    { p: "Movimento", m: "Realizar três treinos na semana", i: Activity },
-                    { p: "Conexão", m: "Correr com alguém novo", i: Users },
-                    { p: "Diversão", m: "Compartilhar seu ritual de equilíbrio", i: Sparkles },
-                  ].map(({ p, m, i: Icon }) => (
+                    ["Movimento", "Três treinos na semana"],
+                    ["Conexão", "Correr com alguém novo"],
+                    ["Diversão", "Mostrar seu ritual de equilíbrio"],
+                  ].map(([p, m]) => (
                     <tr key={p} className="border-b border-white/[0.07] last:border-0">
                       <td className="w-px whitespace-nowrap py-5 pl-6 pr-5">
-                        <span className="flex items-center gap-2.5 font-display text-lg font-semibold uppercase tracking-wide">
-                          <Icon className="h-4 w-4" style={{ color: GOLD }} />
+                        <span className="flex items-center gap-3 font-display text-lg font-semibold uppercase tracking-wide">
+                          <RibbonMark gold />
                           {p}
                         </span>
                       </td>
@@ -497,26 +503,19 @@ export default function MichelobDeck() {
                 </tbody>
               </table>
               <div className="border-t border-white/[0.07] px-6 py-5">
-                <MockChallengeGrid />
+                <ChallengeGrid />
               </div>
             </div>
 
-            <div
-              className="reveal rounded-3xl border p-7"
-              style={{ borderColor: `${RED}59`, backgroundColor: `${RED}0F` }}
-            >
+            <div className="a-up relative overflow-hidden rounded-3xl border p-7" style={{ borderColor: `${RED}59`, backgroundColor: `${RED}0F` }}>
+              <Corners />
               <p className="font-display text-lg font-semibold uppercase tracking-wide" style={{ color: RED }}>
                 Quem completa, desbloqueia
               </p>
-              <ul className="mt-5 space-y-3.5">
-                {[
-                  { t: "Área exclusiva no evento", i: Trophy },
-                  { t: "Produtos personalizados", i: Gift },
-                  { t: "Experiências especiais", i: Sparkles },
-                  { t: "Acesso ao Ultra After Run", i: Music },
-                ].map(({ t, i: Icon }) => (
+              <ul className="mt-6 space-y-4">
+                {["Área exclusiva no evento", "Produtos personalizados", "Experiências especiais", "Acesso ao Ultra After Run"].map((t) => (
                   <li key={t} className="flex items-center gap-3 text-[15px] text-white/85">
-                    <Icon className="h-4 w-4 shrink-0" style={{ color: RED }} />
+                    <RibbonMark />
                     {t}
                   </li>
                 ))}
@@ -527,40 +526,32 @@ export default function MichelobDeck() {
       </Slide>
 
       {/* ═══════════ 09 · O TREINO ESPECIAL ═══════════ */}
-      <Slide index={8} name="social-run" className="items-center">
-        <BgPhoto src={`${IMG}/treino.jpg`} alt="Treino do Somma Club" overlay="cards" />
+      <Slide index={8} name="social-run">
+        <BgPhoto src={`${IMG}/treino.jpg`} alt="Treino do Somma Club no Eixão" />
         <div className="container-somma relative z-10">
-          <Kicker>Momento 02 · Michelob Ultra Social Run</Kicker>
-          <H2 className="max-w-3xl">
+          <Kicker>Momento 02</Kicker>
+          <H2>
             O <Accent>treino especial</Accent>
           </H2>
-
-          <div className="reveal mt-6 flex flex-wrap gap-x-7 gap-y-2 text-[15px] text-white/65">
-            <span>Sábado pela manhã</span>
-            <span className="text-white/20">·</span>
-            <span>Percursos de 5 km e 10 km</span>
-            <span className="text-white/20">·</span>
-            <span>Pelotões por ritmo e perfil</span>
-          </div>
+          <p className="a-up mt-6 text-base text-white/70 md:text-lg">
+            Sábado de manhã. 5 km e 10 km. Pelotão dividido por ritmo e por perfil.
+          </p>
 
           <div className="mt-10 grid grid-cols-2 gap-4 lg:grid-cols-4">
             {[
-              { n: "Performance Crew", d: "Quem busca tempo e evolução.", img: "crew-performance" },
-              { n: "Social Crew", d: "Quem corre pela conversa.", img: "crew-social" },
-              { n: "Enjoy Crew", d: "Quem vai pelo prazer do percurso.", img: "crew-enjoy" },
-              { n: "First Run Crew", d: "Quem está começando agora.", img: "crew-first" },
-            ].map((c) => (
-              <div
-                key={c.n}
-                className="reveal group overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03]"
-              >
+              ["Performance Crew", "Quem vai atrás de tempo.", "crew-performance"],
+              ["Social Crew", "Quem corre pela conversa.", "crew-social"],
+              ["Enjoy Crew", "Quem vai pelo prazer do trajeto.", "crew-enjoy"],
+              ["First Run Crew", "Quem está começando agora.", "crew-first"],
+            ].map(([n, d, img]) => (
+              <div key={n} className="a-up overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03]">
                 <div className="relative aspect-[4/3] w-full overflow-hidden">
-                  <Image src={`${IMG}/${c.img}.jpg`} alt={c.n} fill sizes="300px" className="object-cover" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#060B1C] via-[#060B1C]/30 to-transparent" />
+                  <Image src={`${IMG}/${img}.jpg`} alt={n} fill sizes="(max-width: 1024px) 45vw, 300px" className="a-img object-cover" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#060B1C] via-[#060B1C]/25 to-transparent" />
                 </div>
                 <div className="p-5">
-                  <h3 className="font-display text-xl font-semibold uppercase leading-tight tracking-tight">{c.n}</h3>
-                  <p className="mt-1.5 text-[13px] leading-relaxed text-white/55">{c.d}</p>
+                  <h3 className="font-display text-xl font-semibold uppercase leading-tight tracking-tight">{n}</h3>
+                  <p className="mt-1.5 text-[13px] leading-relaxed text-white/55">{d}</p>
                 </div>
               </div>
             ))}
@@ -569,76 +560,58 @@ export default function MichelobDeck() {
       </Slide>
 
       {/* ═══════════ 10 · PONTOS DE EXPERIÊNCIA ═══════════ */}
-      <Slide index={9} name="percurso" className="items-center">
-        <BgPhoto src={`${IMG}/percurso.jpg`} alt="Corredores no percurso" overlay="cards" />
+      <Slide index={9} name="percurso">
+        <BgPhoto src={`${IMG}/percurso.jpg`} alt="Pelotão do Somma Club na via" />
         <div className="container-somma relative z-10">
-          <Kicker>Pontos de experiência no percurso</Kicker>
-          <H2 className="max-w-3xl">
+          <Kicker>Pontos de experiência</Kicker>
+          <H2>
             A corrida vira <Accent>experiência</Accent>
           </H2>
 
-          <div className="relative mt-14">
+          <div className="relative mt-16">
             <div
-              className="absolute left-0 right-0 top-5 hidden h-0.5 md:block"
-              style={{ background: `linear-gradient(90deg, ${GOLD}00, ${GOLD}80, ${RED})` }}
+              className="a-rail absolute left-0 right-0 top-6 hidden h-0.5 origin-left md:block"
+              style={{ background: `linear-gradient(90deg, ${GOLD}00, ${GOLD}, ${RED})` }}
             />
-            <div className="grid grid-cols-1 gap-9 md:grid-cols-3 md:gap-6">
+            <div className="grid grid-cols-1 gap-10 md:grid-cols-3 md:gap-6">
               {[
-                {
-                  km: "KM 2",
-                  t: "Ultra Pace Point",
-                  d: "Registro do ritmo do corredor com foto ou vídeo personalizado.",
-                  i: Timer,
-                },
-                {
-                  km: "Último KM",
-                  t: "Enjoyment Kilometer",
-                  d: "Música, torcida, mensagens e captação de conteúdo no trecho final.",
-                  i: Music,
-                },
-                {
-                  km: "Chegada",
-                  t: "Social Finish Line",
-                  d: "A linha de chegada leva direto ao espaço de convivência Michelob Ultra.",
-                  i: Flag,
-                  last: true,
-                },
-              ].map(({ km, t, d, i: Icon, last }) => (
-                <div key={t} className="reveal relative">
-                  <div
-                    className="relative z-10 flex h-10 w-10 items-center justify-center rounded-full border-2 bg-[#060B1C]"
-                    style={{ borderColor: last ? RED : GOLD }}
-                  >
-                    <Icon className="h-4 w-4" style={{ color: last ? RED : GOLD }} />
+                ["KM 2", "Ultra Pace Point", "O ritmo do corredor registrado em foto ou vídeo personalizado."],
+                ["Último KM", "Enjoyment Kilometer", "Música, torcida e captação de conteúdo no trecho final."],
+                ["Chegada", "Social Finish Line", "A linha de chegada abre direto no espaço Michelob Ultra."],
+              ].map(([km, t, d], i) => {
+                const last = i === 2;
+                return (
+                  <div key={t} className="a-up relative">
+                    <div
+                      className="relative z-10 flex h-12 w-12 items-center justify-center rounded-full border-2 bg-[#060B1C]"
+                      style={{ borderColor: last ? RED : GOLD }}
+                    >
+                      <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: last ? RED : GOLD }} />
+                    </div>
+                    <p className="mt-6 font-display text-xs font-semibold uppercase tracking-[0.3em]" style={{ color: last ? RED : GOLD }}>
+                      {km}
+                    </p>
+                    <h3 className="mt-2 font-display text-2xl font-semibold uppercase leading-tight tracking-tight md:text-3xl">
+                      {t}
+                    </h3>
+                    <p className="mt-3 max-w-xs text-sm leading-relaxed text-white/60">{d}</p>
                   </div>
-                  <p
-                    className="mt-6 font-display text-xs font-semibold uppercase tracking-[0.25em]"
-                    style={{ color: last ? RED : GOLD }}
-                  >
-                    {km}
-                  </p>
-                  <h3 className="mt-2 font-display text-2xl font-semibold uppercase leading-tight tracking-tight md:text-3xl">
-                    {t}
-                  </h3>
-                  <p className="mt-3 max-w-xs text-sm leading-relaxed text-white/60">{d}</p>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>
       </Slide>
 
       {/* ═══════════ 11 · ULTRA AFTER RUN ═══════════ */}
-      <Slide index={10} name="after-run" className="items-center">
-        <BgPhoto src={`${IMG}/afterrun.jpg`} alt="Espaço de convivência pós-treino" overlay="cards" />
+      <Slide index={10} name="after-run">
+        <BgPhoto src={`${IMG}/afterrun.jpg`} alt="Espaço de convivência depois do treino" />
         <div className="container-somma relative z-10">
-          <Kicker>Momento 03 · Ultra After Run</Kicker>
+          <Kicker>Momento 03</Kicker>
           <H2 className="max-w-4xl">
-            O pós-treino como <Accent>território da marca</Accent>
+            O pós-treino é <Accent>da marca</Accent>
           </H2>
-          <Lead className="max-w-2xl">
-            É aqui que a corrida vira encontro — e a marca deixa de ser patrocinadora para virar anfitriã.
-          </Lead>
+          <Lead>Aqui a Michelob Ultra deixa de patrocinar e passa a receber.</Lead>
 
           <div className="mt-10 grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-5">
             {[
@@ -653,10 +626,7 @@ export default function MichelobDeck() {
               "Loja colaborativa",
               "Convidados e influenciadores",
             ].map((t, i) => (
-              <div
-                key={t}
-                className="reveal rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-5 backdrop-blur-sm"
-              >
+              <div key={t} className="a-up rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-5 backdrop-blur-sm">
                 <span className="font-mono text-[10px] tracking-widest" style={{ color: GOLD }}>
                   {String(i + 1).padStart(2, "0")}
                 </span>
@@ -665,31 +635,27 @@ export default function MichelobDeck() {
             ))}
           </div>
 
-          <p className="reveal mt-8 text-xs text-white/35">
+          <p className="a-up mt-8 text-xs text-white/35">
             Consumo responsável. Experiência para maiores de 18 anos.
           </p>
         </div>
       </Slide>
 
-      {/* ═══════════ 12 · CONTEÚDO DA CAMPANHA ═══════════ */}
-      <Slide index={11} name="conteudo" className="items-center">
-        <BgPhoto src={`${IMG}/conteudo.jpg`} alt="Registro de conteúdo no treino" overlay="cards" />
-        <div className="container-somma relative z-10 grid items-center gap-12 lg:grid-cols-[1fr_1fr]">
+      {/* ═══════════ 12 · CONTEÚDO ═══════════ */}
+      <Slide index={11} name="conteudo">
+        <BgPhoto src={`${IMG}/conteudo.jpg`} alt="Registro de conteúdo no treino do Somma Club" />
+        <div className="container-somma relative z-10 grid items-center gap-12 lg:grid-cols-2">
           <div>
-            <Kicker>Conteúdo da campanha</Kicker>
+            <Kicker>Conteúdo</Kicker>
             <H2 className="max-w-lg">
               Pessoas que sabem <Accent>equilibrar</Accent>
             </H2>
             <Lead className="max-w-lg">
-              A campanha deixa de ser uma ativação pontual e vira narrativa humana: quem são as pessoas que treinam,
-              trabalham, riem e aproveitam — no ritmo delas.
+              Não é ativação de um dia. É gente real mostrando como equilibra treino, trabalho e amigos.
             </Lead>
-            <div className="reveal mt-8 flex items-center gap-4 rounded-2xl border border-white/10 bg-white/[0.04] p-5">
-              <span
-                className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full"
-                style={{ backgroundColor: RED }}
-              >
-                <Play className="h-5 w-5 fill-white text-white" />
+            <div className="a-up mt-8 flex items-center gap-4 rounded-2xl border border-white/10 bg-white/[0.04] p-5">
+              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: RED }}>
+                <PlayMark />
               </span>
               <div>
                 <p className="font-display text-xl font-semibold uppercase tracking-tight">Filme principal · 60s</p>
@@ -700,18 +666,18 @@ export default function MichelobDeck() {
 
           <div className="grid grid-cols-2 gap-2.5">
             {[
-              { t: "4 vídeos individuais", s: "20 a 30 segundos" },
-              { t: "Reels do treino", s: "no calor do momento" },
-              { t: "Bastidores", s: "making of da experiência" },
-              { t: "Fotos dos participantes", s: "galeria oficial" },
-              { t: "Depoimentos rápidos", s: "a voz da comunidade" },
-              { t: "Recap oficial", s: "o resumo da campanha" },
-              { t: "UGC da comunidade", s: "conteúdo espontâneo" },
-              { t: "Distribuição Somma", s: "canais + insiders" },
-            ].map((f) => (
-              <div key={f.t} className="reveal rounded-xl border border-white/10 bg-white/[0.03] px-4 py-4">
-                <p className="text-sm font-semibold leading-snug text-white/90">{f.t}</p>
-                <p className="mt-0.5 text-xs text-white/40">{f.s}</p>
+              ["4 vídeos individuais", "20 a 30 segundos"],
+              ["Reels do treino", "no calor do momento"],
+              ["Bastidores", "making of da experiência"],
+              ["Fotos dos participantes", "galeria oficial"],
+              ["Depoimentos rápidos", "a voz da comunidade"],
+              ["Recap oficial", "o resumo da campanha"],
+              ["UGC da comunidade", "conteúdo espontâneo"],
+              ["Distribuição Somma", "canais, professores e insiders"],
+            ].map(([t, s]) => (
+              <div key={t} className="a-up rounded-xl border border-white/10 bg-white/[0.03] px-4 py-4">
+                <p className="text-sm font-semibold leading-snug text-white/90">{t}</p>
+                <p className="mt-0.5 text-xs text-white/40">{s}</p>
               </div>
             ))}
           </div>
@@ -719,54 +685,31 @@ export default function MichelobDeck() {
       </Slide>
 
       {/* ═══════════ 13 · O QUE O SOMMA ENTREGA ═══════════ */}
-      <Slide index={12} name="entrega" className="items-center">
-        <BgPhoto src={`${IMG}/entrega.jpg`} alt="Comunidade Somma reunida" overlay="cards" />
+      <Slide index={12} name="entrega">
+        <BgPhoto src={`${IMG}/entrega.jpg`} alt="Comunidade do Somma Club reunida" />
         <div className="container-somma relative z-10">
           <Kicker>O que o Somma entrega</Kicker>
-          <H2 className="max-w-3xl">
+          <H2>
             Cinco frentes, <Accent>uma execução</Accent>
           </H2>
 
           <div className="mt-10 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
             {[
-              {
-                t: "Comunidade",
-                d: "Acesso a mais de 5 mil membros e presença recorrente toda semana.",
-                i: Users,
-              },
-              {
-                t: "Experiência",
-                d: "Planejamento e execução do treino, pelotões, professores, percurso e equipe de apoio.",
-                i: Flag,
-              },
-              {
-                t: "Conteúdo",
-                d: "Produção e distribuição nos canais do Somma, professores, insiders e participantes.",
-                i: Camera,
-              },
-              {
-                t: "Dados",
-                d: "Landing page, inscrições, aceite de comunicação, perfil, presença, pesquisa e relatório final.",
-                i: Database,
-              },
-              {
-                t: "Continuidade",
-                d: "Possibilidade de virar plataforma mensal ou trimestral com a marca.",
-                i: Repeat,
-              },
-            ].map(({ t, d, i: Icon }) => (
-              <div
-                key={t}
-                className="reveal flex flex-col rounded-2xl border border-white/10 bg-white/[0.04] p-6 backdrop-blur-sm"
-              >
-                <Icon className="h-5 w-5" style={{ color: GOLD }} />
+              ["Comunidade", "Mais de 5 mil membros e presença toda semana."],
+              ["Experiência", "Treino, pelotões, professores, percurso e equipe de apoio."],
+              ["Conteúdo", "Produção e distribuição nos canais do Somma, professores e insiders."],
+              ["Dados", "Landing page, inscrições, aceite, perfil, presença e relatório final."],
+              ["Continuidade", "Pode virar plataforma mensal ou trimestral com a marca."],
+            ].map(([t, d]) => (
+              <div key={t} className="a-up flex flex-col rounded-2xl border border-white/10 bg-white/[0.04] p-6 backdrop-blur-sm">
+                <div className="a-rail h-0.5 w-8 origin-left" style={{ backgroundColor: GOLD }} />
                 <h3 className="mt-5 font-display text-2xl font-semibold uppercase tracking-tight">{t}</h3>
                 <p className="mt-2 text-[13px] leading-relaxed text-white/60">{d}</p>
               </div>
             ))}
           </div>
 
-          <div className="reveal mt-8 flex flex-wrap items-baseline gap-x-10 gap-y-4">
+          <div className="a-up mt-9 flex flex-wrap items-baseline gap-x-12 gap-y-4">
             <BigStat count={5000} suffix="+" label="membros na comunidade" />
             <BigStat count={300} label="pessoas todo sábado" />
             <BigStat staticValue="#1" label="running club do DF" />
@@ -775,33 +718,29 @@ export default function MichelobDeck() {
       </Slide>
 
       {/* ═══════════ 14 · INDICADORES ═══════════ */}
-      <Slide index={13} name="indicadores" className="items-center bg-[#080F26]">
+      <Slide index={13} name="indicadores" className="bg-[#080F26]">
         <Grid />
         <div className="container-somma relative z-10">
-          <Kicker>Indicadores de sucesso</Kicker>
-          <H2 className="max-w-3xl">
-            Como vamos <Accent>medir resultado</Accent>
+          <Kicker>Indicadores</Kicker>
+          <H2>
+            Como vamos <Accent>medir</Accent>
           </H2>
 
           <div className="mt-10 grid gap-5 lg:grid-cols-[1.35fr_1fr]">
-            <div className="reveal overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03]">
+            <div className="a-up overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03]">
               <table className="w-full text-left text-sm">
                 <thead>
                   <tr className="border-b border-white/10">
-                    <th className="px-6 py-4 font-display text-xs font-semibold uppercase tracking-[0.2em] text-white/40">
-                      Dimensão
-                    </th>
-                    <th className="px-6 py-4 font-display text-xs font-semibold uppercase tracking-[0.2em] text-white/40">
-                      Indicadores
-                    </th>
+                    <th className="px-6 py-4 font-display text-xs font-semibold uppercase tracking-[0.25em] text-white/40">Dimensão</th>
+                    <th className="px-6 py-4 font-display text-xs font-semibold uppercase tracking-[0.25em] text-white/40">Indicadores</th>
                   </tr>
                 </thead>
                 <tbody>
                   {[
-                    ["Alcance", "Inscritos · presentes · maiores de 18 impactados"],
-                    ["Base", "Novos cadastros captados com aceite de comunicação"],
+                    ["Alcance", "Inscritos, presentes e maiores de 18 impactados"],
+                    ["Base", "Novos cadastros com aceite de comunicação"],
                     ["Mídia", "Alcance, visualizações, marcações e menções"],
-                    ["Conteúdo", "Peças produzidas pela produção e pelos participantes"],
+                    ["Conteúdo", "Peças da produção e dos participantes"],
                     ["Produto", "Produtos experimentados no Ultra After Run"],
                     ["Marca", "Lembrança, intenção de compra e associação com vida ativa"],
                     ["Eficiência", "Custo por participante impactado"],
@@ -817,26 +756,26 @@ export default function MichelobDeck() {
               </table>
             </div>
 
-            <div className="reveal">
+            <div className="a-up">
               <MockReport />
               <p className="mt-4 text-sm text-white/45">
-                Relatório final consolidado entregue pelo Somma até 15 dias após o evento.
+                Relatório final consolidado entregue pelo Somma em até 15 dias.
               </p>
             </div>
           </div>
         </div>
       </Slide>
 
-      {/* ═══════════ 15 · FORMATOS COMERCIAIS ═══════════ */}
-      <Slide index={14} name="formatos" className="items-center bg-[#060B1C]">
+      {/* ═══════════ 15 · FORMATOS ═══════════ */}
+      <Slide index={14} name="formatos">
         <Grid />
         <div className="container-somma relative z-10">
           <Kicker>Formatos comerciais</Kicker>
-          <H2 className="max-w-3xl">
+          <H2>
             Três formas de <Accent>executar</Accent>
           </H2>
 
-          <div className="mt-11 grid grid-cols-1 gap-4 lg:grid-cols-3">
+          <div className="mt-12 grid grid-cols-1 gap-4 lg:grid-cols-3">
             <FormatCard
               name="Essencial"
               summary="Uma ativação forte, em um único dia."
@@ -847,7 +786,7 @@ export default function MichelobDeck() {
               summary="Desejo antes, experiência durante, memória depois."
               items={[
                 "Aquecimento digital",
-                "Ultra Balance Challenge · 21 dias",
+                "Ultra Balance Challenge de 21 dias",
                 "Treino especial",
                 "Experiência social",
                 "Produção de conteúdo",
@@ -856,7 +795,7 @@ export default function MichelobDeck() {
             />
             <FormatCard
               name="Plataforma"
-              summary="A marca vira parte do calendário da comunidade."
+              summary="A marca entra no calendário da comunidade."
               items={[
                 "Temporada com 3 ou 4 encontros",
                 "Desafio digital",
@@ -870,41 +809,34 @@ export default function MichelobDeck() {
       </Slide>
 
       {/* ═══════════ 16 · RECOMENDAÇÃO ═══════════ */}
-      <Slide index={15} name="recomendacao" className="items-center">
-        <BgPhoto src={`${IMG}/recomendacao.jpg`} alt="Grupo do Somma Club" overlay="cards" />
+      <Slide index={15} name="recomendacao">
+        <BgPhoto src={`${IMG}/recomendacao.jpg`} alt="Grupo do Somma Club correndo" />
         <div className="container-somma relative z-10">
           <Kicker>Nossa recomendação</Kicker>
-          <H2 className="max-w-4xl">
+          <H2>
             Formato <Accent>Campanha</Accent>
           </H2>
-          <Lead className="max-w-2xl">
-            Porque cria desejo antes, experiência durante e memória depois — conectando marca, comunidade, conteúdo e
-            dados em uma única jornada.
+          <Lead>
+            Uma jornada só, ligando marca, comunidade, conteúdo e dados do primeiro post ao relatório final.
           </Lead>
 
           <div className="mt-12 grid grid-cols-1 gap-4 md:grid-cols-3">
             {[
-              { k: "Antes", t: "Aquecimento digital", d: "Landing page, perfis, cards e o desafio de 21 dias." },
-              { k: "Durante", t: "Michelob Ultra Social Run", d: "Treino especial, pelotões e pontos de experiência." },
-              {
-                k: "Depois",
-                t: "Ultra After Run + conteúdo",
-                d: "Convivência, recap da campanha e relatório de resultados.",
-              },
-            ].map(({ k, t, d }, i) => (
+              ["Antes", "Aquecimento digital", "Landing page, perfis, cards e o desafio de 21 dias."],
+              ["Durante", "Michelob Ultra Social Run", "Treino especial, pelotões e pontos de experiência."],
+              ["Depois", "Ultra After Run", "Convivência, recap da campanha e relatório de resultados."],
+            ].map(([k, t, d], i) => (
               <div
                 key={k}
-                className="reveal rounded-3xl border p-7 backdrop-blur-sm"
+                className="a-up relative overflow-hidden rounded-3xl border p-7 backdrop-blur-sm"
                 style={
                   i === 1
                     ? { borderColor: `${RED}59`, backgroundColor: `${RED}12` }
                     : { borderColor: "rgba(255,255,255,0.1)", backgroundColor: "rgba(255,255,255,0.03)" }
                 }
               >
-                <p
-                  className="font-display text-xs font-semibold uppercase tracking-[0.3em]"
-                  style={{ color: i === 1 ? RED : GOLD }}
-                >
+                {i === 1 && <Corners />}
+                <p className="font-display text-xs font-semibold uppercase tracking-[0.35em]" style={{ color: i === 1 ? RED : GOLD }}>
                   {k}
                 </p>
                 <h3 className="mt-4 font-display text-2xl font-semibold uppercase leading-tight tracking-tight">{t}</h3>
@@ -916,29 +848,25 @@ export default function MichelobDeck() {
       </Slide>
 
       {/* ═══════════ 17 · FECHAMENTO ═══════════ */}
-      <Slide index={16} name="fechamento" className="items-center justify-center text-center">
-        <BgPhoto src={`${IMG}/fechamento.jpg`} alt="Comunidade Somma no fim de tarde" overlay="cover" />
-        <div className="container-somma relative z-10">
+      <Slide index={16} name="fechamento" className="justify-center">
+        <BgPhoto src={`${IMG}/fechamento.jpg`} alt="Comunidade do Somma Club no fim de tarde" veil="cover" />
+        <div className="container-somma relative z-10 text-center">
           <Kicker className="justify-center">Fechamento</Kicker>
-          <h2 className="reveal mx-auto mt-5 max-w-4xl font-display text-4xl font-bold uppercase leading-[0.95] tracking-tight md:text-6xl">
-            Vamos criar o ponto de encontro mais desejado da corrida em <Accent>Brasília</Accent>
-          </h2>
-          <p className="reveal mx-auto mt-7 max-w-xl text-base font-light leading-relaxed text-white/75 md:text-lg">
-            Michelob Ultra Social Run aproxima a marca de uma comunidade real, ativa e influente.
+          <div className="a-mask mt-5 overflow-hidden py-1">
+            <h2 className="mx-auto max-w-4xl font-display text-4xl font-bold uppercase leading-[0.95] tracking-tight md:text-6xl">
+              Vamos criar o ponto de encontro mais desejado da corrida em <Accent>Brasília</Accent>
+            </h2>
+          </div>
+          <p className="a-up mx-auto mt-8 max-w-xl text-base font-light leading-relaxed text-white/75 md:text-lg">
+            A Michelob Ultra entra numa comunidade real, ativa e influente.
             <br />
-            Não é só sobre correr. É sobre viver o momento depois da linha de chegada.
+            Não é sobre correr. É sobre o que acontece depois da linha de chegada.
           </p>
 
-          <div className="reveal mx-auto mt-12 flex items-center justify-center gap-6 md:gap-9">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={`${IMG}/logo-somma-white.png`} alt="Somma Club" className="h-6 w-auto md:h-8" />
-            <span className="text-xl font-extralight md:text-2xl" style={{ color: GOLD }}>
-              ×
-            </span>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={`${IMG}/logo-michelob-white.png`} alt="Michelob Ultra" className="h-7 w-auto md:h-9" />
+          <div className="a-up mt-12 flex justify-center">
+            <Lockup />
           </div>
-          <p className="reveal mt-7 font-display text-lg font-semibold uppercase tracking-[0.2em] md:text-2xl">
+          <p className="a-up mt-7 font-display text-lg font-semibold uppercase tracking-[0.2em] md:text-2xl">
             Corra pelo momento. <span style={{ color: RED }}>Fique pela experiência.</span>
           </p>
         </div>
@@ -965,9 +893,6 @@ function Slide({
   children: React.ReactNode;
 }) {
   return (
-    // justify-center: o conteúdo fica centrado verticalmente no slide.
-    // Sem overflow-hidden aqui — o BgPhoto já recorta o próprio parallax, e
-    // assim em telas baixas o slide cresce em vez de cortar o conteúdo.
     <section
       data-slide={name}
       data-index={index}
@@ -981,25 +906,16 @@ function Slide({
 function BgPhoto({
   src,
   alt,
-  overlay = "cover",
-  priority,
+  veil = "cards",
 }: {
   src: string;
   alt: string;
-  overlay?: "cover" | "cards";
-  priority?: boolean;
+  veil?: "cover" | "cards";
 }) {
   return (
     <div className="absolute inset-0 overflow-hidden">
-      <Image
-        src={src}
-        alt={alt}
-        fill
-        priority={priority}
-        sizes="100vw"
-        className="parallax scale-110 object-cover object-center"
-      />
-      {overlay === "cover" ? (
+      <Image src={src} alt={alt} fill sizes="100vw" className="parallax scale-105 object-cover object-center" />
+      {veil === "cover" ? (
         <div className="absolute inset-0 bg-gradient-to-b from-[#060B1C]/75 via-[#060B1C]/65 to-[#060B1C]/90" />
       ) : (
         <>
@@ -1011,7 +927,7 @@ function BgPhoto({
   );
 }
 
-/** Malha sutil para os slides sem foto — evita fundo chapado. */
+/** Malha sutil para os slides sem foto. */
 function Grid() {
   return (
     <div
@@ -1027,15 +943,82 @@ function Grid() {
   );
 }
 
+/* ── Elementos gráficos ────────────────────────────────────────────────── */
+
+/** Fita da Michelob Ultra, usada como marcador de lista. */
+function RibbonMark({ gold }: { gold?: boolean }) {
+  return (
+    <svg width="9" height="14" viewBox="0 0 9 14" fill="none" className="shrink-0" aria-hidden>
+      <path d="M0 0h9v14L4.5 10.6 0 14V0Z" fill={gold ? GOLD : RED} />
+    </svg>
+  );
+}
+
+/** Cantos em L, moldura discreta dos cartões de destaque. */
+function Corners() {
+  const base = "pointer-events-none absolute h-3.5 w-3.5 border-current";
+  return (
+    <span className="pointer-events-none absolute inset-0" style={{ color: `${RED}80` }} aria-hidden>
+      <span className={`${base} left-3 top-3 border-l border-t`} />
+      <span className={`${base} right-3 top-3 border-r border-t`} />
+      <span className={`${base} bottom-3 left-3 border-b border-l`} />
+      <span className={`${base} bottom-3 right-3 border-b border-r`} />
+    </span>
+  );
+}
+
+/** Marcação de ritmo: barras que lembram um gráfico de pace. */
+function PaceTicks() {
+  const h = [40, 62, 48, 78, 55, 92, 66, 100, 72, 58, 84, 46];
+  return (
+    <div className="a-up mt-9 flex h-10 items-end gap-1.5" aria-hidden>
+      {h.map((v, i) => (
+        <span
+          key={i}
+          className="w-1.5 rounded-full"
+          style={{
+            height: `${v}%`,
+            backgroundColor: i > 7 ? RED : GOLD,
+            opacity: i > 7 ? 0.9 : 0.25 + i * 0.06,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+function PlayMark() {
+  return (
+    <svg width="14" height="16" viewBox="0 0 14 16" fill="none" aria-hidden>
+      <path d="M0 0.8v14.4L14 8 0 0.8Z" fill="#fff" />
+    </svg>
+  );
+}
+
+/** Lockup Somma × Michelob Ultra. */
+function Lockup({ className = "" }: { className?: string }) {
+  return (
+    <div className={`flex items-center gap-5 md:gap-7 ${className}`}>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={`${IMG}/logo-somma-white.png`} alt="Somma Club" className="h-6 w-auto md:h-8" />
+      <span className="text-xl font-extralight md:text-2xl" style={{ color: GOLD }}>
+        ×
+      </span>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={`${IMG}/logo-michelob-white.png`} alt="Michelob Ultra" className="h-7 w-auto md:h-9" />
+    </div>
+  );
+}
+
 /* ── Tipografia ────────────────────────────────────────────────────────── */
 
 function Kicker({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return (
     <p
-      className={`reveal flex items-center gap-3 font-display text-xs font-semibold uppercase tracking-[0.35em] ${className}`}
+      className={`a-up flex items-center gap-3 font-display text-xs font-semibold uppercase tracking-[0.35em] ${className}`}
       style={{ color: GOLD }}
     >
-      <span className="h-px w-6" style={{ backgroundColor: GOLD, opacity: 0.6 }} />
+      <RibbonMark gold />
       {children}
     </p>
   );
@@ -1043,16 +1026,20 @@ function Kicker({ children, className = "" }: { children: React.ReactNode; class
 
 function H2({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return (
-    <h2
-      className={`reveal mt-5 font-display text-4xl font-bold uppercase leading-[0.95] tracking-tight md:text-6xl ${className}`}
-    >
-      {children}
-    </h2>
+    <div className="a-mask mt-5 overflow-hidden py-1">
+      <h2 className={`font-display text-4xl font-bold uppercase leading-[0.95] tracking-tight md:text-6xl ${className}`}>
+        {children}
+      </h2>
+    </div>
   );
 }
 
 function Lead({ children, className = "" }: { children: React.ReactNode; className?: string }) {
-  return <p className={`reveal mt-6 text-base font-light leading-relaxed text-white/70 md:text-lg ${className}`}>{children}</p>;
+  return (
+    <p className={`a-up mt-6 max-w-2xl text-base font-light leading-relaxed text-white/70 md:text-lg ${className}`}>
+      {children}
+    </p>
+  );
 }
 
 function Accent({ children }: { children: React.ReactNode }) {
@@ -1061,28 +1048,21 @@ function Accent({ children }: { children: React.ReactNode }) {
 
 /* ── Blocos ────────────────────────────────────────────────────────────── */
 
-function Card({
-  icon: Icon,
-  title,
-  text,
-  highlight,
-}: {
-  icon: typeof Users;
-  title: string;
-  text: string;
-  highlight?: boolean;
-}) {
+function Card({ n, title, text, highlight }: { n: string; title: string; text: string; highlight?: boolean }) {
   return (
     <div
-      className="reveal flex flex-col rounded-3xl border p-7 backdrop-blur-sm"
+      className="a-up relative flex flex-col overflow-hidden rounded-3xl border p-7 backdrop-blur-sm"
       style={
         highlight
           ? { borderColor: `${RED}59`, backgroundColor: `${RED}12` }
           : { borderColor: "rgba(255,255,255,0.1)", backgroundColor: "rgba(255,255,255,0.03)" }
       }
     >
-      <Icon className="h-5 w-5" style={{ color: highlight ? RED : GOLD }} />
-      <h3 className="mt-6 font-display text-2xl font-semibold uppercase leading-tight tracking-tight">{title}</h3>
+      {highlight && <Corners />}
+      <span className="font-mono text-[10px] tracking-[0.3em]" style={{ color: highlight ? RED : GOLD }}>
+        {n}
+      </span>
+      <h3 className="mt-5 font-display text-2xl font-semibold uppercase leading-tight tracking-tight">{title}</h3>
       <p className="mt-3 text-sm leading-relaxed text-white/60">{text}</p>
     </div>
   );
@@ -1100,7 +1080,7 @@ function BigStat({
   label: string;
 }) {
   return (
-    <div className="reveal">
+    <div>
       <p className="font-display text-5xl font-bold leading-none tracking-tight md:text-6xl">
         {staticValue ? (
           <span style={{ color: RED }}>{staticValue}</span>
@@ -1129,7 +1109,7 @@ function FormatCard({
 }) {
   return (
     <div
-      className={`reveal relative flex flex-col rounded-3xl border p-7 backdrop-blur-sm ${recommended ? "lg:-my-3 lg:p-8" : ""}`}
+      className={`a-up relative flex flex-col overflow-hidden rounded-3xl border p-7 backdrop-blur-sm ${recommended ? "lg:-my-3 lg:p-8" : ""}`}
       style={
         recommended
           ? { borderColor: RED, backgroundColor: `${RED}14` }
@@ -1138,13 +1118,13 @@ function FormatCard({
     >
       {recommended && (
         <span
-          className="absolute -top-3 left-8 rounded-full px-3 py-1 font-display text-[10px] font-bold uppercase tracking-[0.2em] text-white"
+          className="absolute right-0 top-0 flex items-center gap-1.5 rounded-bl-xl px-3 py-1.5 font-display text-[10px] font-bold uppercase tracking-[0.2em] text-white"
           style={{ backgroundColor: RED }}
         >
           Recomendado
         </span>
       )}
-      <p className="font-display text-xs font-semibold uppercase tracking-[0.3em]" style={{ color: recommended ? RED : GOLD }}>
+      <p className="font-display text-xs font-semibold uppercase tracking-[0.35em]" style={{ color: recommended ? RED : GOLD }}>
         Formato
       </p>
       <h3 className="mt-2 font-display text-4xl font-bold uppercase leading-none tracking-tight">{name}</h3>
@@ -1152,10 +1132,9 @@ function FormatCard({
       <ul className="mt-6 space-y-2.5 border-t border-white/10 pt-6">
         {items.map((t) => (
           <li key={t} className="flex items-start gap-2.5 text-sm text-white/80">
-            <span
-              className="mt-[7px] h-1 w-1 shrink-0 rounded-full"
-              style={{ backgroundColor: recommended ? RED : GOLD }}
-            />
+            <span className="mt-1.5">
+              <RibbonMark gold={!recommended} />
+            </span>
             {t}
           </li>
         ))}
@@ -1166,37 +1145,29 @@ function FormatCard({
 
 /* ── Mockups ───────────────────────────────────────────────────────────── */
 
-/** Card compartilhável do conceito "The Social Pace". */
 function PaceCard({ run, life, lifeLabel }: { run: string; life: string; lifeLabel: string }) {
   return (
     <div
-      className="reveal w-full max-w-[290px] overflow-hidden rounded-2xl border shadow-2xl"
+      className="a-up w-full max-w-[290px] overflow-hidden rounded-2xl border shadow-2xl"
       style={{ borderColor: "rgba(255,255,255,0.12)", backgroundColor: NAVY }}
     >
       <div className="px-6 pb-6 pt-7">
         <p className="text-[10px] uppercase tracking-[0.25em] text-white/45">Meu pace na corrida</p>
         <p className="mt-1 font-display text-4xl font-bold leading-none tracking-tight text-white">{run}</p>
-
         <div className="my-5 h-px w-full" style={{ backgroundColor: `${GOLD}4D` }} />
-
         <p className="text-[10px] uppercase tracking-[0.25em]" style={{ color: GOLD }}>
           {lifeLabel}
         </p>
-        <p className="mt-1 font-display text-4xl font-bold leading-none tracking-tight" style={{ color: "#fff" }}>
-          {life}
-        </p>
+        <p className="mt-1 font-display text-4xl font-bold leading-none tracking-tight text-white">{life}</p>
       </div>
       <div className="flex items-center justify-between px-6 py-3" style={{ backgroundColor: RED }}>
-        <span className="font-display text-[11px] font-semibold uppercase tracking-[0.2em] text-white">
-          Social Run
-        </span>
-        <Share2 className="h-3.5 w-3.5 text-white/80" />
+        <span className="font-display text-[11px] font-semibold uppercase tracking-[0.2em] text-white">Social Run</span>
+        <RibbonMark gold />
       </div>
     </div>
   );
 }
 
-/** Mockup da landing page de inscrição. */
 function MockLanding() {
   return (
     <div className="w-[248px] rounded-[2rem] border-[6px] border-[#151A31] bg-[#060B1C] p-3.5 shadow-2xl">
@@ -1216,14 +1187,14 @@ function MockLanding() {
       </p>
 
       <div className="mt-3.5 space-y-1.5">
-        {[
+        {([
           ["Performance", false],
           ["Comunidade", true],
           ["Diversão", false],
           ["Equilíbrio", false],
-        ].map(([label, on]) => (
+        ] as [string, boolean][]).map(([label, on]) => (
           <div
-            key={label as string}
+            key={label}
             className="flex items-center justify-between rounded-lg border px-2.5 py-2"
             style={
               on
@@ -1231,7 +1202,7 @@ function MockLanding() {
                 : { borderColor: "rgba(255,255,255,0.1)", backgroundColor: "rgba(255,255,255,0.03)" }
             }
           >
-            <span className={`text-[9px] font-semibold ${on ? "text-white" : "text-white/55"}`}>{label as string}</span>
+            <span className={`text-[9px] font-semibold ${on ? "text-white" : "text-white/55"}`}>{label}</span>
             <span
               className="h-2.5 w-2.5 rounded-full border"
               style={on ? { backgroundColor: RED, borderColor: RED } : { borderColor: "rgba(255,255,255,0.25)" }}
@@ -1241,9 +1212,7 @@ function MockLanding() {
       </div>
 
       <div className="mt-3 rounded-lg py-2 text-center" style={{ backgroundColor: RED }}>
-        <span className="font-display text-[10px] font-bold uppercase tracking-widest text-white">
-          Garantir minha vaga
-        </span>
+        <span className="font-display text-[10px] font-bold uppercase tracking-widest text-white">Garantir minha vaga</span>
       </div>
 
       <div className="mt-2.5 rounded-lg p-2.5" style={{ backgroundColor: NAVY }}>
@@ -1257,13 +1226,12 @@ function MockLanding() {
   );
 }
 
-/** Grade de 21 dias do Ultra Balance Challenge. */
-function MockChallengeGrid() {
+function ChallengeGrid() {
   const done = 13;
   return (
     <div>
       <div className="flex items-baseline justify-between">
-        <p className="text-xs uppercase tracking-[0.2em] text-white/40">21 dias · progresso</p>
+        <p className="text-xs uppercase tracking-[0.25em] text-white/40">21 dias de desafio</p>
         <p className="font-display text-sm font-semibold" style={{ color: GOLD }}>
           {done}/21
         </p>
@@ -1272,6 +1240,7 @@ function MockChallengeGrid() {
         {Array.from({ length: 21 }).map((_, i) => (
           <span
             key={i}
+            data-grid-day
             className="aspect-square rounded-[3px]"
             style={{
               backgroundColor: i < done ? RED : "rgba(255,255,255,0.08)",
@@ -1284,14 +1253,13 @@ function MockChallengeGrid() {
   );
 }
 
-/** Mockup do relatório de dados entregue ao fim da campanha. */
 function MockReport() {
   const bars = [42, 68, 55, 88, 74, 96];
   return (
     <div className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] shadow-2xl">
       <div className="flex items-center justify-between border-b border-white/10 px-5 py-3.5">
-        <span className="flex items-center gap-2 font-display text-sm font-semibold uppercase tracking-wide">
-          <BarChart3 className="h-4 w-4" style={{ color: GOLD }} />
+        <span className="flex items-center gap-2.5 font-display text-sm font-semibold uppercase tracking-wide">
+          <RibbonMark gold />
           Relatório da campanha
         </span>
         <span className="text-[10px] text-white/30">Somma Club</span>
@@ -1311,27 +1279,20 @@ function MockReport() {
       </div>
 
       <div className="px-5 py-5">
-        <p className="text-[10px] uppercase tracking-[0.2em] text-white/35">Engajamento por etapa</p>
+        <p className="text-[10px] uppercase tracking-[0.25em] text-white/35">Engajamento por etapa</p>
         <div className="mt-3 flex h-20 items-end gap-1.5">
           {bars.map((h, i) => (
             <span
               key={i}
+              data-bar
               className="flex-1 rounded-t-[3px]"
               style={{
                 height: `${h}%`,
-                backgroundColor: i === bars.length - 1 ? RED : `${GOLD}`,
+                backgroundColor: i === bars.length - 1 ? RED : GOLD,
                 opacity: i === bars.length - 1 ? 1 : 0.28 + i * 0.09,
               }}
             />
           ))}
-        </div>
-        <div className="mt-3 flex items-center gap-4 text-[10px] text-white/35">
-          <span className="flex items-center gap-1.5">
-            <Heart className="h-3 w-3" style={{ color: RED }} /> Lembrança de marca
-          </span>
-          <span className="flex items-center gap-1.5">
-            <Sparkles className="h-3 w-3" style={{ color: GOLD }} /> Intenção de compra
-          </span>
         </div>
       </div>
     </div>

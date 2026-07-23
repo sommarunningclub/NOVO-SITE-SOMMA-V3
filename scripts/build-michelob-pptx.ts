@@ -198,8 +198,9 @@ function bullets(
   const gap = o.gap ?? 0.34;
   items.forEach((t, i) => {
     const y = o.y + i * gap;
-    s.addShape(pptx.ShapeType.ellipse, {
-      x: o.x, y: y + (o.size ?? 12) / 100 + 0.03, w: 0.07, h: 0.07,
+    // Marcador em fita, referência direta ao selo vermelho da logo Michelob.
+    s.addShape(pptx.ShapeType.rect, {
+      x: o.x, y: y + (o.size ?? 12) / 100 - 0.01, w: 0.06, h: 0.14,
       fill: { color: o.color ?? GOLD },
     });
     s.addText(t, {
@@ -228,15 +229,26 @@ function slide01Capa() {
     "Abertura. Somma Club e Michelob Ultra apresentam uma proposta de campanha em collab: a Michelob Ultra Social Run. " +
       "O mote da campanha é: corra pelo momento, fique pela experiência.",
   );
-  bgPhoto(s, "capa.jpg", "cover");
+  // O corredor da capa fica à direita, então o texto ocupa a coluna da esquerda
+  // e um degradê em faixas escurece só esse lado.
+  s.addImage({ path: IMG("capa.jpg"), x: 0, y: 0, w: W, h: H, sizing: { type: "cover", w: W, h: H } });
+  s.addShape(pptx.ShapeType.rect, { x: 0, y: 0, w: W, h: H, fill: { color: BG, transparency: 55 } });
+  [
+    [0.0, 4.6, 12],
+    [4.6, 1.6, 34],
+    [6.2, 1.4, 55],
+  ].forEach(([x, w, t]) => {
+    s.addShape(pptx.ShapeType.rect, { x, y: 0, w, h: H, fill: { color: BG, transparency: t } });
+  });
+  s.addShape(pptx.ShapeType.rect, { x: 0, y: H * 0.62, w: W, h: H * 0.38, fill: { color: BG, transparency: 45 } });
 
-  lockup(s, M, 1.5, 0.46);
+  lockup(s, M, 1.42, 0.42);
 
-  s.addShape(pptx.ShapeType.rect, { x: M, y: 2.62, w: 0.9, h: 0.02, fill: { color: GOLD } });
+  s.addShape(pptx.ShapeType.rect, { x: M, y: 2.45, w: 0.9, h: 0.02, fill: { color: GOLD } });
 
   s.addText("PROPOSTA DE CAMPANHA · 2026", {
-    x: M, y: 2.9, w: 8, h: 0.3,
-    fontFace: DISPLAY, fontSize: 12.5, bold: true, color: GOLD, charSpacing: 4.5, valign: "middle",
+    x: M, y: 2.72, w: 6, h: 0.3,
+    fontFace: DISPLAY, fontSize: 12, bold: true, color: GOLD, charSpacing: 4.2, valign: "middle",
   });
 
   s.addText(
@@ -245,17 +257,17 @@ function slide01Capa() {
       { text: "SOCIAL RUN", options: { color: RED } },
     ],
     {
-      x: M, y: 3.32, w: 10.5, h: 2.1,
-      fontFace: DISPLAY, fontSize: 76, bold: true, valign: "top", lineSpacingMultiple: 0.84,
+      x: M, y: 3.12, w: 6.4, h: 2.2,
+      fontFace: DISPLAY, fontSize: 54, bold: true, valign: "top", lineSpacingMultiple: 0.86,
     },
   );
 
-  s.addText("Corra pelo momento. Fique pela experiência.", {
-    x: M, y: 5.5, w: 8, h: 0.45,
-    fontFace: SANS, fontSize: 18, color: OFF, valign: "middle",
+  s.addText("Corra pelo momento.\nFique pela experiência.", {
+    x: M, y: 5.45, w: 5.5, h: 0.8,
+    fontFace: SANS, fontSize: 17, color: OFF, valign: "top", lineSpacingMultiple: 1.25,
   });
 
-  s.addText("Consumo responsável · Experiência destinada ao público maior de 18 anos", {
+  s.addText("Consumo responsável. Para maiores de 18 anos.", {
     x: M, y: H - 0.75, w: 9, h: 0.28,
     fontFace: SANS, fontSize: 9, color: DIM, valign: "middle",
   });
@@ -264,29 +276,29 @@ function slide01Capa() {
 function slide02Oportunidade() {
   const s = newSlide(
     "A corrida deixou de ser só performance. Virou comunidade e ponto de encontro. " +
-      "É um comportamento que já existe — a marca não precisa criar o hábito, precisa entrar nele.",
+      "É um comportamento que já existe. A marca não precisa criar o hábito, só precisa entrar nele.",
   );
   bgPhoto(s, "comunidade.jpg");
   kicker(s, "A oportunidade");
   title(s, [{ text: "A corrida virou " }, { text: "ponto de encontro", color: RED }]);
   lead(
     s,
-    "A corrida hoje é mais do que performance. É comunidade, estilo de vida, pertencimento e conexão social.",
+    "Ninguém corre só pelo relógio. Corre pela turma que espera na chegada.",
   );
 
   const cw = (CW - 0.5) / 3;
   const items = [
     {
-      t: "Comunidade recorrente",
-      d: "Centenas de pessoas no mesmo lugar, toda semana, por vontade própria. Não é audiência comprada — é hábito.",
+      t: "Todo sábado, sem convite",
+      d: "Centenas de pessoas no mesmo lugar, por vontade própria. Isso é hábito, não audiência comprada.",
     },
     {
-      t: "Momento social no pós-treino",
-      d: "O treino termina e ninguém vai embora. É ali, depois da linha de chegada, que a conversa começa.",
+      t: "O treino acaba, a galera fica",
+      d: "É depois da última passada que a conversa começa. Ali está o espaço mais valioso da manhã.",
     },
     {
-      t: "Território natural para Michelob Ultra",
-      d: "Uma marca de estilo de vida ativo entrando em um ritual que já existe — e que já é social por natureza.",
+      t: "Feito para Michelob Ultra",
+      d: "Vida ativa de manhã, encontro social depois. A marca não precisa inventar o ritual, ele já existe.",
       hl: true,
     },
   ];
@@ -307,10 +319,10 @@ function slide03Desafio() {
   );
   bgPhoto(s, "marca.jpg");
   kicker(s, "O desafio da marca");
-  title(s, [{ text: "Como entrar na comunidade sem parecer " }, { text: "só patrocínio", color: RED }], { size: 38 });
+  title(s, [{ text: "Como entrar sem parecer " }, { text: "só patrocínio", color: RED }], { size: 38 });
   lead(
     s,
-    "O risco é ser apenas uma marca presente no evento. A oportunidade é criar uma experiência que a comunidade queira viver, registrar e compartilhar.",
+    "Marca que só aparece vira paisagem. Marca que cria experiência vira assunto.",
     { y: 3.05, w: 8.6 },
   );
 
@@ -325,7 +337,7 @@ function slide03Desafio() {
   bullets(s, ["Logo", "Produto", "Presença pontual"], {
     x: M + 0.36, y: y + 0.85, w: cw - 0.72, color: DIM, textColor: DIM, size: 13,
   });
-  s.addText("A marca aparece. E é esquecida na segunda-feira.", {
+  s.addText("Aparece no sábado. Some na segunda.", {
     x: M + 0.36, y: y + 2.15, w: cw - 0.72, h: 0.3,
     fontFace: SANS, fontSize: 10, color: "5B6480", italic: true, valign: "middle",
   });
@@ -339,7 +351,7 @@ function slide03Desafio() {
   bullets(s, ["Narrativa", "Participação", "Conteúdo", "Dados", "Continuidade"], {
     x: x2 + 0.36, y: y + 0.82, w: cw - 0.72, color: RED, textColor: WHITE, size: 12.5, gap: 0.26,
   });
-  s.addText("A marca é vivida. E vira história que a comunidade conta.", {
+  s.addText("Vira história que a comunidade conta sozinha.", {
     x: x2 + 0.36, y: y + 2.15, w: cw - 0.72, h: 0.3,
     fontFace: SANS, fontSize: 10, color: OFF, italic: true, valign: "middle",
   });
@@ -363,15 +375,15 @@ function slide04GrandeIdeia() {
       fontFace: DISPLAY, fontSize: 58, bold: true, valign: "top", lineSpacingMultiple: 0.88,
     },
   );
-  lead(s, "Uma experiência que começa na corrida e termina em um encontro social premium.", {
+  lead(s, "Começa na corrida. Termina em encontro.", {
     y: 3.05, w: 9, size: 17,
   });
 
   const cw = (CW - 0.5) / 3;
   [
-    ["Run", "Corrida que inspira movimento"],
-    ["Connect", "Comunidade que aproxima pessoas"],
-    ["Celebrate", "Experiências que viram memória"],
+    ["Run", "Movimento que junta gente"],
+    ["Connect", "Gente que vira turma"],
+    ["Celebrate", "Turma que vira memória"],
   ].forEach(([v, d], i) => {
     const x = M + i * (cw + 0.25);
     card(s, { x, y: 4.05, w: cw, h: 2.3 });
@@ -390,16 +402,16 @@ function slide04GrandeIdeia() {
 
 function slide05SocialPace() {
   const s = newSlide(
-    "Conceito criativo: The Social Pace. Todo corredor tem dois ritmos — o pace da corrida e o pace da vida. " +
+    "Conceito criativo: The Social Pace. Todo corredor tem dois ritmos: o pace da corrida e o pace da vida. " +
       "Os cards compartilháveis nascem daqui.",
   );
   bgPhoto(s, "social-pace.jpg");
   kicker(s, "O conceito criativo");
   title(s, [{ text: "The " }, { text: "Social Pace", color: RED }], { size: 52 });
-  lead(s, "Todo corredor tem dois ritmos: o pace da corrida e o pace da vida.", { y: 3.0, w: 6, size: 17 });
+  lead(s, "Todo corredor tem dois ritmos, e o relógio só marca um deles.", { y: 3.0, w: 6, size: 17 });
 
   s.addShape(pptx.ShapeType.rect, { x: M, y: 4.0, w: 0.025, h: 1.35, fill: { color: GOLD } });
-  s.addText("“A gente mede o tempo da corrida.\nOs melhores momentos não precisam de relógio.”", {
+  s.addText("“A gente cronometra a corrida.\nOs melhores momentos ninguém cronometra.”", {
     x: M + 0.28, y: 4.0, w: 5.2, h: 1.35,
     fontFace: SANS, fontSize: 15, color: OFF, italic: true, valign: "middle", lineSpacingMultiple: 1.25,
   });
@@ -457,9 +469,9 @@ function slide06ComoFunciona() {
   title(s, [{ text: "A campanha em " }, { text: "três momentos", color: RED }]);
 
   const steps = [
-    ["01", "Aquecimento digital", "Inscrição, escolha do perfil, cards compartilháveis e desafio."],
-    ["02", "Michelob Ultra Social Run", "Treino especial de 5 km e 10 km, pelotões, experiências e conteúdo."],
-    ["03", "Ultra After Run", "Música, recovery, convivência, experimentação responsável e socialização."],
+    ["01", "Aquecimento digital", "Inscrição, escolha de perfil, card para compartilhar e o desafio no ar."],
+    ["02", "Michelob Ultra Social Run", "5 km e 10 km, pelotões por ritmo e experiências no percurso."],
+    ["03", "Ultra After Run", "Música, recovery, experimentação responsável e o resto da manhã livre."],
   ];
   const cw = (CW - 0.5) / 3;
   const y = 3.5;
@@ -488,7 +500,7 @@ function slide06ComoFunciona() {
     });
   });
 
-  s.addText("Desejo antes · experiência durante · memória depois.", {
+  s.addText("Antes, durante e depois. A campanha não acaba no sábado.", {
     x: M, y: 6.35, w: CW, h: 0.3,
     fontFace: SANS, fontSize: 11.5, color: DIM, valign: "middle",
   });
@@ -498,12 +510,12 @@ function slide06ComoFunciona() {
 function slide07Aquecimento() {
   const s = newSlide(
     "Uma a duas semanas antes, a campanha faz uma única pergunta: qual é o seu motivo para correr? " +
-      "O participante escolhe um perfil na landing page e recebe um card compartilhável — inscrição vira conteúdo.",
+      "O participante escolhe um perfil na landing page e recebe um card compartilhável. A inscrição vira conteúdo.",
   );
   bgPhoto(s, "digital.jpg");
   kicker(s, "Momento 01 · Antes do evento");
-  title(s, [{ text: "Desejo e " }, { text: "identificação", color: RED }], { size: 42, w: 7.6 });
-  lead(s, "Por uma a duas semanas, Somma e Michelob Ultra fazem uma única pergunta: qual é o seu motivo para correr?", {
+  title(s, [{ text: "Desejo antes da " }, { text: "largada", color: RED }], { size: 42, w: 7.6 });
+  lead(s, "Uma pergunta só, duas semanas antes: qual é o seu motivo para correr?", {
     y: 2.72, w: 7.2,
   });
 
@@ -525,7 +537,7 @@ function slide07Aquecimento() {
   });
 
   card(s, { x: M, y: 5.05, w: 7.2, h: 1.25 });
-  s.addText("CADA UM RECEBE UM CARD COMPARTILHÁVEL", {
+  s.addText("E SAI COM UM CARD PARA POSTAR", {
     x: M + 0.35, y: 5.25, w: 6.5, h: 0.26,
     fontFace: DISPLAY, fontSize: 9.5, bold: true, color: DIM, charSpacing: 2.2, valign: "middle",
   });
@@ -616,12 +628,12 @@ function mockPhone(s: Slide, x: number, y: number) {
 function slide08Challenge() {
   const s = newSlide(
     "O Ultra Balance Challenge faz a campanha durar 21 dias em vez de um sábado. " +
-      "Missões simples de movimento, conexão e diversão — quem completa desbloqueia benefícios no evento.",
+      "Missões simples de movimento, conexão e diversão. Quem completa desbloqueia benefícios no evento.",
   );
   bgPhoto(s, "desafio.jpg");
   kicker(s, "Ultra Balance Challenge");
-  title(s, [{ text: "Um desafio para a campanha durar\n" }, { text: "mais que um dia", color: RED }], { size: 38 });
-  lead(s, "Durante 21 dias, a comunidade cumpre missões simples ligadas a movimento, conexão e diversão.", {
+  title(s, [{ text: "21 dias, " }, { text: "não um sábado", color: RED }], { size: 44 });
+  lead(s, "Missões simples de movimento, conexão e diversão para a campanha respirar antes do evento.", {
     y: 3.1, w: 8.6,
   });
 
@@ -633,7 +645,7 @@ function slide08Challenge() {
       ],
       [
         { text: "MOVIMENTO", options: { color: WHITE, bold: true, fontFace: DISPLAY, fontSize: 15 } },
-        { text: "Realizar três treinos na semana", options: { color: BODY, fontFace: SANS, fontSize: 12 } },
+        { text: "Três treinos na semana", options: { color: BODY, fontFace: SANS, fontSize: 12 } },
       ],
       [
         { text: "CONEXÃO", options: { color: WHITE, bold: true, fontFace: DISPLAY, fontSize: 15 } },
@@ -641,7 +653,7 @@ function slide08Challenge() {
       ],
       [
         { text: "DIVERSÃO", options: { color: WHITE, bold: true, fontFace: DISPLAY, fontSize: 15 } },
-        { text: "Compartilhar seu ritual de equilíbrio", options: { color: BODY, fontFace: SANS, fontSize: 12 } },
+        { text: "Mostrar seu ritual de equilíbrio", options: { color: BODY, fontFace: SANS, fontSize: 12 } },
       ],
     ],
     {
@@ -660,7 +672,7 @@ function slide08Challenge() {
   );
 
   // barra de progresso dos 21 dias
-  s.addText("21 DIAS · PROGRESSO DA COMUNIDADE", {
+  s.addText("21 DIAS DE DESAFIO", {
     x: M, y: 5.95, w: 5, h: 0.26,
     fontFace: DISPLAY, fontSize: 9.5, bold: true, color: DIM, charSpacing: 2.2, valign: "middle",
   });
@@ -689,20 +701,20 @@ function slide08Challenge() {
 function slide09SocialRun() {
   const s = newSlide(
     "O treino especial: sábado pela manhã, 5 km e 10 km, com pelotões divididos por ritmo e perfil. " +
-      "As crews dão a cada participante um lugar — inclusive para quem nunca correu.",
+      "As crews dão a cada participante um lugar, inclusive para quem nunca correu.",
   );
   bgPhoto(s, "treino.jpg");
   kicker(s, "Momento 02 · Michelob Ultra Social Run");
   title(s, [{ text: "O " }, { text: "treino especial", color: RED }]);
-  s.addText("Sábado pela manhã   ·   Percursos de 5 km e 10 km   ·   Pelotões por ritmo e perfil", {
+  s.addText("Sábado de manhã.   5 km e 10 km.   Pelotão dividido por ritmo e por perfil.", {
     x: M, y: 2.78, w: CW, h: 0.35,
     fontFace: SANS, fontSize: 13.5, color: BODY, valign: "middle",
   });
 
   const crews = [
-    ["Performance Crew", "Quem busca tempo e evolução.", "crew-performance.jpg"],
+    ["Performance Crew", "Quem vai atrás de tempo.", "crew-performance.jpg"],
     ["Social Crew", "Quem corre pela conversa.", "crew-social.jpg"],
-    ["Enjoy Crew", "Quem vai pelo prazer do percurso.", "crew-enjoy.jpg"],
+    ["Enjoy Crew", "Quem vai pelo prazer do trajeto.", "crew-enjoy.jpg"],
     ["First Run Crew", "Quem está começando agora.", "crew-first.jpg"],
   ];
   const cw = (CW - 0.6) / 4;
@@ -737,9 +749,9 @@ function slide10Percurso() {
   title(s, [{ text: "A corrida vira " }, { text: "experiência", color: RED }]);
 
   const pts = [
-    ["KM 2", "Ultra Pace Point", "Registro do ritmo do corredor com foto ou vídeo personalizado."],
-    ["ÚLTIMO KM", "Enjoyment Kilometer", "Música, torcida, mensagens e captação de conteúdo no trecho final."],
-    ["CHEGADA", "Social Finish Line", "A linha de chegada leva direto ao espaço de convivência Michelob Ultra."],
+    ["KM 2", "Ultra Pace Point", "O ritmo do corredor registrado em foto ou vídeo personalizado."],
+    ["ÚLTIMO KM", "Enjoyment Kilometer", "Música, torcida e captação de conteúdo no trecho final."],
+    ["CHEGADA", "Social Finish Line", "A linha de chegada abre direto no espaço Michelob Ultra."],
   ];
   const cw = (CW - 0.5) / 3;
   const y = 3.75;
@@ -779,8 +791,8 @@ function slide11AfterRun() {
   );
   bgPhoto(s, "afterrun.jpg");
   kicker(s, "Momento 03 · Ultra After Run");
-  title(s, [{ text: "O pós-treino como " }, { text: "território da marca", color: RED }], { size: 40 });
-  lead(s, "É aqui que a corrida vira encontro — e a marca deixa de ser patrocinadora para virar anfitriã.", {
+  title(s, [{ text: "O pós-treino é " }, { text: "da marca", color: RED }], { size: 44 });
+  lead(s, "Aqui a Michelob Ultra deixa de patrocinar e passa a receber.", {
     y: 2.78, w: 8.6,
   });
 
@@ -832,7 +844,7 @@ function slide12Conteudo() {
   title(s, [{ text: "Pessoas que sabem " }, { text: "equilibrar", color: RED }], { size: 42, w: 7 });
   lead(
     s,
-    "A campanha deixa de ser uma ativação pontual e vira narrativa humana: quem são as pessoas que treinam, trabalham, riem e aproveitam — no ritmo delas.",
+    "Não é ativação de um dia. É gente real mostrando como equilibra treino, trabalho e amigos.",
     { y: 2.9, w: 6.1 },
   );
 
@@ -891,11 +903,11 @@ function slide13Entrega() {
   title(s, [{ text: "Cinco frentes, " }, { text: "uma execução", color: RED }]);
 
   const fronts = [
-    ["Comunidade", "Acesso a mais de 5 mil membros e presença recorrente toda semana."],
-    ["Experiência", "Planejamento e execução do treino, pelotões, professores, percurso e equipe de apoio."],
-    ["Conteúdo", "Produção e distribuição nos canais do Somma, professores, insiders e participantes."],
-    ["Dados", "Landing page, inscrições, aceite de comunicação, perfil, presença, pesquisa e relatório final."],
-    ["Continuidade", "Possibilidade de virar plataforma mensal ou trimestral com a marca."],
+    ["Comunidade", "Mais de 5 mil membros e presença toda semana."],
+    ["Experiência", "Treino, pelotões, professores, percurso e equipe de apoio."],
+    ["Conteúdo", "Produção e distribuição nos canais do Somma, professores e insiders."],
+    ["Dados", "Landing page, inscrições, aceite, perfil, presença e relatório final."],
+    ["Continuidade", "Pode virar plataforma mensal ou trimestral com a marca."],
   ];
   const cw = (CW - 0.6) / 5;
   fronts.forEach(([t, d], i) => {
@@ -937,13 +949,13 @@ function slide14Indicadores() {
       "percepção de marca e eficiência. Relatório consolidado entregue pelo Somma até 15 dias depois.",
   );
   kicker(s, "Indicadores de sucesso");
-  title(s, [{ text: "Como vamos " }, { text: "medir resultado", color: RED }]);
+  title(s, [{ text: "Como vamos " }, { text: "medir", color: RED }]);
 
   const rows: [string, string][] = [
-    ["Alcance", "Inscritos · participantes presentes · maiores de 18 impactados"],
-    ["Base", "Novos cadastros captados com aceite de comunicação"],
+    ["Alcance", "Inscritos, presentes e maiores de 18 impactados"],
+    ["Base", "Novos cadastros com aceite de comunicação"],
     ["Mídia", "Alcance, visualizações, marcações e menções"],
-    ["Conteúdo", "Peças da produção + conteúdo produzido pelos participantes"],
+    ["Conteúdo", "Peças da produção e dos participantes"],
     ["Produto", "Produtos experimentados no Ultra After Run"],
     ["Marca", "Lembrança, intenção de compra e associação com vida ativa"],
     ["Eficiência", "Custo por participante impactado"],
@@ -971,7 +983,7 @@ function slide14Indicadores() {
   );
 
   mockReport(s, 9.05, 3.05);
-  s.addText("Relatório final consolidado entregue pelo Somma até 15 dias após o evento.", {
+  s.addText("Relatório final consolidado entregue pelo Somma em até 15 dias.", {
     x: 9.05, y: 6.25, w: 3.4, h: 0.45,
     fontFace: SANS, fontSize: 10, color: DIM, valign: "top", lineSpacingMultiple: 1.15,
   });
@@ -1046,7 +1058,7 @@ function slide15Formatos() {
       s: "Desejo antes, experiência durante, memória depois.",
       items: [
         "Aquecimento digital",
-        "Ultra Balance Challenge · 21 dias",
+        "Ultra Balance Challenge de 21 dias",
         "Treino especial",
         "Experiência social",
         "Produção de conteúdo",
@@ -1055,7 +1067,7 @@ function slide15Formatos() {
     },
     {
       n: "Plataforma",
-      s: "A marca vira parte do calendário da comunidade.",
+      s: "A marca entra no calendário da comunidade.",
       items: [
         "Temporada com 3 ou 4 encontros",
         "Desafio digital",
@@ -1115,14 +1127,14 @@ function slide16Recomendacao() {
   title(s, [{ text: "Formato " }, { text: "Campanha", color: RED }], { size: 50 });
   lead(
     s,
-    "Porque cria desejo antes, experiência durante e memória depois — conectando marca, comunidade, conteúdo e dados em uma única jornada.",
+    "Uma jornada só, ligando marca, comunidade, conteúdo e dados do primeiro post ao relatório final.",
     { y: 3.0, w: 8.8 },
   );
 
   const steps = [
     ["Antes", "Aquecimento digital", "Landing page, perfis, cards e o desafio de 21 dias."],
     ["Durante", "Michelob Ultra Social Run", "Treino especial, pelotões e pontos de experiência."],
-    ["Depois", "Ultra After Run + conteúdo", "Convivência, recap da campanha e relatório de resultados."],
+    ["Depois", "Ultra After Run", "Convivência, recap da campanha e relatório de resultados."],
   ];
   const cw = (CW - 0.5) / 3;
   steps.forEach(([k, t, d], i) => {
@@ -1148,7 +1160,7 @@ function slide16Recomendacao() {
 function slide17Fechamento() {
   const s = newSlide(
     "Fechamento. Michelob Ultra Social Run aproxima a marca de uma comunidade real, ativa e influente. " +
-      "Não é só sobre correr — é sobre viver o momento depois da linha de chegada.",
+      "Não é sobre correr. É sobre o que acontece depois da linha de chegada.",
   );
   bgPhoto(s, "fechamento.jpg", "cover");
 
@@ -1164,8 +1176,8 @@ function slide17Fechamento() {
   );
 
   s.addText(
-    "Michelob Ultra Social Run aproxima a marca de uma comunidade real, ativa e influente.\n" +
-      "Não é só sobre correr. É sobre viver o momento depois da linha de chegada.",
+    "A Michelob Ultra entra numa comunidade real, ativa e influente.\n" +
+      "Não é sobre correr. É sobre o que acontece depois da linha de chegada.",
     {
       x: M, y: 3.75, w: 8.6, h: 0.9,
       fontFace: SANS, fontSize: 15, color: OFF, valign: "top", lineSpacingMultiple: 1.3,
@@ -1202,7 +1214,7 @@ async function main() {
   pptx.author = "Somma Club";
   pptx.company = "Somma Club";
   pptx.title = "Somma Club x Michelob Ultra · Michelob Ultra Social Run";
-  pptx.subject = "Proposta de campanha — Michelob Ultra Social Run";
+  pptx.subject = "Proposta de campanha: Michelob Ultra Social Run";
 
   slide01Capa();
   slide02Oportunidade();
