@@ -29,3 +29,7 @@ next-env.d.ts
 # Referência (export Framer de terceiro)
 /reference
 .vercel
+
+# Decks gerados (npx tsx scripts/build-michelob-pptx.ts) — binários pesados,
+# reconstruíveis a partir do script e dos assets em public/michelob
+/output

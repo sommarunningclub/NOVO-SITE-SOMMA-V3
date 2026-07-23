@@ -22,6 +22,8 @@ const config: Config = {
       },
       fontFamily: {
         sans: ["var(--font-geist-sans)", "system-ui", "sans-serif"],
+        // Condensada, usada nos decks comerciais (ex.: /ppt-michelob)
+        display: ["var(--font-display)", "var(--font-geist-sans)", "sans-serif"],
       },
       maxWidth: {
         container: "1200px",
