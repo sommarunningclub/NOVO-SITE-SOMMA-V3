@@ -276,7 +276,10 @@ function slide01Capa() {
 function slide02Oportunidade() {
   const s = newSlide(
     "A corrida deixou de ser só performance. Virou comunidade e ponto de encontro. " +
-      "É um comportamento que já existe. A marca não precisa criar o hábito, só precisa entrar nele.",
+      "É um comportamento que já existe. A marca não precisa criar o hábito, só precisa entrar nele. " +
+      "Detalhe: o ponto de encontro é o Estacionamento 10 do Parque da Cidade, às 7h, gratuito e aberto a todos os níveis. " +
+      "O intervalo depois do treino é onde a marca existe sem interromper ninguém. E o produto (2,6 g de carboidrato, 95 calorias) " +
+      "já conversa com esse público sem precisar de reposicionamento.",
   );
   bgPhoto(s, "comunidade.jpg");
   kicker(s, "A oportunidade");
@@ -701,7 +704,10 @@ function slide08Challenge() {
 function slide09SocialRun() {
   const s = newSlide(
     "O treino especial: sábado pela manhã, 5 km e 10 km, com pelotões divididos por ritmo e perfil. " +
-      "As crews dão a cada participante um lugar, inclusive para quem nunca correu.",
+      "As crews dão a cada participante um lugar, inclusive para quem nunca correu. " +
+      "Detalhe das crews: Performance abaixo de 5:00/km para quem está em ciclo de prova; Social entre 6:00 e 7:00/km, " +
+      "onde corre a maior parte da comunidade; Enjoy sem cronômetro, com pausa para foto; e First Run alternando corrida e " +
+      "caminhada para quem nunca fechou 5 km.",
   );
   bgPhoto(s, "treino.jpg");
   kicker(s, "Momento 02 · Michelob Ultra Social Run");
@@ -742,7 +748,9 @@ function slide09SocialRun() {
 function slide10Percurso() {
   const s = newSlide(
     "Três ativações transformam o percurso em experiência: o Ultra Pace Point registra o ritmo, " +
-      "o Enjoyment Kilometer entrega o último km com música e torcida, e a Social Finish Line leva direto ao espaço da marca.",
+      "o Enjoyment Kilometer entrega o último km com música e torcida, e a Social Finish Line leva direto ao espaço da marca. " +
+      "Detalhe: a câmera do km 2 é fixa e capta cada corredor com o pace na tela, com entrega no mesmo dia. O último km tem caixa de som, " +
+      "torcida da equipe e placas escritas pela comunidade. E a chegada não tem funil de saída: quem cruza já entra na área de convivência.",
   );
   bgPhoto(s, "percurso.jpg");
   kicker(s, "Pontos de experiência no percurso");
@@ -839,7 +847,9 @@ function slide12Totem() {
   const s = newSlide(
     "O totem de fotos é a ativação proprietária dentro do Ultra After Run. Cabine vestida de Michelob Ultra, " +
       "foto na hora com moldura da campanha e três formatos de saída. Para receber a foto a pessoa deixa o contato, " +
-      "então cada clique também vira cadastro.",
+      "então cada clique também vira cadastro. " +
+      "Detalhe: laterais, testeira e base adesivadas; câmera com dois flashes de LED e entrega em segundos para a fila andar; " +
+      "saídas em 9:16, polaroid e horizontal; e cadastro com nome, e-mail, telefone, aceite e confirmação de maioridade antes de liberar a foto.",
   );
 
   // render do totem, fundo já recortado
@@ -970,7 +980,10 @@ function slide13Conteudo() {
 function slide14Entrega() {
   const s = newSlide(
     "O que o Somma coloca na mesa: comunidade, execução da experiência, conteúdo, dados e a possibilidade de continuidade. " +
-      "Mais de 5 mil membros e presença recorrente todo sábado.",
+      "Mais de 6 mil membros e presença recorrente todo sábado. " +
+      "Detalhe das frentes: base própria com nome, e-mail, telefone e CPF, ativável dentro da LGPD; operação de treino que já roda toda semana; " +
+      "distribuição pelos canais do Somma, dos professores e dos insiders; landing page com controle de inscrição e presença; " +
+      "e a possibilidade da Social Run virar edição fixa no calendário.",
   );
   bgPhoto(s, "entrega.jpg");
   kicker(s, "O que o Somma entrega");
@@ -1195,7 +1208,9 @@ function slide16Formatos() {
 function slide17Recomendacao() {
   const s = newSlide(
     "Nossa recomendação é o formato Campanha: ele conecta marca, comunidade, conteúdo e dados " +
-      "em uma única jornada de antes, durante e depois.",
+      "em uma única jornada de antes, durante e depois. " +
+      "Detalhe das fases: o antes capta base antes de qualquer custo de operação; o durante roda no sábado de manhã com pelotões, " +
+      "pontos de experiência e o totem; o depois entrega recap em vídeo, galeria para os participantes e relatório em até 15 dias.",
   );
   bgPhoto(s, "recomendacao.jpg");
   kicker(s, "Nossa recomendação");

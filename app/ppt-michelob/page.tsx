@@ -283,21 +283,29 @@ export default function MichelobDeck() {
           </H2>
           <Lead>Ninguém corre só pelo relógio. Corre pela turma que espera na chegada.</Lead>
 
-          <div className="mt-12 grid grid-cols-1 gap-4 md:grid-cols-3">
+          <p className="a-up mt-8 flex items-center gap-2 text-xs text-white/35">
+            <span className="inline-block h-1 w-1 rounded-full" style={{ backgroundColor: GOLD }} />
+            Toque nos cartões para abrir
+          </p>
+
+          <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-3">
             <Card
               n="01"
               title="Todo sábado, sem convite"
               text="Centenas de pessoas no mesmo lugar, por vontade própria. Isso é hábito, não audiência comprada."
+              more="O ponto de encontro é o Estacionamento 10 do Parque da Cidade, às 7h. Gratuito e aberto a todos os níveis, do primeiro quilômetro à maratona."
             />
             <Card
               n="02"
               title="O treino acaba, a galera fica"
               text="É depois da última passada que a conversa começa. Ali está o espaço mais valioso da manhã."
+              more="Café, alongamento, foto e conversa. É o intervalo em que a marca consegue existir sem interromper ninguém, porque as pessoas já escolheram ficar."
             />
             <Card
               n="03"
               title="Feito para Michelob Ultra"
               text="Vida ativa de manhã, encontro social depois. A marca não precisa inventar o ritual, ele já existe."
+              more="Superior light beer, 2,6 g de carboidrato e 95 calorias. O produto já conversa com quem treina e quer manter o equilíbrio, sem precisar reposicionar nada."
               highlight
             />
           </div>
@@ -549,21 +557,32 @@ export default function MichelobDeck() {
 
           <div className="mt-10 grid grid-cols-2 gap-4 lg:grid-cols-4">
             {[
-              ["Performance Crew", "Quem vai atrás de tempo.", "crew-performance"],
-              ["Social Crew", "Quem corre pela conversa.", "crew-social"],
-              ["Enjoy Crew", "Quem vai pelo prazer do trajeto.", "crew-enjoy"],
-              ["First Run Crew", "Quem está começando agora.", "crew-first"],
-            ].map(([n, d, img]) => (
-              <div key={n} className="a-up overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03]">
-                <div className="relative aspect-[4/3] w-full overflow-hidden">
-                  <Image src={`${IMG}/${img}.jpg`} alt={n} fill sizes="(max-width: 1024px) 45vw, 300px" className="a-img object-cover" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#060B1C] via-[#060B1C]/25 to-transparent" />
-                </div>
-                <div className="p-5">
-                  <h3 className="font-display text-xl font-semibold uppercase leading-tight tracking-tight">{n}</h3>
-                  <p className="mt-1.5 text-[13px] leading-relaxed text-white/55">{d}</p>
-                </div>
-              </div>
+              [
+                "Performance Crew",
+                "Quem vai atrás de tempo.",
+                "crew-performance",
+                "Pace abaixo de 5:00/km, pelotão fechado e professor puxando o ritmo. É onde fica quem está em ciclo de prova.",
+              ],
+              [
+                "Social Crew",
+                "Quem corre pela conversa.",
+                "crew-social",
+                "Pace entre 6:00 e 7:00/km, com o pelotão andando junto e ninguém ficando para trás. É onde corre a maior parte da comunidade.",
+              ],
+              [
+                "Enjoy Crew",
+                "Quem vai pelo prazer do trajeto.",
+                "crew-enjoy",
+                "Sem cronômetro. Tem pausa para foto, para o mirante e para o ipê florido. O caminho importa mais que o tempo.",
+              ],
+              [
+                "First Run Crew",
+                "Quem está começando agora.",
+                "crew-first",
+                "Para quem nunca fechou 5 km. Alterna corrida e caminhada, com professor dedicado e ninguém correndo sozinho.",
+              ],
+            ].map(([n, d, img, more]) => (
+              <CrewCard key={n} name={n} text={d} img={img} more={more} />
             ))}
           </div>
         </div>
@@ -585,29 +604,27 @@ export default function MichelobDeck() {
             />
             <div className="grid grid-cols-1 gap-10 md:grid-cols-3 md:gap-6">
               {[
-                ["KM 2", "Ultra Pace Point", "O ritmo do corredor registrado em foto ou vídeo personalizado."],
-                ["Último KM", "Enjoyment Kilometer", "Música, torcida e captação de conteúdo no trecho final."],
-                ["Chegada", "Social Finish Line", "A linha de chegada abre direto no espaço Michelob Ultra."],
-              ].map(([km, t, d], i) => {
-                const last = i === 2;
-                return (
-                  <div key={t} className="a-up relative">
-                    <div
-                      className="relative z-10 flex h-12 w-12 items-center justify-center rounded-full border-2 bg-[#060B1C]"
-                      style={{ borderColor: last ? RED : GOLD }}
-                    >
-                      <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: last ? RED : GOLD }} />
-                    </div>
-                    <p className="mt-6 font-display text-xs font-semibold uppercase tracking-[0.3em]" style={{ color: last ? RED : GOLD }}>
-                      {km}
-                    </p>
-                    <h3 className="mt-2 font-display text-2xl font-semibold uppercase leading-tight tracking-tight md:text-3xl">
-                      {t}
-                    </h3>
-                    <p className="mt-3 max-w-xs text-sm leading-relaxed text-white/60">{d}</p>
-                  </div>
-                );
-              })}
+                [
+                  "KM 2",
+                  "Ultra Pace Point",
+                  "O ritmo do corredor registrado em foto ou vídeo personalizado.",
+                  "Uma câmera fixa no km 2 capta cada corredor com o pace na tela. O material sai no mesmo dia, já com a marca dentro do enquadramento.",
+                ],
+                [
+                  "Último KM",
+                  "Enjoyment Kilometer",
+                  "Música, torcida e captação de conteúdo no trecho final.",
+                  "Caixa de som, torcida da equipe Somma e placas com mensagens escritas pela própria comunidade. É o trecho mais fotografado do percurso.",
+                ],
+                [
+                  "Chegada",
+                  "Social Finish Line",
+                  "A linha de chegada abre direto no espaço Michelob Ultra.",
+                  "Sem funil de saída. Quem cruza a chegada já entra na área de convivência, com o copo na mão e a música tocando.",
+                ],
+              ].map(([km, t, d, more], i) => (
+                <PointCard key={t} km={km} title={t} text={d} more={more} last={i === 2} />
+              ))}
             </div>
           </div>
         </div>
@@ -678,18 +695,28 @@ export default function MichelobDeck() {
 
               <div className="mt-7 grid grid-cols-2 gap-2.5 sm:gap-3">
                 {[
-                  ["Marca em 360°", "O totem inteiro vestido de Michelob Ultra Club e Somma, do topo à base."],
-                  ["Foto na hora", "Tela sensível ao toque, câmera com flash e moldura da campanha já aplicada."],
-                  ["Três formatos de saída", "Stories, polaroid e horizontal, cada um pronto para uma rede."],
-                  ["Cadastro na fonte", "Para receber a foto a pessoa deixa o contato. Cada clique vira dado."],
-                ].map(([t, d]) => (
-                  <div key={t} className="a-up rounded-2xl border border-white/10 bg-white/[0.03] p-4 sm:p-5">
-                    <div className="flex items-center gap-2.5">
-                      <RibbonMark />
-                      <h3 className="font-display text-base font-semibold uppercase leading-tight tracking-tight sm:text-lg">{t}</h3>
-                    </div>
-                    <p className="mt-2 text-[12px] leading-relaxed text-white/60 sm:text-[13px]">{d}</p>
-                  </div>
+                  [
+                    "Marca em 360°",
+                    "O totem inteiro vestido de Michelob Ultra Club e Somma, do topo à base.",
+                    "Laterais, testeira e base adesivadas. De qualquer ângulo da área de convivência o totem lê como peça da marca.",
+                  ],
+                  [
+                    "Foto na hora",
+                    "Tela sensível ao toque, câmera com flash e moldura da campanha já aplicada.",
+                    "Câmera com dois flashes de LED e entrega em poucos segundos, então a fila anda e ninguém desiste no meio.",
+                  ],
+                  [
+                    "Três formatos de saída",
+                    "Stories, polaroid e horizontal, cada um pronto para uma rede.",
+                    "9:16 para stories, polaroid para levar impresso e horizontal para feed e WhatsApp.",
+                  ],
+                  [
+                    "Cadastro na fonte",
+                    "Para receber a foto a pessoa deixa o contato. Cada clique vira dado.",
+                    "Nome, e-mail, telefone e aceite de comunicação, com confirmação de maioridade antes de liberar a foto.",
+                  ],
+                ].map(([t, d, more]) => (
+                  <TotemCard key={t} title={t} text={d} more={more} />
                 ))}
               </div>
 
@@ -779,17 +806,33 @@ export default function MichelobDeck() {
 
           <div className="mt-10 grid grid-cols-2 gap-3 lg:grid-cols-5">
             {[
-              ["Comunidade", "Mais de 6 mil membros e presença toda semana."],
-              ["Experiência", "Treino, pelotões, professores, percurso e equipe de apoio."],
-              ["Conteúdo", "Produção e distribuição nos canais do Somma, professores e insiders."],
-              ["Dados", "Landing page, inscrições, aceite, perfil, presença e relatório final."],
-              ["Continuidade", "Pode virar plataforma mensal ou trimestral com a marca."],
-            ].map(([t, d]) => (
-              <div key={t} className="a-up flex flex-col rounded-2xl border border-white/10 bg-white/[0.04] p-5 backdrop-blur-sm sm:p-6">
-                <div className="a-rail h-0.5 w-8 origin-left" style={{ backgroundColor: GOLD }} />
-                <h3 className="mt-4 font-display text-xl font-semibold uppercase tracking-tight sm:mt-5 sm:text-2xl">{t}</h3>
-                <p className="mt-2 text-[13px] leading-relaxed text-white/60">{d}</p>
-              </div>
+              [
+                "Comunidade",
+                "Mais de 6 mil membros e presença toda semana.",
+                "Base própria com nome, e-mail, telefone e CPF, ativável para comunicação segmentada dentro da LGPD.",
+              ],
+              [
+                "Experiência",
+                "Treino, pelotões, professores, percurso e equipe de apoio.",
+                "Professores, staff de percurso, sinalização, hidratação e apoio. A operação de treino já roda toda semana, não precisa ser inventada.",
+              ],
+              [
+                "Conteúdo",
+                "Produção e distribuição nos canais do Somma, professores e insiders.",
+                "Instagram e TikTok do Somma, mais os canais dos professores e do grupo de insiders, que multiplicam o alcance orgânico.",
+              ],
+              [
+                "Dados",
+                "Landing page, inscrições, aceite, perfil, presença e relatório final.",
+                "Landing page própria, controle de inscrição e presença, pesquisa pós-evento e relatório consolidado da campanha.",
+              ],
+              [
+                "Continuidade",
+                "Pode virar plataforma mensal ou trimestral com a marca.",
+                "A Social Run pode virar edição fixa no calendário da comunidade, com a marca presente o ano todo em vez de um sábado.",
+              ],
+            ].map(([t, d, more]) => (
+              <FrenteCard key={t} title={t} text={d} more={more} />
             ))}
           </div>
 
@@ -906,26 +949,26 @@ export default function MichelobDeck() {
 
           <div className="mt-12 grid grid-cols-1 gap-4 md:grid-cols-3">
             {[
-              ["Antes", "Aquecimento digital", "Landing page, perfis, cards e o desafio de 21 dias."],
-              ["Durante", "Michelob Ultra Social Run", "Treino especial, pelotões e pontos de experiência."],
-              ["Depois", "Ultra After Run", "Convivência, recap da campanha e relatório de resultados."],
-            ].map(([k, t, d], i) => (
-              <div
-                key={k}
-                className="a-up relative overflow-hidden rounded-3xl border p-5 backdrop-blur-sm sm:p-7"
-                style={
-                  i === 1
-                    ? { borderColor: `${RED}59`, backgroundColor: `${RED}12` }
-                    : { borderColor: "rgba(255,255,255,0.1)", backgroundColor: "rgba(255,255,255,0.03)" }
-                }
-              >
-                {i === 1 && <Corners />}
-                <p className="font-display text-xs font-semibold uppercase tracking-[0.35em]" style={{ color: i === 1 ? RED : GOLD }}>
-                  {k}
-                </p>
-                <h3 className="mt-4 font-display text-2xl font-semibold uppercase leading-tight tracking-tight">{t}</h3>
-                <p className="mt-2.5 text-sm leading-relaxed text-white/60">{d}</p>
-              </div>
+              [
+                "Antes",
+                "Aquecimento digital",
+                "Landing page, perfis, cards e o desafio de 21 dias.",
+                "Duas semanas de aquecimento, com meta de inscrição e captação de base antes de qualquer custo de operação no dia.",
+              ],
+              [
+                "Durante",
+                "Michelob Ultra Social Run",
+                "Treino especial, pelotões e pontos de experiência.",
+                "Sábado de manhã, com pelotões por ritmo, os três pontos de experiência no percurso e o totem na área de convivência.",
+              ],
+              [
+                "Depois",
+                "Ultra After Run",
+                "Convivência, recap da campanha e relatório de resultados.",
+                "Recap em vídeo, galeria liberada para os participantes e relatório consolidado em até 15 dias.",
+              ],
+            ].map(([k, t, d, more], i) => (
+              <FaseCard key={k} fase={k} title={t} text={d} more={more} highlight={i === 1} />
             ))}
           </div>
         </div>
@@ -1146,12 +1189,85 @@ function Accent({ children }: { children: React.ReactNode }) {
   return <span style={{ color: RED }}>{children}</span>;
 }
 
-/* ── Blocos ────────────────────────────────────────────────────────────── */
+/* ── Interação ─────────────────────────────────────────────────────────── */
 
-function Card({ n, title, text, highlight }: { n: string; title: string; text: string; highlight?: boolean }) {
+/** Sinal de "abre": vira × quando aberto. */
+function PlusMark({ open, color }: { open: boolean; color: string }) {
+  return (
+    <span
+      className="ml-auto flex h-7 w-7 shrink-0 items-center justify-center rounded-full border transition-colors duration-300"
+      style={{ borderColor: open ? color : "rgba(255,255,255,0.18)" }}
+      aria-hidden
+    >
+      <svg
+        width="11"
+        height="11"
+        viewBox="0 0 11 11"
+        className="transition-transform duration-300"
+        style={{ transform: open ? "rotate(45deg)" : "none" }}
+      >
+        <path d="M5.5 0v11M0 5.5h11" stroke={open ? color : "rgba(255,255,255,0.55)"} strokeWidth="1.4" />
+      </svg>
+    </span>
+  );
+}
+
+/**
+ * Casca de cartão que abre no clique.
+ *
+ * A altura anima com grid-rows 0fr→1fr, então não precisa medir o conteúdo.
+ * Ao abrir, o slide cresce, e o ScrollTrigger é recalculado para as animações
+ * dos slides seguintes não saírem de posição.
+ */
+function useExpand() {
+  const [open, setOpen] = useState(false);
+  const toggle = useCallback(() => {
+    setOpen((v) => !v);
+    window.setTimeout(() => ScrollTrigger.refresh(), 460);
+  }, []);
+  return { open, toggle };
+}
+
+function Expandable({
+  open,
+  children,
+}: {
+  open: boolean;
+  children: React.ReactNode;
+}) {
   return (
     <div
-      className="a-up relative flex flex-col overflow-hidden rounded-3xl border p-5 backdrop-blur-sm sm:p-7"
+      className={`grid transition-[grid-template-rows,opacity,margin] duration-500 ease-out ${
+        open ? "mt-4 grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+      }`}
+    >
+      <div className="overflow-hidden">
+        <div className="border-t border-white/10 pt-4 text-[13px] leading-relaxed text-white/70">{children}</div>
+      </div>
+    </div>
+  );
+}
+
+/* ── Blocos ────────────────────────────────────────────────────────────── */
+
+function Card({
+  n,
+  title,
+  text,
+  more,
+  highlight,
+}: {
+  n: string;
+  title: string;
+  text: string;
+  more: string;
+  highlight?: boolean;
+}) {
+  const { open, toggle } = useExpand();
+  const accent = highlight ? RED : GOLD;
+  return (
+    <div
+      className="a-up relative flex flex-col overflow-hidden rounded-3xl border p-5 backdrop-blur-sm transition-colors sm:p-7"
       style={
         highlight
           ? { borderColor: `${RED}59`, backgroundColor: `${RED}12` }
@@ -1159,11 +1275,174 @@ function Card({ n, title, text, highlight }: { n: string; title: string; text: s
       }
     >
       {highlight && <Corners />}
-      <span className="font-mono text-[10px] tracking-[0.3em]" style={{ color: highlight ? RED : GOLD }}>
-        {n}
-      </span>
-      <h3 className="mt-4 font-display text-xl font-semibold uppercase leading-tight tracking-tight sm:mt-5 sm:text-2xl">{title}</h3>
-      <p className="mt-3 text-sm leading-relaxed text-white/60">{text}</p>
+      <button type="button" onClick={toggle} aria-expanded={open} className="group relative z-10 text-left">
+        <span className="flex items-center gap-3">
+          <span className="font-mono text-[10px] tracking-[0.3em]" style={{ color: accent }}>
+            {n}
+          </span>
+          <PlusMark open={open} color={accent} />
+        </span>
+        <h3 className="mt-4 font-display text-xl font-semibold uppercase leading-tight tracking-tight transition-colors group-hover:text-white/80 sm:mt-5 sm:text-2xl">
+          {title}
+        </h3>
+        <p className="mt-3 text-sm leading-relaxed text-white/60">{text}</p>
+      </button>
+      <Expandable open={open}>{more}</Expandable>
+    </div>
+  );
+}
+
+/** Card de crew, com foto e detalhe que abre. */
+function CrewCard({ name, text, img, more }: { name: string; text: string; img: string; more: string }) {
+  const { open, toggle } = useExpand();
+  return (
+    <div className="a-up overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03]">
+      <button type="button" onClick={toggle} aria-expanded={open} className="group block w-full text-left">
+        <div className="relative aspect-[4/3] w-full overflow-hidden">
+          <Image
+            src={`${IMG}/${img}.jpg`}
+            alt={name}
+            fill
+            sizes="(max-width: 1024px) 45vw, 300px"
+            className="a-img object-cover transition-transform duration-500 group-hover:scale-105"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#060B1C] via-[#060B1C]/25 to-transparent" />
+        </div>
+        <div className="p-5">
+          <div className="flex items-start gap-2">
+            <h3 className="font-display text-xl font-semibold uppercase leading-tight tracking-tight">{name}</h3>
+            <PlusMark open={open} color={GOLD} />
+          </div>
+          <p className="mt-1.5 text-[13px] leading-relaxed text-white/55">{text}</p>
+        </div>
+      </button>
+      <div className="px-5 pb-1">
+        <Expandable open={open}>{more}</Expandable>
+      </div>
+      <div className={open ? "pb-4" : ""} />
+    </div>
+  );
+}
+
+/** Ponto de experiência no percurso. */
+function PointCard({
+  km,
+  title,
+  text,
+  more,
+  last,
+}: {
+  km: string;
+  title: string;
+  text: string;
+  more: string;
+  last?: boolean;
+}) {
+  const { open, toggle } = useExpand();
+  const accent = last ? RED : GOLD;
+  return (
+    <div className="a-up relative">
+      <div className="relative z-10 flex h-12 w-12 items-center justify-center rounded-full border-2 bg-[#060B1C]" style={{ borderColor: accent }}>
+        <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: accent }} />
+      </div>
+      <button type="button" onClick={toggle} aria-expanded={open} className="group mt-6 block w-full max-w-xs text-left">
+        <div className="flex items-center gap-3">
+          <p className="font-display text-xs font-semibold uppercase tracking-[0.3em]" style={{ color: accent }}>
+            {km}
+          </p>
+          <PlusMark open={open} color={accent} />
+        </div>
+        <h3 className="mt-2 font-display text-2xl font-semibold uppercase leading-tight tracking-tight transition-colors group-hover:text-white/80 md:text-3xl">
+          {title}
+        </h3>
+        <p className="mt-3 text-sm leading-relaxed text-white/60">{text}</p>
+      </button>
+      <div className="max-w-xs">
+        <Expandable open={open}>{more}</Expandable>
+      </div>
+    </div>
+  );
+}
+
+/** Uma das cinco frentes de entrega do Somma. */
+function FrenteCard({ title, text, more }: { title: string; text: string; more: string }) {
+  const { open, toggle } = useExpand();
+  return (
+    <div className="a-up flex flex-col rounded-2xl border border-white/10 bg-white/[0.04] p-5 backdrop-blur-sm sm:p-6">
+      <button type="button" onClick={toggle} aria-expanded={open} className="group text-left">
+        <div className="flex items-center justify-between gap-2">
+          <div className="a-rail h-0.5 w-8 origin-left" style={{ backgroundColor: GOLD }} />
+          <PlusMark open={open} color={GOLD} />
+        </div>
+        <h3 className="mt-4 font-display text-xl font-semibold uppercase tracking-tight transition-colors group-hover:text-white/80 sm:mt-5 sm:text-2xl">
+          {title}
+        </h3>
+        <p className="mt-2 text-[13px] leading-relaxed text-white/60">{text}</p>
+      </button>
+      <Expandable open={open}>{more}</Expandable>
+    </div>
+  );
+}
+
+/** Item do totem. */
+function TotemCard({ title, text, more }: { title: string; text: string; more: string }) {
+  const { open, toggle } = useExpand();
+  return (
+    <div className="a-up rounded-2xl border border-white/10 bg-white/[0.03] p-4 sm:p-5">
+      <button type="button" onClick={toggle} aria-expanded={open} className="group w-full text-left">
+        <div className="flex items-center gap-2.5">
+          <RibbonMark />
+          <h3 className="font-display text-base font-semibold uppercase leading-tight tracking-tight transition-colors group-hover:text-white/80 sm:text-lg">
+            {title}
+          </h3>
+          <PlusMark open={open} color={RED} />
+        </div>
+        <p className="mt-2 text-[12px] leading-relaxed text-white/60 sm:text-[13px]">{text}</p>
+      </button>
+      <Expandable open={open}>{more}</Expandable>
+    </div>
+  );
+}
+
+/** Fase da campanha: antes, durante, depois. */
+function FaseCard({
+  fase,
+  title,
+  text,
+  more,
+  highlight,
+}: {
+  fase: string;
+  title: string;
+  text: string;
+  more: string;
+  highlight?: boolean;
+}) {
+  const { open, toggle } = useExpand();
+  const accent = highlight ? RED : GOLD;
+  return (
+    <div
+      className="a-up relative overflow-hidden rounded-3xl border p-5 backdrop-blur-sm sm:p-7"
+      style={
+        highlight
+          ? { borderColor: `${RED}59`, backgroundColor: `${RED}12` }
+          : { borderColor: "rgba(255,255,255,0.1)", backgroundColor: "rgba(255,255,255,0.03)" }
+      }
+    >
+      {highlight && <Corners />}
+      <button type="button" onClick={toggle} aria-expanded={open} className="group relative z-10 w-full text-left">
+        <div className="flex items-center justify-between gap-2">
+          <p className="font-display text-xs font-semibold uppercase tracking-[0.35em]" style={{ color: accent }}>
+            {fase}
+          </p>
+          <PlusMark open={open} color={accent} />
+        </div>
+        <h3 className="mt-4 font-display text-2xl font-semibold uppercase leading-tight tracking-tight transition-colors group-hover:text-white/80">
+          {title}
+        </h3>
+        <p className="mt-2.5 text-sm leading-relaxed text-white/60">{text}</p>
+      </button>
+      <Expandable open={open}>{more}</Expandable>
     </div>
   );
 }
