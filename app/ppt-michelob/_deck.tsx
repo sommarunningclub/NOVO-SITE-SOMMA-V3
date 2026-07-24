@@ -1,9 +1,28 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import {
+  CATEGORIAS,
+  CLAUSULA_RESPONSABILIDADE,
+  COMPARATIVO,
+  CONDICOES_META,
+  FINANCE_CTA,
+  FORNECEDORES,
+  INVESTIMENTO,
+  MICHELOB_RESPONSIBILITIES,
+  NAO_INCLUSO,
+  NAO_INCLUSO_NOTA,
+  PAGAMENTO,
+  SOMMA_FRASE_FINAL,
+  SOMMA_FRENTES,
+  SOMMA_RESUMO,
+  type CategoriaId,
+  type Responsabilidade,
+  type SommaFrente,
+} from "./_financial-data";
 
 const IMG = "/michelob";
 
@@ -11,6 +30,8 @@ const IMG = "/michelob";
 const NAVY = "#283280";
 const RED = "#D22030";
 const GOLD = "#C6A664";
+/** Laranja Somma — só em acentos pontuais, como na paleta do Ultra Balance. */
+const ORANGE = "#FF2C03";
 
 const SLIDES = [
   "capa",
@@ -33,10 +54,31 @@ const SLIDES = [
   "fechamento",
 ] as const;
 
-export function MichelobDeck() {
+/**
+ * Sub-slides do capítulo Proposta Financeira. Só entram quando o deck é
+ * renderizado com `financial`, na rota /ppt-michelob-proposta. Ficam entre a
+ * recomendação e o fechamento, empurrando o índice do fechamento para frente.
+ */
+const FINANCE_SLIDES = [
+  "proposta-financeira",
+  "somma-vende",
+  "obrigacoes-michelob",
+  "condicoes-comerciais",
+  "encerramento-financeiro",
+] as const;
+
+export function MichelobDeck({ financial = false }: { financial?: boolean }) {
   const scroller = useRef<HTMLDivElement>(null);
   const bar = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState(0);
+
+  // Quantos slides existem de fato depende do capítulo financeiro. Os slides
+  // financeiros ocupam o lugar antigo do fechamento (índice 17 em diante) e o
+  // fechamento passa a vir logo depois deles.
+  const finCount = financial ? FINANCE_SLIDES.length : 0;
+  const financeStart = SLIDES.length - 1; // onde o fechamento ficava
+  const fechamentoIndex = financeStart + finCount;
+  const total = SLIDES.length + finCount;
 
   useEffect(() => {
     const el = scroller.current;
@@ -158,11 +200,21 @@ export function MichelobDeck() {
     return () => ctx.revert();
   }, []);
 
-  const goTo = useCallback((i: number) => {
-    const el = scroller.current;
-    if (!el) return;
-    const clamped = Math.max(0, Math.min(SLIDES.length - 1, i));
-    el.querySelector<HTMLElement>(`[data-index="${clamped}"]`)?.scrollIntoView({ behavior: "smooth" });
+  const goTo = useCallback(
+    (i: number) => {
+      const el = scroller.current;
+      if (!el) return;
+      const clamped = Math.max(0, Math.min(total - 1, i));
+      el.querySelector<HTMLElement>(`[data-index="${clamped}"]`)?.scrollIntoView({ behavior: "smooth" });
+    },
+    [total],
+  );
+
+  /** Navega direto para um slide pelo nome, usado pelos botões da seção financeira. */
+  const goToName = useCallback((name: string) => {
+    scroller.current
+      ?.querySelector<HTMLElement>(`[data-slide="${name}"]`)
+      ?.scrollIntoView({ behavior: "smooth" });
   }, []);
 
   useEffect(() => {
@@ -178,7 +230,7 @@ export function MichelobDeck() {
         goTo(0);
       } else if (e.key === "End") {
         e.preventDefault();
-        goTo(SLIDES.length - 1);
+        goTo(total - 1);
       }
     };
     window.addEventListener("keydown", onKey);
@@ -202,7 +254,7 @@ export function MichelobDeck() {
 
       {/* Navegação lateral */}
       <div className="fixed right-5 top-1/2 z-50 hidden -translate-y-1/2 flex-col gap-2.5 md:flex">
-        {SLIDES.map((_, i) => (
+        {Array.from({ length: total }).map((_, i) => (
           <button key={i} onClick={() => goTo(i)} aria-label={`Ir para slide ${i + 1}`} className="group flex justify-end">
             <span
               className={`h-1.5 rounded-full transition-all duration-300 ${
@@ -217,7 +269,7 @@ export function MichelobDeck() {
       <div className="fixed bottom-6 left-6 z-50 flex items-baseline gap-1.5 font-mono text-[11px] tracking-[0.2em] md:left-9">
         <span className="text-white/70">{String(active + 1).padStart(2, "0")}</span>
         <span className="text-white/20">/</span>
-        <span className="text-white/30">{SLIDES.length}</span>
+        <span className="text-white/30">{total}</span>
       </div>
 
       {/* ═══════════ 01 · CAPA ═══════════ */}
@@ -997,8 +1049,19 @@ export function MichelobDeck() {
         </div>
       </Slide>
 
-      {/* ═══════════ 17 · FECHAMENTO ═══════════ */}
-      <Slide index={17} name="fechamento" className="justify-center">
+      {/* ═══════════ CAPÍTULO · PROPOSTA FINANCEIRA (só na rota -proposta) ═══════════ */}
+      {financial && (
+        <>
+          <FinanceInvestimento index={financeStart + 0} />
+          <FinanceVende index={financeStart + 1} />
+          <FinanceObrigacoes index={financeStart + 2} />
+          <FinanceCondicoes index={financeStart + 3} />
+          <FinanceCTA index={financeStart + 4} goToName={goToName} />
+        </>
+      )}
+
+      {/* ═══════════ FECHAMENTO ═══════════ */}
+      <Slide index={fechamentoIndex} name="fechamento" className="justify-center">
         <BgPhoto name="fechamento" alt="Comunidade do Somma Club no fim de tarde" veil="cover" />
         <div className="container-somma relative z-10 text-center">
           <Kicker className="justify-center">Fechamento</Kicker>
@@ -1698,5 +1761,585 @@ function MockReport() {
         </div>
       </div>
     </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   CAPÍTULO · PROPOSTA FINANCEIRA
+   Sub-slides comerciais, exibidos só quando o deck roda com `financial`
+   (rota /ppt-michelob-proposta). Reutilizam Slide, Kicker, H2, Lead e a
+   mesma linguagem visual dos demais slides.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/** Valor monetário com destaque tipográfico forte, sem cara de planilha. */
+function Valor({ value, className = "" }: { value: string; className?: string }) {
+  return (
+    <p className={`font-display font-bold leading-[0.95] tracking-tight text-white ${className}`}>{value}</p>
+  );
+}
+
+/** Selo pequeno, como "Impostos inclusos". */
+function Selo({ children }: { children: React.ReactNode }) {
+  return (
+    <span
+      className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 font-display text-[11px] font-semibold uppercase tracking-[0.15em]"
+      style={{ borderColor: `${GOLD}66`, color: GOLD }}
+    >
+      <RibbonMark gold />
+      {children}
+    </span>
+  );
+}
+
+function SearchMark() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden>
+      <circle cx="6.5" cy="6.5" r="5" stroke="currentColor" strokeWidth="1.4" />
+      <path d="M10.5 10.5 14 14" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+/* ── Tela 1 · Investimento ─────────────────────────────────────────────── */
+
+function FinanceInvestimento({ index }: { index: number }) {
+  return (
+    <Slide index={index} name="proposta-financeira" className="bg-[#080F26]">
+      <Grid />
+      <div className="container-somma relative z-10">
+        <Kicker>Proposta financeira</Kicker>
+        <H2>
+          Proposta <Accent>financeira</Accent>
+        </H2>
+        <Lead>
+          Estratégia, tecnologia, comunidade e operação esportiva para uma campanha de 21 dias e um grande
+          evento de encerramento.
+        </Lead>
+
+        <div className="mt-9 grid gap-5 lg:grid-cols-[1.15fr_1fr]">
+          {/* Card principal de investimento */}
+          <div
+            className="a-up relative overflow-hidden rounded-3xl border p-6 sm:p-9"
+            style={{ borderColor: `${RED}59`, backgroundColor: `${RED}0F` }}
+          >
+            <Corners />
+            <p className="font-display text-xs font-semibold uppercase tracking-[0.3em] text-white/55">
+              {INVESTIMENTO.totalLabel}
+            </p>
+            <Valor value={INVESTIMENTO.total} className="mt-3 text-[2.9rem] sm:text-6xl md:text-7xl" />
+            <div className="mt-5">
+              <Selo>{INVESTIMENTO.selo}</Selo>
+            </div>
+            <p className="mt-6 max-w-md text-sm leading-relaxed text-white/65">{INVESTIMENTO.totalNota}</p>
+
+            {/* Tributação — secundário e discreto, sem virar demonstrativo contábil */}
+            <dl className="mt-7 grid grid-cols-2 gap-x-6 gap-y-4 border-t border-white/10 pt-6 sm:grid-cols-3">
+              <div>
+                <dt className="text-[11px] uppercase tracking-[0.15em] text-white/40">{INVESTIMENTO.tributacaoLabel}</dt>
+                <dd className="mt-1 font-display text-2xl font-bold text-white">{INVESTIMENTO.tributacao}</dd>
+              </div>
+              <div>
+                <dt className="text-[11px] uppercase tracking-[0.15em] text-white/40">{INVESTIMENTO.tributosLabel}</dt>
+                <dd className="mt-1 font-display text-lg font-semibold text-white/85">{INVESTIMENTO.tributos}</dd>
+              </div>
+              <div className="col-span-2 sm:col-span-1">
+                <dt className="text-[11px] uppercase tracking-[0.15em] text-white/40">{INVESTIMENTO.liquidoLabel}</dt>
+                <dd className="mt-1 font-display text-lg font-semibold text-white/85">{INVESTIMENTO.liquido}</dd>
+              </div>
+            </dl>
+          </div>
+
+          {/* Cartões comparativos */}
+          <div className="flex flex-col gap-4">
+            {COMPARATIVO.map((c) => (
+              <div
+                key={c.titulo}
+                className="a-up relative overflow-hidden rounded-3xl border p-5 sm:p-6"
+                style={
+                  c.destaque
+                    ? { borderColor: `${RED}59`, backgroundColor: `${RED}12` }
+                    : { borderColor: "rgba(255,255,255,0.1)", backgroundColor: "rgba(255,255,255,0.03)" }
+                }
+              >
+                <p
+                  className="font-display text-sm font-semibold uppercase tracking-[0.2em]"
+                  style={{ color: c.destaque ? RED : GOLD }}
+                >
+                  {c.titulo}
+                </p>
+                {c.valor && <Valor value={c.valor} className="mt-2 text-3xl sm:text-4xl" />}
+                <p className="mt-2 text-[13px] leading-relaxed text-white/60">{c.texto}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Observação sobre produção física */}
+        <div
+          className="a-up mt-5 flex items-start gap-3 rounded-2xl border p-4 sm:p-5"
+          style={{ borderColor: `${GOLD}33`, backgroundColor: "rgba(255,255,255,0.02)" }}
+        >
+          <span className="mt-0.5 shrink-0">
+            <RibbonMark gold />
+          </span>
+          <p className="text-[13px] leading-relaxed text-white/60">{INVESTIMENTO.observacao}</p>
+        </div>
+
+        {/* Frase de destaque, com acento laranja Somma */}
+        <p
+          className="a-up mt-6 max-w-3xl border-l-2 pl-5 text-lg font-light italic leading-snug text-white/85 md:text-xl"
+          style={{ borderColor: ORANGE }}
+        >
+          {INVESTIMENTO.frase}
+        </p>
+      </div>
+    </Slide>
+  );
+}
+
+/* ── Tela 2 · O que o Somma está vendendo ──────────────────────────────── */
+
+function SommaFrenteCard({ frente }: { frente: SommaFrente }) {
+  const { open, toggle } = useExpand();
+  return (
+    <div className="a-up flex flex-col rounded-2xl border border-white/10 bg-white/[0.03] p-5 backdrop-blur-sm">
+      <button type="button" onClick={toggle} aria-expanded={open} className="group text-left">
+        <div className="flex items-center justify-between gap-2">
+          <span className="font-mono text-[10px] tracking-[0.3em]" style={{ color: GOLD }}>
+            {frente.n}
+          </span>
+          <PlusMark open={open} color={GOLD} />
+        </div>
+        <h3 className="mt-4 font-display text-lg font-semibold uppercase leading-tight tracking-tight transition-colors group-hover:text-white/80 sm:text-xl">
+          {frente.title}
+        </h3>
+        <p className="mt-2 text-[13px] leading-relaxed text-white/60">{frente.short}</p>
+      </button>
+      <Expandable open={open}>{frente.detail}</Expandable>
+    </div>
+  );
+}
+
+function FinanceVende({ index }: { index: number }) {
+  return (
+    <Slide index={index} name="somma-vende">
+      <Grid />
+      <div className="container-somma relative z-10">
+        <Kicker>O que o Somma está vendendo</Kicker>
+        <H2 className="max-w-4xl">
+          O que o Somma está <Accent>vendendo</Accent>
+        </H2>
+        <Lead>
+          O investimento remunera ativos, conhecimento, tecnologia, comunidade e capacidade de execução.
+        </Lead>
+
+        <p className="a-up mt-8 flex items-center gap-2 text-xs text-white/35">
+          <span className="inline-block h-1 w-1 rounded-full" style={{ backgroundColor: GOLD }} />
+          Toque nos cartões para abrir
+        </p>
+
+        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {SOMMA_FRENTES.map((f) => (
+            <SommaFrenteCard key={f.n} frente={f} />
+          ))}
+        </div>
+
+        {/* Tabela-resumo */}
+        <div className="a-up mt-8 overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03]">
+          <table className="w-full text-left text-sm">
+            <thead>
+              <tr className="border-b border-white/10">
+                <th className="px-4 py-3.5 font-display text-[10px] font-semibold uppercase tracking-[0.2em] text-white/40 sm:px-6 sm:text-xs sm:tracking-[0.25em]">
+                  Frente
+                </th>
+                <th className="px-4 py-3.5 font-display text-[10px] font-semibold uppercase tracking-[0.2em] text-white/40 sm:px-6 sm:text-xs sm:tracking-[0.25em]">
+                  Entrega principal
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {SOMMA_RESUMO.map((r) => (
+                <tr key={r.frente} className="border-b border-white/[0.06] last:border-0">
+                  <th
+                    scope="row"
+                    className="w-[38%] px-4 py-3 text-left align-top font-display text-sm font-semibold uppercase leading-tight tracking-wide text-white sm:w-[30%] sm:px-6 sm:text-base"
+                  >
+                    {r.frente}
+                  </th>
+                  <td className="px-4 py-3 align-top leading-snug text-white/60 sm:px-6">{r.entrega}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <p
+          className="a-up mt-6 max-w-3xl border-l-2 pl-5 text-lg font-light italic leading-snug text-white/85 md:text-xl"
+          style={{ borderColor: RED }}
+        >
+          {SOMMA_FRASE_FINAL}
+        </p>
+      </div>
+    </Slide>
+  );
+}
+
+/* ── Tela 3 · Obrigações da Michelob ───────────────────────────────────── */
+
+function ResponsabilidadeBadge({ value }: { value: Responsabilidade }) {
+  const parceiros = value !== "Michelob";
+  const color = parceiros ? GOLD : RED;
+  return (
+    <span
+      className="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold leading-tight text-white"
+      style={{ borderColor: `${color}66`, backgroundColor: `${color}1A` }}
+    >
+      <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ backgroundColor: color }} aria-hidden />
+      {value}
+    </span>
+  );
+}
+
+/** Tabela filtrável e responsiva: mesmo array vira tabela no desktop e cards no mobile. */
+function MichelobResponsibilitiesTable() {
+  const [query, setQuery] = useState("");
+  const [cat, setCat] = useState<CategoriaId | "todas">("todas");
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return MICHELOB_RESPONSIBILITIES.filter((r) => {
+      const okCat = cat === "todas" || r.categoria === cat;
+      const okQuery = !q || r.frente.toLowerCase().includes(q) || r.obrigacao.toLowerCase().includes(q);
+      return okCat && okQuery;
+    });
+  }, [query, cat]);
+
+  const chips: { id: CategoriaId | "todas"; label: string }[] = [
+    { id: "todas", label: "Ver todas" },
+    ...CATEGORIAS.map((c) => ({ id: c.id as CategoriaId | "todas", label: c.chip })),
+  ];
+
+  return (
+    <div className="a-up">
+      {/* Busca + contador */}
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div className="relative w-full lg:max-w-xs">
+          <label htmlFor="busca-resp" className="sr-only">
+            Buscar responsabilidade
+          </label>
+          <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-white/35" aria-hidden>
+            <SearchMark />
+          </span>
+          <input
+            id="busca-resp"
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Buscar responsabilidade"
+            className="w-full rounded-full border border-white/15 bg-white/[0.04] py-2.5 pl-10 pr-4 text-sm text-white placeholder:text-white/35 focus:border-white/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+          />
+        </div>
+        <p className="text-xs text-white/40" role="status" aria-live="polite">
+          {filtered.length} de {MICHELOB_RESPONSIBILITIES.length} responsabilidades
+        </p>
+      </div>
+
+      {/* Filtros por categoria */}
+      <div className="mt-4 flex flex-wrap gap-2" role="group" aria-label="Filtrar por categoria">
+        {chips.map((c) => {
+          const on = cat === c.id;
+          return (
+            <button
+              key={c.id}
+              type="button"
+              onClick={() => setCat(c.id)}
+              aria-pressed={on}
+              className="rounded-full border px-3.5 py-1.5 font-display text-xs font-semibold uppercase tracking-[0.1em] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+              style={
+                on
+                  ? { borderColor: RED, backgroundColor: `${RED}26`, color: "#fff" }
+                  : { borderColor: "rgba(255,255,255,0.15)", color: "rgba(255,255,255,0.6)" }
+              }
+            >
+              {c.label}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Desktop: tabela com cabeçalho fixo */}
+      <div className="mt-6 hidden overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03] md:block">
+        <div className="max-h-[52vh] overflow-y-auto">
+          <table className="w-full text-left text-sm">
+            <thead className="sticky top-0 z-10 bg-[#0B1230]">
+              <tr className="border-b border-white/10">
+                <th className="px-6 py-4 font-display text-xs font-semibold uppercase tracking-[0.2em] text-white/45">
+                  Frente
+                </th>
+                <th className="px-6 py-4 font-display text-xs font-semibold uppercase tracking-[0.2em] text-white/45">
+                  Obrigação da Michelob ou agência
+                </th>
+                <th className="px-6 py-4 font-display text-xs font-semibold uppercase tracking-[0.2em] text-white/45">
+                  Responsabilidade
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((r) => (
+                <tr key={r.frente} className="border-b border-white/[0.06] last:border-0 hover:bg-white/[0.02]">
+                  <th
+                    scope="row"
+                    className="w-[22%] px-6 py-4 text-left align-top font-display text-base font-semibold uppercase leading-tight tracking-wide text-white"
+                  >
+                    {r.frente}
+                  </th>
+                  <td className="px-6 py-4 align-top leading-snug text-white/65">{r.obrigacao}</td>
+                  <td className="w-[1%] whitespace-nowrap px-6 py-4 align-top">
+                    <ResponsabilidadeBadge value={r.responsabilidade} />
+                  </td>
+                </tr>
+              ))}
+              {filtered.length === 0 && (
+                <tr>
+                  <td colSpan={3} className="px-6 py-10 text-center text-sm text-white/40">
+                    Nenhuma responsabilidade encontrada.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Mobile: cada linha vira card */}
+      <div className="mt-6 space-y-3 md:hidden">
+        {filtered.map((r) => (
+          <div key={r.frente} className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+            <h3 className="font-display text-base font-semibold uppercase leading-tight tracking-wide text-white">
+              {r.frente}
+            </h3>
+            <p className="mt-2 text-[13px] leading-relaxed text-white/60">{r.obrigacao}</p>
+            <div className="mt-3">
+              <ResponsabilidadeBadge value={r.responsabilidade} />
+            </div>
+          </div>
+        ))}
+        {filtered.length === 0 && (
+          <p className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-8 text-center text-sm text-white/40">
+            Nenhuma responsabilidade encontrada.
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function FinanceObrigacoes({ index }: { index: number }) {
+  return (
+    <Slide index={index} name="obrigacoes-michelob" className="bg-[#080F26]">
+      <Grid />
+      <div className="container-somma relative z-10">
+        <Kicker>Obrigações da Michelob ou agência</Kicker>
+        <H2 className="max-w-4xl">
+          Obrigações da <Accent>Michelob Ultra</Accent> ou agência
+        </H2>
+        <Lead>
+          A produção física e os custos de terceiros serão contratados e financiados diretamente pela Michelob
+          Ultra ou por sua agência responsável.
+        </Lead>
+        <div className="mt-8">
+          <MichelobResponsibilitiesTable />
+        </div>
+      </div>
+    </Slide>
+  );
+}
+
+/* ── Tela 4 · Condições comerciais ─────────────────────────────────────── */
+
+function FinanceCondicoes({ index }: { index: number }) {
+  return (
+    <Slide index={index} name="condicoes-comerciais">
+      <Grid />
+      <div className="container-somma relative z-10">
+        <Kicker>Condições comerciais</Kicker>
+        <H2>
+          Condições <Accent>comerciais</Accent>
+        </H2>
+
+        <div className="mt-9 grid gap-5 lg:grid-cols-2">
+          {/* Investimento + forma de pagamento */}
+          <div className="flex flex-col gap-5">
+            <div className="a-up rounded-3xl border p-6" style={{ borderColor: `${RED}59`, backgroundColor: `${RED}0F` }}>
+              <p className="font-display text-xs font-semibold uppercase tracking-[0.3em] text-white/55">Investimento</p>
+              <Valor value="R$ 240.000,00" className="mt-2 text-4xl sm:text-5xl" />
+              <p className="mt-3 text-sm text-white/60">
+                Valor referente exclusivamente aos serviços e ativos entregues pelo Somma.
+              </p>
+              <p className="mt-3 text-xs uppercase tracking-[0.15em]" style={{ color: GOLD }}>
+                Impostos de 6% inclusos
+              </p>
+            </div>
+
+            <div className="a-up rounded-3xl border border-white/10 bg-white/[0.03] p-6">
+              <p className="font-display text-xs font-semibold uppercase tracking-[0.3em] text-white/55">
+                Forma de pagamento
+              </p>
+              <div className="relative mt-5">
+                {PAGAMENTO.map((p, i) => (
+                  <div key={p.quando} className="relative flex gap-4 pb-6 last:pb-0">
+                    {i < PAGAMENTO.length - 1 && (
+                      <span className="absolute left-[1.35rem] top-11 h-[calc(100%-2.25rem)] w-px bg-white/10" aria-hidden />
+                    )}
+                    <div
+                      className="relative z-10 flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 bg-[#060B1C] font-display text-sm font-bold"
+                      style={{ borderColor: i === 0 ? RED : `${GOLD}99`, color: i === 0 ? RED : GOLD }}
+                    >
+                      {p.pct}
+                    </div>
+                    <div className="pt-1">
+                      <p className="text-sm text-white/70">{p.quando}</p>
+                      <Valor value={p.valor} className="mt-1 text-2xl" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Não incluso + gestão de fornecedores */}
+          <div className="flex flex-col gap-5">
+            <div className="a-up rounded-3xl border border-white/10 bg-white/[0.03] p-6">
+              <p className="font-display text-xs font-semibold uppercase tracking-[0.3em] text-white/55">
+                Não incluso no fee
+              </p>
+              <div className="mt-4 flex flex-wrap gap-2">
+                {NAO_INCLUSO.map((item) => (
+                  <span
+                    key={item}
+                    className="rounded-full border border-white/10 bg-white/[0.02] px-3 py-1.5 text-xs text-white/55"
+                  >
+                    {item}
+                  </span>
+                ))}
+              </div>
+              <p className="mt-4 text-[13px] leading-relaxed text-white/55">{NAO_INCLUSO_NOTA}</p>
+            </div>
+
+            <div
+              className="a-up rounded-3xl border p-6"
+              style={{ borderColor: `${GOLD}40`, backgroundColor: "rgba(255,255,255,0.02)" }}
+            >
+              <p className="font-display text-xs font-semibold uppercase tracking-[0.3em]" style={{ color: GOLD }}>
+                Gestão de fornecedores
+              </p>
+              <p className="mt-3 text-[13px] leading-relaxed text-white/65">{FORNECEDORES.intro}</p>
+              <p className="mt-2 text-[13px] leading-relaxed text-white/65">{FORNECEDORES.condicao}</p>
+              <ul className="mt-4 space-y-2">
+                {FORNECEDORES.opcoes.map((o) => (
+                  <li key={o} className="flex items-start gap-2.5 text-sm text-white/80">
+                    <span className="mt-0.5">
+                      <RibbonMark gold />
+                    </span>
+                    {o}
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-4 text-xs italic text-white/40">{FORNECEDORES.nota}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Cláusula de responsabilidade */}
+        <div
+          className="a-up relative mt-5 overflow-hidden rounded-3xl border p-6 sm:p-7"
+          style={{ borderColor: `${RED}59`, backgroundColor: `${RED}0F` }}
+        >
+          <Corners />
+          <p className="font-display text-sm font-semibold uppercase tracking-[0.2em]" style={{ color: RED }}>
+            Cláusula de responsabilidade
+          </p>
+          <div className="mt-4 space-y-3">
+            {CLAUSULA_RESPONSABILIDADE.map((p, i) => (
+              <p key={i} className="text-[13px] leading-relaxed text-white/70 sm:text-sm">
+                {p}
+              </p>
+            ))}
+          </div>
+        </div>
+
+        {/* Validade, cronograma e observação jurídica */}
+        <div className="a-up mt-5 grid gap-4 sm:grid-cols-2">
+          <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+            <p className="text-[11px] uppercase tracking-[0.2em] text-white/40">{CONDICOES_META.validadeLabel}</p>
+            <p className="mt-1 font-display text-xl font-semibold text-white">{CONDICOES_META.validade}</p>
+            <p className="mt-3 text-[13px] leading-relaxed text-white/55">{CONDICOES_META.cronograma}</p>
+          </div>
+          <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+            <p className="text-[11px] uppercase tracking-[0.2em] text-white/40">Observação jurídica</p>
+            <p className="mt-2 text-[13px] leading-relaxed text-white/55">{CONDICOES_META.juridica}</p>
+          </div>
+        </div>
+        <p className="a-up mt-5 text-xs text-white/35">{CONDICOES_META.consumo}</p>
+      </div>
+    </Slide>
+  );
+}
+
+/* ── Tela 5 · CTA final da seção financeira ────────────────────────────── */
+
+function FinanceCTA({ index, goToName }: { index: number; goToName: (name: string) => void }) {
+  return (
+    <Slide index={index} name="encerramento-financeiro" className="bg-[#080F26]">
+      <Grid />
+      <div className="container-somma relative z-10 text-center">
+        <Kicker className="justify-center">Proposta financeira</Kicker>
+        <div className="a-mask mt-5 overflow-hidden py-1">
+          <h2 className="mx-auto max-w-4xl font-display text-[1.9rem] font-bold uppercase leading-[0.98] tracking-tight sm:text-4xl md:text-5xl">
+            Prontos para transformar 21 dias de movimento em uma <Accent>grande experiência de marca</Accent>.
+          </h2>
+        </div>
+
+        <div className="a-up mt-10 flex justify-center">
+          <Lockup />
+        </div>
+
+        <div
+          className="a-up mx-auto mt-8 inline-flex flex-col items-center rounded-3xl border px-8 py-6"
+          style={{ borderColor: `${RED}59`, backgroundColor: `${RED}0F` }}
+        >
+          <p className="font-display text-xs font-semibold uppercase tracking-[0.3em] text-white/55">
+            {FINANCE_CTA.valorLabel}
+          </p>
+          <Valor value={FINANCE_CTA.valor} className="mt-2 text-5xl sm:text-6xl" />
+          <div className="mt-4">
+            <Selo>{FINANCE_CTA.selo}</Selo>
+          </div>
+        </div>
+
+        <div className="a-up mx-auto mt-9 flex w-full max-w-md flex-col gap-3 sm:max-w-xl sm:flex-row sm:justify-center">
+          <button
+            type="button"
+            onClick={() => goToName("fechamento")}
+            className="w-full rounded-full py-4 font-display text-sm font-semibold uppercase tracking-[0.15em] text-white transition-opacity hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50 sm:w-auto sm:px-8"
+            style={{ backgroundColor: RED }}
+          >
+            {FINANCE_CTA.primario}
+          </button>
+          <button
+            type="button"
+            onClick={() => goToName("obrigacoes-michelob")}
+            className="w-full rounded-full border py-4 font-display text-sm font-semibold uppercase tracking-[0.15em] text-white transition-colors hover:bg-white/[0.06] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50 sm:w-auto sm:px-8"
+            style={{ borderColor: `${GOLD}66` }}
+          >
+            {FINANCE_CTA.secundario}
+          </button>
+        </div>
+
+        <p className="a-up mt-10 text-[11px] text-white/25">
+          Consumo responsável. Material destinado ao público maior de 18 anos.
+        </p>
+      </div>
+    </Slide>
   );
 }
