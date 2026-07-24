@@ -456,15 +456,15 @@ export const ATIVACOES = [
     recomendado: true,
     frase: "Uma ocupação temporária de corrida, wellness, música e lifestyle em Brasília.",
     desc: [
-      "A versão completa combina os 21 dias do Ultra Balance Challenge com um espaço físico da Michelob Ultra aberto durante dois dias consecutivos ou dois finais de semana.",
-      "Durante o dia, o local funciona como um hub de corrida, bem-estar, recovery, conteúdo, loja e experiências.",
-      "À noite, o espaço se transforma para receber shows, DJs e programações musicais.",
+      "A versão completa acontece em um único sábado, aproveitando o corre que o Somma Club já faz toda semana: de manhã, corrida e competição; à noite, festa.",
+      "Durante o dia, o espaço funciona como hub de corrida, recovery, loja e conteúdo, e fecha com um pagode logo após a competição. Fica aberto até as 12h.",
+      "Às 18h o espaço reabre para o público da festa, com DJ de música eletrônica e o funk como encerramento.",
     ],
     indicadores: [
       "21 dias de campanha digital",
-      "2 dias ou 2 finais de semana",
+      "1 sábado, do corre à festa",
+      "Duas janelas: dia até 12h, noite das 18h",
       "1 espaço fixo",
-      "Programação diurna e noturna",
       "Bilheteria e acesso gratuito para participantes elegíveis",
       "Grande volume de conteúdo",
     ],
@@ -489,34 +489,40 @@ export const ATIVACOES = [
   },
 ] as const;
 
-/* ── Subformatos do Social Club (A1 e A2) ──────────────────────────────── */
+/* ── Social Club: um sábado, do corre à festa ──────────────────────────── */
 
-export const ROTEIRO_A1 = {
-  titulo: "Formato A1",
-  legenda: "Dois dias consecutivos",
-  blocos: [
-    { label: "Sexta à noite", tone: "night", items: ["Night Run", "Abertura oficial", "Ultra Electronic Session"] },
-    {
-      label: "Sábado pela manhã",
-      tone: "day",
-      items: ["Social Run", "Crew Relay", "Wellness", "Recovery", "Loja e máquina de fotos"],
-    },
-    { label: "Sábado à tarde", tone: "night", items: ["Ultra Pagode Session"] },
-    { label: "Sábado à noite", tone: "night", items: ["Ultra Funk Session"] },
-  ],
-} as const;
-
-export const ROTEIRO_A2 = {
-  titulo: "Formato A2",
-  legenda: "Dois finais de semana",
-  blocos: [
-    { label: "Primeiro final de semana", tone: "day", items: ["Lançamento", "Social Run", "Electronic Session"] },
-    {
-      label: "Segundo final de semana",
-      tone: "night",
-      items: ["Crew Relay Final", "Pagode Session", "Funk Session", "Premiação e encerramento"],
-    },
-  ],
+/**
+ * O evento acontece no sábado, aproveitando o corre que o Somma já faz toda
+ * semana. Duas janelas: o dia (corrida, competição e pagode) até as 12h, e a
+ * noite (festa) a partir das 18h, com o espaço fechado no intervalo.
+ */
+export const SABADO = {
+  motivo: "O evento acontece no sábado, aproveitando o corre que o Somma Club já faz toda semana.",
+  dia: {
+    faixa: "Sábado · manhã até 12h",
+    titulo: "O dia: corrida, competição e pagode",
+    itens: [
+      "Corre do Somma Club, como todo sábado",
+      "Competição final: Crew Relay e Perfect Pace",
+      "Wellness, recovery, alongamento e mobilidade",
+      "Loja Somma x Michelob Ultra e máquina de fotos",
+      "Pagode logo após a competição",
+    ],
+  },
+  intervalo: {
+    fecha: "12h",
+    reabre: "18h",
+    nota: "O espaço fecha ao meio-dia e é remontado para a noite.",
+  },
+  noite: {
+    faixa: "Sábado · a partir das 18h",
+    titulo: "A noite: a festa",
+    itens: [
+      "Chegada do público da festa",
+      "DJ com música eletrônica",
+      "Funk como apresentação final e encerramento",
+    ],
+  },
 } as const;
 
 /* ── Timeline do Grand Finale (B) ──────────────────────────────────────── */
@@ -593,7 +599,7 @@ export const INGRESSOS = [
 
 export const COMPARACAO = [
   { criterio: "Campanha digital", a: "21 dias", b: "21 dias" },
-  { criterio: "Duração presencial", a: "2 dias ou 2 finais de semana", b: "1 dia" },
+  { criterio: "Duração presencial", a: "1 sábado · dia e noite", b: "1 dia" },
   { criterio: "Espaço fixo", a: "Sim", b: "Somente no evento" },
   { criterio: "Programação musical", a: "Programação distribuída", b: "Programação concentrada" },
   { criterio: "Quantidade de conteúdo", a: "Muito alta", b: "Alta" },

@@ -3,8 +3,7 @@
 import {
   C,
   ATIVACOES,
-  ROTEIRO_A1,
-  ROTEIRO_A2,
+  SABADO,
   JORNADA_FINALE,
   WELLNESS,
   SESSIONS,
@@ -17,8 +16,6 @@ import {
 } from "../data";
 import { Icon } from "./icons";
 import { Reveal, Section, SectionHeader, Panel, MonoLabel, RibbonMark, Corners, TableScroll, FakeDataNote } from "./base";
-
-type Bloco = { label: string; tone: string; items: readonly string[] };
 
 /* ── 1 · Card de formato de ativação ───────────────────────────────────── */
 
@@ -410,19 +407,101 @@ function BlockTitle({ children, note }: { children: React.ReactNode; note?: stri
   );
 }
 
-/* ── Roteiro A1/A2 com calendário comparativo ──────────────────────────── */
+/* ── Social Club: um sábado em duas janelas ────────────────────────────── */
 
-function CalendarStrip({ titulo, legenda, blocos }: { titulo: string; legenda: string; blocos: readonly Bloco[] }) {
+/** Painel de uma janela (dia ou noite) com os itens do sábado. */
+function WindowPanel({
+  tone,
+  faixa,
+  titulo,
+  itens,
+}: {
+  tone: "day" | "night";
+  faixa: string;
+  titulo: string;
+  itens: readonly string[];
+}) {
+  const night = tone === "night";
+  const accent = night ? C.red : C.gold;
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-5 md:p-6">
-      <div className="flex items-baseline justify-between gap-3">
-        <span className="font-title text-lg font-bold uppercase tracking-tight" style={{ color: C.gold }}>
-          {titulo}
+    <div
+      className="flex h-full flex-col rounded-2xl border p-5 md:p-6"
+      style={{
+        borderColor: `${accent}40`,
+        backgroundColor: night ? `${C.red}12` : "rgba(255,255,255,0.035)",
+      }}
+    >
+      <div className="flex items-center gap-2">
+        <Icon name={night ? "Moon" : "Sun"} className="h-4 w-4" color={accent} />
+        <span className="font-mono text-[11px] uppercase tracking-[0.18em]" style={{ color: accent }}>
+          {faixa}
         </span>
-        <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/40">{legenda}</span>
       </div>
-      <div className="mt-5">
-        <EventSchedule blocos={blocos} />
+      <h4 className="mt-3 font-title text-xl font-bold uppercase leading-tight tracking-tight text-white">{titulo}</h4>
+      <ul className="mt-4 space-y-2">
+        {itens.map((it) => (
+          <li key={it} className="flex items-start gap-2.5 text-[13px] leading-snug text-white/80">
+            <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full" style={{ backgroundColor: accent }} aria-hidden />
+            {it}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+/**
+ * O sábado do Social Club: uma barra de tempo com duas janelas abertas (dia e
+ * noite) e o intervalo fechado entre elas, e os dois painéis de programação.
+ */
+export function SocialClubSaturday() {
+  const closedHatch = `repeating-linear-gradient(45deg, rgba(255,255,255,0.10) 0 6px, transparent 6px 12px)`;
+  return (
+    <div>
+      <p className="mb-6 flex items-start gap-2.5 text-sm text-white/55">
+        <span className="mt-0.5">
+          <RibbonMark color={C.gold} />
+        </span>
+        {SABADO.motivo}
+      </p>
+
+      {/* barra de tempo: aberto · fechado · aberto (proporcional às horas). A cor
+          conta a história (dourado = dia aberto, hachura = fechado, vermelho =
+          noite); o rótulo fica só com o intervalo de horas. */}
+      <div className="flex items-stretch gap-1.5" role="img" aria-label="Linha do tempo do sábado: aberto de manhã até 12h, fechado das 12h às 18h, aberto das 18h à madrugada">
+        <div className="flex h-11 min-w-0 flex-[5] items-center justify-center rounded-lg px-1.5" style={{ backgroundColor: `${C.gold}26`, border: `1px solid ${C.gold}59` }}>
+          <span className="truncate font-mono text-[9px] uppercase tracking-wider sm:text-[10px]" style={{ color: C.gold }}>
+            7h–12h
+          </span>
+        </div>
+        <div className="flex h-11 min-w-0 flex-[6] items-center justify-center rounded-lg border border-white/10 px-1.5" style={{ backgroundImage: closedHatch }}>
+          <span className="truncate font-mono text-[9px] uppercase tracking-wider text-white/45 sm:text-[10px]">12h–18h · fechado</span>
+        </div>
+        <div className="flex h-11 min-w-0 flex-[6] items-center justify-center rounded-lg px-1.5" style={{ backgroundColor: `${C.red}26`, border: `1px solid ${C.red}59` }}>
+          <span className="truncate font-mono text-[9px] uppercase tracking-wider sm:text-[10px]" style={{ color: C.red }}>
+            18h–0h
+          </span>
+        </div>
+      </div>
+
+      {/* as duas janelas, com o intervalo entre elas */}
+      <div className="mt-5 grid gap-4 lg:grid-cols-[1fr_auto_1fr] lg:items-stretch">
+        <WindowPanel tone="day" faixa={SABADO.dia.faixa} titulo={SABADO.dia.titulo} itens={SABADO.dia.itens} />
+
+        <div className="flex items-center justify-center lg:w-32">
+          <div className="flex w-full flex-row items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.02] p-4 lg:h-full lg:flex-col lg:justify-center lg:text-center">
+            <Icon name="Clock" className="h-5 w-5 shrink-0 text-white/40" />
+            <div>
+              <p className="font-title text-sm font-bold uppercase leading-tight tracking-tight text-white">
+                {SABADO.intervalo.fecha} fecha
+                <br className="hidden lg:block" /> · {SABADO.intervalo.reabre} reabre
+              </p>
+              <p className="mt-1 text-[11px] leading-snug text-white/45">{SABADO.intervalo.nota}</p>
+            </div>
+          </div>
+        </div>
+
+        <WindowPanel tone="night" faixa={SABADO.noite.faixa} titulo={SABADO.noite.titulo} itens={SABADO.noite.itens} />
       </div>
     </div>
   );
@@ -463,8 +542,8 @@ export function ActivationSection() {
         >
           <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
             <p className="text-[13px] leading-snug text-white/60">
-              O formato completo tem dois roteiros possíveis: dois dias consecutivos ou dois finais de semana, detalhados
-              logo abaixo.
+              Um sábado só, aproveitando o corre do Somma: dia até as 12h, festa a partir das 18h. O roteiro completo
+              está logo abaixo.
             </p>
           </div>
         </ActivationFormatCard>
@@ -483,24 +562,19 @@ export function ActivationSection() {
         </ActivationFormatCard>
       </div>
 
-      {/* Roteiros do Social Club (A1 e A2) */}
+      {/* O sábado do Social Club */}
       <div className="mt-16">
-        <BlockTitle note="A ocupação de dois dias pode seguir dois roteiros. O calendário abaixo compara os dois.">
-          Social Club · dois roteiros de ocupação
+        <BlockTitle note="Um único sábado, dividido em duas janelas: o dia da corrida e a noite da festa.">
+          Social Club · um sábado, do corre à festa
         </BlockTitle>
-        <div className="grid gap-5 lg:grid-cols-2">
-          <Reveal>
-            <CalendarStrip titulo={ROTEIRO_A1.titulo} legenda={ROTEIRO_A1.legenda} blocos={ROTEIRO_A1.blocos} />
-          </Reveal>
-          <Reveal delay={0.08}>
-            <CalendarStrip titulo={ROTEIRO_A2.titulo} legenda={ROTEIRO_A2.legenda} blocos={ROTEIRO_A2.blocos} />
-          </Reveal>
-        </div>
+        <Reveal>
+          <SocialClubSaturday />
+        </Reveal>
       </div>
 
       {/* Experiência dia/noite */}
       <div className="mt-16">
-        <BlockTitle note="Os dois formatos partilham a mesma dupla de ambientes: wellness durante o dia, sessions à noite.">
+        <BlockTitle note="O dia é de corrida e wellness; a música vai do pagode, ainda de dia, à virada eletrônica e ao funk na noite.">
           A experiência, do dia à noite
         </BlockTitle>
         <Reveal>
