@@ -12,7 +12,7 @@ import {
   RECOMPENSAS,
   BADGES,
 } from "../data";
-import { Icon, Reveal, TableScroll, FakeDataNote, Lockup } from "./base";
+import { Icon, Reveal, TableScroll, FakeDataNote, Lockup, Panel, MonoLabel, RibbonMark, Grid } from "./base";
 import { DashboardMockup } from "./mockups";
 
 /* ── Linha do tempo dos 21 dias ────────────────────────────────────────── */
@@ -22,20 +22,20 @@ export function Timeline() {
   return (
     <ol className="relative grid gap-8 md:grid-cols-4 md:gap-6">
       <span
-        className="absolute left-[11px] top-2 hidden h-[calc(100%-1rem)] w-px bg-black/10 md:left-0 md:top-[11px] md:h-px md:w-full md:bg-gradient-to-r md:from-black/10 md:via-black/15 md:to-black/5 md:block"
+        className="absolute left-[11px] top-2 hidden h-[calc(100%-1rem)] w-px bg-white/15 md:left-0 md:top-[11px] md:h-px md:w-full md:bg-gradient-to-r md:from-white/10 md:via-white/25 md:to-white/5 md:block"
         aria-hidden
       />
       {TIMELINE.map((t, i) => (
         <Reveal as="li" key={t.dia} delay={i * 0.07} className="relative pl-9 md:pl-0">
           <span
-            className="absolute left-0 top-1 h-6 w-6 rounded-full border-4 border-white ring-1 ring-black/10 md:relative md:mb-5 md:block"
+            className="absolute left-0 top-1 h-6 w-6 rounded-full border-4 border-[#060B1C] ring-1 ring-white/15 md:relative md:mb-5 md:block"
             style={{ backgroundColor: cor[t.accent] }}
             aria-hidden
           />
           <p className="font-title text-sm font-bold uppercase tracking-[0.2em]" style={{ color: cor[t.accent] }}>
             {t.dia}
           </p>
-          <p className="mt-1.5 text-[15px] font-medium leading-snug text-[#0E1226]">{t.title}</p>
+          <p className="mt-1.5 text-[15px] font-medium leading-snug text-white">{t.title}</p>
         </Reveal>
       ))}
     </ol>
@@ -64,18 +64,18 @@ export function EngagementChart() {
       >
         <defs>
           <linearGradient id="ubc-grad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={C.navy} stopOpacity="0.28" />
-            <stop offset="100%" stopColor={C.navy} stopOpacity="0" />
+            <stop offset="0%" stopColor={C.gold} stopOpacity="0.30" />
+            <stop offset="100%" stopColor={C.gold} stopOpacity="0" />
           </linearGradient>
         </defs>
         {[0, 0.25, 0.5, 0.75, 1].map((g) => (
-          <line key={g} x1="0" x2={w} y1={h * g} y2={h * g} stroke="#0E1226" strokeOpacity="0.07" strokeWidth="1" />
+          <line key={g} x1="0" x2={w} y1={h * g} y2={h * g} stroke="#FFFFFF" strokeOpacity="0.10" strokeWidth="1" />
         ))}
         <path d={area} fill="url(#ubc-grad)" />
-        <path d={line} fill="none" stroke={C.navy} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+        <path d={line} fill="none" stroke={C.gold} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
         <circle cx={pts[pts.length - 1][0]} cy={pts[pts.length - 1][1]} r="5" fill={C.red} />
       </svg>
-      <figcaption className="mt-3 flex items-center justify-between text-xs text-[#5A6178]">
+      <figcaption className="mt-3 flex items-center justify-between text-xs text-white/55">
         <span>Dia 1</span>
         <span className="italic">Exemplo conceitual de curva de engajamento</span>
         <span>Dia 21</span>
@@ -88,46 +88,31 @@ export function EngagementChart() {
 
 export function FlowDiagram({
   steps,
-  onDark = false,
   numbered = false,
 }: {
   steps: readonly { icon?: string; title: string; text?: string }[];
-  onDark?: boolean;
   numbered?: boolean;
 }) {
   return (
     <ol className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {steps.map((s, i) => (
-        <Reveal as="li" key={s.title} delay={i * 0.06}>
-          <div
-            className={`flex h-full items-start gap-4 rounded-2xl border p-5 ${
-              onDark ? "border-white/12 bg-white/[0.06]" : "border-black/[0.07] bg-white"
-            }`}
-          >
-            <span
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl font-title text-sm font-bold"
-              style={{
-                backgroundColor: onDark ? "rgba(255,255,255,0.1)" : `${C.navy}12`,
-                color: onDark ? "#fff" : C.navy,
-              }}
-            >
-              {numbered ? String(i + 1).padStart(2, "0") : s.icon ? <Icon name={s.icon} className="h-5 w-5" /> : null}
-            </span>
-            <div>
-              <h3
-                className={`font-title text-base font-semibold uppercase leading-tight tracking-tight md:text-lg ${
-                  onDark ? "text-white" : "text-[#0E1226]"
-                }`}
+        <Reveal as="li" key={s.title} delay={i * 0.06} className="h-full">
+          <Panel className="group h-full transition-colors hover:border-white/20">
+            <div className="flex h-full items-start gap-4 p-5">
+              <span
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border font-title text-sm font-bold"
+                style={{ borderColor: `${C.gold}40`, backgroundColor: `${C.gold}12`, color: C.gold }}
               >
-                {s.title}
-              </h3>
-              {s.text && (
-                <p className={`mt-1.5 text-sm leading-relaxed ${onDark ? "text-white/65" : "text-[#5A6178]"}`}>
-                  {s.text}
-                </p>
-              )}
+                {numbered ? String(i + 1).padStart(2, "0") : s.icon ? <Icon name={s.icon} className="h-5 w-5" /> : null}
+              </span>
+              <div>
+                <h3 className="font-title text-base font-semibold uppercase leading-tight tracking-tight text-white md:text-lg">
+                  {s.title}
+                </h3>
+                {s.text && <p className="mt-1.5 text-sm leading-relaxed text-white/55">{s.text}</p>}
+              </div>
             </div>
-          </div>
+          </Panel>
         </Reveal>
       ))}
     </ol>
@@ -135,22 +120,18 @@ export function FlowDiagram({
 }
 
 /** Fluxo compacto em linha, para cadeias curtas como a de validação. */
-export function ChainFlow({ items, onDark = false }: { items: readonly string[]; onDark?: boolean }) {
+export function ChainFlow({ items }: { items: readonly string[] }) {
   return (
     <ol className="flex flex-wrap items-center gap-2">
       {items.map((it, i) => (
         <li key={it} className="flex items-center gap-2">
-          <span
-            className={`rounded-full px-4 py-2 font-title text-xs font-semibold uppercase tracking-wider md:text-sm ${
-              onDark ? "bg-white/10 text-white" : "bg-white text-[#0E1226] ring-1 ring-black/[0.07]"
-            }`}
-          >
+          <span className="rounded-full border border-white/12 bg-white/[0.05] px-4 py-2 font-title text-xs font-semibold uppercase tracking-wider text-white md:text-sm">
             {it}
           </span>
           {i < items.length - 1 && (
             <Icon
               name="ChevronRight"
-              className={`h-4 w-4 ${onDark ? "text-white/35" : "text-[#5A6178]/50"}`}
+              className="h-4 w-4 text-white/35"
             />
           )}
         </li>
@@ -173,7 +154,7 @@ export function MissionCard({
   missoes: readonly string[];
 }) {
   return (
-    <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-black/[0.07] bg-white">
+    <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-white/10 bg-white/[0.035]">
       <div className="flex items-center gap-3 px-5 py-4" style={{ backgroundColor: `${color}12` }}>
         <span
           className="flex h-9 w-9 items-center justify-center rounded-xl"
@@ -185,9 +166,9 @@ export function MissionCard({
           {title}
         </h3>
       </div>
-      <ul className="flex-1 divide-y divide-black/[0.06]">
+      <ul className="flex-1 divide-y divide-white/[0.08]">
         {missoes.map((m) => (
-          <li key={m} className="flex items-start gap-2.5 px-5 py-3 text-sm text-[#0E1226]">
+          <li key={m} className="flex items-start gap-2.5 px-5 py-3 text-sm text-white">
             <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full" style={{ backgroundColor: color }} aria-hidden />
             {m}
           </li>
@@ -204,9 +185,9 @@ export function ValidationTable() {
     <TableScroll label="Métodos de validação de atividades">
       <table className="w-full border-collapse text-left text-sm">
         <thead>
-          <tr className="border-b-2" style={{ borderColor: C.navy }}>
+          <tr className="border-b" style={{ borderColor: `${C.gold}59` }}>
             {["Método", "Como funciona", "Melhor aplicação"].map((h) => (
-              <th key={h} className="px-4 py-3 font-title text-xs font-semibold uppercase tracking-[0.15em] text-[#5A6178]">
+              <th key={h} className="px-4 py-3 font-title text-xs font-semibold uppercase tracking-[0.15em] text-white/55">
                 {h}
               </th>
             ))}
@@ -214,9 +195,9 @@ export function ValidationTable() {
         </thead>
         <tbody>
           {VALIDACAO.map((v) => (
-            <tr key={v.metodo} className="border-b border-black/[0.06]">
+            <tr key={v.metodo} className="border-b border-white/[0.08]">
               <td className="px-4 py-3.5">
-                <span className="font-title text-base font-semibold uppercase tracking-tight text-[#0E1226]">
+                <span className="font-title text-base font-semibold uppercase tracking-tight text-white">
                   {v.metodo}
                 </span>
                 <span
@@ -224,14 +205,14 @@ export function ValidationTable() {
                   style={
                     v.mvp
                       ? { backgroundColor: `${C.navy}14`, color: C.navy }
-                      : { backgroundColor: "#F4F5F8", color: "#5A6178" }
+                      : { backgroundColor: "rgba(255,255,255,0.07)", color: "rgba(255,255,255,0.55)" }
                   }
                 >
                   {v.mvp ? "no MVP" : "futuro"}
                 </span>
               </td>
-              <td className="px-4 py-3.5 text-[#5A6178]">{v.como}</td>
-              <td className="px-4 py-3.5 text-[#5A6178]">{v.aplicacao}</td>
+              <td className="px-4 py-3.5 text-white/55">{v.como}</td>
+              <td className="px-4 py-3.5 text-white/55">{v.aplicacao}</td>
             </tr>
           ))}
         </tbody>
@@ -249,7 +230,7 @@ export function ScoreWeights() {
   return (
     <div className="flex flex-col items-center gap-7 sm:flex-row sm:gap-9">
       <svg viewBox="0 0 140 140" className="h-40 w-40 shrink-0 -rotate-90" role="img" aria-label="Distribuição dos pesos da pontuação">
-        <circle cx="70" cy="70" r={R} fill="none" stroke="#0E1226" strokeOpacity="0.07" strokeWidth="18" />
+        <circle cx="70" cy="70" r={R} fill="none" stroke="#FFFFFF" strokeOpacity="0.10" strokeWidth="18" />
         {PESOS.map((p) => {
           const dash = (p.value / 100) * CIRC;
           const el = (
@@ -273,7 +254,7 @@ export function ScoreWeights() {
         {PESOS.map((p) => (
           <li key={p.label} className="flex items-center gap-3">
             <span className="h-3 w-3 shrink-0 rounded-sm" style={{ backgroundColor: p.color }} aria-hidden />
-            <span className="text-sm text-[#0E1226]">{p.label}</span>
+            <span className="text-sm text-white">{p.label}</span>
             <span className="ml-auto font-title text-lg font-bold" style={{ color: p.color }}>
               {p.value}%
             </span>
@@ -289,19 +270,19 @@ export function PointsTable() {
     <TableScroll label="Tabela de pontos por atividade">
       <table className="w-full border-collapse text-left text-sm">
         <thead>
-          <tr className="border-b-2" style={{ borderColor: C.navy }}>
-            <th className="px-4 py-3 font-title text-xs font-semibold uppercase tracking-[0.15em] text-[#5A6178]">
+          <tr className="border-b" style={{ borderColor: `${C.gold}59` }}>
+            <th className="px-4 py-3 font-title text-xs font-semibold uppercase tracking-[0.15em] text-white/55">
               Atividade
             </th>
-            <th className="px-4 py-3 text-right font-title text-xs font-semibold uppercase tracking-[0.15em] text-[#5A6178]">
+            <th className="px-4 py-3 text-right font-title text-xs font-semibold uppercase tracking-[0.15em] text-white/55">
               Pontos
             </th>
           </tr>
         </thead>
         <tbody>
           {PONTOS.map((p) => (
-            <tr key={p.atividade} className="border-b border-black/[0.06]">
-              <td className="px-4 py-3 text-[#0E1226]">{p.atividade}</td>
+            <tr key={p.atividade} className="border-b border-white/[0.08]">
+              <td className="px-4 py-3 text-white">{p.atividade}</td>
               <td className="px-4 py-3 text-right font-title text-lg font-bold" style={{ color: C.red }}>
                 {p.pontos}
               </td>
@@ -335,24 +316,24 @@ export function RankingTable() {
               ))}
             </tr>
           </thead>
-          <tbody className="bg-white">
+          <tbody>
             {RANKING_LINHAS.map((r) => (
-              <tr key={r.pos} className="border-b border-black/[0.06] last:border-0">
+              <tr key={r.pos} className="border-b border-white/[0.08] last:border-0">
                 <td className="px-4 py-3.5">
                   <span
                     className="flex h-7 w-7 items-center justify-center rounded-full font-title text-sm font-bold"
                     style={
                       r.pos <= 3
                         ? { backgroundColor: `${C.red}14`, color: C.red }
-                        : { backgroundColor: "#F4F5F8", color: "#5A6178" }
+                        : { backgroundColor: "rgba(255,255,255,0.07)", color: "rgba(255,255,255,0.55)" }
                     }
                   >
                     {r.pos}
                   </span>
                 </td>
-                <td className="px-4 py-3.5 font-medium text-[#0E1226]">{r.nome}</td>
-                <td className="px-4 py-3.5 text-[#5A6178]">{r.crew}</td>
-                <td className="px-4 py-3.5 text-right font-title text-lg font-bold text-[#0E1226]">{r.pontos}</td>
+                <td className="px-4 py-3.5 font-medium text-white">{r.nome}</td>
+                <td className="px-4 py-3.5 text-white/55">{r.crew}</td>
+                <td className="px-4 py-3.5 text-right font-title text-lg font-bold text-white">{r.pontos}</td>
               </tr>
             ))}
           </tbody>
@@ -417,9 +398,9 @@ export function TechnologyTable() {
     <TableScroll label="Camadas da arquitetura tecnológica">
       <table className="w-full border-collapse text-left text-sm">
         <thead>
-          <tr className="border-b-2" style={{ borderColor: C.navy }}>
+          <tr className="border-b" style={{ borderColor: `${C.gold}59` }}>
             {["Camada", "Tecnologia", "Função"].map((h) => (
-              <th key={h} className="px-4 py-3 font-title text-xs font-semibold uppercase tracking-[0.15em] text-[#5A6178]">
+              <th key={h} className="px-4 py-3 font-title text-xs font-semibold uppercase tracking-[0.15em] text-white/55">
                 {h}
               </th>
             ))}
@@ -427,8 +408,8 @@ export function TechnologyTable() {
         </thead>
         <tbody>
           {STACK.map((s) => (
-            <tr key={s.camada} className="border-b border-black/[0.06]">
-              <td className="px-4 py-3.5 font-title text-base font-semibold uppercase tracking-tight text-[#0E1226]">
+            <tr key={s.camada} className="border-b border-white/[0.08]">
+              <td className="px-4 py-3.5 font-title text-base font-semibold uppercase tracking-tight text-white">
                 {s.camada}
               </td>
               <td className="px-4 py-3.5">
@@ -439,7 +420,7 @@ export function TechnologyTable() {
                   {s.tech}
                 </span>
               </td>
-              <td className="px-4 py-3.5 text-[#5A6178]">{s.funcao}</td>
+              <td className="px-4 py-3.5 text-white/55">{s.funcao}</td>
             </tr>
           ))}
         </tbody>
@@ -470,7 +451,7 @@ export function Hero() {
       />
       <div className="relative mx-auto w-full max-w-6xl">
         <Reveal>
-          <Lockup onDark size="md" />
+          <Lockup size="md" />
         </Reveal>
 
         <div className="mt-12 grid items-center gap-12 lg:mt-16 lg:grid-cols-[1.05fr_auto] lg:gap-16">
@@ -508,10 +489,17 @@ export function Hero() {
                   <Icon name="ArrowRight" className="h-4 w-4" />
                 </a>
                 <a
-                  href="#jornada"
-                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/25 px-7 py-4 font-title text-sm font-semibold uppercase tracking-wider text-white transition-colors hover:bg-white/10"
+                  href="#simulador"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl border px-7 py-4 font-title text-sm font-semibold uppercase tracking-wider text-white transition-colors hover:bg-white/10"
+                  style={{ borderColor: `${C.gold}66` }}
                 >
-                  Ver jornada do participante
+                  Testar a experiência
+                </a>
+                <a
+                  href="#jornada"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/20 px-7 py-4 font-title text-sm font-semibold uppercase tracking-wider text-white/80 transition-colors hover:bg-white/10"
+                >
+                  Ver jornada
                 </a>
               </div>
             </Reveal>
@@ -540,7 +528,7 @@ export function FinalCTA() {
     <section className="px-5 py-20 text-center md:px-8 md:py-28" style={{ backgroundColor: C.navyDeep }}>
       <div className="mx-auto w-full max-w-4xl">
         <Reveal className="flex justify-center">
-          <Lockup onDark size="lg" />
+          <Lockup size="lg" />
         </Reveal>
         <Reveal delay={0.08}>
           <h2 className="mt-12 font-title text-[2rem] font-bold uppercase leading-[1.05] tracking-tight text-white sm:text-4xl md:text-5xl">

@@ -7,15 +7,19 @@
 
 /* ── Paleta ────────────────────────────────────────────────────────────── */
 
+/** Mesma paleta do deck /ppt-michelob, para as duas peças parecerem uma só. */
 export const C = {
-  navyDeep: "#111C4E", // fundo das seções escuras
+  bg: "#060B1C", // fundo base, igual ao deck
+  bgAlt: "#080F26", // seção alternada
+  navyDeep: "#111C4E",
   navy: "#283280", // azul da logo Michelob Ultra
   navySoft: "#1B2A6B",
   red: "#D22030", // vermelho Michelob Ultra
   orange: "#FF2C03", // laranja Somma, só em acentos
   green: "#2E9E7B", // pilar diversão
-  light: "#F4F5F8", // cinza muito claro
-  ink: "#0E1226", // texto sobre fundo claro
+  gold: "#C6A664", // dourado de apoio, como no deck
+  light: "#F4F5F8",
+  ink: "#0E1226",
   inkSoft: "#5A6178",
 } as const;
 

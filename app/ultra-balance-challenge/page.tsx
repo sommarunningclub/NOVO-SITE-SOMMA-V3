@@ -54,17 +54,21 @@ import {
   BadgeRow,
   TechnologyTable,
 } from "./_components/blocks";
+import { Simulator } from "./_components/Simulator";
 
 export default function UltraBalanceChallengePage() {
   return (
-    <main className="bg-white">
+    <main style={{ backgroundColor: "#060B1C" }}>
       <ReadingProgress />
 
       {/* ─── 1 · HERO ─────────────────────────────────────────────────── */}
       <Hero />
 
+      {/* ─── SIMULADOR DA EXPERIÊNCIA ─────────────────────────────────── */}
+      <Simulator />
+
       {/* ─── 2 · RESUMO EXECUTIVO ─────────────────────────────────────── */}
-      <Section id="como-funciona" tone="white">
+      <Section id="como-funciona" tone="base">
         <SectionHeader
           eyebrow="Resumo executivo"
           title={<>O que é o Ultra Balance Challenge?</>}
@@ -94,28 +98,28 @@ export default function UltraBalanceChallengePage() {
       </Section>
 
       {/* ─── 3 · POR QUE 21 DIAS ──────────────────────────────────────── */}
-      <Section tone="light">
+      <Section tone="alt">
         <SectionHeader eyebrow="Duração" title="Por que uma jornada de 21 dias?" />
         <ul className="mt-12 grid gap-4 md:grid-cols-3">
           {PORQUE_BLOCOS.map((b, i) => (
             <Reveal as="li" key={b.title} delay={i * 0.07} className="h-full">
-              <MetricCard icon={b.icon} title={b.title} text={b.text} color={[C.navy, C.orange, C.red][i]} />
+              <MetricCard icon={b.icon} title={b.title} text={b.text} color={[C.gold, C.orange, C.red][i]} />
             </Reveal>
           ))}
         </ul>
 
-        <h3 className="mt-16 font-title text-xl font-bold uppercase tracking-tight text-[#0E1226] md:text-2xl">
+        <h3 className="mt-16 font-title text-xl font-bold uppercase tracking-tight text-white md:text-2xl">
           Como os 21 dias se organizam
         </h3>
         <div className="mt-8">
           <Timeline />
         </div>
 
-        <div className="mt-16 rounded-2xl border border-black/[0.07] bg-white p-5 md:p-8">
-          <h3 className="font-title text-lg font-bold uppercase tracking-tight text-[#0E1226] md:text-xl">
+        <div className="mt-16 rounded-2xl border border-white/10 bg-white/[0.035] p-5 md:p-8">
+          <h3 className="font-title text-lg font-bold uppercase tracking-tight text-white md:text-xl">
             Engajamento ao longo do desafio
           </h3>
-          <p className="mt-1.5 text-sm text-[#5A6178]">
+          <p className="mt-1.5 text-sm text-white/55">
             A pontuação acumulada e as recompensas por faixa sustentam a curva até o dia do evento.
           </p>
           <div className="mt-6">
@@ -125,51 +129,51 @@ export default function UltraBalanceChallengePage() {
       </Section>
 
       {/* ─── 4 · JORNADA ──────────────────────────────────────────────── */}
-      <Section id="jornada" tone="navy">
+      <Section id="jornada" tone="base">
         <SectionHeader
           eyebrow="Jornada do participante"
           title="Do cadastro à experiência presencial"
-          onDark
+         
           text="A experiência precisa ser simples, mobile first e acessível por navegador, sem exigir o download de um aplicativo."
         />
         <div className="mt-12">
-          <FlowDiagram steps={JORNADA} onDark numbered />
+          <FlowDiagram steps={JORNADA} numbered />
         </div>
       </Section>
 
       {/* ─── 5 · CADASTRO E PERFIL ────────────────────────────────────── */}
-      <Section tone="white">
+      <Section tone="base">
         <SectionHeader eyebrow="Cadastro" title="Cada participante começa escolhendo seu ritmo" />
         <div className="mt-12 grid items-start gap-12 lg:grid-cols-[auto_1fr] lg:gap-16">
           <Reveal className="flex justify-center">
             <SignupMockup campos={CAMPOS_CADASTRO} />
           </Reveal>
           <div>
-            <h3 className="font-title text-lg font-bold uppercase tracking-tight text-[#0E1226]">
+            <h3 className="font-title text-lg font-bold uppercase tracking-tight text-white">
               O que é pedido no cadastro
             </h3>
             <ul className="mt-4 flex flex-wrap gap-2">
               {CAMPOS_CADASTRO.map((c) => (
                 <li
                   key={c}
-                  className="rounded-full border border-black/[0.09] px-3.5 py-1.5 text-sm text-[#0E1226]"
+                  className="rounded-full border border-white/12 px-3.5 py-1.5 text-sm text-white/80"
                 >
                   {c}
                 </li>
               ))}
             </ul>
 
-            <h3 className="mt-10 font-title text-lg font-bold uppercase tracking-tight text-[#0E1226]">
+            <h3 className="mt-10 font-title text-lg font-bold uppercase tracking-tight text-white">
               E qual perfil ele escolhe
             </h3>
             <ul className="mt-4 grid gap-3 sm:grid-cols-2">
               {PERFIS.map((p, i) => (
                 <Reveal as="li" key={p.title} delay={i * 0.05} className="h-full">
-                  <div className="h-full rounded-2xl border-l-4 bg-[#F4F5F8] p-4" style={{ borderColor: p.color }}>
+                  <div className="h-full rounded-2xl border-l-4 bg-white/[0.04] p-4" style={{ borderColor: p.color }}>
                     <h4 className="font-title text-lg font-bold uppercase tracking-tight" style={{ color: p.color }}>
                       {p.title}
                     </h4>
-                    <p className="mt-1 text-sm leading-snug text-[#5A6178]">{p.text}</p>
+                    <p className="mt-1 text-sm leading-snug text-white/55">{p.text}</p>
                   </div>
                 </Reveal>
               ))}
@@ -183,7 +187,7 @@ export default function UltraBalanceChallengePage() {
       </Section>
 
       {/* ─── 6 · DASHBOARD DO PARTICIPANTE ────────────────────────────── */}
-      <Section tone="light">
+      <Section tone="alt">
         <SectionHeader
           eyebrow="Dashboard"
           title="Um passaporte digital de 21 dias"
@@ -197,18 +201,18 @@ export default function UltraBalanceChallengePage() {
             <ul className="grid gap-3 sm:grid-cols-2">
               {DASHBOARD_LEGENDAS.map((l, i) => (
                 <Reveal as="li" key={l.title} delay={i * 0.05} className="h-full">
-                  <div className="flex h-full gap-3 rounded-2xl border border-black/[0.07] bg-white p-4">
+                  <div className="flex h-full gap-3 rounded-2xl border border-white/10 bg-white/[0.035] p-4">
                     <span
                       className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-lg font-title text-[11px] font-bold"
-                      style={{ backgroundColor: `${C.navy}12`, color: C.navy }}
+                      style={{ backgroundColor: `${C.gold}14`, color: C.gold }}
                     >
                       {i + 1}
                     </span>
                     <div>
-                      <h3 className="font-title text-base font-semibold uppercase tracking-tight text-[#0E1226]">
+                      <h3 className="font-title text-base font-semibold uppercase tracking-tight text-white">
                         {l.title}
                       </h3>
-                      <p className="mt-1 text-sm leading-snug text-[#5A6178]">{l.text}</p>
+                      <p className="mt-1 text-sm leading-snug text-white/55">{l.text}</p>
                     </div>
                   </div>
                 </Reveal>
@@ -223,11 +227,11 @@ export default function UltraBalanceChallengePage() {
                 ["3º", "na Social Crew"],
                 ["100 pts", "para a próxima recompensa"],
               ].map(([v, l]) => (
-                <div key={l} className="rounded-xl bg-white px-4 py-3 ring-1 ring-black/[0.06]">
+                <div key={l} className="rounded-xl border border-white/10 bg-white/[0.035] px-4 py-3">
                   <dt className="sr-only">{l}</dt>
                   <dd>
-                    <span className="block font-title text-xl font-bold text-[#0E1226]">{v}</span>
-                    <span className="mt-0.5 block text-[11px] leading-tight text-[#5A6178]">{l}</span>
+                    <span className="block font-title text-xl font-bold text-white">{v}</span>
+                    <span className="mt-0.5 block text-[11px] leading-tight text-white/55">{l}</span>
                   </dd>
                 </div>
               ))}
@@ -238,7 +242,7 @@ export default function UltraBalanceChallengePage() {
       </Section>
 
       {/* ─── 7 · MISSÕES ──────────────────────────────────────────────── */}
-      <Section tone="white">
+      <Section tone="base">
         <SectionHeader eyebrow="Missões" title="Três pilares. Diferentes formas de participar." />
         <ul className="mt-12 grid gap-5 lg:grid-cols-3">
           {PILARES.map((p, i) => (
@@ -250,10 +254,10 @@ export default function UltraBalanceChallengePage() {
 
         <div className="mt-14 grid items-center gap-8 lg:grid-cols-[1fr_auto] lg:gap-14">
           <div>
-            <h3 className="font-title text-xl font-bold uppercase tracking-tight text-[#0E1226] md:text-2xl">
+            <h3 className="font-title text-xl font-bold uppercase tracking-tight text-white md:text-2xl">
               Como uma missão chega ao participante
             </h3>
-            <p className="mt-3 max-w-lg text-[15px] leading-relaxed text-[#5A6178]">
+            <p className="mt-3 max-w-lg text-[15px] leading-relaxed text-white/55">
               Uma missão por dia, com o valor em pontos visível antes de começar e um único botão para comprovar. Sem
               formulário longo, sem fricção.
             </p>
@@ -265,23 +269,23 @@ export default function UltraBalanceChallengePage() {
       </Section>
 
       {/* ─── 8 · VALIDAÇÃO ────────────────────────────────────────────── */}
-      <Section tone="light">
+      <Section tone="alt">
         <SectionHeader eyebrow="Comprovação" title="Validação simples, flexível e segura" />
         <div className="mt-10">
           <ValidationTable />
         </div>
 
-        <div className="mt-10 rounded-2xl border-l-4 bg-white p-5 md:p-6" style={{ borderColor: C.navy }}>
-          <p className="font-title text-lg font-semibold uppercase leading-snug tracking-tight text-[#0E1226] md:text-xl">
+        <div className="mt-10 rounded-2xl border-l-4 bg-white/[0.04] p-5 md:p-6" style={{ borderColor: C.gold }}>
+          <p className="font-title text-lg font-semibold uppercase leading-snug tracking-tight text-white md:text-xl">
             O MVP não depende de Garmin ou Strava.
           </p>
-          <p className="mt-2 text-[15px] leading-relaxed text-[#5A6178]">
+          <p className="mt-2 text-[15px] leading-relaxed text-white/55">
             A primeira versão pode funcionar com QR Code, upload, indicação e autodeclaração, o que tira dependência de
             terceiros do caminho crítico.
           </p>
         </div>
 
-        <h3 className="mt-14 font-title text-lg font-bold uppercase tracking-tight text-[#0E1226] md:text-xl">
+        <h3 className="mt-14 font-title text-lg font-bold uppercase tracking-tight text-white md:text-xl">
           Da missão ao ranking
         </h3>
         <div className="mt-5">
@@ -290,7 +294,7 @@ export default function UltraBalanceChallengePage() {
       </Section>
 
       {/* ─── 9 · PONTUAÇÃO ────────────────────────────────────────────── */}
-      <Section tone="white">
+      <Section tone="base">
         <SectionHeader
           eyebrow="Pontuação"
           title="A competição valoriza consistência, não apenas velocidade"
@@ -299,7 +303,7 @@ export default function UltraBalanceChallengePage() {
             larga estica a coluna em vez de rolar dentro dela */}
         <div className="mt-12 grid gap-12 lg:grid-cols-2 lg:gap-16">
           <div className="min-w-0">
-            <h3 className="font-title text-lg font-bold uppercase tracking-tight text-[#0E1226]">
+            <h3 className="font-title text-lg font-bold uppercase tracking-tight text-white">
               Como o peso é distribuído
             </h3>
             <div className="mt-6">
@@ -307,7 +311,7 @@ export default function UltraBalanceChallengePage() {
             </div>
           </div>
           <div className="min-w-0">
-            <h3 className="font-title text-lg font-bold uppercase tracking-tight text-[#0E1226]">
+            <h3 className="font-title text-lg font-bold uppercase tracking-tight text-white">
               Exemplos de pontuação
             </h3>
             <div className="mt-6">
@@ -324,7 +328,7 @@ export default function UltraBalanceChallengePage() {
       </Section>
 
       {/* ─── 10 · RANKINGS ────────────────────────────────────────────── */}
-      <Section tone="light">
+      <Section tone="alt">
         <SectionHeader eyebrow="Rankings" title="Mais de uma forma de vencer" />
         <ul className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {RANKING_TIPOS.map((r, i) => (
@@ -333,7 +337,7 @@ export default function UltraBalanceChallengePage() {
                 icon={r.icon}
                 title={r.title}
                 text={r.text}
-                color={[C.navy, C.orange, C.green, C.red][i]}
+                color={[C.gold, C.orange, C.green, C.red][i]}
               />
             </Reveal>
           ))}
@@ -344,11 +348,11 @@ export default function UltraBalanceChallengePage() {
       </Section>
 
       {/* ─── 11 · RECOMPENSAS ─────────────────────────────────────────── */}
-      <Section tone="navy">
+      <Section tone="base">
         <SectionHeader
           eyebrow="Recompensas"
           title="Progresso digital que desbloqueia experiências reais"
-          onDark
+         
         />
         <div className="mt-12">
           <RewardProgress />
@@ -378,7 +382,7 @@ export default function UltraBalanceChallengePage() {
       </Section>
 
       {/* ─── 12 · MÁQUINA DE FOTOS ────────────────────────────────────── */}
-      <Section tone="white">
+      <Section tone="base">
         <SectionHeader
           eyebrow="Integração presencial"
           title="O desafio termina em uma experiência personalizada"
@@ -390,10 +394,10 @@ export default function UltraBalanceChallengePage() {
 
         <div className="mt-16 grid items-start gap-12 lg:grid-cols-2 lg:gap-16">
           <div>
-            <h3 className="font-title text-lg font-bold uppercase tracking-tight text-[#0E1226] md:text-xl">
+            <h3 className="font-title text-lg font-bold uppercase tracking-tight text-white md:text-xl">
               A máquina
             </h3>
-            <p className="mt-3 text-[15px] leading-relaxed text-[#5A6178]">
+            <p className="mt-3 text-[15px] leading-relaxed text-white/55">
               Câmera, iluminação frontal, tela vertical e leitor de QR Code, com a identidade das duas marcas aplicada
               da testeira à base.
             </p>
@@ -402,10 +406,10 @@ export default function UltraBalanceChallengePage() {
             </div>
           </div>
           <div>
-            <h3 className="font-title text-lg font-bold uppercase tracking-tight text-[#0E1226] md:text-xl">
+            <h3 className="font-title text-lg font-bold uppercase tracking-tight text-white md:text-xl">
               O card de saída
             </h3>
-            <p className="mt-3 text-[15px] leading-relaxed text-[#5A6178]">
+            <p className="mt-3 text-[15px] leading-relaxed text-white/55">
               A arte já sai preenchida com os dados do participante, porque o sistema reconhece quem escaneou.
             </p>
             <Reveal className="mt-8 flex justify-center lg:justify-start">
@@ -416,7 +420,7 @@ export default function UltraBalanceChallengePage() {
       </Section>
 
       {/* ─── 13 · PAINEL DA MARCA ─────────────────────────────────────── */}
-      <Section tone="light">
+      <Section tone="alt">
         <SectionHeader
           eyebrow="Painel"
           title="Dados em tempo real para Somma e Michelob Ultra"
@@ -429,30 +433,30 @@ export default function UltraBalanceChallengePage() {
       </Section>
 
       {/* ─── 14 · O QUE A MARCA RECEBE ────────────────────────────────── */}
-      <Section tone="navy">
-        <SectionHeader eyebrow="Entrega" title="Muito mais que participação" onDark />
+      <Section tone="base">
+        <SectionHeader eyebrow="Entrega" title="Muito mais que participação" />
         <ul className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
           {MARCA_RECEBE.map((m, i) => (
             <Reveal as="li" key={m.title} delay={i * 0.06} className="h-full">
-              <MetricCard icon={m.icon} title={m.title} text={m.text} onDark color={C.orange} />
+              <MetricCard icon={m.icon} title={m.title} text={m.text} color={C.orange} />
             </Reveal>
           ))}
         </ul>
         <div className="mt-12">
-          <Highlight onDark>
+          <Highlight>
             O desafio transforma uma ativação pontual em uma jornada de relacionamento mensurável.
           </Highlight>
         </div>
       </Section>
 
       {/* ─── 15 · ARQUITETURA ─────────────────────────────────────────── */}
-      <Section tone="white">
+      <Section tone="base">
         <SectionHeader
           eyebrow="Tecnologia"
           title="Uma estrutura simples, escalável e integrada ao Somma"
           text="A mesma base que já roda os produtos digitais do Somma, o que encurta prazo e reduz risco de implementação."
         />
-        <Reveal className="mt-12 rounded-2xl bg-[#F4F5F8] p-5 md:p-8">
+        <Reveal className="mt-12 rounded-2xl border border-white/10 bg-white/[0.035] p-5 md:p-8">
           <ChainFlow
             items={[
               "Participante",
@@ -470,7 +474,7 @@ export default function UltraBalanceChallengePage() {
       </Section>
 
       {/* ─── 16 · MODELO DE DADOS ─────────────────────────────────────── */}
-      <Section tone="light">
+      <Section tone="alt">
         <SectionHeader
           eyebrow="Modelo de dados"
           title="O que o sistema precisa registrar"
@@ -479,12 +483,12 @@ export default function UltraBalanceChallengePage() {
         <ul className="mt-12 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {ENTIDADES.map((e, i) => (
             <Reveal as="li" key={e.name} delay={i * 0.04}>
-              <div className="flex items-center gap-3 rounded-xl border border-black/[0.07] bg-white px-4 py-3.5">
-                <Icon name="Database" className="h-4 w-4 shrink-0" color={C.navy} />
-                <span className="font-title text-base font-semibold uppercase tracking-tight text-[#0E1226]">
+              <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.035] px-4 py-3.5">
+                <Icon name="Database" className="h-4 w-4 shrink-0" color={C.gold} />
+                <span className="font-title text-base font-semibold uppercase tracking-tight text-white">
                   {e.name}
                 </span>
-                <span className="ml-auto text-right text-[11px] leading-tight text-[#5A6178]">{e.liga}</span>
+                <span className="ml-auto text-right text-[11px] leading-tight text-white/55">{e.liga}</span>
               </div>
             </Reveal>
           ))}
@@ -492,18 +496,18 @@ export default function UltraBalanceChallengePage() {
       </Section>
 
       {/* ─── 17 · MVP ─────────────────────────────────────────────────── */}
-      <Section tone="white">
+      <Section tone="base">
         <SectionHeader eyebrow="Escopo" title="Primeira versão para validar o conceito" />
         <div className="mt-12 grid gap-5 lg:grid-cols-2">
           <Reveal>
-            <div className="h-full rounded-2xl border-2 p-6 md:p-7" style={{ borderColor: C.navy }}>
-              <h3 className="font-title text-xl font-bold uppercase tracking-tight" style={{ color: C.navy }}>
+            <div className="h-full rounded-2xl border p-6 md:p-7" style={{ borderColor: `${C.red}66`, backgroundColor: `${C.red}0D` }}>
+              <h3 className="font-title text-xl font-bold uppercase tracking-tight" style={{ color: C.red }}>
                 Entra no MVP
               </h3>
               <ul className="mt-5 grid gap-2.5 sm:grid-cols-2">
                 {MVP.map((m) => (
-                  <li key={m} className="flex items-start gap-2.5 text-sm text-[#0E1226]">
-                    <Icon name="Check" className="mt-0.5 h-4 w-4 shrink-0" color={C.navy} />
+                  <li key={m} className="flex items-start gap-2.5 text-sm text-white">
+                    <Icon name="Check" className="mt-0.5 h-4 w-4 shrink-0" color={C.red} />
                     {m}
                   </li>
                 ))}
@@ -511,13 +515,13 @@ export default function UltraBalanceChallengePage() {
             </div>
           </Reveal>
           <Reveal delay={0.08}>
-            <div className="h-full rounded-2xl border border-black/[0.09] bg-[#F4F5F8] p-6 md:p-7">
-              <h3 className="font-title text-xl font-bold uppercase tracking-tight text-[#5A6178]">
+            <div className="h-full rounded-2xl border border-white/10 bg-white/[0.03] p-6 md:p-7">
+              <h3 className="font-title text-xl font-bold uppercase tracking-tight text-white/45">
                 Evolução futura
               </h3>
               <ul className="mt-5 grid gap-2.5">
                 {FUTURO.map((f) => (
-                  <li key={f} className="flex items-start gap-2.5 text-sm text-[#5A6178]">
+                  <li key={f} className="flex items-start gap-2.5 text-sm text-white/55">
                     <Icon name="ArrowUpRight" className="mt-0.5 h-4 w-4 shrink-0" />
                     {f}
                   </li>
@@ -532,24 +536,24 @@ export default function UltraBalanceChallengePage() {
       </Section>
 
       {/* ─── 18 · INDICADORES ─────────────────────────────────────────── */}
-      <Section tone="light">
+      <Section tone="alt">
         <SectionHeader eyebrow="Resultado" title="Como avaliar o resultado" />
         <ul className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {INDICADORES.map((cat, i) => (
             <Reveal as="li" key={cat.categoria} delay={i * 0.06} className="h-full">
-              <div className="h-full rounded-2xl border border-black/[0.07] bg-white p-5 md:p-6">
+              <div className="h-full rounded-2xl border border-white/10 bg-white/[0.035] p-5 md:p-6">
                 <h3
                   className="font-title text-lg font-bold uppercase tracking-tight"
-                  style={{ color: [C.navy, C.orange, C.red, C.green, C.navy][i] }}
+                  style={{ color: [C.gold, C.orange, C.red, C.green, C.gold][i] }}
                 >
                   {cat.categoria}
                 </h3>
                 <ul className="mt-4 space-y-2">
                   {cat.itens.map((it) => (
-                    <li key={it} className="flex items-start gap-2 text-sm text-[#5A6178]">
+                    <li key={it} className="flex items-start gap-2 text-sm text-white/55">
                       <span
                         className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full"
-                        style={{ backgroundColor: [C.navy, C.orange, C.red, C.green, C.navy][i] }}
+                        style={{ backgroundColor: [C.gold, C.orange, C.red, C.green, C.gold][i] }}
                         aria-hidden
                       />
                       {it}
@@ -563,10 +567,10 @@ export default function UltraBalanceChallengePage() {
       </Section>
 
       {/* ─── 19 · RESUMO FINAL ────────────────────────────────────────── */}
-      <Section tone="white">
+      <Section tone="base">
         <SectionHeader eyebrow="Em uma frase" title="O que é, resumido" center />
         <Reveal delay={0.06}>
-          <p className="mx-auto mt-8 max-w-3xl text-center font-title text-xl font-medium uppercase leading-snug tracking-tight text-[#0E1226] md:text-3xl">
+          <p className="mx-auto mt-8 max-w-3xl text-center font-title text-xl font-medium uppercase leading-snug tracking-tight text-white md:text-3xl">
             O Ultra Balance Challenge é uma plataforma digital de 21 dias que conecta movimento, comunidade e diversão,
             criando <span style={{ color: C.red }}>engajamento mensurável</span> antes do Michelob Ultra Social Run.
           </p>
@@ -576,11 +580,11 @@ export default function UltraBalanceChallengePage() {
             <Reveal as="li" key={n.label} delay={i * 0.07} className="text-center">
               <p
                 className="font-title text-5xl font-bold leading-none md:text-6xl"
-                style={{ color: [C.navy, C.orange, C.green, C.red][i] }}
+                style={{ color: [C.gold, C.orange, C.green, C.red][i] }}
               >
                 {n.value}
               </p>
-              <p className="mt-2 text-sm text-[#5A6178]">{n.label}</p>
+              <p className="mt-2 text-sm text-white/55">{n.label}</p>
             </Reveal>
           ))}
         </ul>

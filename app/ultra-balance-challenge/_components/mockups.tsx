@@ -1,7 +1,7 @@
 "use client";
 
 import { C, HERO_STATS, PAINEL_KPIS, FUNIL, ENGAJAMENTO_PILAR, CARD_SAIDA_CAMPOS } from "../data";
-import { Icon } from "./base";
+import { Icon } from "./icons";
 
 /* ── Carcaça de celular ────────────────────────────────────────────────── */
 
@@ -168,7 +168,7 @@ export function SignupMockup({ campos }: { campos: readonly string[] }) {
 
 export function MissionOfDayMockup() {
   return (
-    <div className="rounded-2xl border border-black/[0.07] bg-white p-5 shadow-sm md:p-6">
+    <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-5 shadow-sm md:p-6">
       <div className="flex items-center gap-2">
         <span
           className="rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-white"
@@ -180,10 +180,10 @@ export function MissionOfDayMockup() {
           15 pontos
         </span>
       </div>
-      <h3 className="mt-4 font-title text-2xl font-bold uppercase leading-tight tracking-tight text-[#0E1226]">
+      <h3 className="mt-4 font-title text-2xl font-bold uppercase leading-tight tracking-tight text-white">
         Corra com alguém novo
       </h3>
-      <p className="mt-2 text-sm leading-relaxed text-[#5A6178]">
+      <p className="mt-2 text-sm leading-relaxed text-white/55">
         Convide alguém para compartilhar seu treino de hoje.
       </p>
       <button
@@ -300,22 +300,22 @@ export function PhotoMachineMockup() {
 /** Card de saída, ainda sem foto, mostrando os campos que ele carrega. */
 export function OutputCardMockup() {
   return (
-    <div className="w-full max-w-[300px] rounded-2xl border border-black/[0.07] bg-white p-4 shadow-lg">
-      <div className="flex aspect-[4/5] items-center justify-center rounded-xl border-2 border-dashed border-black/12 bg-[#F4F5F8]">
-        <span className="text-[10px] uppercase tracking-widest text-[#5A6178]/60">espaço da foto</span>
+    <div className="w-full max-w-[300px] rounded-2xl border border-white/10 bg-white/[0.035] p-4 shadow-lg">
+      <div className="flex aspect-[4/5] items-center justify-center rounded-xl border-2 border-dashed border-white/15 bg-white/[0.05]">
+        <span className="text-[10px] uppercase tracking-widest text-white/35">espaço da foto</span>
       </div>
       <dl className="mt-4 grid grid-cols-2 gap-x-3 gap-y-2">
         {CARD_SAIDA_CAMPOS.map((c) => (
           <div key={c}>
-            <dt className="text-[9px] uppercase tracking-wider text-[#5A6178]/70">{c}</dt>
-            <dd className="mt-0.5 h-1.5 w-4/5 rounded bg-black/10" aria-hidden />
+            <dt className="text-[9px] uppercase tracking-wider text-white/35">{c}</dt>
+            <dd className="mt-0.5 h-1.5 w-4/5 rounded bg-white/15" aria-hidden />
           </div>
         ))}
       </dl>
-      <div className="mt-4 flex items-center justify-center gap-2 border-t border-black/[0.07] pt-3">
+      <div className="mt-4 flex items-center justify-center gap-2 rounded-lg bg-white px-3 py-2">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/logo-somma-dark.png" alt="Somma Running Club" className="h-3 w-auto" />
-        <span className="text-[8px] text-[#0E1226]/30">x</span>
+        <span className="text-[8px] text-white/30">x</span>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/Michelob_Ultra_(3).png" alt="Michelob Ultra Club" className="h-3 w-auto" />
       </div>
@@ -329,16 +329,16 @@ export function BrandDashboardMockup() {
   const max = FUNIL[0].value;
   return (
     <div
-      className="overflow-hidden rounded-2xl border border-black/[0.07] bg-white shadow-lg"
+      className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.035] shadow-lg"
       role="img"
       aria-label="Painel da marca com indicadores do Ultra Balance Challenge"
     >
       {/* barra do navegador */}
-      <div className="flex items-center gap-1.5 border-b border-black/[0.07] bg-[#F4F5F8] px-4 py-2.5">
+      <div className="flex items-center gap-1.5 border-b border-white/10 bg-white/[0.05] px-4 py-2.5">
         <span className="h-2 w-2 rounded-full bg-[#FF5F56]" aria-hidden />
         <span className="h-2 w-2 rounded-full bg-[#FFBD2E]" aria-hidden />
         <span className="h-2 w-2 rounded-full bg-[#27C93F]" aria-hidden />
-        <span className="ml-3 rounded bg-white px-2.5 py-0.5 text-[10px] text-[#5A6178]">
+        <span className="ml-3 rounded bg-white px-2.5 py-0.5 text-[10px] text-white/55">
           painel.ultrabalancechallenge
         </span>
       </div>
@@ -347,9 +347,9 @@ export function BrandDashboardMockup() {
         {/* KPIs */}
         <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
           {PAINEL_KPIS.map((k) => (
-            <div key={k.label} className="rounded-xl bg-[#F4F5F8] px-3 py-3">
-              <p className="font-title text-xl font-bold leading-none text-[#0E1226] md:text-2xl">{k.value}</p>
-              <p className="mt-1 text-[10px] leading-tight text-[#5A6178]">{k.label}</p>
+            <div key={k.label} className="rounded-xl bg-white/[0.05] px-3 py-3">
+              <p className="font-title text-xl font-bold leading-none text-white md:text-2xl">{k.value}</p>
+              <p className="mt-1 text-[10px] leading-tight text-white/55">{k.label}</p>
             </div>
           ))}
         </div>
@@ -357,17 +357,17 @@ export function BrandDashboardMockup() {
         <div className="mt-5 grid gap-5 lg:grid-cols-2">
           {/* funil */}
           <div>
-            <p className="font-title text-xs font-semibold uppercase tracking-[0.2em] text-[#5A6178]">
+            <p className="font-title text-xs font-semibold uppercase tracking-[0.2em] text-white/55">
               Funil de participação
             </p>
             <ul className="mt-3 space-y-2">
               {FUNIL.map((f, i) => (
                 <li key={f.label}>
                   <div className="flex items-baseline justify-between text-[11px]">
-                    <span className="text-[#0E1226]">{f.label}</span>
-                    <span className="font-semibold text-[#0E1226]">{f.value.toLocaleString("pt-BR")}</span>
+                    <span className="text-white">{f.label}</span>
+                    <span className="font-semibold text-white">{f.value.toLocaleString("pt-BR")}</span>
                   </div>
-                  <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-[#F4F5F8]">
+                  <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-white/[0.05]">
                     <div
                       className="h-full rounded-full"
                       style={{
@@ -384,7 +384,7 @@ export function BrandDashboardMockup() {
 
           {/* engajamento por pilar + cadastros por dia */}
           <div>
-            <p className="font-title text-xs font-semibold uppercase tracking-[0.2em] text-[#5A6178]">
+            <p className="font-title text-xs font-semibold uppercase tracking-[0.2em] text-white/55">
               Cadastros por dia
             </p>
             <div className="mt-3 flex h-24 items-end gap-1">
@@ -397,7 +397,7 @@ export function BrandDashboardMockup() {
               ))}
             </div>
 
-            <p className="mt-5 font-title text-xs font-semibold uppercase tracking-[0.2em] text-[#5A6178]">
+            <p className="mt-5 font-title text-xs font-semibold uppercase tracking-[0.2em] text-white/55">
               Engajamento por pilar
             </p>
             <div className="mt-3 flex h-3 w-full overflow-hidden rounded-full">
@@ -407,7 +407,7 @@ export function BrandDashboardMockup() {
             </div>
             <ul className="mt-2.5 flex flex-wrap gap-x-4 gap-y-1">
               {ENGAJAMENTO_PILAR.map((p) => (
-                <li key={p.label} className="flex items-center gap-1.5 text-[11px] text-[#5A6178]">
+                <li key={p.label} className="flex items-center gap-1.5 text-[11px] text-white/55">
                   <span className="h-2 w-2 rounded-full" style={{ backgroundColor: p.color }} aria-hidden />
                   {p.label} {p.value}%
                 </li>
