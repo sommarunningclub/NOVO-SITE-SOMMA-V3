@@ -453,7 +453,7 @@ export const ATIVACOES = [
     key: "a",
     nome: "Michelob Ultra Social Club Experience",
     selo: "Formato completo",
-    recomendado: false,
+    recomendado: true,
     frase: "Uma ocupação temporária de corrida, wellness, música e lifestyle em Brasília.",
     desc: [
       "A versão completa combina os 21 dias do Ultra Balance Challenge com um espaço físico da Michelob Ultra aberto durante dois dias consecutivos ou dois finais de semana.",
@@ -472,8 +472,8 @@ export const ATIVACOES = [
   {
     key: "b",
     nome: "Ultra Balance Challenge Grand Finale",
-    selo: "Formato recomendado",
-    recomendado: true,
+    selo: "Formato concentrado",
+    recomendado: false,
     frase: "21 dias de engajamento culminando em um único grande evento.",
     desc: [
       "O desafio digital termina no dia anterior ao evento. No dia seguinte, a comunidade se reúne para uma grande celebração que conecta corrida, competição, wellness, conteúdo e música.",

@@ -310,13 +310,13 @@ export function ActivationComparisonTable() {
             <th className="px-4 py-3.5 font-title text-xs font-semibold uppercase tracking-[0.15em] text-white/55">
               Critério
             </th>
-            <th className="px-4 py-3.5 font-title text-xs font-semibold uppercase tracking-[0.15em]" style={{ color: C.gold }}>
-              Ativação A · Social Club
-            </th>
             <th
               className="px-4 py-3.5 font-title text-xs font-semibold uppercase tracking-[0.15em]"
               style={{ color: C.red, backgroundColor: `${C.red}12` }}
             >
+              Ativação A · Social Club
+            </th>
+            <th className="px-4 py-3.5 font-title text-xs font-semibold uppercase tracking-[0.15em]" style={{ color: C.gold }}>
               Ativação B · Grand Finale
             </th>
           </tr>
@@ -325,10 +325,10 @@ export function ActivationComparisonTable() {
           {COMPARACAO.map((row) => (
             <tr key={row.criterio} className="border-b border-white/[0.08]">
               <td className="px-4 py-3 font-medium text-white/85">{row.criterio}</td>
-              <td className="px-4 py-3 text-white/60">{row.a}</td>
               <td className="px-4 py-3 text-white/85" style={{ backgroundColor: `${C.red}0A` }}>
-                {row.b}
+                {row.a}
               </td>
+              <td className="px-4 py-3 text-white/60">{row.b}</td>
             </tr>
           ))}
         </tbody>
@@ -343,36 +343,37 @@ export function RecommendationBanner() {
   return (
     <Panel highlight className="overflow-hidden">
       <div className="p-6 md:p-9">
-        <MonoLabel color={C.red}>Nossa recomendação para a primeira edição</MonoLabel>
+        <MonoLabel color={C.red}>Nossa recomendação</MonoLabel>
         <h3 className="mt-4 max-w-3xl font-title text-2xl font-bold uppercase leading-[1.05] tracking-tight text-white md:text-4xl">
-          Começar com o Grand Finale.<br className="hidden sm:block" /> Evoluir para o Social Club.
+          Michelob Ultra <span style={{ color: C.red }}>Social Club Experience</span>.
         </h3>
         <div className="mt-5 grid max-w-3xl gap-4 md:grid-cols-2">
           <p className="text-sm leading-relaxed text-white/70">
-            A Ativação B oferece uma primeira edição mais eficiente, mantendo a força dos 21 dias e concentrando o
-            investimento em um evento de alto impacto.
+            A Ativação A entrega a ocupação mais completa da Michelob Ultra em Brasília: dois dias ou dois finais de
+            semana de corrida, wellness, música e lifestyle, com o maior volume de conteúdo e a presença de marca mais
+            prolongada.
           </p>
           <p className="text-sm leading-relaxed text-white/70">
-            A Ativação A apresenta o potencial de evolução da parceria para uma ocupação temporária da Michelob Ultra em
-            Brasília.
+            A Ativação B, o Grand Finale, permanece como alternativa mais enxuta: concentra os 21 dias em um único grande
+            evento, com menor complexidade operacional, quando o objetivo for uma estreia direta.
           </p>
         </div>
 
-        {/* seta visual: primeira edição → evolução */}
-        <div className="mt-8 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
+        {/* recomendado × alternativa */}
+        <div className="mt-8 flex flex-col items-stretch gap-3 sm:flex-row sm:items-stretch">
           <div className="flex-1 rounded-2xl border p-5" style={{ borderColor: `${C.red}66`, backgroundColor: `${C.red}14` }}>
-            <MonoLabel color={C.red}>Primeira edição</MonoLabel>
-            <p className="mt-2 font-title text-lg font-bold uppercase leading-tight tracking-tight text-white">
-              Ultra Balance Challenge Grand Finale
-            </p>
-          </div>
-          <span className="mx-auto flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/20 sm:mx-2">
-            <Icon name="ArrowRight" className="h-5 w-5 rotate-90 sm:rotate-0" color={C.gold} />
-          </span>
-          <div className="flex-1 rounded-2xl border border-white/12 bg-white/[0.04] p-5">
-            <MonoLabel color={C.gold}>Evolução</MonoLabel>
+            <div className="flex items-center gap-2">
+              <RibbonMark color={C.red} />
+              <MonoLabel color={C.red}>Recomendado</MonoLabel>
+            </div>
             <p className="mt-2 font-title text-lg font-bold uppercase leading-tight tracking-tight text-white">
               Michelob Ultra Social Club Experience
+            </p>
+          </div>
+          <div className="flex-1 rounded-2xl border border-white/12 bg-white/[0.04] p-5">
+            <MonoLabel color={C.gold}>Alternativa concentrada</MonoLabel>
+            <p className="mt-2 font-title text-lg font-bold uppercase leading-tight tracking-tight text-white">
+              Ultra Balance Challenge Grand Finale
             </p>
           </div>
         </div>
@@ -452,7 +453,14 @@ export function ActivationSection() {
 
       {/* dois formatos lado a lado no desktop, empilhados no celular */}
       <div className="mt-12 grid items-stretch gap-5 lg:grid-cols-2">
-        <ActivationFormatCard nome={A.nome} selo={A.selo} frase={A.frase} desc={A.desc} indicadores={A.indicadores}>
+        <ActivationFormatCard
+          nome={A.nome}
+          selo={A.selo}
+          frase={A.frase}
+          desc={A.desc}
+          indicadores={A.indicadores}
+          recomendado={A.recomendado}
+        >
           <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
             <p className="text-[13px] leading-snug text-white/60">
               O formato completo tem dois roteiros possíveis: dois dias consecutivos ou dois finais de semana, detalhados
@@ -467,7 +475,7 @@ export function ActivationSection() {
           frase={B.frase}
           desc={B.desc}
           indicadores={B.indicadores}
-          recomendado
+          recomendado={B.recomendado}
         >
           <div className="rounded-xl border border-white/10 bg-white/[0.03] p-5">
             <CampaignTimeline />
