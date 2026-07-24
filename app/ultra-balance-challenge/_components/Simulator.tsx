@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useMemo, useReducer } from "react";
+import Image from "next/image";
 import dynamic from "next/dynamic";
 import { AnimatePresence, motion } from "framer-motion";
 import { C, PERFIS } from "../data";
@@ -41,14 +42,18 @@ type Acao =
   | { t: "perfil"; v: string }
   | { t: "crew"; v: (typeof CREWS)[number] }
   | { t: "missao"; v: (typeof MISSOES)[number] }
+  | { t: "iniciar" }
   | { t: "avancar" }
   | { t: "voltar" }
   | { t: "reset" };
 
-const INICIAL: Estado = { etapa: 0, perfil: null, crew: null, feitas: [], pontos: 0, dias: 0 };
+/** etapa -1 é a capa de onboarding, antes de entrar no fluxo. */
+const INICIAL: Estado = { etapa: -1, perfil: null, crew: null, feitas: [], pontos: 0, dias: 0 };
 
 function reducer(s: Estado, a: Acao): Estado {
   switch (a.t) {
+    case "iniciar":
+      return { ...s, etapa: 0 };
     case "perfil":
       return { ...s, perfil: a.v, etapa: 1 };
     case "crew":
@@ -65,13 +70,142 @@ function reducer(s: Estado, a: Acao): Estado {
     case "avancar":
       return { ...s, etapa: Math.min(3, s.etapa + 1) };
     case "voltar":
-      return { ...s, etapa: Math.max(0, s.etapa - 1) };
+      return { ...s, etapa: Math.max(-1, s.etapa - 1) };
     case "reset":
       return INICIAL;
   }
 }
 
 const ETAPAS = ["Perfil", "Crew", "Missões", "Resultado"] as const;
+
+/* ── Casca de iPhone ───────────────────────────────────────────────────── */
+
+/**
+ * No celular o simulador vira um app dentro de um iPhone: moldura, ilha
+ * dinâmica, barra de status e indicador de home. No desktop a casca some e
+ * sobra o painel, então o conteúdo e o estado são os mesmos nos dois.
+ */
+function PhoneShell({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="relative mx-auto w-full max-w-[390px] lg:max-w-none">
+      {/* brilho de apoio, só no celular */}
+      <div
+        className="pointer-events-none absolute -inset-8 -z-10 lg:hidden"
+        style={{
+          background: `radial-gradient(60% 45% at 50% 22%, ${C.red}33, transparent 70%), radial-gradient(50% 40% at 50% 85%, ${C.navy}59, transparent 70%)`,
+        }}
+        aria-hidden
+      />
+      <div
+        className="relative rounded-[2.75rem] border-[9px] border-[#090E22] bg-[#090E22] shadow-[0_30px_70px_-15px_rgba(0,0,0,0.85)] ring-1 ring-white/10 lg:rounded-2xl lg:border-0 lg:p-0 lg:shadow-none lg:ring-0"
+      >
+        <div
+          className="relative overflow-hidden rounded-[2.15rem] lg:rounded-2xl lg:border lg:border-white/10"
+          style={{ backgroundColor: C.bg }}
+        >
+          {/* barra de status */}
+          <div className="relative flex items-center justify-between px-6 pb-1 pt-3 lg:hidden">
+            <span className="font-mono text-[11px] font-medium text-white/70">9:41</span>
+            <span className="absolute left-1/2 top-2 h-[26px] w-[92px] -translate-x-1/2 rounded-full bg-black" aria-hidden />
+            <span className="flex items-center gap-1.5 text-white/70">
+              <Icon name="Wifi" className="h-3.5 w-3.5" />
+              <Icon name="BatteryFull" className="h-4 w-4" />
+            </span>
+          </div>
+
+          {children}
+
+          {/* indicador de home */}
+          <div className="flex justify-center pb-2 pt-1 lg:hidden">
+            <span className="h-1 w-32 rounded-full bg-white/30" aria-hidden />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── Capa de onboarding ────────────────────────────────────────────────── */
+
+function CoverScreen({ onStart }: { onStart: () => void }) {
+  return (
+    <motion.div
+      key="capa"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0, scale: 1.02 }}
+      transition={{ duration: 0.35 }}
+      className="relative flex min-h-[560px] flex-col justify-end overflow-hidden lg:min-h-[520px]"
+    >
+      <Image
+        src="/michelob/m-capa.jpg"
+        alt="Corredor do Somma Club na Ponte JK, em Brasília"
+        fill
+        sizes="(max-width: 1024px) 390px, 640px"
+        className="object-cover object-center"
+      />
+      <div
+        className="absolute inset-0"
+        style={{ background: `linear-gradient(to top, ${C.bg} 6%, ${C.bg}D9 34%, ${C.bg}40 62%, ${C.bg}73 100%)` }}
+        aria-hidden
+      />
+
+      {/* lockup no topo */}
+      <div className="absolute left-0 right-0 top-6 flex justify-center">
+        <div className="inline-flex items-center gap-3 rounded-xl bg-white/95 px-4 py-2.5 shadow-lg backdrop-blur">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo-somma-dark.png" alt="Somma Running Club" className="h-4 w-auto" />
+          <span className="text-xs font-light text-[#0E1226]/35" aria-hidden>
+            x
+          </span>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/Michelob_Ultra_(3).png" alt="Michelob Ultra Club" className="h-4 w-auto" />
+        </div>
+      </div>
+
+      <div className="relative px-7 pb-8">
+        <MonoLabel color={C.gold}>campanha 2026</MonoLabel>
+        <h3 className="mt-3 font-title text-[2.6rem] font-bold uppercase leading-[0.9] tracking-tight text-white">
+          Ultra Balance
+          <br />
+          <span style={{ color: C.red }}>Challenge</span>
+        </h3>
+        <p className="mt-4 text-[15px] font-light leading-snug text-white/75">
+          21 dias de missões, pontos e recompensas antes do Michelob Ultra Social Run.
+        </p>
+
+        <dl className="mt-6 flex items-center gap-6 border-y border-white/12 py-3.5">
+          {[
+            ["21", "dias"],
+            ["3", "pilares"],
+            ["4", "crews"],
+          ].map(([v, l]) => (
+            <div key={l}>
+              <dt className="sr-only">{l}</dt>
+              <dd>
+                <span className="font-title text-2xl font-bold leading-none text-white">{v}</span>
+                <span className="ml-1.5 font-mono text-[10px] uppercase tracking-widest text-white/45">{l}</span>
+              </dd>
+            </div>
+          ))}
+        </dl>
+
+        <button
+          type="button"
+          onClick={onStart}
+          className="mt-7 flex w-full items-center justify-center gap-2.5 rounded-2xl py-4 font-title text-base font-semibold uppercase tracking-[0.12em] text-white transition-transform active:scale-[0.98]"
+          style={{ backgroundColor: C.red, boxShadow: `0 12px 30px -8px ${C.red}99` }}
+        >
+          Começar o desafio
+          <Icon name="ArrowRight" className="h-4 w-4" />
+        </button>
+        <p className="mt-4 text-center font-mono text-[9px] uppercase tracking-[0.18em] text-white/30">
+          maiores de 18 anos · consumo responsável
+        </p>
+      </div>
+    </motion.div>
+  );
+}
 
 /* ── Componente ────────────────────────────────────────────────────────── */
 
@@ -102,10 +236,12 @@ export function Simulator() {
         />
 
         <div className="mt-12 grid gap-6 lg:grid-cols-[1fr_minmax(0,420px)] lg:gap-10">
-          {/* ── Painel de interação ───────────────────────────────────── */}
-          <Panel className="min-h-[560px]">
-            {/* trilho de etapas */}
-            <div className="flex items-center gap-1 border-b border-white/10 px-4 py-3 sm:px-6">
+          {/* ── App dentro do iPhone (no celular) ─────────────────────── */}
+          <PhoneShell>
+            {/* trilho de etapas: some na capa de onboarding */}
+            <div
+              className={`flex items-center gap-1 border-b border-white/10 px-4 py-3 sm:px-6 ${s.etapa < 0 ? "hidden" : ""}`}
+            >
               {ETAPAS.map((e, i) => {
                 const ativo = i === s.etapa;
                 const feito = i < s.etapa;
@@ -134,8 +270,10 @@ export function Simulator() {
               })}
             </div>
 
-            <div className="p-5 sm:p-7">
+            <div className={s.etapa < 0 ? "" : "p-5 sm:p-7"}>
               <AnimatePresence mode="wait">
+                {s.etapa === -1 && <CoverScreen onStart={() => dispatch({ t: "iniciar" })} />}
+
                 {/* ── Etapa 1: perfil ───────────────────────────────── */}
                 {s.etapa === 0 && (
                   <motion.div
@@ -145,7 +283,16 @@ export function Simulator() {
                     exit={{ opacity: 0, x: -12 }}
                     transition={{ duration: 0.25 }}
                   >
-                    <MonoLabel>passo 01</MonoLabel>
+                    <div className="flex items-center justify-between">
+                      <MonoLabel>passo 01</MonoLabel>
+                      <button
+                        type="button"
+                        onClick={() => dispatch({ t: "voltar" })}
+                        className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/30 transition-colors hover:text-white/70"
+                      >
+                        ← capa
+                      </button>
+                    </div>
                     <h3 className="mt-2 font-title text-2xl font-bold uppercase tracking-tight md:text-3xl">
                       Qual é o seu motivo para correr?
                     </h3>
@@ -386,7 +533,7 @@ export function Simulator() {
                 )}
               </AnimatePresence>
             </div>
-          </Panel>
+          </PhoneShell>
 
           {/* ── Trilha 3D + leitura ao vivo ───────────────────────────── */}
           <div className="flex flex-col gap-4">
