@@ -168,30 +168,41 @@ export function SignupMockup({ campos }: { campos: readonly string[] }) {
 
 export function MissionOfDayMockup() {
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-5 shadow-sm md:p-6">
-      <div className="flex items-center gap-2">
-        <span
-          className="rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-white"
-          style={{ backgroundColor: C.orange }}
-        >
-          Missão do dia
+    <div className="relative border-l-2 pl-5" style={{ borderColor: C.red }}>
+      <div className="flex items-baseline justify-between gap-4">
+        <span className="font-mono text-[10px] uppercase tracking-[0.28em]" style={{ color: C.red }}>
+          missão do dia
         </span>
-        <span className="ml-auto font-title text-sm font-bold" style={{ color: C.red }}>
-          15 pontos
-        </span>
+        <span className="font-mono text-[10px] tabular-nums text-white/35">CON.01</span>
       </div>
-      <h3 className="mt-4 font-title text-2xl font-bold uppercase leading-tight tracking-tight text-white">
+      <h3 className="mt-4 font-title text-3xl font-bold uppercase leading-[1.02] tracking-tight text-white md:text-4xl">
         Corra com alguém novo
       </h3>
-      <p className="mt-2 text-sm leading-relaxed text-white/55">
+      <p className="mt-3 text-[15px] leading-relaxed text-white/55">
         Convide alguém para compartilhar seu treino de hoje.
       </p>
+
+      <dl className="mt-6 flex items-baseline gap-8 border-t border-white/10 pt-5">
+        <div>
+          <dt className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/35">recompensa</dt>
+          <dd className="mt-1 font-title text-2xl font-bold leading-none" style={{ color: C.red }}>
+            15 <span className="text-sm font-normal text-white/40">pontos</span>
+          </dd>
+        </div>
+        <div>
+          <dt className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/35">comprovação</dt>
+          <dd className="mt-1 font-title text-lg font-semibold uppercase leading-none tracking-tight text-white">
+            Foto ou vídeo
+          </dd>
+        </div>
+      </dl>
+
       <button
         type="button"
-        className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl py-3 font-title text-sm font-semibold uppercase tracking-wider text-white transition-opacity hover:opacity-90"
-        style={{ backgroundColor: C.navy }}
+        className="group mt-6 inline-flex items-center gap-3 border-b pb-1 font-title text-sm font-semibold uppercase tracking-[0.12em] text-white transition-colors hover:text-white/70"
+        style={{ borderColor: `${C.red}80` }}
       >
-        <Icon name="Upload" className="h-4 w-4" />
+        <Icon name="Upload" className="h-4 w-4" color={C.red} />
         Enviar comprovação
       </button>
     </div>

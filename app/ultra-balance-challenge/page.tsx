@@ -55,6 +55,7 @@ import {
   TechnologyTable,
 } from "./_components/blocks";
 import { Simulator } from "./_components/Simulator";
+import { IndicatorIndex, RankingModes, PillarColumns, ProfileRows } from "./_components/editorial";
 
 export default function UltraBalanceChallengePage() {
   return (
@@ -166,18 +167,9 @@ export default function UltraBalanceChallengePage() {
             <h3 className="mt-10 font-title text-lg font-bold uppercase tracking-tight text-white">
               E qual perfil ele escolhe
             </h3>
-            <ul className="mt-4 grid gap-3 sm:grid-cols-2">
-              {PERFIS.map((p, i) => (
-                <Reveal as="li" key={p.title} delay={i * 0.05} className="h-full">
-                  <div className="h-full rounded-2xl border-l-4 bg-white/[0.04] p-4" style={{ borderColor: p.color }}>
-                    <h4 className="font-title text-lg font-bold uppercase tracking-tight" style={{ color: p.color }}>
-                      {p.title}
-                    </h4>
-                    <p className="mt-1 text-sm leading-snug text-white/55">{p.text}</p>
-                  </div>
-                </Reveal>
-              ))}
-            </ul>
+            <div className="mt-4">
+              <ProfileRows />
+            </div>
 
             <div className="mt-8">
               <Highlight>O perfil escolhido ajuda a personalizar missões, conteúdos e crews.</Highlight>
@@ -244,13 +236,9 @@ export default function UltraBalanceChallengePage() {
       {/* ─── 7 · MISSÕES ──────────────────────────────────────────────── */}
       <Section tone="base">
         <SectionHeader eyebrow="Missões" title="Três pilares. Diferentes formas de participar." />
-        <ul className="mt-12 grid gap-5 lg:grid-cols-3">
-          {PILARES.map((p, i) => (
-            <Reveal as="li" key={p.key} delay={i * 0.07} className="h-full">
-              <MissionCard title={p.title} icon={p.icon} color={p.color} missoes={p.missoes} />
-            </Reveal>
-          ))}
-        </ul>
+        <div className="mt-12">
+          <PillarColumns />
+        </div>
 
         <div className="mt-14 grid items-center gap-8 lg:grid-cols-[1fr_auto] lg:gap-14">
           <div>
@@ -330,18 +318,9 @@ export default function UltraBalanceChallengePage() {
       {/* ─── 10 · RANKINGS ────────────────────────────────────────────── */}
       <Section tone="alt">
         <SectionHeader eyebrow="Rankings" title="Mais de uma forma de vencer" />
-        <ul className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {RANKING_TIPOS.map((r, i) => (
-            <Reveal as="li" key={r.title} delay={i * 0.06} className="h-full">
-              <MetricCard
-                icon={r.icon}
-                title={r.title}
-                text={r.text}
-                color={[C.gold, C.orange, C.green, C.red][i]}
-              />
-            </Reveal>
-          ))}
-        </ul>
+        <div className="mt-12">
+          <RankingModes />
+        </div>
         <div className="mt-12">
           <RankingTable />
         </div>
@@ -538,32 +517,9 @@ export default function UltraBalanceChallengePage() {
       {/* ─── 18 · INDICADORES ─────────────────────────────────────────── */}
       <Section tone="alt">
         <SectionHeader eyebrow="Resultado" title="Como avaliar o resultado" />
-        <ul className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {INDICADORES.map((cat, i) => (
-            <Reveal as="li" key={cat.categoria} delay={i * 0.06} className="h-full">
-              <div className="h-full rounded-2xl border border-white/10 bg-white/[0.035] p-5 md:p-6">
-                <h3
-                  className="font-title text-lg font-bold uppercase tracking-tight"
-                  style={{ color: [C.gold, C.orange, C.red, C.green, C.gold][i] }}
-                >
-                  {cat.categoria}
-                </h3>
-                <ul className="mt-4 space-y-2">
-                  {cat.itens.map((it) => (
-                    <li key={it} className="flex items-start gap-2 text-sm text-white/55">
-                      <span
-                        className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full"
-                        style={{ backgroundColor: [C.gold, C.orange, C.red, C.green, C.gold][i] }}
-                        aria-hidden
-                      />
-                      {it}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </Reveal>
-          ))}
-        </ul>
+        <div className="mt-12">
+          <IndicatorIndex />
+        </div>
       </Section>
 
       {/* ─── 19 · RESUMO FINAL ────────────────────────────────────────── */}
