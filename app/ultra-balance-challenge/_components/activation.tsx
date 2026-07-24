@@ -1,5 +1,8 @@
 "use client";
 
+import { useState } from "react";
+import { motion, useReducedMotion } from "framer-motion";
+
 import {
   C,
   ATIVACOES,
@@ -185,17 +188,161 @@ export function EventSchedule({
  * com iluminação vermelha e estética de palco. No meio, uma transição visual do
  * sol para a noite.
  */
+/** Estrelas do céu noturno, em posições fixas para não quebrar a hidratação. */
+const STARS = [
+  { left: "8%", top: "22%", s: 2, d: 2.4, delay: 0 },
+  { left: "18%", top: "55%", s: 1.5, d: 3.1, delay: 0.4 },
+  { left: "27%", top: "30%", s: 2.5, d: 2.7, delay: 0.9 },
+  { left: "36%", top: "68%", s: 1.5, d: 3.4, delay: 0.2 },
+  { left: "44%", top: "18%", s: 2, d: 2.9, delay: 1.1 },
+  { left: "55%", top: "48%", s: 1.5, d: 3.2, delay: 0.6 },
+  { left: "63%", top: "26%", s: 2.5, d: 2.5, delay: 0.3 },
+  { left: "72%", top: "60%", s: 1.5, d: 3.0, delay: 1.3 },
+  { left: "80%", top: "34%", s: 2, d: 2.8, delay: 0.8 },
+  { left: "90%", top: "52%", s: 1.5, d: 3.3, delay: 0.5 },
+] as const;
+
+const CLOUDS = [
+  { top: "24%", scale: 1, dur: 26, delay: 0, from: "-20%" },
+  { top: "58%", scale: 0.7, dur: 34, delay: 6, from: "-40%" },
+  { top: "40%", scale: 0.85, dur: 30, delay: 12, from: "-10%" },
+] as const;
+
+/** Toggle sol ↔ lua. O sol desliza e vira lua crescente (via sombra interna). */
+function DayNightToggle({ night, onToggle }: { night: boolean; onToggle: () => void }) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={night}
+      aria-label="Alternar a experiência entre dia e noite"
+      onClick={onToggle}
+      className="group relative h-11 w-[84px] shrink-0 rounded-full border transition-colors duration-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+      style={{
+        borderColor: night ? "#2A3566" : `${C.gold}80`,
+        background: night
+          ? "linear-gradient(180deg, #0A1030, #1A2350)"
+          : "linear-gradient(180deg, #3E5488, #7C93C8)",
+        boxShadow: night ? "inset 0 1px 6px rgba(0,0,0,0.5)" : "inset 0 1px 6px rgba(255,255,255,0.25)",
+      }}
+    >
+      {/* estrelinhas dentro do trilho (noite) */}
+      <span
+        className="pointer-events-none absolute inset-0 rounded-full transition-opacity duration-500"
+        style={{ opacity: night ? 1 : 0 }}
+        aria-hidden
+      >
+        <span className="absolute left-3 top-3 h-0.5 w-0.5 rounded-full bg-white/80" />
+        <span className="absolute left-5 top-6 h-[3px] w-[3px] rounded-full bg-white/70" />
+        <span className="absolute left-8 top-3.5 h-0.5 w-0.5 rounded-full bg-white/60" />
+      </span>
+      {/* sol / lua */}
+      <span
+        className="absolute top-1.5 h-8 w-8 rounded-full transition-all duration-500 ease-out"
+        style={{
+          left: night ? "calc(100% - 38px)" : "6px",
+          background: night ? "#D7DCEA" : "radial-gradient(circle at 34% 32%, #FFE79A, #E3A63C)",
+          boxShadow: night
+            ? "inset -7px -3px 0 0 #AEB6D8, 0 0 10px 1px rgba(174,182,216,0.45)"
+            : "0 0 14px 3px rgba(227,166,60,0.6)",
+        }}
+        aria-hidden
+      />
+    </button>
+  );
+}
+
+/**
+ * A experiência dia/noite, agora interativa.
+ *
+ * Um toggle sol/lua no alto comanda o "horário" da seção: o céu transiciona de
+ * dia (nuvens) para noite (estrelas e aurora vermelha de palco), e o painel
+ * ativo ganha destaque. Os dois painéis continuam sempre visíveis e legíveis —
+ * o toggle muda a ênfase, não esconde conteúdo.
+ */
 export function DayNightExperience() {
+  const [night, setNight] = useState(false);
+  const reduce = useReducedMotion();
   return (
     <div className="overflow-hidden rounded-3xl border border-white/10">
+      {/* ── faixa de céu com o toggle ─────────────────────────────────── */}
+      <div className="relative h-36 overflow-hidden md:h-40">
+        {/* gradiente do céu */}
+        <div
+          className="absolute inset-0 transition-[background] duration-700"
+          style={{
+            background: night
+              ? "linear-gradient(165deg, #070C22 0%, #111C4E 60%, #1B2A6B 100%)"
+              : "linear-gradient(165deg, #2A3A63 0%, #5E77B4 55%, #C9A96A 120%)",
+          }}
+        />
+        {/* aurora vermelha de palco (noite) */}
+        <div
+          className="absolute inset-0 transition-opacity duration-700"
+          style={{
+            opacity: night ? 1 : 0,
+            background: `radial-gradient(60% 90% at 85% 10%, ${C.red}45, transparent 60%)`,
+          }}
+          aria-hidden
+        />
+        {/* estrelas (noite) */}
+        <motion.div className="absolute inset-0" animate={{ opacity: night ? 1 : 0 }} transition={{ duration: 0.6 }} aria-hidden>
+          {STARS.map((st, i) => (
+            <motion.span
+              key={i}
+              className="absolute rounded-full bg-white"
+              style={{ left: st.left, top: st.top, width: st.s, height: st.s }}
+              animate={reduce ? undefined : { opacity: [0.25, 1, 0.25] }}
+              transition={{ duration: st.d, delay: st.delay, repeat: Infinity, ease: "easeInOut" }}
+            />
+          ))}
+        </motion.div>
+        {/* nuvens (dia) */}
+        <motion.div className="absolute inset-0" animate={{ opacity: night ? 0 : 1 }} transition={{ duration: 0.6 }} aria-hidden>
+          {CLOUDS.map((cl, i) => (
+            <motion.span
+              key={i}
+              className="absolute"
+              style={{ top: cl.top }}
+              initial={{ x: cl.from }}
+              animate={reduce ? { x: "40%" } : { x: ["-20%", "120%"] }}
+              transition={reduce ? undefined : { duration: cl.dur, delay: cl.delay, repeat: Infinity, ease: "linear" }}
+            >
+              <svg width={64 * cl.scale} height={26 * cl.scale} viewBox="0 0 64 26" fill="rgba(255,255,255,0.55)" aria-hidden>
+                <path d="M16 24c-7 0-13-4-13-10S9 6 15 6c2-4 6-6 11-6 6 0 11 4 12 9 6 0 12 3 12 9s-6 6-12 6H16Z" />
+              </svg>
+            </motion.span>
+          ))}
+        </motion.div>
+        {/* escurecimento na base para o texto ler bem */}
+        <div className="absolute inset-x-0 bottom-0 h-20" style={{ background: `linear-gradient(transparent, ${C.bg})` }} aria-hidden />
+
+        {/* rótulo + toggle */}
+        <div className="absolute inset-0 flex items-end justify-between p-5 md:p-6">
+          <div>
+            <MonoLabel color={night ? "#AEB6E8" : C.gold}>{night ? "modo noite" : "modo dia"}</MonoLabel>
+            <p className="mt-1.5 font-title text-xl font-bold uppercase leading-none tracking-tight text-white md:text-2xl">
+              {night ? "A festa toma o espaço" : "O corre e o wellness"}
+            </p>
+          </div>
+          <DayNightToggle night={night} onToggle={() => setNight((v) => !v)} />
+        </div>
+      </div>
+
+      {/* ── os dois painéis, sempre visíveis ──────────────────────────── */}
       <div className="grid md:grid-cols-2">
         {/* DIA — claro */}
-        <div className="relative bg-[#F4F5F8] p-6 text-[#0E1226] md:p-8">
+        <div
+          className="relative bg-[#F4F5F8] p-6 text-[#0E1226] transition-all duration-500 md:p-8"
+          style={{ opacity: night ? 0.62 : 1 }}
+        >
+          <span
+            className="absolute inset-x-0 top-0 h-1 transition-opacity duration-500"
+            style={{ backgroundColor: C.gold, opacity: night ? 0 : 1 }}
+            aria-hidden
+          />
           <div className="flex items-center gap-2.5">
-            <span
-              className="flex h-9 w-9 items-center justify-center rounded-lg"
-              style={{ backgroundColor: `${C.gold}26`, color: "#9A7B2E" }}
-            >
+            <span className="flex h-9 w-9 items-center justify-center rounded-lg" style={{ backgroundColor: `${C.gold}26`, color: "#9A7B2E" }}>
               <Icon name="Sun" className="h-5 w-5" />
             </span>
             <MonoLabel color="#9A7B2E">Ambiente diurno</MonoLabel>
@@ -218,24 +365,21 @@ export function DayNightExperience() {
 
         {/* NOITE — escuro, palco */}
         <div
-          className="relative p-6 text-white md:p-8"
+          className="relative p-6 text-white transition-all duration-500 md:p-8"
           style={{
             backgroundColor: C.navyDeep,
-            backgroundImage: `radial-gradient(70% 60% at 80% 0%, ${C.red}33, transparent 60%), radial-gradient(60% 50% at 10% 100%, ${C.navy}66, transparent 60%)`,
+            backgroundImage: `radial-gradient(70% 60% at 80% 0%, ${C.red}${night ? "4D" : "26"}, transparent 60%), radial-gradient(60% 50% at 10% 100%, ${C.navy}66, transparent 60%)`,
+            opacity: night ? 1 : 0.72,
           }}
         >
-          {/* transição sol → noite: uma faixa vertical no encontro das colunas */}
-          <div
-            className="pointer-events-none absolute inset-y-0 left-0 hidden w-24 -translate-x-1/2 md:block"
-            style={{ background: `linear-gradient(90deg, #F4F5F8, ${C.navyDeep})` }}
+          <span
+            className="absolute inset-x-0 top-0 h-1 transition-opacity duration-500"
+            style={{ backgroundColor: C.red, opacity: night ? 1 : 0 }}
             aria-hidden
           />
           <div className="relative">
             <div className="flex items-center gap-2.5">
-              <span
-                className="flex h-9 w-9 items-center justify-center rounded-lg"
-                style={{ backgroundColor: `${C.red}26`, color: C.red }}
-              >
+              <span className="flex h-9 w-9 items-center justify-center rounded-lg" style={{ backgroundColor: `${C.red}26`, color: C.red }}>
                 <Icon name="Moon" className="h-5 w-5" />
               </span>
               <MonoLabel color={C.red}>Ambiente noturno</MonoLabel>
