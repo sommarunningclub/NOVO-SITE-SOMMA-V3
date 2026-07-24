@@ -499,7 +499,30 @@ export default function MichelobDeck() {
           </H2>
           <Lead>Missões simples de movimento, conexão e diversão para a campanha respirar antes do evento.</Lead>
 
-          <div className="mt-10 grid gap-5 lg:grid-cols-[1.25fr_1fr]">
+          <a
+            href="https://sommaclub.com.br/ultra-balance-challenge"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="a-up group mt-7 inline-flex items-center gap-3 rounded-full border px-5 py-3 transition-colors hover:bg-white/[0.06] sm:px-6"
+            style={{ borderColor: `${GOLD}66` }}
+          >
+            <RibbonMark gold />
+            <span className="font-display text-sm font-semibold uppercase tracking-[0.12em] text-white sm:text-base">
+              Ver a plataforma completa
+            </span>
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 16 16"
+              fill="none"
+              aria-hidden
+              className="transition-transform duration-300 group-hover:translate-x-0.5"
+            >
+              <path d="M3 8h9M8.5 4l4 4-4 4" stroke={GOLD} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </a>
+
+          <div className="mt-9 grid gap-5 lg:grid-cols-[1.25fr_1fr]">
             <div className="a-up overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03]">
               <table className="w-full text-left">
                 <tbody>

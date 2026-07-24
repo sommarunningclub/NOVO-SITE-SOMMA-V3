@@ -636,8 +636,25 @@ function slide08Challenge() {
   bgPhoto(s, "desafio.jpg");
   kicker(s, "Ultra Balance Challenge");
   title(s, [{ text: "21 dias, " }, { text: "não um sábado", color: RED }], { size: 44 });
-  lead(s, "Missões simples de movimento, conexão e diversão para a campanha respirar antes do evento.", {
-    y: 3.1, w: 8.6,
+  lead(s, "Missões simples de movimento, conexão e diversão antes do evento.", {
+    y: 3.02, w: 8.6,
+  });
+
+  // Link clicável para a página que detalha a plataforma. O hyperlink fica na
+  // forma, não no texto: em cima do texto, PowerPoint e Keynote sobrescrevem a
+  // cor pelo estilo de link do tema e o dourado se perde.
+  const linkOpts = {
+    hyperlink: { url: `https://${UBC_URL}`, tooltip: "Abrir a página do Ultra Balance Challenge" },
+  };
+  s.addShape(pptx.ShapeType.roundRect, {
+    x: M, y: 3.62, w: 3.6, h: 0.46, rectRadius: 0.23,
+    fill: { color: BG, transparency: 45 }, line: { color: GOLD, width: 1.25 },
+    ...linkOpts,
+  });
+  s.addText("VER A PLATAFORMA COMPLETA  ›", {
+    x: M, y: 3.62, w: 3.6, h: 0.46,
+    fontFace: DISPLAY, fontSize: 12, bold: true, color: GOLD, align: "center", valign: "middle",
+    charSpacing: 1.4,
   });
 
   s.addTable(
@@ -660,7 +677,7 @@ function slide08Challenge() {
       ],
     ],
     {
-      x: M, y: 4.05, w: 7.5, colW: [2.3, 5.2],
+      x: M, y: 4.28, w: 7.5, colW: [2.3, 5.2],
       rowH: [0.32, 0.46, 0.46, 0.46],
       border: [
         { type: "none" },
@@ -676,27 +693,27 @@ function slide08Challenge() {
 
   // barra de progresso dos 21 dias
   s.addText("21 DIAS DE DESAFIO", {
-    x: M, y: 5.95, w: 5, h: 0.26,
+    x: M, y: 6.12, w: 5, h: 0.26,
     fontFace: DISPLAY, fontSize: 9.5, bold: true, color: DIM, charSpacing: 2.2, valign: "middle",
   });
   const done = 13;
   for (let i = 0; i < 21; i++) {
     s.addShape(pptx.ShapeType.rect, {
-      x: M + i * 0.355, y: 6.28, w: 0.29, h: 0.29,
+      x: M + i * 0.355, y: 6.44, w: 0.29, h: 0.29,
       fill: i < done ? { color: RED, transparency: Math.max(0, 45 - i * 3.4) } : { color: "FFFFFF", transparency: 90 },
     });
   }
 
   const x2 = 8.75;
-  card(s, { x: x2, y: 4.05, w: CW - (x2 - M), h: 2.52, highlight: true });
+  card(s, { x: x2, y: 4.28, w: CW - (x2 - M), h: 2.4, highlight: true });
   s.addText("QUEM COMPLETA, DESBLOQUEIA", {
-    x: x2 + 0.35, y: 4.32, w: 3.4, h: 0.32,
+    x: x2 + 0.35, y: 4.55, w: 3.4, h: 0.32,
     fontFace: DISPLAY, fontSize: 16, bold: true, color: RED, charSpacing: 1.4, valign: "middle",
   });
   bullets(
     s,
     ["Área exclusiva no evento", "Produtos personalizados", "Experiências especiais", "Acesso ao Ultra After Run"],
-    { x: x2 + 0.35, y: 4.88, w: 3.3, color: RED, textColor: WHITE, size: 12.5, gap: 0.4 },
+    { x: x2 + 0.35, y: 5.08, w: 3.3, color: RED, textColor: WHITE, size: 12.5, gap: 0.38 },
   );
   footer(s);
 }
