@@ -279,6 +279,54 @@ const BatteryFull = (p: P) => (
   </S>
 );
 
+const Sun = (p: P) => (
+  <S {...p}>
+    <path d="M12 6.5 12 3M12 21v-3.5M6.5 12H3M21 12h-3.5M7.5 7.5 5 5M19 19l-2.5-2.5M16.5 7.5 19 5M5 19l2.5-2.5" />
+    <path d="M8 12h.01M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z" />
+  </S>
+);
+
+const Moon = (p: P) => (
+  <S {...p}>
+    <path d="M20 14A8 8 0 0 1 10 4a7 7 0 1 0 10 10z" />
+  </S>
+);
+
+const Music = (p: P) => (
+  <S {...p}>
+    <path d="M9 18V5l11-2v13" />
+    <path d="M6 15h3v4H6zM17 13h3v4h-3z" />
+  </S>
+);
+
+const Ticket = (p: P) => (
+  <S {...p}>
+    <path d="M3 6h18v4a2 2 0 0 0 0 4v4H3v-4a2 2 0 0 0 0-4z" />
+    <path d="M15 6v12" />
+  </S>
+);
+
+const Clock = (p: P) => (
+  <S {...p}>
+    <path d="M4 4h16v16H4z" />
+    <path d="M12 8v4l3 2" />
+  </S>
+);
+
+const MapPin = (p: P) => (
+  <S {...p}>
+    <path d="M12 21c5-5.5 7-8.5 7-11a7 7 0 1 0-14 0c0 2.5 2 5.5 7 11z" />
+    <path d="M9.5 9.5h5v-3h-5z" />
+  </S>
+);
+
+const Store = (p: P) => (
+  <S {...p}>
+    <path d="M4 10v10h16V10M3 4h18l1 6H2z" />
+    <path d="M10 20v-6h4v6" />
+  </S>
+);
+
 export const ICONS = {
   Activity,
   ArrowRight,
@@ -293,6 +341,7 @@ export const ICONS = {
   CheckCircle2,
   ChevronDown,
   ChevronRight,
+  Clock,
   Compass,
   Database,
   Flag,
@@ -301,6 +350,9 @@ export const ICONS = {
   HeartHandshake,
   LineChart,
   ListChecks,
+  MapPin,
+  Moon,
+  Music,
   PartyPopper,
   QrCode,
   Repeat,
@@ -308,7 +360,10 @@ export const ICONS = {
   ScanLine,
   Share2,
   Sparkles,
+  Store,
+  Sun,
   Target,
+  Ticket,
   Trophy,
   Upload,
   UserCheck,

@@ -479,7 +479,7 @@ export function Hero() {
               </p>
             </Reveal>
             <Reveal delay={0.18}>
-              <div className="mt-9 flex flex-col gap-3 sm:flex-row">
+              <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                 <a
                   href="#como-funciona"
                   className="inline-flex items-center justify-center gap-2 rounded-xl px-7 py-4 font-title text-sm font-semibold uppercase tracking-wider text-white transition-opacity hover:opacity-90"
@@ -500,6 +500,12 @@ export function Hero() {
                   className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/20 px-7 py-4 font-title text-sm font-semibold uppercase tracking-wider text-white/80 transition-colors hover:bg-white/10"
                 >
                   Ver jornada
+                </a>
+                <a
+                  href="#formatos-ativacao"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/20 px-7 py-4 font-title text-sm font-semibold uppercase tracking-wider text-white/80 transition-colors hover:bg-white/10"
+                >
+                  Formatos de ativação
                 </a>
               </div>
             </Reveal>

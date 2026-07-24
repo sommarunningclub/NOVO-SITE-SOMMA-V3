@@ -443,3 +443,180 @@ export const NUMEROS_FINAIS = [
   { value: "1", label: "comunidade" },
   { value: "1", label: "experiência final" },
 ] as const;
+
+/* ══ Formatos de ativação presencial ═══════════════════════════════════════ */
+
+/* ── Cards dos dois formatos ───────────────────────────────────────────── */
+
+export const ATIVACOES = [
+  {
+    key: "a",
+    nome: "Michelob Ultra Social Club Experience",
+    selo: "Formato completo",
+    recomendado: false,
+    frase: "Uma ocupação temporária de corrida, wellness, música e lifestyle em Brasília.",
+    desc: [
+      "A versão completa combina os 21 dias do Ultra Balance Challenge com um espaço físico da Michelob Ultra aberto durante dois dias consecutivos ou dois finais de semana.",
+      "Durante o dia, o local funciona como um hub de corrida, bem-estar, recovery, conteúdo, loja e experiências.",
+      "À noite, o espaço se transforma para receber shows, DJs e programações musicais.",
+    ],
+    indicadores: [
+      "21 dias de campanha digital",
+      "2 dias ou 2 finais de semana",
+      "1 espaço fixo",
+      "Programação diurna e noturna",
+      "Bilheteria e acesso gratuito para participantes elegíveis",
+      "Grande volume de conteúdo",
+    ],
+  },
+  {
+    key: "b",
+    nome: "Ultra Balance Challenge Grand Finale",
+    selo: "Formato recomendado",
+    recomendado: true,
+    frase: "21 dias de engajamento culminando em um único grande evento.",
+    desc: [
+      "O desafio digital termina no dia anterior ao evento. No dia seguinte, a comunidade se reúne para uma grande celebração que conecta corrida, competição, wellness, conteúdo e música.",
+    ],
+    indicadores: [
+      "21 dias de campanha digital",
+      "1 grande evento final",
+      "3 sessões musicais",
+      "Entrada gratuita para participantes elegíveis",
+      "Ingressos para o público geral",
+      "Menor complexidade operacional",
+    ],
+  },
+] as const;
+
+/* ── Subformatos do Social Club (A1 e A2) ──────────────────────────────── */
+
+export const ROTEIRO_A1 = {
+  titulo: "Formato A1",
+  legenda: "Dois dias consecutivos",
+  blocos: [
+    { label: "Sexta à noite", tone: "night", items: ["Night Run", "Abertura oficial", "Ultra Electronic Session"] },
+    {
+      label: "Sábado pela manhã",
+      tone: "day",
+      items: ["Social Run", "Crew Relay", "Wellness", "Recovery", "Loja e máquina de fotos"],
+    },
+    { label: "Sábado à tarde", tone: "night", items: ["Ultra Pagode Session"] },
+    { label: "Sábado à noite", tone: "night", items: ["Ultra Funk Session"] },
+  ],
+} as const;
+
+export const ROTEIRO_A2 = {
+  titulo: "Formato A2",
+  legenda: "Dois finais de semana",
+  blocos: [
+    { label: "Primeiro final de semana", tone: "day", items: ["Lançamento", "Social Run", "Electronic Session"] },
+    {
+      label: "Segundo final de semana",
+      tone: "night",
+      items: ["Crew Relay Final", "Pagode Session", "Funk Session", "Premiação e encerramento"],
+    },
+  ],
+} as const;
+
+/* ── Timeline do Grand Finale (B) ──────────────────────────────────────── */
+
+export const JORNADA_FINALE = [
+  { dia: "Dia 1", txt: "Abertura das inscrições" },
+  { dia: "Dias 2 a 20", txt: "Missões, crews, conteúdos e rankings" },
+  { dia: "Dia 21", txt: "Última missão e fechamento do desafio" },
+  { dia: "Dia 22", txt: "Michelob Ultra Social Run e Grand Finale", destaque: true },
+] as const;
+
+/* ── Experiência diurna e noturna ──────────────────────────────────────── */
+
+export const WELLNESS = [
+  "Corridas de 5 km e 10 km",
+  "Crew Relay",
+  "Perfect Pace Challenge",
+  "Recovery",
+  "Alongamento e mobilidade",
+  "Hidratação e alimentação",
+  "Loja Somma x Michelob Ultra",
+  "Máquina de fotos",
+  "Personalização de produtos",
+  "Conteúdo e experiências de parceiros",
+] as const;
+
+export const SESSIONS = [
+  { nome: "Ultra Pagode Session", desc: "Convívio, roda de pagode e artistas locais." },
+  { nome: "Ultra Electronic Session", desc: "Night Run, luzes, DJs e experiência audiovisual." },
+  { nome: "Ultra Funk Session", desc: "Encerramento noturno com DJs, conteúdo e festa." },
+] as const;
+
+/* ── Programação do Grand Finale ───────────────────────────────────────── */
+
+export const FINALE_SCHEDULE = [
+  {
+    faixa: "7h às 12h",
+    nome: "Ultra Wellness",
+    tone: "day",
+    itens: ["Social Run", "Crew Relay", "Recovery", "Máquina de fotos", "Loja", "Premiações esportivas"],
+  },
+  { faixa: "13h às 17h", nome: "Ultra Pagode Session", tone: "night", itens: ["Pagode e artistas locais"] },
+  { faixa: "17h às 20h", nome: "Ultra Electronic Session", tone: "night", itens: ["DJs, sunset e experiência audiovisual"] },
+  { faixa: "20h às 0h", nome: "Ultra Funk Session", tone: "night", itens: ["DJs, funk e encerramento"] },
+] as const;
+
+/* ── Modelo de acesso ──────────────────────────────────────────────────── */
+
+export const ACESSO = [
+  { publico: "Participante elegível do Ultra Balance Challenge", forma: "Entrada gratuita por QR Code", destaque: true },
+  { publico: "Público geral", forma: "Compra de ingresso" },
+  { publico: "Embaixadores e influenciadores", forma: "Credencial específica" },
+  { publico: "Convidados Michelob Ultra", forma: "Lista e área reservada" },
+] as const;
+
+export const CRITERIOS_GRATUIDADE = [
+  "Completar pelo menos 14 dos 21 dias",
+  "Atingir determinada pontuação",
+  "Cumprir missões obrigatórias",
+  "Ter cadastro validado como maior de 18 anos",
+] as const;
+
+/* ── Modelo de ingressos ───────────────────────────────────────────────── */
+
+export const INGRESSOS = [
+  { nome: "Day Pass", desc: "Acesso ao ambiente wellness, corridas e atividades diurnas." },
+  { nome: "Sunset Pass", desc: "Acesso ao pagode e à sessão eletrônica." },
+  { nome: "Night Pass", desc: "Acesso à programação noturna." },
+  { nome: "Full Experience", desc: "Acesso a toda a programação." },
+  { nome: "Challenge Pass", desc: "Ingresso gratuito desbloqueado pelo participante elegível do desafio.", gratuito: true },
+] as const;
+
+/* ── Comparação entre formatos ─────────────────────────────────────────── */
+
+export const COMPARACAO = [
+  { criterio: "Campanha digital", a: "21 dias", b: "21 dias" },
+  { criterio: "Duração presencial", a: "2 dias ou 2 finais de semana", b: "1 dia" },
+  { criterio: "Espaço fixo", a: "Sim", b: "Somente no evento" },
+  { criterio: "Programação musical", a: "Programação distribuída", b: "Programação concentrada" },
+  { criterio: "Quantidade de conteúdo", a: "Muito alta", b: "Alta" },
+  { criterio: "Potencial de bilheteria", a: "Alta", b: "Intermediária" },
+  { criterio: "Ocupação de marca", a: "Prolongada", b: "Concentrada" },
+  { criterio: "Complexidade operacional", a: "Alta", b: "Média" },
+  { criterio: "Investimento", a: "Maior", b: "Menor" },
+  { criterio: "Objetivo principal", a: "Posicionamento e ocupação de marca", b: "Engajamento e grande encerramento" },
+] as const;
+
+/* ── Resultados esperados ──────────────────────────────────────────────── */
+
+export const RESULTADOS_ATIVACAO = [
+  "Cadastros",
+  "Participantes ativos",
+  "Ingressos vendidos",
+  "Participantes gratuitos",
+  "Presença por sessão",
+  "Receita de bilheteria",
+  "Conteúdos gerados",
+  "Alcance",
+  "Marcações",
+  "Produtos experimentados",
+  "Tempo médio de permanência",
+  "Recompensas resgatadas",
+] as const;

@@ -55,6 +55,7 @@ import {
   TechnologyTable,
 } from "./_components/blocks";
 import { Simulator } from "./_components/Simulator";
+import { ActivationSection } from "./_components/activation";
 import { IndicatorIndex, RankingModes, PillarColumns, ProfileRows } from "./_components/editorial";
 
 export default function UltraBalanceChallengePage() {
@@ -128,6 +129,9 @@ export default function UltraBalanceChallengePage() {
           </div>
         </div>
       </Section>
+
+      {/* ─── FORMATOS DE ATIVAÇÃO PRESENCIAL ──────────────────────────── */}
+      <ActivationSection />
 
       {/* ─── 4 · JORNADA ──────────────────────────────────────────────── */}
       <Section id="jornada" tone="base">
