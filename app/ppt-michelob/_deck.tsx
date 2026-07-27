@@ -391,6 +391,33 @@ export function MichelobDeck({ financial = false }: { financial?: boolean }) {
               <br />
               Fique pela experiência.
             </p>
+
+            {financial && (
+              <button
+                type="button"
+                onClick={() => goToName("proposta-financeira")}
+                className="a-up group mt-9 inline-flex items-center gap-3 rounded-full px-7 py-3.5 font-display text-sm font-semibold uppercase tracking-[0.15em] text-white shadow-lg transition-[transform,background-color] duration-300 hover:-translate-y-0.5"
+                style={{ backgroundColor: RED, boxShadow: `0 12px 30px -12px ${RED}` }}
+              >
+                Ver Proposta
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  aria-hidden
+                  className="transition-transform duration-300 group-hover:translate-y-0.5"
+                >
+                  <path
+                    d="M8 3v10M4 9l4 4 4-4"
+                    stroke="currentColor"
+                    strokeWidth="1.6"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
+            )}
           </div>
         </div>
 
@@ -3088,7 +3115,7 @@ function FinanceCondicoes({ index }: { index: number }) {
                 Valor referente exclusivamente aos serviços e ativos entregues pelo Somma.
               </p>
               <p className="mt-3 text-xs uppercase tracking-[0.15em]" style={{ color: GOLD }}>
-                Impostos de 6% inclusos
+                Impostos inclusos
               </p>
             </div>
 
