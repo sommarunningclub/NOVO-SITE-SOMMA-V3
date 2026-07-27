@@ -23,6 +23,37 @@ import {
   type Responsabilidade,
   type SommaFrente,
 } from "./_financial-data";
+import {
+  MENSAGEM_CENTRAL,
+  FRASE_IMPACTO,
+  MENSAGEM_FINAL,
+  CREWS,
+  CREW_COMO_FUNCIONA,
+  DESAFIO_EXEMPLO,
+  DESAFIOS_TIPOS,
+  VALIDACAO_METODOS,
+  VALIDACAO_NOTA,
+  REGRAS,
+  SABADOS,
+  STAND_ITENS,
+  RECOMPENSAS,
+  RECOMPENSAS_NOTA,
+  PULSEIRA_FLUXO,
+  RANKING_CATEGORIAS,
+  RANKING_DESTAQUE,
+  CLASSIFICADOS,
+  TIMELINE_CAMPANHA,
+  GRAND_FINALE,
+  GRAND_FINALE_NOTA,
+  ACESSO,
+  ACESSO_CRITERIOS,
+  CONTEUDO_PLANO,
+  CONTEUDO_NOTA,
+  PAPEL_SOMMA,
+  PAPEL_MICHELOB,
+  EVOLUCAO,
+  type Crew,
+} from "./_crew-data";
 
 const IMG = "/michelob";
 
@@ -42,12 +73,32 @@ const SLIDES = [
   "como-funciona",
   "aquecimento",
   "challenge",
+  // ── Capítulo: a plataforma das Crews ──
+  "nova-visao",
+  "crews",
+  "crews-funciona",
+  "desafios-semanais",
+  "validacao",
+  "regras",
+  "ranking",
+  "recompensas",
+  "pulseira",
+  // ── Experiência presencial ──
   "social-run",
   "percurso",
   "after-run",
   "totem",
+  "sabados",
+  "stand",
+  "grand-finale",
+  "acesso",
+  // ── Conteúdo, dados e fechamento estratégico ──
   "conteudo",
+  "conteudo-premium",
   "entrega",
+  "timeline",
+  "papeis",
+  "o-que-mudou",
   "indicadores",
   "formatos",
   "recomendacao",
@@ -72,13 +123,16 @@ export function MichelobDeck({ financial = false }: { financial?: boolean }) {
   const bar = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState(0);
 
-  // Quantos slides existem de fato depende do capítulo financeiro. Os slides
-  // financeiros ocupam o lugar antigo do fechamento (índice 17 em diante) e o
-  // fechamento passa a vir logo depois deles.
-  const finCount = financial ? FINANCE_SLIDES.length : 0;
-  const financeStart = SLIDES.length - 1; // onde o fechamento ficava
-  const fechamentoIndex = financeStart + finCount;
-  const total = SLIDES.length + finCount;
+  // Ordem única de todos os slides. O capítulo financeiro (quando `financial`)
+  // é inserido logo antes do fechamento. Todos os índices são derivados desta
+  // ordem por nome, então inserir slides no meio nunca desalinha a numeração.
+  const order = useMemo(() => {
+    const base = [...SLIDES] as string[];
+    if (financial) base.splice(base.indexOf("fechamento"), 0, ...FINANCE_SLIDES);
+    return base;
+  }, [financial]);
+  const idx = useCallback((name: string) => order.indexOf(name), [order]);
+  const total = order.length;
 
   useEffect(() => {
     const el = scroller.current;
@@ -273,7 +327,7 @@ export function MichelobDeck({ financial = false }: { financial?: boolean }) {
       </div>
 
       {/* ═══════════ 01 · CAPA ═══════════ */}
-      <Slide index={0} name="capa" className="justify-center">
+      <Slide index={idx("capa")} name="capa" className="justify-center">
         <div className="absolute inset-0 overflow-hidden">
           <Image
             src={`${IMG}/m-capa.jpg`}
@@ -326,7 +380,7 @@ export function MichelobDeck({ financial = false }: { financial?: boolean }) {
       </Slide>
 
       {/* ═══════════ 02 · A OPORTUNIDADE ═══════════ */}
-      <Slide index={1} name="oportunidade">
+      <Slide index={idx("oportunidade")} name="oportunidade">
         <BgPhoto name="comunidade" alt="Corredora do Somma Club no meio do pelotão" />
         <div className="container-somma relative z-10">
           <Kicker>A oportunidade</Kicker>
@@ -365,7 +419,7 @@ export function MichelobDeck({ financial = false }: { financial?: boolean }) {
       </Slide>
 
       {/* ═══════════ 03 · O DESAFIO ═══════════ */}
-      <Slide index={2} name="desafio">
+      <Slide index={idx("desafio")} name="desafio">
         <BgPhoto name="marca" alt="Corredores do Somma Club em ativação de marca" />
         <div className="container-somma relative z-10">
           <Kicker>O desafio da marca</Kicker>
@@ -410,7 +464,7 @@ export function MichelobDeck({ financial = false }: { financial?: boolean }) {
       </Slide>
 
       {/* ═══════════ 04 · A GRANDE IDEIA ═══════════ */}
-      <Slide index={3} name="grande-ideia" className="justify-center">
+      <Slide index={idx("grande-ideia")} name="grande-ideia" className="justify-center">
         <BgPhoto name="pelotao" alt="Pelotão do Somma Club" veil="cover" />
         <div className="container-somma relative z-10 text-center">
           <Kicker className="justify-center">A grande ideia</Kicker>
@@ -442,7 +496,7 @@ export function MichelobDeck({ financial = false }: { financial?: boolean }) {
       </Slide>
 
       {/* ═══════════ 05 · THE SOCIAL PACE ═══════════ */}
-      <Slide index={4} name="social-pace">
+      <Slide index={idx("social-pace")} name="social-pace">
         <BgPhoto name="social-pace" alt="Amigos do Somma Club depois do treino" />
         <div className="container-somma relative z-10 grid items-center gap-12 lg:grid-cols-[1fr_auto]">
           <div>
@@ -465,7 +519,7 @@ export function MichelobDeck({ financial = false }: { financial?: boolean }) {
       </Slide>
 
       {/* ═══════════ 06 · COMO FUNCIONA ═══════════ */}
-      <Slide index={5} name="como-funciona" className="bg-[#080F26]">
+      <Slide index={idx("como-funciona")} name="como-funciona" className="bg-[#080F26]">
         <Grid />
         <div className="container-somma relative z-10">
           <Kicker>Como funciona</Kicker>
@@ -500,7 +554,7 @@ export function MichelobDeck({ financial = false }: { financial?: boolean }) {
       </Slide>
 
       {/* ═══════════ 07 · AQUECIMENTO DIGITAL ═══════════ */}
-      <Slide index={6} name="aquecimento">
+      <Slide index={idx("aquecimento")} name="aquecimento">
         <BgPhoto name="digital" alt="Corredores do Somma Club em treino" />
         <div className="container-somma relative z-10 grid items-center gap-12 lg:grid-cols-[1.15fr_1fr]">
           <div>
@@ -542,7 +596,7 @@ export function MichelobDeck({ financial = false }: { financial?: boolean }) {
       </Slide>
 
       {/* ═══════════ 08 · ULTRA BALANCE CHALLENGE ═══════════ */}
-      <Slide index={7} name="challenge">
+      <Slide index={idx("challenge")} name="challenge">
         <BgPhoto name="desafio" alt="Comunidade Somma Club comemorando" />
         <div className="container-somma relative z-10">
           <Kicker>Ultra Balance Challenge</Kicker>
@@ -618,8 +672,231 @@ export function MichelobDeck({ financial = false }: { financial?: boolean }) {
         </div>
       </Slide>
 
+      {/* ═══════════ CAPÍTULO · A PLATAFORMA DAS CREWS ═══════════ */}
+
+      {/* ── A nova visão ── */}
+      <Slide index={idx("nova-visao")} name="nova-visao" className="bg-[#080F26]">
+        <Grid />
+        <div className="container-somma relative z-10">
+          <Kicker>A nova visão</Kicker>
+          <H2 className="max-w-4xl">
+            A campanha virou <Accent>plataforma</Accent>
+          </H2>
+          <Lead className="max-w-3xl">{MENSAGEM_CENTRAL}</Lead>
+          <div className="a-up mt-8 flex flex-wrap gap-3">
+            {[
+              ["21 dias", "de desafio digital"],
+              ["4 Crews", "lideradas por pessoas"],
+              ["1 Grand Finale", "de corrida, música e festa"],
+            ].map(([v, l]) => (
+              <div key={v} className="rounded-2xl border border-white/10 bg-white/[0.03] px-5 py-4">
+                <p className="font-display text-2xl font-bold uppercase leading-none tracking-tight" style={{ color: GOLD }}>
+                  {v}
+                </p>
+                <p className="mt-1.5 text-xs text-white/50">{l}</p>
+              </div>
+            ))}
+          </div>
+          <Destaque>{FRASE_IMPACTO}</Destaque>
+        </div>
+      </Slide>
+
+      {/* ── A plataforma das Crews ── */}
+      <Slide index={idx("crews")} name="crews">
+        <BgPhoto name="pelotao" alt="Pelotão do Somma Club" />
+        <div className="container-somma relative z-10">
+          <Kicker>A plataforma das Crews</Kicker>
+          <H2 className="max-w-4xl">
+            As Crews são o <Accent>motor</Accent> da campanha
+          </H2>
+          <Lead className="max-w-3xl">
+            Em vez de escolher só um perfil, o participante escolhe quem vai liderar sua jornada pelos próximos 21 dias.
+            Cada Crew tem uma dupla de líderes, personalidade própria, vídeo de apresentação e grupo de WhatsApp.
+          </Lead>
+          <div className="mt-8 grid grid-cols-2 gap-3 lg:grid-cols-4">
+            {CREWS.map((c) => (
+              <CrewSlotCard key={c.id} crew={c} />
+            ))}
+          </div>
+          <Nota>
+            Vagas por Crew são configuráveis (ex.: 100, 150 ou 200), conforme a escala aprovada. Contadores ilustrativos.
+          </Nota>
+        </div>
+      </Slide>
+
+      {/* ── Como as Crews funcionam ── */}
+      <Slide index={idx("crews-funciona")} name="crews-funciona" className="bg-[#080F26]">
+        <Grid />
+        <div className="container-somma relative z-10">
+          <Kicker>Como as Crews funcionam</Kicker>
+          <H2>
+            Um time que se <Accent>organiza sozinho</Accent>
+          </H2>
+          <div className="mt-10">
+            <DataTable
+              head={["Elemento", "Como funciona", "Por que importa"]}
+              colW={["22%", "44%", "34%"]}
+              rows={CREW_COMO_FUNCIONA.map((r) => ({ cells: [r.elemento, r.como, r.porque] }))}
+            />
+          </div>
+        </div>
+      </Slide>
+
+      {/* ── Desafios semanais ── */}
+      <Slide index={idx("desafios-semanais")} name="desafios-semanais">
+        <BgPhoto name="treino" alt="Treino do Somma Club" />
+        <div className="container-somma relative z-10">
+          <Kicker>Desafios semanais das Crews</Kicker>
+          <H2 className="max-w-4xl">
+            Somma define. A Crew <Accent>cumpre do jeito dela</Accent>
+          </H2>
+          <Lead className="max-w-3xl">
+            Toda semana, Somma e professores definem um desafio oficial. Os líderes recebem o briefing e mobilizam a
+            Crew, que decide quando, onde e como cumprir, dentro das regras.
+          </Lead>
+          <div className="mt-8 grid gap-5 lg:grid-cols-[1fr_1.4fr]">
+            <div className="a-up relative overflow-hidden rounded-2xl border p-5" style={{ borderColor: `${RED}59`, backgroundColor: `${RED}0F` }}>
+              <Corners />
+              <p className="font-mono text-[10px] uppercase tracking-[0.25em]" style={{ color: RED }}>
+                Desafio da semana
+              </p>
+              <h3 className="mt-2 font-display text-2xl font-bold uppercase leading-tight tracking-tight">{DESAFIO_EXEMPLO.titulo}</h3>
+              <p className="mt-2 text-sm text-white/60">{DESAFIO_EXEMPLO.meta}</p>
+              <ul className="mt-4 space-y-2">
+                {DESAFIO_EXEMPLO.regras.map((r) => (
+                  <li key={r} className="flex items-start gap-2.5 text-[13px] text-white/80">
+                    <span className="mt-0.5">
+                      <RibbonMark />
+                    </span>
+                    {r}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <DataTable
+              head={["Tipo", "Exemplo", "Validação", "Pontuação"]}
+              colW={["20%", "30%", "24%", "26%"]}
+              rows={DESAFIOS_TIPOS.map((d) => ({ cells: [d.tipo, d.exemplo, d.validacao, d.pontuacao] }))}
+            />
+          </div>
+        </div>
+      </Slide>
+
+      {/* ── Validação dos desafios ── */}
+      <Slide index={idx("validacao")} name="validacao" className="bg-[#080F26]">
+        <Grid />
+        <div className="container-somma relative z-10">
+          <Kicker>Validação dos desafios</Kicker>
+          <H2>
+            Comprovação <Accent>flexível e segura</Accent>
+          </H2>
+          <Lead className="max-w-3xl">A validação não depende de um só formato. O sistema aceita tipos diferentes de comprovação.</Lead>
+          <div className="mt-8">
+            <DataTable
+              head={["Método", "Quando usar", "Como valida"]}
+              colW={["26%", "40%", "34%"]}
+              rows={VALIDACAO_METODOS.map((v) => ({ cells: [v.metodo, v.quando, v.como] }))}
+            />
+          </div>
+          <div className="a-up mt-6 rounded-2xl border-l-2 bg-white/[0.03] p-4" style={{ borderColor: GOLD }}>
+            <p className="text-[13px] leading-relaxed text-white/70">{VALIDACAO_NOTA}</p>
+          </div>
+        </div>
+      </Slide>
+
+      {/* ── Regras de entrada, vagas e transferência ── */}
+      <Slide index={idx("regras")} name="regras">
+        <BgPhoto name="comunidade" alt="Comunidade do Somma Club" />
+        <div className="container-somma relative z-10">
+          <Kicker>Regras de entrada, vagas e transferência</Kicker>
+          <H2 className="max-w-3xl">
+            Simples de <Accent>entender</Accent>
+          </H2>
+          <div className="mt-8 grid gap-6 lg:grid-cols-[1.4fr_1fr] lg:items-start">
+            <DataTable
+              head={["Regra", "Como funciona"]}
+              colW={["34%", "66%"]}
+              rows={REGRAS.map((r) => ({ cells: [r.regra, r.como] }))}
+            />
+            <div className="flex justify-center lg:justify-end">
+              <TransferMock />
+            </div>
+          </div>
+        </div>
+      </Slide>
+
+      {/* ── Ranking e classificação ── */}
+      <Slide index={idx("ranking")} name="ranking" className="bg-[#080F26]">
+        <Grid />
+        <div className="container-somma relative z-10">
+          <Kicker>Ranking e classificação</Kicker>
+          <H2>
+            Não vence só quem <Accent>corre mais rápido</Accent>
+          </H2>
+          <div className="mt-8 grid gap-6 lg:grid-cols-2 lg:items-start">
+            <DataTable
+              head={["Categoria", "O que mede"]}
+              colW={["44%", "56%"]}
+              rows={RANKING_CATEGORIAS.map((r) => ({ cells: [r.categoria, r.mede] }))}
+            />
+            <div>
+              <p className="a-up font-mono text-[10px] uppercase tracking-[0.2em] text-white/40">Classificados para o Grand Finale</p>
+              <div className="mt-3">
+                <DataTable
+                  head={["Critério", "Uso no Grand Finale"]}
+                  colW={["42%", "58%"]}
+                  rows={CLASSIFICADOS.map((r) => ({ cells: [r.criterio, r.uso] }))}
+                />
+              </div>
+            </div>
+          </div>
+          <Destaque>{RANKING_DESTAQUE}</Destaque>
+        </div>
+      </Slide>
+
+      {/* ── Sistema de recompensas ── */}
+      <Slide index={idx("recompensas")} name="recompensas">
+        <BgPhoto name="desafio" alt="Comunidade do Somma comemorando" />
+        <div className="container-somma relative z-10">
+          <Kicker>Sistema de recompensas</Kicker>
+          <H2 className="max-w-3xl">
+            O brinde prende à <Accent>jornada</Accent>
+          </H2>
+          <Lead className="max-w-3xl">
+            Cada benefício está condicionado à participação real. A recompensa é pelo progresso na campanha, nunca pelo
+            consumo.
+          </Lead>
+          <div className="mt-8">
+            <DataTable
+              head={["Momento", "Critério", "Recompensa sugerida"]}
+              colW={["26%", "34%", "40%"]}
+              rows={RECOMPENSAS.map((r) => ({ cells: [r.momento, r.criterio, r.recompensa] }))}
+            />
+          </div>
+          <Nota>{RECOMPENSAS_NOTA}</Nota>
+        </div>
+      </Slide>
+
+      {/* ── Pulseira com QR Code ── */}
+      <Slide index={idx("pulseira")} name="pulseira" className="bg-[#080F26]">
+        <Grid />
+        <div className="container-somma relative z-10">
+          <Kicker>Pulseira com QR Code</Kicker>
+          <H2 className="max-w-3xl">
+            O símbolo físico da <Accent>jornada</Accent>
+          </H2>
+          <Lead className="max-w-3xl">
+            A pulseira identifica o participante, conecta com o sistema e libera check-in nos desafios e resgate de
+            benefícios.
+          </Lead>
+          <div className="mt-9">
+            <FlowSteps steps={PULSEIRA_FLUXO} />
+          </div>
+        </div>
+      </Slide>
+
       {/* ═══════════ 09 · O TREINO ESPECIAL ═══════════ */}
-      <Slide index={8} name="social-run">
+      <Slide index={idx("social-run")} name="social-run">
         <BgPhoto name="treino" alt="Treino do Somma Club no Eixão" />
         <div className="container-somma relative z-10">
           <Kicker>Momento 02</Kicker>
@@ -664,7 +941,7 @@ export function MichelobDeck({ financial = false }: { financial?: boolean }) {
       </Slide>
 
       {/* ═══════════ 10 · PONTOS DE EXPERIÊNCIA ═══════════ */}
-      <Slide index={9} name="percurso">
+      <Slide index={idx("percurso")} name="percurso">
         <BgPhoto name="percurso" alt="Pelotão do Somma Club na via" />
         <div className="container-somma relative z-10">
           <Kicker>Pontos de experiência</Kicker>
@@ -706,7 +983,7 @@ export function MichelobDeck({ financial = false }: { financial?: boolean }) {
       </Slide>
 
       {/* ═══════════ 11 · ULTRA AFTER RUN ═══════════ */}
-      <Slide index={10} name="after-run">
+      <Slide index={idx("after-run")} name="after-run">
         <BgPhoto name="afterrun" alt="Espaço de convivência depois do treino" />
         <div className="container-somma relative z-10">
           <Kicker>Momento 03</Kicker>
@@ -744,7 +1021,7 @@ export function MichelobDeck({ financial = false }: { financial?: boolean }) {
       </Slide>
 
       {/* ═══════════ 12 · TOTEM DE FOTOS ═══════════ */}
-      <Slide index={11} name="totem" className="bg-[#080F26]">
+      <Slide index={idx("totem")} name="totem" className="bg-[#080F26]">
         <Grid />
         <div className="container-somma relative z-10">
           <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:gap-16">
@@ -823,8 +1100,108 @@ export function MichelobDeck({ financial = false }: { financial?: boolean }) {
         </div>
       </Slide>
 
+      {/* ═══════════ CAPÍTULO · A EXPERIÊNCIA PRESENCIAL ═══════════ */}
+
+      {/* ── Sábados como rituais ── */}
+      <Slide index={idx("sabados")} name="sabados">
+        <BgPhoto name="treino" alt="Treino de sábado do Somma Club" />
+        <div className="container-somma relative z-10">
+          <Kicker>Sábados como rituais da campanha</Kicker>
+          <H2 className="max-w-4xl">
+            O sábado do Somma vira <Accent>temporada</Accent>
+          </H2>
+          <Lead className="max-w-3xl">
+            O encontro de sábado já é um ativo recorrente. A campanha usa esses rituais para dar vida aos 21 dias, com
+            ativação, brindes, ranking e conteúdo.
+          </Lead>
+          <div className="mt-8">
+            <DataTable
+              head={["Sábado", "Papel na campanha", "O que acontece"]}
+              colW={["22%", "26%", "52%"]}
+              rows={SABADOS.map((s) => ({ cells: [s.sabado, s.papel, s.acontece], tone: s.tone as Tone }))}
+            />
+          </div>
+          <Destaque>Cada sábado tem uma função clara: abertura, confronto, auge e encerramento.</Destaque>
+        </div>
+      </Slide>
+
+      {/* ── Stand Michelob ── */}
+      <Slide index={idx("stand")} name="stand" className="bg-[#080F26]">
+        <Grid />
+        <div className="container-somma relative z-10 grid items-center gap-10 lg:grid-cols-[1fr_auto] lg:gap-16">
+          <div>
+            <Kicker>Stand Michelob nos sábados</Kicker>
+            <H2 className="max-w-xl">
+              O ponto físico da <Accent>campanha</Accent>
+            </H2>
+            <Lead className="max-w-lg">Durante os encontros, o stand concentra a operação da campanha.</Lead>
+            <ul className="mt-6 grid grid-cols-2 gap-2.5">
+              {STAND_ITENS.map((it) => (
+                <li key={it} className="a-up flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2.5 text-[13px] text-white/80">
+                  <RibbonMark gold />
+                  {it}
+                </li>
+              ))}
+            </ul>
+          </div>
+          <StandMock />
+        </div>
+      </Slide>
+
+      {/* ── Grand Finale em um sábado ── */}
+      <Slide index={idx("grand-finale")} name="grand-finale">
+        <BgPhoto name="fechamento" alt="Comunidade do Somma no fim de tarde" />
+        <div className="container-somma relative z-10">
+          <Kicker>Grand Finale em um sábado</Kicker>
+          <H2 className="max-w-4xl">
+            O desafio termina na sexta. Sábado é <Accent>celebração</Accent>
+          </H2>
+          <div className="mt-8">
+            <DataTable
+              head={["Horário", "Momento", "Experiência"]}
+              colW={["18%", "30%", "52%"]}
+              rows={GRAND_FINALE.map((g) => ({ cells: [g.horario, g.momento, g.experiencia], tone: g.tone as Tone }))}
+            />
+          </div>
+          <Nota>{GRAND_FINALE_NOTA}</Nota>
+        </div>
+      </Slide>
+
+      {/* ── Modelo de acesso ── */}
+      <Slide index={idx("acesso")} name="acesso" className="bg-[#080F26]">
+        <Grid />
+        <div className="container-somma relative z-10">
+          <Kicker>Modelo de acesso</Kicker>
+          <H2 className="max-w-3xl">
+            Aberto para a <Accent>cidade</Accent>, com benefício para quem viveu os 21 dias
+          </H2>
+          <div className="mt-8 grid gap-6 lg:grid-cols-[1.3fr_1fr] lg:items-start">
+            <DataTable
+              head={["Público", "Acesso"]}
+              colW={["46%", "54%"]}
+              rows={ACESSO.map((a) => ({ cells: [a.publico, a.acesso], tone: "destaque" in a && a.destaque ? ("red" as Tone) : undefined }))}
+            />
+            <div className="a-up rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+              <p className="font-mono text-[10px] uppercase tracking-[0.2em]" style={{ color: GOLD }}>
+                Critérios para entrada gratuita
+              </p>
+              <ul className="mt-4 space-y-2.5">
+                {ACESSO_CRITERIOS.map((c) => (
+                  <li key={c} className="flex items-start gap-2.5 text-[13px] text-white/80">
+                    <span className="mt-0.5">
+                      <RibbonMark gold />
+                    </span>
+                    {c}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+      </Slide>
+
       {/* ═══════════ 13 · CONTEÚDO ═══════════ */}
-      <Slide index={12} name="conteudo">
+      <Slide index={idx("conteudo")} name="conteudo">
         <BgPhoto name="conteudo" alt="Registro de conteúdo no treino do Somma Club" />
         <div className="container-somma relative z-10 grid items-center gap-12 lg:grid-cols-2">
           <div>
@@ -866,8 +1243,30 @@ export function MichelobDeck({ financial = false }: { financial?: boolean }) {
         </div>
       </Slide>
 
+      {/* ── Conteúdo audiovisual ── */}
+      <Slide index={idx("conteudo-premium")} name="conteudo-premium" className="bg-[#080F26]">
+        <Grid />
+        <div className="container-somma relative z-10">
+          <Kicker>Conteúdo audiovisual</Kicker>
+          <H2 className="max-w-3xl">
+            Momentos que pedem <Accent>captação premium</Accent>
+          </H2>
+          <Lead className="max-w-3xl">
+            Alguns momentos exigem produção premium, porque a Michelob pode usar o material em canais oficiais.
+          </Lead>
+          <div className="mt-8">
+            <DataTable
+              head={["Momento", "Tipo de captação", "Objetivo"]}
+              colW={["26%", "34%", "40%"]}
+              rows={CONTEUDO_PLANO.map((c) => ({ cells: [c.momento, c.tipo, c.objetivo], tone: c.premium ? ("red" as Tone) : undefined }))}
+            />
+          </div>
+          <Nota>{CONTEUDO_NOTA}</Nota>
+        </div>
+      </Slide>
+
       {/* ═══════════ 13 · O QUE O SOMMA ENTREGA ═══════════ */}
-      <Slide index={13} name="entrega">
+      <Slide index={idx("entrega")} name="entrega">
         <BgPhoto name="entrega" alt="Comunidade do Somma Club reunida" />
         <div className="container-somma relative z-10">
           <Kicker>O que o Somma entrega</Kicker>
@@ -919,8 +1318,60 @@ export function MichelobDeck({ financial = false }: { financial?: boolean }) {
         </div>
       </Slide>
 
+      {/* ── Timeline da campanha ── */}
+      <Slide index={idx("timeline")} name="timeline">
+        <BgPhoto name="percurso" alt="Pelotão do Somma na via" />
+        <div className="container-somma relative z-10">
+          <Kicker>Timeline da campanha</Kicker>
+          <H2 className="max-w-3xl">
+            Da <Accent>Semana 0</Accent> ao Grand Finale
+          </H2>
+          <div className="mt-8">
+            <DataTable
+              head={["Período", "Fase", "Objetivo", "Ativações"]}
+              colW={["14%", "20%", "24%", "42%"]}
+              rows={TIMELINE_CAMPANHA.map((t) => ({
+                cells: [t.periodo, t.fase, t.objetivo, t.ativacoes],
+                tone: "marco" in t && t.marco ? ("red" as Tone) : undefined,
+              }))}
+            />
+          </div>
+          <Nota>Estrutura em semanas para reuso. Se o projeto tiver datas oficiais, elas entram no lugar.</Nota>
+        </div>
+      </Slide>
+
+      {/* ── O papel de cada parte ── */}
+      <Slide index={idx("papeis")} name="papeis" className="bg-[#080F26]">
+        <Grid />
+        <div className="container-somma relative z-10">
+          <Kicker>O papel de cada parte</Kicker>
+          <H2 className="max-w-3xl">Quem entrega o quê</H2>
+          <Lead className="max-w-3xl">
+            Resumo das frentes. A divisão detalhada, com responsáveis por categoria, integra a proposta comercial.
+          </Lead>
+          <div className="mt-8">
+            <RolesColumns somma={PAPEL_SOMMA} michelob={PAPEL_MICHELOB} />
+          </div>
+        </div>
+      </Slide>
+
+      {/* ── O que mudou na proposta ── */}
+      <Slide index={idx("o-que-mudou")} name="o-que-mudou">
+        <BgPhoto name="recomendacao" alt="Grupo do Somma correndo" />
+        <div className="container-somma relative z-10">
+          <Kicker>O que mudou na proposta</Kicker>
+          <H2 className="max-w-3xl">
+            Antes e <Accent>agora</Accent>
+          </H2>
+          <div className="mt-8">
+            <BeforeAfter rows={EVOLUCAO} />
+          </div>
+          <Lead className="max-w-3xl">{MENSAGEM_FINAL}</Lead>
+        </div>
+      </Slide>
+
       {/* ═══════════ 14 · INDICADORES ═══════════ */}
-      <Slide index={14} name="indicadores" className="bg-[#080F26]">
+      <Slide index={idx("indicadores")} name="indicadores" className="bg-[#080F26]">
         <Grid />
         <div className="container-somma relative z-10">
           <Kicker>Indicadores</Kicker>
@@ -969,7 +1420,7 @@ export function MichelobDeck({ financial = false }: { financial?: boolean }) {
       </Slide>
 
       {/* ═══════════ 15 · FORMATOS ═══════════ */}
-      <Slide index={15} name="formatos">
+      <Slide index={idx("formatos")} name="formatos">
         <Grid />
         <div className="container-somma relative z-10">
           <Kicker>Formatos comerciais</Kicker>
@@ -1011,7 +1462,7 @@ export function MichelobDeck({ financial = false }: { financial?: boolean }) {
       </Slide>
 
       {/* ═══════════ 16 · RECOMENDAÇÃO ═══════════ */}
-      <Slide index={16} name="recomendacao">
+      <Slide index={idx("recomendacao")} name="recomendacao">
         <BgPhoto name="recomendacao" alt="Grupo do Somma Club correndo" />
         <div className="container-somma relative z-10">
           <Kicker>Nossa recomendação</Kicker>
@@ -1052,16 +1503,16 @@ export function MichelobDeck({ financial = false }: { financial?: boolean }) {
       {/* ═══════════ CAPÍTULO · PROPOSTA FINANCEIRA (só na rota -proposta) ═══════════ */}
       {financial && (
         <>
-          <FinanceInvestimento index={financeStart + 0} />
-          <FinanceVende index={financeStart + 1} />
-          <FinanceObrigacoes index={financeStart + 2} />
-          <FinanceCondicoes index={financeStart + 3} />
-          <FinanceCTA index={financeStart + 4} goToName={goToName} />
+          <FinanceInvestimento index={idx("proposta-financeira")} />
+          <FinanceVende index={idx("somma-vende")} />
+          <FinanceObrigacoes index={idx("obrigacoes-michelob")} />
+          <FinanceCondicoes index={idx("condicoes-comerciais")} />
+          <FinanceCTA index={idx("encerramento-financeiro")} goToName={goToName} />
         </>
       )}
 
       {/* ═══════════ FECHAMENTO ═══════════ */}
-      <Slide index={fechamentoIndex} name="fechamento" className="justify-center">
+      <Slide index={idx("fechamento")} name="fechamento" className="justify-center">
         <BgPhoto name="fechamento" alt="Comunidade do Somma Club no fim de tarde" veil="cover" />
         <div className="container-somma relative z-10 text-center">
           <Kicker className="justify-center">Fechamento</Kicker>
@@ -1760,6 +2211,331 @@ function MockReport() {
           ))}
         </div>
       </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   CAPÍTULO · A PLATAFORMA DAS CREWS
+   Helpers do capítulo novo. Reutilizam a linguagem do deck (fita, cantos,
+   dourado/vermelho, animação a-up).
+   ══════════════════════════════════════════════════════════════════════════ */
+
+type Tone = "gold" | "red" | "day" | "night" | "navy" | "green";
+
+/** Cor de acento a partir de um tom nomeado. */
+function toneColor(t?: Tone): string {
+  switch (t) {
+    case "red":
+    case "night":
+      return RED;
+    case "green":
+      return "#2E9E7B";
+    case "navy":
+      return NAVY;
+    default:
+      return GOLD;
+  }
+}
+
+/**
+ * Tabela responsiva. No desktop vira `<table>`; no celular, cada linha vira um
+ * card com rótulo:valor. Uma única fonte de dados alimenta os dois — nada é
+ * duplicado à mão.
+ */
+type DTRow = { cells: readonly React.ReactNode[]; tone?: Tone; strongLast?: boolean };
+function DataTable({
+  head,
+  rows,
+  colW,
+}: {
+  head: readonly string[];
+  rows: readonly DTRow[];
+  colW?: readonly string[];
+}) {
+  return (
+    <div className="a-up overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03]">
+      {/* desktop */}
+      <table className="hidden w-full table-fixed text-left text-xs md:table sm:text-sm">
+        <thead>
+          <tr className="border-b border-white/10">
+            {head.map((h, i) => (
+              <th
+                key={h}
+                className="px-4 py-3.5 font-display text-[10px] font-semibold uppercase tracking-[0.2em] text-white/40 sm:px-6 sm:py-4 sm:text-xs sm:tracking-[0.25em]"
+                style={colW ? { width: colW[i] } : undefined}
+              >
+                {h}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r, ri) => {
+            const c = toneColor(r.tone);
+            return (
+              <tr key={ri} className="border-b border-white/[0.06] last:border-0">
+                {r.cells.map((cell, ci) => (
+                  <td
+                    key={ci}
+                    className={
+                      ci === 0
+                        ? "px-4 py-3 align-top font-display text-sm font-semibold uppercase leading-tight tracking-wide sm:px-6 sm:py-3.5 sm:text-base"
+                        : "px-4 py-3 align-top leading-snug text-white/60 sm:px-6 sm:py-3.5"
+                    }
+                    style={ci === 0 ? { color: c } : undefined}
+                  >
+                    {cell}
+                  </td>
+                ))}
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+
+      {/* mobile: cada linha vira card */}
+      <ul className="divide-y divide-white/[0.07] md:hidden">
+        {rows.map((r, ri) => {
+          const c = toneColor(r.tone);
+          return (
+            <li key={ri} className="p-4">
+              <p className="font-display text-base font-semibold uppercase leading-tight tracking-wide" style={{ color: c }}>
+                {r.cells[0]}
+              </p>
+              <dl className="mt-2 space-y-1.5">
+                {r.cells.slice(1).map((cell, ci) => (
+                  <div key={ci} className="grid grid-cols-[auto_1fr] gap-x-3">
+                    <dt className="font-mono text-[9px] uppercase tracking-[0.16em] text-white/35">{head[ci + 1]}</dt>
+                    <dd className="text-[13px] leading-snug text-white/70">{cell}</dd>
+                  </div>
+                ))}
+              </dl>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
+
+/** Faixa de destaque no estilo do deck. */
+function Destaque({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="a-up mt-8 border-l-2 pl-5 font-display text-lg font-medium uppercase leading-snug tracking-tight md:text-2xl" style={{ borderColor: RED }}>
+      {children}
+    </p>
+  );
+}
+
+/** Nota discreta (dados ilustrativos, ressalvas). */
+function Nota({ children }: { children: React.ReactNode }) {
+  return <p className="a-up mt-4 text-xs leading-relaxed text-white/35">{children}</p>;
+}
+
+/** Medidor de vagas de uma Crew, com estado "lotada". */
+function Meter({ preenchidas, total, cor }: { preenchidas: number; total: number; cor: string }) {
+  const pct = Math.round((preenchidas / total) * 100);
+  const lotada = preenchidas >= total;
+  return (
+    <div>
+      <div className="flex items-baseline justify-between">
+        <span className="font-display text-sm font-bold tabular-nums" style={{ color: lotada ? RED : cor }}>
+          {preenchidas} <span className="text-white/40">de {total}</span>
+        </span>
+        <span className="font-mono text-[10px] uppercase tracking-widest" style={{ color: lotada ? RED : "rgba(255,255,255,0.4)" }}>
+          {lotada ? "lotada" : `${pct}%`}
+        </span>
+      </div>
+      <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-white/10">
+        <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: lotada ? RED : cor }} />
+      </div>
+      <p className="mt-1.5 text-[11px] text-white/40">vagas preenchidas</p>
+    </div>
+  );
+}
+
+/** Card de Crew: dupla de líderes, vídeo, vagas e CTA. */
+function CrewSlotCard({ crew }: { crew: Crew }) {
+  const lotada = crew.preenchidas >= crew.total;
+  return (
+    <div className="a-up flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03]">
+      {/* faixa de vídeo */}
+      <div className="relative flex h-28 items-center justify-center overflow-hidden" style={{ backgroundColor: `${crew.cor}1F` }}>
+        <span className="absolute left-3 top-3 font-mono text-[9px] uppercase tracking-[0.2em]" style={{ color: crew.cor }}>
+          {crew.nome}
+        </span>
+        <span className="flex h-11 w-11 items-center justify-center rounded-full" style={{ backgroundColor: crew.cor }}>
+          <PlayMark />
+        </span>
+        <span className="absolute bottom-2.5 right-3 font-mono text-[8px] uppercase tracking-widest text-white/45">
+          vídeo de apresentação
+        </span>
+      </div>
+      <div className="flex flex-1 flex-col p-4">
+        <p className="font-display text-lg font-semibold uppercase leading-none tracking-tight text-white">Líder A + Líder B</p>
+        <p className="mt-1.5 text-[13px] leading-snug text-white/55">{crew.estilo}</p>
+        <div className="mt-4">
+          <Meter preenchidas={crew.preenchidas} total={crew.total} cor={crew.cor} />
+        </div>
+        <div
+          className="mt-4 rounded-lg py-2.5 text-center font-display text-[11px] font-bold uppercase tracking-wider"
+          style={
+            lotada
+              ? { backgroundColor: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.4)" }
+              : { backgroundColor: crew.cor, color: "#fff" }
+          }
+        >
+          {lotada ? "Crew lotada" : "Entrar nessa Crew"}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** Passos numerados de um fluxo (pulseira, transferência). */
+function FlowSteps({ steps }: { steps: readonly string[] }) {
+  return (
+    <ol className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      {steps.map((st, i) => (
+        <li key={st} className="a-up flex items-start gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+          <span
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border font-display text-sm font-bold"
+            style={{ borderColor: `${GOLD}40`, backgroundColor: `${GOLD}14`, color: GOLD }}
+          >
+            {String(i + 1).padStart(2, "0")}
+          </span>
+          <span className="pt-1 text-[13px] leading-snug text-white/80">{st}</span>
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+/** Duas colunas de chips: o que o Somma entrega × o que a Michelob financia. */
+function RolesColumns({ somma, michelob }: { somma: readonly string[]; michelob: readonly string[] }) {
+  const Col = ({ titulo, itens, cor, sub }: { titulo: string; itens: readonly string[]; cor: string; sub: string }) => (
+    <div className="a-up rounded-2xl border border-white/10 bg-white/[0.03] p-5 md:p-6">
+      <div className="flex items-center gap-2.5">
+        <RibbonMark gold={cor === GOLD} />
+        <h3 className="font-display text-xl font-bold uppercase tracking-tight" style={{ color: cor }}>
+          {titulo}
+        </h3>
+      </div>
+      <p className="mt-1 text-xs text-white/40">{sub}</p>
+      <ul className="mt-4 flex flex-wrap gap-2">
+        {itens.map((it) => (
+          <li key={it} className="rounded-full border border-white/12 px-3 py-1.5 text-[13px] text-white/80">
+            {it}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+  return (
+    <div className="grid gap-4 lg:grid-cols-2">
+      <Col titulo="Somma entrega" itens={somma} cor={GOLD} sub="Estratégia, plataforma, comunidade e operação esportiva." />
+      <Col titulo="Michelob ou agência" itens={michelob} cor={RED} sub="Espaço, estrutura, produção física e experiência da marca." />
+    </div>
+  );
+}
+
+/** Antes → agora, para a evolução da proposta. */
+function BeforeAfter({ rows }: { rows: readonly { antes: string; agora: string }[] }) {
+  return (
+    <div className="a-up overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03]">
+      <ul className="divide-y divide-white/[0.07]">
+        {rows.map((r) => (
+          <li key={r.antes} className="grid items-center gap-3 p-4 sm:grid-cols-[1fr_auto_1.1fr] sm:px-6">
+            <span className="text-sm text-white/45 line-through decoration-white/25">{r.antes}</span>
+            <svg width="18" height="12" viewBox="0 0 18 12" fill="none" className="hidden shrink-0 sm:block" aria-hidden>
+              <path d="M1 6h14M11 1l5 5-5 5" stroke={GOLD} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <span className="font-display text-base font-semibold uppercase leading-tight tracking-tight text-white sm:text-lg">
+              {r.agora}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+/** Mockup do stand Michelob — sem pessoas, com as duas logos. */
+function StandMock() {
+  return (
+    <div
+      role="img"
+      aria-label="Mockup do stand Somma x Michelob Ultra"
+      className="a-up mx-auto w-full max-w-[340px] overflow-hidden rounded-t-2xl border border-white/10 shadow-2xl"
+      style={{ backgroundColor: NAVY }}
+    >
+      {/* testeira */}
+      <div className="flex items-center justify-center gap-3 border-b border-white/15 py-4">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={`${IMG}/logo-somma-white.png`} alt="Somma Club" className="h-4 w-auto" />
+        <span className="text-[10px] text-white/40">×</span>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={`${IMG}/logo-michelob-white.png`} alt="Michelob Ultra" className="h-5 w-auto" />
+      </div>
+      {/* balcão */}
+      <div className="px-5 py-6">
+        <div className="grid grid-cols-3 gap-2">
+          {["QR", "Fotos", "Brindes", "Ranking", "Recovery", "Pulseiras"].map((t) => (
+            <div key={t} className="flex h-12 items-center justify-center rounded-lg bg-white/[0.06] text-center font-mono text-[9px] uppercase tracking-wider text-white/55">
+              {t}
+            </div>
+          ))}
+        </div>
+        <div className="mt-4 h-px w-full bg-white/10" />
+        <p className="mt-3 text-center font-display text-[11px] font-semibold uppercase tracking-[0.2em] text-white/70">
+          Stand Michelob Ultra
+        </p>
+      </div>
+      <div className="h-2 w-full" style={{ backgroundColor: RED }} aria-hidden />
+      <div className="h-4 w-full bg-[#060A1C]" aria-hidden />
+    </div>
+  );
+}
+
+/** Mockup da tela de transferência de participação. */
+function TransferMock() {
+  const campo = (label: string, val?: string) => (
+    <div className="rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2">
+      <p className="text-[8px] uppercase tracking-wider text-white/40">{label}</p>
+      {val ? (
+        <p className="mt-0.5 text-[12px] font-semibold text-white">{val}</p>
+      ) : (
+        <div className="mt-1 h-1.5 w-2/3 rounded bg-white/15" aria-hidden />
+      )}
+    </div>
+  );
+  return (
+    <div className="a-up w-full max-w-[300px] rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+      <p className="font-display text-base font-bold uppercase tracking-tight text-white">Transferir participação</p>
+      <p className="mt-3 font-mono text-[9px] uppercase tracking-[0.2em]" style={{ color: GOLD }}>
+        Participante atual
+      </p>
+      <div className="mt-2 grid grid-cols-2 gap-2">
+        {campo("CPF atual", "•••.•••.•••-••")}
+        {campo("Crew atual", "Crew 02")}
+        {campo("Pontos", "740")}
+        {campo("Histórico", "21 dias")}
+      </div>
+      <p className="mt-4 font-mono text-[9px] uppercase tracking-[0.2em]" style={{ color: RED }}>
+        Novo participante
+      </p>
+      <div className="mt-2 space-y-2">
+        {campo("Novo CPF")}
+        {campo("Novo telefone")}
+        {campo("Novo e-mail")}
+      </div>
+      <div className="mt-4 rounded-lg py-2.5 text-center font-display text-[11px] font-bold uppercase tracking-wider text-white" style={{ backgroundColor: RED }}>
+        Solicitar transferência
+      </div>
+      <p className="mt-2 text-center text-[9px] leading-snug text-white/35">
+        Sujeita à validação do Somma. Venda de vaga não permitida.
+      </p>
     </div>
   );
 }
