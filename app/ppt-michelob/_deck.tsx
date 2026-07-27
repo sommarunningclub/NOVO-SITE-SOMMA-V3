@@ -2607,22 +2607,6 @@ function FinanceInvestimento({ index }: { index: number }) {
               <Selo>{INVESTIMENTO.selo}</Selo>
             </div>
             <p className="mt-6 max-w-md text-sm leading-relaxed text-white/65">{INVESTIMENTO.totalNota}</p>
-
-            {/* Tributação — secundário e discreto, sem virar demonstrativo contábil */}
-            <dl className="mt-7 grid grid-cols-2 gap-x-6 gap-y-4 border-t border-white/10 pt-6 sm:grid-cols-3">
-              <div>
-                <dt className="text-[11px] uppercase tracking-[0.15em] text-white/40">{INVESTIMENTO.tributacaoLabel}</dt>
-                <dd className="mt-1 font-display text-2xl font-bold text-white">{INVESTIMENTO.tributacao}</dd>
-              </div>
-              <div>
-                <dt className="text-[11px] uppercase tracking-[0.15em] text-white/40">{INVESTIMENTO.tributosLabel}</dt>
-                <dd className="mt-1 font-display text-lg font-semibold text-white/85">{INVESTIMENTO.tributos}</dd>
-              </div>
-              <div className="col-span-2 sm:col-span-1">
-                <dt className="text-[11px] uppercase tracking-[0.15em] text-white/40">{INVESTIMENTO.liquidoLabel}</dt>
-                <dd className="mt-1 font-display text-lg font-semibold text-white/85">{INVESTIMENTO.liquido}</dd>
-              </div>
-            </dl>
           </div>
 
           {/* Cartões comparativos */}
