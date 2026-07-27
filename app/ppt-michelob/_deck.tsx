@@ -96,6 +96,7 @@ const SLIDES = [
   "conteudo",
   "conteudo-premium",
   "entrega",
+  "jornada",
   "timeline",
   "papeis",
   "o-que-mudou",
@@ -249,6 +250,25 @@ export function MichelobDeck({ financial = false }: { financial?: boolean }) {
           scrollTrigger: { trigger: node.parentElement!, scroller: el, start: "top 85%", once: true },
         });
       });
+
+      // Jornada vertical: a espinha desenha de cima pra baixo, os nós pipocam e
+      // os cartões sobem em sequência quando a seção entra na tela.
+      const jornada = el.querySelector<HTMLElement>("[data-jornada]");
+      if (jornada) {
+        const jtl = gsap.timeline({
+          scrollTrigger: { trigger: jornada, scroller: el, start: "top 68%", once: true },
+        });
+        const spines = jornada.querySelectorAll<HTMLElement>("[data-spine]");
+        if (spines.length) {
+          jtl.from(spines, { scaleY: 0, transformOrigin: "top", duration: 1.4, ease: "power3.inOut" }, 0);
+        }
+        const jnodes = jornada.querySelectorAll<HTMLElement>("[data-tl-node]");
+        if (jnodes.length) {
+          jtl.from(jnodes, { scale: 0, opacity: 0, duration: 0.5, ease: "back.out(2.4)", stagger: 0.09 }, 0.2);
+        }
+        // Os cartões usam o sistema genérico `.a-up` (revelado pelo timeline da
+        // própria seção), que é mais robusto que animá-los aqui.
+      }
     }, scroller);
 
     return () => ctx.revert();
@@ -1318,7 +1338,23 @@ export function MichelobDeck({ financial = false }: { financial?: boolean }) {
         </div>
       </Slide>
 
-      {/* ── Timeline da campanha ── */}
+      {/* ── Jornada: timeline vertical animada (vem antes da tabela) ── */}
+      <Slide index={idx("jornada")} name="jornada" className="bg-[#080F26]">
+        <Grid />
+        <div className="container-somma relative z-10">
+          <Kicker>A jornada da campanha</Kicker>
+          <H2 className="max-w-3xl">
+            Do lançamento ao <Accent>Grand Finale</Accent>
+          </H2>
+          <Lead className="max-w-2xl">
+            Vinte e um dias em linha do tempo: cada sábado é um marco, cada semana empurra as Crews para a frente.
+          </Lead>
+          <JornadaVertical stages={TIMELINE_CAMPANHA} />
+          <Nota>Passe o mouse em cada etapa para ver o objetivo. A tabela a seguir detalha as ativações de cada fase.</Nota>
+        </div>
+      </Slide>
+
+      {/* ── Timeline da campanha (tabela detalhada) ── */}
       <Slide index={idx("timeline")} name="timeline">
         <BgPhoto name="percurso" alt="Pelotão do Somma na via" />
         <div className="container-somma relative z-10">
@@ -2331,6 +2367,121 @@ function Destaque({ children }: { children: React.ReactNode }) {
 /** Nota discreta (dados ilustrativos, ressalvas). */
 function Nota({ children }: { children: React.ReactNode }) {
   return <p className="a-up mt-4 text-xs leading-relaxed text-white/35">{children}</p>;
+}
+
+/* ── Jornada vertical (timeline animada da campanha) ─────────────────────── */
+
+/** Selo pequeno para marcar os sábados-marco da campanha. */
+function MarcoTag() {
+  return (
+    <span
+      className="shrink-0 rounded-full px-2 py-0.5 font-display text-[9px] font-bold uppercase tracking-[0.15em]"
+      style={{ backgroundColor: `${RED}1F`, color: RED }}
+    >
+      Marco
+    </span>
+  );
+}
+
+/** Nó da linha do tempo; os marcos pulsam em vermelho. */
+function JNode({ marco }: { marco: boolean }) {
+  const c = marco ? RED : GOLD;
+  return (
+    <span data-tl-node className="relative z-10 flex h-5 w-5 items-center justify-center">
+      {marco && (
+        <span className="absolute inline-flex h-4 w-4 animate-ping rounded-full" style={{ backgroundColor: `${RED}66` }} />
+      )}
+      <span
+        className="relative h-2.5 w-2.5 rounded-full"
+        style={{ backgroundColor: c, boxShadow: `0 0 0 4px #060B1C, 0 0 12px ${c}` }}
+      />
+    </span>
+  );
+}
+
+type JStage = { periodo: string; fase: string; objetivo: string; ativacoes: string; marco: boolean };
+
+/**
+ * Cartão de uma etapa. Uma única marcação responsiva alimenta as duas versões:
+ * no celular o objetivo fica sempre aberto e as ativações aparecem; no desktop
+ * o objetivo revela no hover (para caber em uma tela) e as ativações ficam para
+ * a tabela seguinte.
+ */
+function JCard({ s, c }: { s: JStage; c: string }) {
+  return (
+    <div
+      data-tl-card
+      className="a-up group w-full rounded-2xl border bg-white/[0.03] px-4 py-3 backdrop-blur-sm transition-[transform,background-color,border-color] duration-300 hover:-translate-y-0.5 hover:bg-white/[0.06] md:max-w-[19rem] md:px-5"
+      style={{ borderColor: `${c}33` }}
+    >
+      <div className="flex items-center gap-2">
+        <p className="font-display text-sm font-bold uppercase tracking-wide" style={{ color: c }}>
+          {s.periodo}
+        </p>
+        {s.marco && <MarcoTag />}
+      </div>
+      <p className="mt-0.5 font-display text-base font-semibold leading-tight text-white md:text-lg">{s.fase}</p>
+      {/* objetivo: sempre visível no mobile; revela no hover no desktop */}
+      <div className="grid grid-rows-[1fr] transition-all duration-300 ease-out md:grid-rows-[0fr] md:group-hover:grid-rows-[1fr]">
+        <div className="min-h-0 overflow-hidden">
+          <p className="pt-1 text-[13px] leading-snug text-white/55">{s.objetivo}</p>
+        </div>
+      </div>
+      {/* ativações: só no mobile — no desktop a tabela a seguir cobre o detalhe */}
+      <p className="mt-2 text-xs leading-snug text-white/40 md:hidden">{s.ativacoes}</p>
+    </div>
+  );
+}
+
+/**
+ * Linha do tempo vertical da campanha, em uma única árvore responsiva. No
+ * celular, espinha à esquerda e cartões empilhados; no desktop, os cartões
+ * alternam os lados de uma espinha central que "desenha" ao entrar (GSAP). Sem
+ * duplicar a marcação — evita o comportamento errático do stagger do GSAP
+ * quando há cópias `display:none`. A tabela seguinte traz o detalhe por extenso.
+ */
+function JornadaVertical({ stages }: { stages: typeof TIMELINE_CAMPANHA }) {
+  const items: JStage[] = stages.map((s) => ({
+    periodo: s.periodo,
+    fase: s.fase,
+    objetivo: s.objetivo,
+    ativacoes: s.ativacoes,
+    marco: "marco" in s ? Boolean(s.marco) : false,
+  }));
+  return (
+    <div data-jornada className="relative mt-9">
+      {/* Espinha: à esquerda no mobile, centralizada no desktop */}
+      <div className="pointer-events-none absolute bottom-3 left-[9px] top-3 w-px bg-white/10 md:left-1/2 md:-translate-x-1/2" />
+      <div
+        data-spine
+        className="pointer-events-none absolute bottom-3 left-[9px] top-3 w-px origin-top md:left-1/2 md:-translate-x-1/2"
+        style={{ background: `linear-gradient(${GOLD}, ${RED})` }}
+      />
+      <ul className="relative space-y-4 md:space-y-3">
+        {items.map((s, i) => {
+          const left = i % 2 === 0;
+          const c = s.marco ? RED : GOLD;
+          return (
+            <li
+              key={i}
+              className="grid grid-cols-[20px_1fr] items-start gap-x-4 md:grid-cols-[1fr_1.25rem_1fr] md:items-center md:gap-x-6"
+            >
+              <div className="flex justify-center pt-1.5 md:col-start-2 md:row-start-1 md:pt-0">
+                <JNode marco={s.marco} />
+              </div>
+              <div
+                className={`min-w-0 md:row-start-1 ${
+                  left ? "md:col-start-1 md:flex md:justify-end" : "md:col-start-3 md:flex md:justify-start"
+                }`}
+              >
+                <JCard s={s} c={c} />
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
 }
 
 /** Medidor de vagas de uma Crew, com estado "lotada". */
