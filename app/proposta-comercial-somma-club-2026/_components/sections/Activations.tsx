@@ -34,7 +34,7 @@ export function Ativacoes() {
         {/* Explicação do Somma Day */}
         <Reveal delay={0.1}>
           <div className="mt-8 grid overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03] md:grid-cols-2 md:items-stretch">
-            <div className="relative h-60 sm:h-72 md:h-auto">
+            <div className="relative h-60 overflow-hidden sm:h-72 md:h-auto">
               <Image data-parallax="5" src="/midiakit/specialday.jpg" alt="Somma Day, o ponto alto mensal da comunidade" fill sizes="(max-width: 768px) 100vw, 560px" className="object-cover object-center" />
             </div>
             <div className="flex flex-col justify-center p-7 sm:p-9">
