@@ -115,3 +115,64 @@ body {
     font-size: 16px;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   Apresentação comercial Somma Club 2026 (/proposta-comercial-somma-club-2026)
+   Identidade centralizada em variáveis, escopadas em .pcs-root para não
+   vazar para o resto do site. Trocar aqui muda a apresentação inteira.
+   ═══════════════════════════════════════════════════════════════════════ */
+.pcs-root {
+  --somma-primary: #ff2c03;
+  --somma-secondary: #ffd200;
+  --somma-background: #0a0a0a;
+  --somma-surface: #131313;
+  --somma-surface-2: #1c1c1c;
+  --somma-text: #f5f5f5;
+  --somma-muted: #a1a1a1;
+  --somma-border: rgba(255, 255, 255, 0.1);
+  --somma-highlight: rgba(255, 44, 3, 0.14);
+
+  background: var(--somma-background);
+  color: var(--somma-text);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Evita zoom automático no iOS ao focar campos (gatilho: font-size < 16px). */
+@media (max-width: 639px) {
+  .pcs-root input,
+  .pcs-root select,
+  .pcs-root textarea {
+    font-size: 16px;
+  }
+}
+
+/* Esconde a scrollbar sem perder o scroll. */
+.pcs-no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.pcs-no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Deck-like: âncoras alinham abaixo da navegação fixa. */
+.pcs-root [data-section] {
+  scroll-margin-top: 5rem;
+}
+
+/* Foco visível e acessível em toda a apresentação. */
+.pcs-root :focus-visible {
+  outline: 2px solid var(--somma-primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Respeita quem prefere menos movimento. */
+@media (prefers-reduced-motion: reduce) {
+  .pcs-root * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
