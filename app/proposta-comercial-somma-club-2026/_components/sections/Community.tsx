@@ -99,7 +99,7 @@ export function PresencaFisica() {
   return (
     <Section id="presenca-fisica" className="relative overflow-hidden" dark>
       <div className="absolute inset-0">
-        <Image src="/midiakit/crowd.jpg" alt="Centenas de corredores no encontro de sábado" fill sizes="100vw" className="object-cover object-center opacity-30" />
+        <Image data-parallax="8" src="/midiakit/crowd.jpg" alt="Centenas de corredores no encontro de sábado" fill sizes="100vw" className="object-cover object-center opacity-30" />
         <div className="absolute inset-0 bg-[var(--somma-background)]/80" />
       </div>
       <Container className="relative z-10">

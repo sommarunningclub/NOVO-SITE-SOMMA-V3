@@ -34,7 +34,7 @@ export function Encerramento() {
   return (
     <section id="encerramento" data-section="encerramento" className="relative overflow-hidden py-24 sm:py-32">
       <div className="absolute inset-0">
-        <Image src="/midiakit/eixao3.jpg" alt="Comunidade do Somma Club" fill sizes="100vw" className="object-cover object-center" />
+        <Image data-parallax="8" src="/midiakit/eixao3.jpg" alt="Comunidade do Somma Club" fill sizes="100vw" className="object-cover object-center" />
         <div className="absolute inset-0 bg-[var(--somma-background)]/80" />
         <div className="absolute inset-0 bg-gradient-to-t from-[var(--somma-background)] via-transparent to-[var(--somma-background)]" />
       </div>

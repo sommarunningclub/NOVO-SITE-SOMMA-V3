@@ -35,7 +35,7 @@ export function Ativacoes() {
         <Reveal delay={0.1}>
           <div className="mt-8 grid items-center gap-6 overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03] md:grid-cols-[0.9fr_1.1fr]">
             <div className="relative h-56 w-full md:h-full">
-              <Image src="/midiakit/specialday.jpg" alt="Somma Day, o ponto alto mensal da comunidade" fill sizes="(max-width: 768px) 100vw, 480px" className="object-cover" />
+              <Image data-parallax="6" src="/midiakit/specialday.jpg" alt="Somma Day, o ponto alto mensal da comunidade" fill sizes="(max-width: 768px) 100vw, 480px" className="object-cover" />
               <div className="absolute inset-0 bg-gradient-to-r from-transparent to-[var(--somma-surface)] md:block" />
             </div>
             <div className="p-6 sm:p-8">

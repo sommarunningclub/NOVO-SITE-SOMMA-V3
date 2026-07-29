@@ -1,19 +1,67 @@
 "use client";
 
+import { useEffect, useRef } from "react";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Container, Section, SectionTitle, Reveal, Hi } from "../ui";
 import { DIGITAL_IMPACT, REACH_SPLIT, CONTENT_FORMATS } from "../../_data/sommaMetrics";
 
-/** Donut simples (SVG) para a distribuição seguidores × não seguidores. */
+const prefersReduced = () =>
+  typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/** Donut (SVG) que se desenha e conta ao entrar na tela (GSAP). */
 function DonutSplit() {
   const [a, b] = REACH_SPLIT;
   const r = 52;
   const c = 2 * Math.PI * r;
   const dashA = (a.pct / 100) * c;
+
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const circleRef = useRef<SVGCircleElement>(null);
+  const textRef = useRef<SVGTextElement>(null);
+
+  useEffect(() => {
+    const circle = circleRef.current;
+    const text = textRef.current;
+    if (!circle || !text || !wrapRef.current) return;
+
+    const finalOffset = c - dashA;
+    if (prefersReduced()) {
+      gsap.set(circle, { strokeDashoffset: finalOffset });
+      text.textContent = `${a.pct}%`;
+      return;
+    }
+
+    gsap.registerPlugin(ScrollTrigger);
+    const ctx = gsap.context(() => {
+      gsap.set(circle, { strokeDasharray: c, strokeDashoffset: c });
+      const counter = { v: 0 };
+      const tl = gsap.timeline({
+        scrollTrigger: { trigger: wrapRef.current, start: "top 82%", once: true },
+      });
+      tl.to(circle, { strokeDashoffset: finalOffset, duration: 1.3, ease: "power2.out" }, 0);
+      tl.to(
+        counter,
+        {
+          v: a.pct,
+          duration: 1.3,
+          ease: "power2.out",
+          onUpdate: () => {
+            text.textContent = `${Math.round(counter.v)}%`;
+          },
+        },
+        0,
+      );
+    }, wrapRef);
+    return () => ctx.revert();
+  }, [a.pct, c, dashA]);
+
   return (
-    <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-center sm:gap-8">
+    <div ref={wrapRef} className="flex flex-col items-center gap-6 sm:flex-row sm:items-center sm:gap-8">
       <svg viewBox="0 0 140 140" className="h-36 w-36 shrink-0 -rotate-90" role="img" aria-label={`${a.pct}% de seguidores e ${b.pct}% de não seguidores`}>
         <circle cx="70" cy="70" r={r} fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="16" />
         <circle
+          ref={circleRef}
           cx="70"
           cy="70"
           r={r}
@@ -23,7 +71,7 @@ function DonutSplit() {
           strokeDasharray={`${dashA} ${c - dashA}`}
           strokeLinecap="round"
         />
-        <text x="70" y="66" transform="rotate(90 70 70)" textAnchor="middle" className="fill-white text-[26px] font-black">
+        <text ref={textRef} x="70" y="66" transform="rotate(90 70 70)" textAnchor="middle" className="fill-white text-[26px] font-black">
           {a.pct}%
         </text>
       </svg>
@@ -56,7 +104,6 @@ export function ImpactoDigital() {
           }
         />
         <div className="mt-10 grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
-          {/* Tabela indicador × resultado — vira grid de cards no mobile */}
           <Reveal>
             <div className="overflow-hidden rounded-2xl border border-white/10">
               <div className="grid grid-cols-2 border-b border-white/10 bg-white/[0.03] px-5 py-3">
@@ -74,7 +121,6 @@ export function ImpactoDigital() {
             </div>
           </Reveal>
 
-          {/* Distribuição 70/30 */}
           <Reveal delay={0.1}>
             <div className="flex h-full flex-col justify-center rounded-2xl border border-white/10 bg-white/[0.03] p-6 sm:p-7">
               <p className="text-xs font-semibold uppercase tracking-wide text-white/40">Origem das visualizações</p>
@@ -94,8 +140,34 @@ export function ImpactoDigital() {
 
 export function Formatos() {
   const max = Math.max(...CONTENT_FORMATS.map((f) => f.views));
+  const sectionRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const el = sectionRef.current;
+    if (!el) return;
+    const bars = Array.from(el.querySelectorAll<HTMLElement>("[data-bar]"));
+    if (!bars.length) return;
+
+    if (prefersReduced()) {
+      gsap.set(bars, { scaleX: 1 });
+      return;
+    }
+    gsap.registerPlugin(ScrollTrigger);
+    const ctx = gsap.context(() => {
+      gsap.set(bars, { transformOrigin: "left center" });
+      gsap.from(bars, {
+        scaleX: 0,
+        duration: 1,
+        ease: "power3.out",
+        stagger: 0.12,
+        scrollTrigger: { trigger: el, start: "top 78%", once: true },
+      });
+    }, sectionRef);
+    return () => ctx.revert();
+  }, []);
+
   return (
-    <Section id="formatos" className="bg-[var(--somma-surface)]">
+    <section ref={sectionRef} id="formatos" data-section="formatos" className="relative w-full scroll-mt-20 bg-[var(--somma-surface)] py-20 sm:py-24 md:py-28">
       <Container>
         <SectionTitle
           kicker="Formatos de conteúdo"
@@ -115,6 +187,7 @@ export function Formatos() {
                 </div>
                 <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-white/10">
                   <div
+                    data-bar
                     className="h-full rounded-full bg-[var(--somma-primary)]"
                     style={{ width: `${Math.round((f.views / max) * 100)}%` }}
                   />
@@ -125,6 +198,6 @@ export function Formatos() {
           ))}
         </div>
       </Container>
-    </Section>
+    </section>
   );
 }

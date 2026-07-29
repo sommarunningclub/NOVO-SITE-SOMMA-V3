@@ -9,13 +9,13 @@ export function Hero() {
   return (
     <section id="capa" data-section="capa" className="relative flex min-h-[100svh] items-center overflow-hidden">
       <div className="absolute inset-0">
-        <Image src="/midiakit/capa.jpg" alt="Comunidade do Somma Club correndo em Brasília" fill priority sizes="100vw" className="object-cover object-center" />
+        <Image data-parallax="8" src="/midiakit/capa.jpg" alt="Comunidade do Somma Club correndo em Brasília" fill priority sizes="100vw" className="object-cover object-center" />
         <div className="absolute inset-0 bg-gradient-to-r from-[var(--somma-background)] via-[var(--somma-background)]/85 to-[var(--somma-background)]/40" />
         <div className="absolute inset-0 bg-gradient-to-t from-[var(--somma-background)] via-transparent to-[var(--somma-background)]/50" />
       </div>
 
       <Container className="relative z-10 pt-24">
-        <div className="max-w-3xl">
+        <div data-hero-content className="max-w-3xl">
           <Reveal>
             <p className="inline-flex items-center gap-2 rounded-full bg-[var(--somma-highlight)] px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-[var(--somma-primary)]">
               <Sparkles className="h-3.5 w-3.5" /> Apresentação comercial · 2026
@@ -97,7 +97,7 @@ export function QuemSomos() {
           </div>
           <Reveal delay={0.15}>
             <div className="relative aspect-[4/5] overflow-hidden rounded-3xl border border-white/10">
-              <Image src="/midiakit/comunidade.jpg" alt="Comunidade do Somma Club reunida" fill sizes="(max-width: 1024px) 100vw, 560px" className="object-cover" />
+              <Image data-parallax="6" src="/midiakit/comunidade.jpg" alt="Comunidade do Somma Club reunida" fill sizes="(max-width: 1024px) 100vw, 560px" className="object-cover" />
               <div className="absolute inset-0 bg-gradient-to-t from-[var(--somma-background)]/50 to-transparent" />
             </div>
           </Reveal>

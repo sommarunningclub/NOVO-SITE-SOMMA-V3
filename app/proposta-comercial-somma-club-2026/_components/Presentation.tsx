@@ -2,6 +2,7 @@
 
 import { CommercialProvider } from "./CommercialContext";
 import PresentationChrome from "./PresentationChrome";
+import GsapEffects from "./GsapEffects";
 import PackageDetailsModal from "./PackageDetailsModal";
 import PackageComparison from "./PackageComparison";
 
@@ -26,6 +27,7 @@ export default function Presentation() {
     <CommercialProvider>
       <div className="pcs-root min-h-screen selection:bg-[var(--somma-primary)] selection:text-white">
         <PresentationChrome />
+        <GsapEffects />
 
         <main>
           {/* Visão geral */}
