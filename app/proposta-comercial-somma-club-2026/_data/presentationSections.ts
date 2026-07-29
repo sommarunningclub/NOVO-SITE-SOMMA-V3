@@ -16,7 +16,7 @@ export const CHAPTERS: Chapter[] = [
   { id: "contato", label: "Contato", anchor: "contato" },
 ];
 
-/** Posicionamento comercial — três pilares (SEÇÃO 3). */
+/** Posicionamento comercial · três pilares (SEÇÃO 3). */
 export const PILARES = [
   {
     titulo: "Branding",

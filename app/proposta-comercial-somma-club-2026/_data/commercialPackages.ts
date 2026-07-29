@@ -84,7 +84,7 @@ export const OPPORTUNITIES: Opportunity[] = [
     duracao: "Encontros do mês e Somma Day",
     publicoPotencial: "Todos os encontros do mês + Somma Day",
     descricao:
-      "Presença nos encontros semanais do mês e participação especial no Somma Day — o principal encontro mensal da comunidade, com programação ampliada, maior concentração de participantes, experiências, parceiros, entretenimento, conteúdo e ativações especiais.",
+      "Presença nos encontros semanais do mês e participação especial no Somma Day. O Somma Day é o principal encontro mensal da comunidade, com programação ampliada, maior concentração de participantes, experiências, parceiros, entretenimento, conteúdo e ativações especiais.",
     objetivo: "Construir uma narrativa durante o mês e encerrar o ciclo com uma experiência de maior impacto.",
     indicacao:
       "Marcas que desejam construir uma narrativa durante o mês e encerrar o ciclo com uma experiência de maior impacto.",

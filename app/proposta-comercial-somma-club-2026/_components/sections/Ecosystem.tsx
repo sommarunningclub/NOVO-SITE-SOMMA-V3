@@ -16,7 +16,7 @@ export function Ecossistema() {
               Sua marca entra em <Hi>diferentes momentos</Hi> da jornada.
             </>
           }
-          lead="Do primeiro contato digital à experiência presencial recorrente — o Somma conecta vários pontos, e a marca escolhe onde e como estar."
+          lead="Do primeiro contato digital à experiência presencial recorrente, o Somma conecta vários pontos, e a marca escolhe onde e como estar."
         />
         <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {GRUPOS.map((g, i) => {

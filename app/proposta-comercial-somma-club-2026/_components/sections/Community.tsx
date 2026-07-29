@@ -21,7 +21,7 @@ export function Numeros() {
           kicker="O Somma em números"
           title={
             <>
-              Comunidade que <Hi>acontece</Hi> — no digital e na rua.
+              Comunidade que <Hi>acontece</Hi> no digital e na rua.
             </>
           }
         />

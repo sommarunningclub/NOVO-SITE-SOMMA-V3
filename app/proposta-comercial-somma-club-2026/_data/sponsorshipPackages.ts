@@ -1,4 +1,4 @@
-/** SEÇÃO 15 — Patrocínios recorrentes (tabela detalhada com totais). */
+/** SEÇÃO 15 · Patrocínios recorrentes (tabela detalhada com totais). */
 export interface SponsorshipPlan {
   id: string;
   nome: string;

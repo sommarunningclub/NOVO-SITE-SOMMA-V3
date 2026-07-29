@@ -73,7 +73,7 @@ export function QuemSomos() {
               kicker="Quem é o Somma Club"
               title={
                 <>
-                  Mais do que um grupo de corrida, uma <Hi>comunidade</Hi> de lifestyle.
+                  Uma comunidade de corrida, saúde e <Hi>lifestyle</Hi>.
                 </>
               }
             />

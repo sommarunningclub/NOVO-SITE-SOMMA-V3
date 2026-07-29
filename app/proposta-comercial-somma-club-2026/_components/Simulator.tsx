@@ -54,7 +54,7 @@ export default function Simulator() {
           >
             {activationOptions.map((o) => (
               <option key={o.id} value={o.id}>
-                {o.nome} — {o.investimentoLabel}
+                {o.nome} · {o.investimentoLabel}
               </option>
             ))}
           </select>

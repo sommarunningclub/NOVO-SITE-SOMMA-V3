@@ -77,7 +77,7 @@ export function MidiaAgendaSite() {
               Presença que mora na <Hi>rotina</Hi> da comunidade.
             </>
           }
-          lead="A Agenda Somma Club, o site e a área de check-in são pontos de contato próprios — mídia que o Somma controla e ativa quando faz sentido para a marca."
+          lead="A Agenda Somma Club, o site e a área de check-in são pontos de contato próprios. É a mídia que o Somma controla e ativa quando faz sentido para a marca."
         />
 
         <div className="mt-10 grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
@@ -85,7 +85,7 @@ export function MidiaAgendaSite() {
             <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-6">
               <h3 className="text-lg font-bold text-white">Como a Agenda aparece</h3>
               <p className="mt-2 text-sm leading-relaxed text-white/60">
-                A empresa entra como parceira de uma atividade, benefício ou experiência — e passa a ocupar um espaço
+                A empresa entra como parceira de uma atividade, benefício ou experiência e passa a ocupar um espaço
                 dentro do calendário dos membros, não apenas uma publicação isolada.
               </p>
               <div className="mt-5">

@@ -99,7 +99,7 @@ export function Assessoria() {
               Conexão direta com quem leva a <Hi>performance</Hi> a sério.
             </>
           }
-          lead="Comunicação e patrocínio dentro da assessoria esportiva — ideal para marcas de saúde, nutrição, performance, equipamentos, recuperação e qualidade de vida."
+          lead="Comunicação e patrocínio dentro da assessoria esportiva, ideais para marcas de saúde, nutrição, performance, equipamentos, recuperação e qualidade de vida."
         />
         <div className="mt-10 grid gap-5 md:grid-cols-2">
           {["midia-assessoria", "patrocinio-assessoria"].map((id) => (
@@ -145,7 +145,7 @@ export function PatrociniosTopo() {
             <p className="mt-3 text-sm leading-relaxed text-white/70">
               Durante o período contratado, o Somma não fecha uma propriedade equivalente com um concorrente direto da
               categoria definida no contrato. Exemplos de categorias: academia, banco, laboratório, clínica, farmácia de
-              manipulação, supermercado, marca esportiva, bebida, mobilidade ou recuperação — sempre uma marca oficial
+              manipulação, supermercado, marca esportiva, bebida, mobilidade ou recuperação. Sempre uma marca oficial
               por categoria.
             </p>
             <div className="mt-4 flex flex-wrap gap-2">

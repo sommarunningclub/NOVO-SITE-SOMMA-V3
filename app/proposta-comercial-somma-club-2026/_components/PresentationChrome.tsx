@@ -89,7 +89,7 @@ export default function PresentationChrome() {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      /* clipboard indisponível — ignora silenciosamente */
+      /* clipboard indisponível, ignora silenciosamente */
     }
   }, []);
 

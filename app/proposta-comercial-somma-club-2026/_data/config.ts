@@ -39,7 +39,7 @@ export function whatsappLink(texto?: string): string {
   return `${base}?text=${encodeURIComponent(msg)}`;
 }
 
-export function emailLink(assunto = "Parceria comercial — Somma Club"): string {
+export function emailLink(assunto = "Parceria comercial com o Somma Club"): string {
   return `mailto:${CONFIG.email}?subject=${encodeURIComponent(assunto)}`;
 }
 
