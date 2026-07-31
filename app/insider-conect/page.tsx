@@ -1150,6 +1150,7 @@ function ModuloSorteio({ insiderNome }: { insiderNome: string }) {
   const [pelotao, setPelotao] = useState('todos')
   const [dataInscricao, setDataInscricao] = useState('todos')
   const [validacao, setValidacao] = useState('todos')
+  const [vip, setVip] = useState('todos')
   const [quantidade, setQuantidade] = useState(1)
   const [titulo, setTitulo] = useState('')
 
@@ -1193,6 +1194,7 @@ function ModuloSorteio({ insiderNome }: { insiderNome: string }) {
       if (pelotao !== 'todos') params.set('pelotao', pelotao)
       if (dataInscricao !== 'todos') params.set('data_inscricao', dataInscricao)
       if (validacao !== 'todos') params.set('validacao', validacao)
+      if (vip !== 'todos') params.set('vip', vip)
 
       const res = await insiderFetch(`/api/sorteio/participantes?${params}`)
       const data = await res.json()
@@ -1207,7 +1209,7 @@ function ModuloSorteio({ insiderNome }: { insiderNome: string }) {
     } finally {
       setLoading(false)
     }
-  }, [selectedEventoId, sexo, pelotao, dataInscricao, validacao])
+  }, [selectedEventoId, sexo, pelotao, dataInscricao, validacao, vip])
 
   useEffect(() => {
     buscarParticipantes()
@@ -1236,6 +1238,7 @@ function ModuloSorteio({ insiderNome }: { insiderNome: string }) {
     setPelotao('todos')
     setDataInscricao('todos')
     setValidacao('todos')
+    setVip('todos')
     setGanhadores([])
     setAnimacaoCompleta(false)
   }
@@ -1260,6 +1263,7 @@ function ModuloSorteio({ insiderNome }: { insiderNome: string }) {
             pelotao: pelotao !== 'todos' ? pelotao : undefined,
             data_inscricao: dataInscricao !== 'todos' ? dataInscricao : undefined,
             validacao: validacao !== 'todos' ? validacao : undefined,
+            vip: vip !== 'todos' ? vip : undefined,
           },
           criado_por: insiderNome,
         }),
@@ -1356,10 +1360,11 @@ function ModuloSorteio({ insiderNome }: { insiderNome: string }) {
               </div>
             ))}
           </div>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-3 gap-2">
             {[
               { label: 'Validados', valor: stats.validados, cor: 'text-green-400' },
               { label: 'Pendentes', valor: stats.pendentes, cor: 'text-yellow-400' },
+              { label: 'VIPs Na Praia', valor: stats.vips ?? 0, cor: 'text-purple-400' },
             ].map(({ label, valor, cor }) => (
               <div key={label} className="bg-zinc-900 border border-zinc-800 rounded-xl p-3 text-center">
                 <p className={`text-2xl font-bold ${cor}`}>{valor}</p>
@@ -1392,6 +1397,7 @@ function ModuloSorteio({ insiderNome }: { insiderNome: string }) {
                     <span className="text-white text-xs truncate">{p.nome_completo}</span>
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+                    {p.vip && <span className="text-[10px] text-purple-300 bg-purple-500/10 border border-purple-500/30 px-1.5 py-0.5 rounded">VIP</span>}
                     {p.pelotao && <span className="text-[10px] text-[#ff2c03] bg-[#ff2c03]/10 px-1.5 py-0.5 rounded">{p.pelotao}</span>}
                     <span className="text-[10px] text-zinc-500 capitalize">{p.sexo?.charAt(0)?.toUpperCase() || '?'}</span>
                     {p.validacao_do_checkin && <ShieldCheck className="w-3 h-3 text-green-400" />}
@@ -1459,6 +1465,21 @@ function ModuloSorteio({ insiderNome }: { insiderNome: string }) {
               </select>
               <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 pointer-events-none" />
             </div>
+          </div>
+          <div className="col-span-2">
+            <label className="text-zinc-500 text-xs mb-1 block">Lista VIP · Na Praia</label>
+            <div className="relative">
+              <select value={vip} onChange={e => setVip(e.target.value)} className={selectClass}>
+                <option value="todos">Todos (ignorar lista VIP)</option>
+                <option value="somente">Somente quem está na lista VIP</option>
+                <option value="excluir">Excluir quem está na lista VIP</option>
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 pointer-events-none" />
+            </div>
+            <p className="text-zinc-600 text-[11px] mt-1.5 leading-relaxed">
+              Cruza os check-ins com a lista VIP do Na Praia pelo CPF. Combine com os demais
+              filtros — ex.: Validação &ldquo;Validados&rdquo; + &ldquo;Somente VIPs&rdquo;.
+            </p>
           </div>
         </div>
 

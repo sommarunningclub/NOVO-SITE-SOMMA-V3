@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { fisherYatesShuffle, gerarHashAuditoria } from '@/lib/sorteio/utils'
 import { requireInsiderAuth } from '@/lib/auth/insider'
 import { getServiceSupabase } from '@/lib/supabase'
+import { aplicarFiltroVip, carregarCpfsVip, normalizarFiltroVip } from '@/lib/sorteio/vip'
 
 export const dynamic = 'force-dynamic'
 
@@ -42,11 +43,17 @@ export async function POST(req: Request) {
       query = query.eq('validacao_do_checkin', false)
     }
 
-    const { data: participantes, error: pError } = await query
+    const { data: pool, error: pError } = await query
 
     if (pError) {
       return NextResponse.json({ error: pError.message }, { status: 500 })
     }
+
+    // Cruzamento com a lista VIP do Na Praia (só consulta quando o filtro exige).
+    const vip = normalizarFiltroVip(filtros?.vip)
+    const participantes = vip === 'todos'
+      ? (pool || [])
+      : aplicarFiltroVip(pool || [], vip, await carregarCpfsVip(supabase))
 
     if (!participantes || participantes.length === 0) {
       return NextResponse.json({ error: 'Nenhum participante encontrado com os filtros aplicados' }, { status: 400 })
@@ -78,7 +85,7 @@ export async function POST(req: Request) {
       .insert({
         evento_id,
         titulo,
-        filtros_aplicados: filtros || {},
+        filtros_aplicados: { ...(filtros || {}), vip },
         total_elegiveis: participantes.length,
         criado_por: criado_por || auth.insider.nome,
         audit_hash: auditHash,
@@ -127,7 +134,10 @@ export async function POST(req: Request) {
     return NextResponse.json({
       sorteio: { ...sorteio, ganhadores: resultado },
     })
-  } catch {
-    return NextResponse.json({ error: 'Erro interno' }, { status: 500 })
+  } catch (e) {
+    return NextResponse.json(
+      { error: e instanceof Error ? e.message : 'Erro interno' },
+      { status: 500 },
+    )
   }
 }

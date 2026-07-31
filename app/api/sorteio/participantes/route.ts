@@ -2,6 +2,7 @@
 import { NextResponse } from 'next/server'
 import { requireInsiderAuth } from '@/lib/auth/insider'
 import { getServiceSupabase } from '@/lib/supabase'
+import { aplicarFiltroVip, carregarCpfsVip, ehVip, normalizarFiltroVip } from '@/lib/sorteio/vip'
 
 export const dynamic = 'force-dynamic'
 
@@ -19,6 +20,7 @@ export async function GET(req: Request) {
     const pelotao = searchParams.get('pelotao')
     const data_inscricao = searchParams.get('data_inscricao')
     const validacao = searchParams.get('validacao')
+    const vip = normalizarFiltroVip(searchParams.get('vip'))
 
     if (!evento_id) {
       return NextResponse.json({ error: 'evento_id é obrigatório' }, { status: 400 })
@@ -51,13 +53,20 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    const participantes = (data || []).map((p, i) => ({
+    // Cruzamento com a lista VIP do Na Praia. Os CPFs são carregados mesmo quando
+    // o filtro é 'todos', para alimentar o contador de VIPs nas estatísticas.
+    const cpfsVip = await carregarCpfsVip(supabase)
+    const elegiveis = aplicarFiltroVip(data || [], vip, cpfsVip)
+
+    const participantes = elegiveis.map((p, i) => ({
       ...p,
       numero: i + 1,
+      vip: ehVip(p.cpf, cpfsVip),
     }))
 
     const stats = {
       total: participantes.length,
+      vips: participantes.filter(p => p.vip).length,
       masculino: participantes.filter(p => p.sexo === 'masculino').length,
       feminino: participantes.filter(p => p.sexo === 'feminino').length,
       por_pelotao: participantes.reduce((acc: Record<string, number>, p) => {
@@ -70,7 +79,10 @@ export async function GET(req: Request) {
     }
 
     return NextResponse.json({ participantes, stats })
-  } catch {
-    return NextResponse.json({ error: 'Erro interno' }, { status: 500 })
+  } catch (e) {
+    return NextResponse.json(
+      { error: e instanceof Error ? e.message : 'Erro interno' },
+      { status: 500 },
+    )
   }
 }

@@ -30,6 +30,8 @@ export function descricaoFiltros(filtros: Record<string, unknown>): string {
   if (filtros.validacao === 'validados') partes.push('Validados')
   if (filtros.validacao === 'pendentes') partes.push('Pendentes')
   if (filtros.data_inscricao) partes.push(`Dia ${formatDate(filtros.data_inscricao as string)}`)
+  if (filtros.vip === 'somente') partes.push('Somente VIPs')
+  if (filtros.vip === 'excluir') partes.push('Sem VIPs')
   return partes.length > 0 ? partes.join(' · ') : 'Sem filtros'
 }
 

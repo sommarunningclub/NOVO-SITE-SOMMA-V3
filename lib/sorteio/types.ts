@@ -6,6 +6,7 @@ export type FiltrosSorteio = {
   pelotao?: '4km' | '6km' | '8km'
   data_inscricao?: string
   validacao?: 'todos' | 'validados' | 'pendentes'
+  vip?: 'todos' | 'somente' | 'excluir'
 }
 
 export type ParticipanteSorteio = {
@@ -19,10 +20,12 @@ export type ParticipanteSorteio = {
   data_hora_checkin: string
   validacao_do_checkin: boolean
   numero: number
+  vip: boolean
 }
 
 export type EstatisticasSorteio = {
   total: number
+  vips: number
   masculino: number
   feminino: number
   por_pelotao: Record<string, number>

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { fisherYatesShuffle, gerarHashAuditoria } from '@/lib/sorteio/utils'
 import { requireInsiderAuth } from '@/lib/auth/insider'
 import { getServiceSupabase } from '@/lib/supabase'
+import { aplicarFiltroVip, carregarCpfsVip, normalizarFiltroVip } from '@/lib/sorteio/vip'
 
 export const dynamic = 'force-dynamic'
 
@@ -75,14 +76,20 @@ export async function POST(
       query = query.eq('validacao_do_checkin', false)
     }
 
-    const { data: pool, error: pError } = await query
+    const { data: poolBruto, error: pError } = await query
 
     if (pError) {
       return NextResponse.json({ error: pError.message }, { status: 500 })
     }
 
+    // Mesmo cruzamento com a lista VIP usado no sorteio original
+    const vip = normalizarFiltroVip(filtros.vip)
+    const pool = vip === 'todos'
+      ? (poolBruto || [])
+      : aplicarFiltroVip(poolBruto || [], vip, await carregarCpfsVip(supabase))
+
     // Filtrar excluídos
-    const disponiveis = (pool || []).filter(p => !idsExcluidos.has(p.id))
+    const disponiveis = pool.filter(p => !idsExcluidos.has(p.id))
 
     if (disponiveis.length === 0) {
       return NextResponse.json({ error: 'Nenhum participante disponível para resorteio' }, { status: 400 })
@@ -91,7 +98,7 @@ export async function POST(
     // Sortear substituto
     const embaralhados = fisherYatesShuffle(disponiveis)
     const substituto = embaralhados[0]
-    const numerados = (pool || []).map((p, i) => ({ ...p, numero: i + 1 }))
+    const numerados = pool.map((p, i) => ({ ...p, numero: i + 1 }))
     const numeroSorteado = numerados.find(p => p.id === substituto.id)?.numero || 0
 
     // Hash de auditoria do resorteio
@@ -140,7 +147,10 @@ export async function POST(
         },
       },
     })
-  } catch {
-    return NextResponse.json({ error: 'Erro interno' }, { status: 500 })
+  } catch (e) {
+    return NextResponse.json(
+      { error: e instanceof Error ? e.message : 'Erro interno' },
+      { status: 500 },
+    )
   }
 }
