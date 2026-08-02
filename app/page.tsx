@@ -12,7 +12,6 @@ import { Faq } from "@/components/faq";
 import { SignupSection } from "@/components/signup-section";
 import { Footer } from "@/components/footer";
 import { AgendaPopup } from "@/components/agenda-popup";
-import { SpecialDayPopup } from "@/components/special-day-popup";
 
 export default function Home() {
   return (
@@ -33,9 +32,7 @@ export default function Home() {
         <SignupSection />
       </main>
       <Footer />
-      {/* Pop-up do evento tem prioridade agora; agenda pausada p/ não ter 2 pop-ups (trocar false→true p/ reativar) */}
-      {false && <AgendaPopup />}
-      <SpecialDayPopup />
+      <AgendaPopup />
     </>
   );
 }
