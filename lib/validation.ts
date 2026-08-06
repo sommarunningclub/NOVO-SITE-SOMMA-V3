@@ -40,6 +40,50 @@ export const signupSchema = z.object({
 
 export type SignupInput = z.infer<typeof signupSchema>;
 
+// Formulário "Seja Parceiro" (/seja-parceiro): alimenta `candidatos_parceiros`
+// e cria o lead no Kanban do CRM da gestão (`crm_leads`).
+export const partnerSchema = z
+  .object({
+    nome: z.string().trim().min(3, "Informe seu nome completo.").max(120, "Nome muito longo."),
+    email: z.string().trim().toLowerCase().email("E-mail inválido."),
+    telefone: z
+      .string()
+      .trim()
+      .refine((v) => v.replace(/\D/g, "").length >= 10, "Telefone inválido."),
+    tipo_documento: z.enum(["cpf", "cnpj"], { message: "Selecione CPF ou CNPJ." }),
+    documento: z.string().trim().min(1, "Informe o número do documento."),
+    nome_da_empresa: z
+      .string()
+      .trim()
+      .min(2, "Informe o nome da empresa.")
+      .max(160, "Nome da empresa muito longo."),
+    instagram: z.string().trim().min(2, "Informe o Instagram."),
+    descricao: z
+      .string()
+      .trim()
+      .min(50, "Descreva a parceria em pelo menos 50 caracteres.")
+      .max(2000, "Descrição muito longa."),
+    // Preenchidos automaticamente pela consulta de CNPJ — opcionais.
+    razao_social: z.string().trim().max(200).nullish(),
+    nome_fantasia: z.string().trim().max(200).nullish(),
+    atividade_principal: z.string().trim().max(300).nullish(),
+    // Honeypot anti-spam. Aceita qualquer valor no schema de propósito: quem
+    // decide é a rota, que responde 200 silenciosamente quando vem preenchido
+    // (rejeitar aqui devolveria um 400 e entregaria a armadilha ao bot).
+    website: z.string().optional(),
+  })
+  .refine(
+    (d) =>
+      d.tipo_documento === "cpf"
+        ? isValidCpf(d.documento)
+        : // CNPJ: apenas o comprimento. Não validamos dígito verificador porque o
+          // CNPJ alfanumérico (2026+) quebraria o cálculo numérico tradicional.
+          d.documento.replace(/\D/g, "").length === 14,
+    { message: "Documento inválido.", path: ["documento"] }
+  );
+
+export type PartnerInput = z.infer<typeof partnerSchema>;
+
 // Máscara e validação de CPF (frontend + backend)
 export function maskCpf(value: string): string {
   const d = value.replace(/\D/g, "").slice(0, 11);
@@ -93,6 +137,17 @@ export function maskCep(value: string): string {
   const d = value.replace(/\D/g, "").slice(0, 8);
   if (d.length <= 5) return d;
   return `${d.slice(0, 5)}-${d.slice(5)}`;
+}
+
+// CNPJ (00.000.000/0000-00)
+export function maskCnpj(value: string): string {
+  const d = value.replace(/\D/g, "").slice(0, 14);
+  if (d.length <= 2) return d;
+  if (d.length <= 5) return `${d.slice(0, 2)}.${d.slice(2)}`;
+  if (d.length <= 8) return `${d.slice(0, 2)}.${d.slice(2, 5)}.${d.slice(5)}`;
+  if (d.length <= 12)
+    return `${d.slice(0, 2)}.${d.slice(2, 5)}.${d.slice(5, 8)}/${d.slice(8)}`;
+  return `${d.slice(0, 2)}.${d.slice(2, 5)}.${d.slice(5, 8)}/${d.slice(8, 12)}-${d.slice(12)}`;
 }
 
 // Máscaras BR (frontend)
