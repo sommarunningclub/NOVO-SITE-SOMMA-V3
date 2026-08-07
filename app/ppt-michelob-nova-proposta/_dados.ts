@@ -50,7 +50,7 @@ export const TAKEOVER_BLOCOS = [
   { rotulo: "Formato", valor: "Ativação pontual" },
   { rotulo: "Objetivo", valor: "Testar presença da marca" },
   { rotulo: "Complexidade", valor: "Baixa" },
-  { rotulo: "Investimento", valor: "Menor" },
+  { rotulo: "Investimento Somma", valor: "R$ 35.000,00", apoio: "Menor · impostos inclusos" },
 ] as const;
 
 /* ── Slide 05 · Jornada do Takeover ──────────────────────────────────────── */
@@ -130,7 +130,11 @@ export const SERIES_BLOCOS = [
   { rotulo: "Formato", valor: "Série recorrente" },
   { rotulo: "Objetivo", valor: "Criar frequência e vínculo" },
   { rotulo: "Complexidade", valor: "Média" },
-  { rotulo: "Investimento", valor: "Intermediário" },
+  {
+    rotulo: "Investimento Somma",
+    valor: "R$ 80.000,00",
+    apoio: "Intermediário · impostos inclusos",
+  },
   { rotulo: "Recomendação", valor: "Melhor custo-benefício", destaque: true },
 ] as const;
 
@@ -220,6 +224,12 @@ export const COMPARATIVO = [
   { criterio: "Dados", takeover: "Check-in do dia", series: "Frequência e evolução" },
   { criterio: "Brindes", takeover: "Entrega pontual", series: "Entrega progressiva" },
   { criterio: "Melhor uso", takeover: "Entrada rápida", series: "Melhor custo-benefício" },
+  {
+    criterio: "Investimento Somma",
+    takeover: "R$ 35.000,00",
+    series: "R$ 80.000,00",
+    valor: true,
+  },
 ] as const;
 
 /* ── Slide 14 · Investimentos ────────────────────────────────────────────── */

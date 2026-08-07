@@ -366,7 +366,12 @@ export function Deck() {
 
           <div className="mt-10 grid grid-cols-2 gap-3 lg:grid-cols-5">
             {TAKEOVER_BLOCOS.map((b) => (
-              <Bloco key={b.rotulo} rotulo={b.rotulo} valor={b.valor} />
+              <Bloco
+                key={b.rotulo}
+                rotulo={b.rotulo}
+                valor={b.valor}
+                apoio={"apoio" in b ? b.apoio : undefined}
+              />
             ))}
           </div>
         </div>
@@ -464,6 +469,7 @@ export function Deck() {
                 key={b.rotulo}
                 rotulo={b.rotulo}
                 valor={b.valor}
+                apoio={"apoio" in b ? b.apoio : undefined}
                 destaque={"destaque" in b ? b.destaque : false}
               />
             ))}
@@ -620,7 +626,18 @@ export function Deck() {
               colW={["24%", "34%", "42%"]}
               accent={GOLD}
               destaqueCol={2}
-              rows={COMPARATIVO.map((r) => ({ cells: [r.criterio, r.takeover, r.series] }))}
+              rows={COMPARATIVO.map((r) =>
+                "valor" in r
+                  ? {
+                      cells: [
+                        r.criterio,
+                        <ValorCell key="t">{r.takeover}</ValorCell>,
+                        <ValorCell key="s">{r.series}</ValorCell>,
+                      ],
+                      marco: true,
+                    }
+                  : { cells: [r.criterio, r.takeover, r.series] },
+              )}
             />
           </div>
         </div>
@@ -987,25 +1004,41 @@ function Nota({ children }: { children: React.ReactNode }) {
 /* ── Blocos ────────────────────────────────────────────────────────────── */
 
 /** Bloco rótulo/valor usado nas fichas das duas opções. */
-function Bloco({ rotulo, valor, destaque }: { rotulo: string; valor: string; destaque?: boolean }) {
+function Bloco({
+  rotulo,
+  valor,
+  apoio,
+  destaque,
+}: {
+  rotulo: string;
+  valor: string;
+  apoio?: string;
+  destaque?: boolean;
+}) {
+  // O bloco de investimento é o único que carrega uma linha de apoio, e ganha
+  // moldura dourada para o número saltar sem competir com o selo vermelho.
+  const realce = Boolean(apoio);
   return (
     <div
       className="a-up rounded-2xl border p-4 backdrop-blur-sm sm:p-5"
       style={
         destaque
           ? { borderColor: `${RED}59`, backgroundColor: `${RED}12` }
-          : { borderColor: "rgba(255,255,255,0.1)", backgroundColor: "rgba(255,255,255,0.03)" }
+          : realce
+            ? { borderColor: `${GOLD}59`, backgroundColor: `${GOLD}0F` }
+            : { borderColor: "rgba(255,255,255,0.1)", backgroundColor: "rgba(255,255,255,0.03)" }
       }
     >
       <p
         className="font-mono text-[9px] uppercase tracking-[0.22em]"
-        style={{ color: destaque ? RED : "rgba(255,255,255,0.35)" }}
+        style={{ color: destaque ? RED : realce ? GOLD : "rgba(255,255,255,0.35)" }}
       >
         {rotulo}
       </p>
       <p className="mt-2.5 font-display text-base font-semibold uppercase leading-tight tracking-wide sm:text-lg">
         {valor}
       </p>
+      {apoio && <p className="mt-1.5 text-[11px] leading-tight text-white/45">{apoio}</p>}
     </div>
   );
 }
@@ -1101,6 +1134,15 @@ function PrecoCard({
         <p className="mt-2 text-[11px] text-white/40">{nota}</p>
       </div>
     </div>
+  );
+}
+
+/** Valor monetário dentro de uma tabela: peso maior que o texto corrido. */
+function ValorCell({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="font-display text-base font-bold tracking-tight text-white sm:text-lg">
+      {children}
+    </span>
   );
 }
 
