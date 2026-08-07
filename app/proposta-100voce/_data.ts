@@ -36,6 +36,53 @@ export const EQUACAO = [
   },
 ] as const;
 
+/* ─────────────────────────────────────────────────────────────────────────
+   A comunidade. Números informados pela operação do Somma — não estimar
+   nem arredondar para cima sem confirmação.
+   ───────────────────────────────────────────────────────────────────────── */
+
+export const COMUNIDADE = {
+  tagline: "O MAIOR RUNNING CLUB DO DISTRITO FEDERAL",
+  instagram: { handle: "@somma.club", url: "https://instagram.com/somma.club" },
+
+  /** Os três números que sustentam a proposta. */
+  numeros: [
+    {
+      chave: "membros",
+      prefixo: "+",
+      valor: 6,
+      sufixo: " mil",
+      label: "Membros na base própria",
+      desc: "Comunidade construída no encontro presencial, semana após semana.",
+    },
+    {
+      chave: "sabado",
+      texto: "200–450",
+      label: "Correndo todo sábado",
+      desc: "Parque da Cidade, 7h. Toda semana, o ano inteiro.",
+    },
+    {
+      chave: "seguidores",
+      valor: 14.2,
+      sufixo: " mil",
+      decimais: 1,
+      label: "Seguidores no Instagram",
+      desc: "@somma.club — o canal onde a comunidade se reconhece.",
+    },
+  ],
+
+  /** Desempenho do Instagram nos últimos 30 dias. */
+  instagramStats: [
+    { valor: "645,6 mil", label: "Visualizações" },
+    { valor: "58,1 mil", label: "Contas alcançadas" },
+    { valor: "12,8 mil", label: "Interações" },
+    { valor: "70%", label: "Do alcance vem de seguidores" },
+  ],
+
+  nota:
+    "Dados de Instagram referentes ao período de 28 de junho a 27 de julho de 2026. A média de participantes por sábado é informada pela operação do Somma.",
+};
+
 export type EtapaId = "energy-point" | "energy-run" | "community-moment";
 
 export const ETAPAS: {

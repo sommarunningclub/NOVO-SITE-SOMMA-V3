@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { gsap } from "gsap";
 import {
+  COMUNIDADE,
   DECK,
   ENTREGAS,
   EQUACAO,
@@ -20,14 +21,29 @@ import { DECK_CSS } from "./_styles";
 const SLIDES = [
   { id: "capa", n: "01", label: "SOMMA ENERGY RUN" },
   { id: "oportunidade", n: "02", label: "A OPORTUNIDADE" },
-  { id: "experiencia", n: "03", label: "A EXPERIÊNCIA" },
-  { id: "por-que", n: "04", label: "POR QUE SOMMA" },
-  { id: "formatos", n: "05", label: "FORMATOS" },
-  { id: "responsabilidades", n: "06", label: "RESPONSABILIDADES" },
-  { id: "fechamento", n: "07", label: "VAMOS CORRER JUNTOS?" },
+  { id: "comunidade", n: "03", label: "A COMUNIDADE" },
+  { id: "experiencia", n: "04", label: "A EXPERIÊNCIA" },
+  { id: "por-que", n: "05", label: "POR QUE SOMMA" },
+  { id: "formatos", n: "06", label: "FORMATOS" },
+  { id: "responsabilidades", n: "07", label: "RESPONSABILIDADES" },
+  { id: "fechamento", n: "08", label: "VAMOS CORRER JUNTOS?" },
 ] as const;
 
-const BRL = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 0 });
+const TOTAL = String(SLIDES.length).padStart(2, "0");
+type SlideId = (typeof SLIDES)[number]["id"];
+
+/* Os contadores animam tanto inteiros (2000 → "2.000") quanto decimais
+   (14.2 → "14,2"), conforme o data-decimals de cada nó. */
+const numFmt = (decimals: number) =>
+  new Intl.NumberFormat("pt-BR", {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+  });
+const BRL = numFmt(0);
+const fmtNode = (el: HTMLElement, value: number) => {
+  const d = Number(el.dataset.decimals ?? 0);
+  return numFmt(d).format(d ? value : Math.round(value));
+};
 
 /* ═══════════════════════════════════════════════════════════════════════════
    DECK
@@ -54,7 +70,7 @@ export function EnergyRunDeck() {
       gsap.set(el.querySelectorAll('[data-a="grow"]'), { scaleX: 1 });
       gsap.set(el.querySelectorAll('[data-a="img"]'), { opacity: 1, scale: 1 });
       el.querySelectorAll<HTMLElement>("[data-count]").forEach((n) => {
-        n.textContent = BRL.format(Number(n.dataset.count));
+        n.textContent = fmtNode(n, Number(n.dataset.count));
       });
     };
 
@@ -83,10 +99,10 @@ export function EnergyRunDeck() {
             duration: 1.25,
             ease: "power2.out",
             onUpdate: () => {
-              el2.textContent = BRL.format(Math.round(proxy.v));
+              el2.textContent = fmtNode(el2, proxy.v);
             },
             onComplete: () => {
-              el2.textContent = BRL.format(target);
+              el2.textContent = fmtNode(el2, target);
             },
           },
           0.35,
@@ -183,7 +199,7 @@ export function EnergyRunDeck() {
             priority
           />
           <span className="erx-display ml-auto text-[11px] font-semibold tracking-[.18em] text-white/45">
-            {SLIDES[active].n}<span className="text-white/20">/07</span>
+            {SLIDES[active].n}<span className="text-white/20">/{TOTAL}</span>
           </span>
         </div>
         <div className="flex gap-1 px-4">
@@ -290,11 +306,12 @@ export function EnergyRunDeck() {
       <main ref={scrollerRef} className="erx-scroller">
         <SlideCapa index={0} />
         <SlideOportunidade index={1} />
-        <SlideExperiencia index={2} />
-        <SlidePorQue index={3} />
-        <SlideFormatos index={4} />
-        <SlideResponsabilidades index={5} />
-        <SlideFechamento index={6} onRestart={() => goTo(0)} />
+        <SlideComunidade index={2} />
+        <SlideExperiencia index={3} />
+        <SlidePorQue index={4} />
+        <SlideFormatos index={5} />
+        <SlideResponsabilidades index={6} />
+        <SlideFechamento index={7} onRestart={() => goTo(0)} />
       </main>
     </div>
   );
@@ -416,7 +433,7 @@ function SlideOportunidade({ index }: { index: number }) {
       <div className="absolute inset-0 -z-10 bg-[radial-gradient(60%_45%_at_88%_12%,rgba(255,44,4,.14),transparent_70%)]" />
 
       <div className="erx-pad">
-        <Kicker n="02" label="A oportunidade" />
+        <Kicker id="oportunidade" label="A oportunidade" />
 
         <div className="mt-7 grid gap-x-16 gap-y-8 lg:grid-cols-[1.15fr_.85fr] lg:items-end">
           <h2 className="erx-display font-bold uppercase leading-[.88] tracking-[-.02em] text-[clamp(2.3rem,7.2vw,5.2rem)]">
@@ -499,7 +516,114 @@ function SlideOportunidade({ index }: { index: number }) {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   SLIDE 03 · A EXPERIÊNCIA
+   SLIDE 03 · A COMUNIDADE
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+function SlideComunidade({ index }: { index: number }) {
+  return (
+    <Slide index={index} id="comunidade">
+      <div className="absolute inset-0 -z-10">
+        <Image
+          src="/somma/PDCSK217JAN-2433.jpg"
+          alt=""
+          fill
+          sizes="100vw"
+          className="object-cover object-[50%_30%] opacity-[.18]"
+          data-a="img"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0A0A0A] via-[#0A0A0A]/90 to-[#0A0A0A]" />
+        <div className="absolute inset-0 bg-[radial-gradient(60%_45%_at_82%_20%,rgba(255,44,4,.16),transparent_68%)]" />
+      </div>
+
+      <div className="erx-pad">
+        <Kicker id="comunidade" label="A comunidade" />
+
+        <div className="mt-6 grid gap-x-14 gap-y-5 lg:grid-cols-[1.25fr_.75fr] lg:items-end">
+          <h2 className="erx-display font-bold uppercase leading-[.88] tracking-[-.02em] text-[clamp(1.9rem,5.6vw,4rem)]">
+            <Mask>
+              <span className="block">O maior running club</span>
+            </Mask>
+            <Mask>
+              <span className="block">
+                do <span className="text-[#FF2C04]">Distrito Federal</span>.
+              </span>
+            </Mask>
+          </h2>
+          <p className="max-w-md text-[13px] leading-[1.6] text-white/55 md:text-sm" data-a="up">
+            Não é uma audiência que se compra por impressão. É gente que acorda cedo, aparece
+            no mesmo lugar toda semana e reconhece quem está ali junto.
+          </p>
+        </div>
+
+        {/* números */}
+        <div className="mt-8 grid gap-px border-y border-white/12 bg-white/10 sm:mt-10 md:grid-cols-3 md:[&>*:first-child]:pl-0">
+          {COMUNIDADE.numeros.map((n) => (
+            <div key={n.chave} className="bg-[#0A0A0A] px-1 py-5 md:px-6 md:py-7" data-a="up">
+              <p className="erx-display flex items-baseline font-bold leading-[.85] tracking-[-.03em] text-[clamp(2.6rem,8vw,4.6rem)] text-white">
+                {n.prefixo && <span className="text-[#FF2C04]">{n.prefixo}</span>}
+                {n.texto ? (
+                  <span>{n.texto}</span>
+                ) : (
+                  <span data-count={n.valor} data-decimals={n.decimais ?? 0}>
+                    0
+                  </span>
+                )}
+                {n.sufixo && (
+                  <span className="ml-[.07em] text-[.42em] font-semibold tracking-[.02em] text-white/70">
+                    {n.sufixo}
+                  </span>
+                )}
+              </p>
+              <p className="erx-display mt-3 text-[11px] font-semibold uppercase tracking-[.2em] text-[#FF2C04]">
+                {n.label}
+              </p>
+              <p className="mt-1.5 max-w-[30ch] text-[12.5px] leading-[1.5] text-white/45">{n.desc}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* instagram */}
+        <div className="mt-7 flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between lg:gap-10">
+          <a
+            href={COMUNIDADE.instagram.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="erx-btn group inline-flex items-center gap-3 self-start border border-white/20 px-4 py-2.5 hover:border-[#FF2C04] hover:bg-[#FF2C04] hover:text-black"
+            data-a="up"
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden>
+              <rect x="2.5" y="2.5" width="19" height="19" rx="5" stroke="currentColor" strokeWidth="1.9" />
+              <circle cx="12" cy="12" r="4.2" stroke="currentColor" strokeWidth="1.9" />
+              <circle cx="17.6" cy="6.4" r="1.25" fill="currentColor" />
+            </svg>
+            <span className="erx-display text-[13px] font-bold uppercase tracking-[.14em]">
+              {COMUNIDADE.instagram.handle}
+            </span>
+          </a>
+
+          <dl className="grid flex-1 grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-4" data-a="up">
+            {COMUNIDADE.instagramStats.map((s) => (
+              <div key={s.label}>
+                <dt className="erx-display text-[clamp(1.15rem,2.4vw,1.6rem)] font-bold leading-none tracking-[-.01em] text-white">
+                  {s.valor}
+                </dt>
+                <dd className="mt-1.5 text-[11px] leading-[1.35] text-white/45">{s.label}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+
+        <p className="mt-6 flex items-start gap-2.5 text-[11px] leading-[1.5] text-white/32" data-a="fade">
+          <span className="erx-display mt-px shrink-0 text-[#FF2C04]">*</span>
+          {COMUNIDADE.nota}
+        </p>
+      </div>
+    </Slide>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SLIDE 04 · A EXPERIÊNCIA
    ═══════════════════════════════════════════════════════════════════════════ */
 
 function SlideExperiencia({ index }: { index: number }) {
@@ -520,7 +644,7 @@ function SlideExperiencia({ index }: { index: number }) {
       <div className="erx-pad">
         <div className="flex flex-wrap items-end justify-between gap-6">
           <div>
-            <Kicker n="03" label="A experiência" />
+            <Kicker id="experiencia" label="A experiência" />
             <h2 className="erx-display mt-6 font-bold uppercase leading-[.88] tracking-[-.02em] text-[clamp(2.1rem,6.6vw,4.6rem)]">
               <Mask>
                 <span className="block">Um sábado.</span>
@@ -603,7 +727,7 @@ function SlideExperiencia({ index }: { index: number }) {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   SLIDE 04 · POR QUE SOMMA
+   SLIDE 05 · POR QUE SOMMA
    ═══════════════════════════════════════════════════════════════════════════ */
 
 function SlidePorQue({ index }: { index: number }) {
@@ -615,7 +739,7 @@ function SlidePorQue({ index }: { index: number }) {
       </span>
 
       <div className="erx-pad">
-        <Kicker n="04" label="Por que Somma" />
+        <Kicker id="por-que" label="Por que Somma" />
 
         <h2 className="erx-display mt-6 max-w-[19ch] font-bold uppercase leading-[.88] tracking-[-.02em] text-[clamp(2.05rem,6.4vw,4.6rem)]">
           <Mask>
@@ -664,7 +788,7 @@ function SlidePorQue({ index }: { index: number }) {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   SLIDE 05 · FORMATOS DE PARCERIA
+   SLIDE 06 · FORMATOS DE PARCERIA
    ═══════════════════════════════════════════════════════════════════════════ */
 
 function SlideFormatos({ index }: { index: number }) {
@@ -676,7 +800,7 @@ function SlideFormatos({ index }: { index: number }) {
       <div className="erx-pad">
         <div className="flex flex-wrap items-end justify-between gap-x-8 gap-y-4">
           <div>
-            <Kicker n="05" label="Formatos de parceria" />
+            <Kicker id="formatos" label="Formatos de parceria" />
             <h2 className="erx-display mt-5 font-bold uppercase leading-[.9] tracking-[-.02em] text-[clamp(1.9rem,5.4vw,3.6rem)]">
               <Mask>
                 <span className="block">
@@ -784,7 +908,7 @@ function PlanoCard({ plano }: { plano: Plano }) {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   SLIDE 06 · RESPONSABILIDADES
+   SLIDE 07 · RESPONSABILIDADES
    ═══════════════════════════════════════════════════════════════════════════ */
 
 function SlideResponsabilidades({ index }: { index: number }) {
@@ -803,7 +927,7 @@ function SlideResponsabilidades({ index }: { index: number }) {
       </div>
 
       <div className="erx-pad">
-        <Kicker n="06" label="Responsabilidades" />
+        <Kicker id="responsabilidades" label="Responsabilidades" />
 
         <h2 className="erx-display mt-6 font-bold uppercase leading-[.88] tracking-[-.02em] text-[clamp(1.95rem,6vw,4.2rem)]">
           <Mask>
@@ -872,7 +996,7 @@ function ColunaResp({
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   SLIDE 07 · FECHAMENTO
+   SLIDE 08 · FECHAMENTO
    ═══════════════════════════════════════════════════════════════════════════ */
 
 function SlideFechamento({ index, onRestart }: { index: number; onRestart: () => void }) {
@@ -895,7 +1019,7 @@ function SlideFechamento({ index, onRestart }: { index: number; onRestart: () =>
       <div className="erx-pad flex flex-1 flex-col justify-between gap-10">
         <div className="flex items-center gap-3" data-a="fade">
           <span className="erx-display text-[10px] font-semibold uppercase tracking-[.3em] text-white/45">
-            07 — Fechamento
+            {SLIDES[SLIDES.length - 1].n} — Fechamento
           </span>
           <span className="h-px flex-1 bg-white/12" />
         </div>
@@ -1002,7 +1126,10 @@ function Mask({ children }: { children: React.ReactNode }) {
   );
 }
 
-function Kicker({ n, label }: { n: string; label: string }) {
+/* A numeração vem sempre do array SLIDES — inserir ou reordenar um slide
+   renumera a apresentação inteira sozinho. */
+function Kicker({ id, label }: { id: SlideId; label: string }) {
+  const n = SLIDES.find((s) => s.id === id)!.n;
   return (
     <div className="flex items-center gap-3" data-a="fade">
       <span className="erx-display text-[11px] font-bold tracking-[.2em] text-[#FF2C04]">{n}</span>
