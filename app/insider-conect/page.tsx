@@ -5,8 +5,9 @@ import {
   Search, LogOut, Users, ClipboardList, CheckSquare,
   MessageCircle, Check, X, ShieldCheck, ChevronRight,
   ArrowLeft, Loader2, RefreshCw, Lock, ChevronDown,
-  Trophy, Dices, Filter, Clock, Repeat, Plus, Eye, EyeOff,
+  Trophy, Dices, Filter, Clock, Repeat, Plus, Eye, EyeOff, UserCircle,
 } from 'lucide-react'
+import PerfilInsiderView from '@/components/insider/PerfilInsider'
 import type { ParticipanteSorteio } from '@/lib/sorteio/types'
 import SorteioMachine from '@/components/sorteio/SorteioMachine'
 import GanhadorCard from '@/components/sorteio/GanhadorCard'
@@ -54,7 +55,7 @@ type EventoOption = {
   checkin_status: 'aberto' | 'bloqueado' | 'encerrado'
 }
 
-type Modulo = 'home' | 'membros' | 'checkins' | 'validar' | 'sorteio' | 'transferencias'
+type Modulo = 'home' | 'perfil' | 'membros' | 'checkins' | 'validar' | 'sorteio' | 'transferencias'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -64,6 +65,11 @@ function formatCPF(v: string) {
     .replace(/(\d{3})(\d)/, '$1.$2')
     .replace(/(\d{3})(\d)/, '$1.$2')
     .replace(/(\d{3})(\d{1,2})$/, '$1-$2')
+}
+
+function iniciaisInsider(nome: string) {
+  const partes = nome.trim().split(/\s+/)
+  return ((partes[0]?.[0] || '') + (partes.length > 1 ? partes[partes.length - 1][0] : '')).toUpperCase()
 }
 
 function formatDate(d: string) {
@@ -1563,6 +1569,12 @@ function Painel({ insider, onLogout }: { insider: Insider; onLogout: () => void 
 
   const modulos = [
     {
+      id: 'perfil' as Modulo,
+      titulo: 'Meu Perfil',
+      descricao: 'Seus dados de cadastro, endereço e benefícios de Insider',
+      icone: UserCircle,
+    },
+    {
       id: 'membros' as Modulo,
       titulo: 'Buscar Membros',
       descricao: 'Consulte e visualize todos os membros cadastrados no Somma Club',
@@ -1616,6 +1628,18 @@ function Painel({ insider, onLogout }: { insider: Insider; onLogout: () => void 
           </div>
           <div className="flex items-center gap-3">
             <button
+              onClick={() => setModulo('perfil')}
+              title="Meu perfil"
+              className={`w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-semibold transition-colors ${
+                modulo === 'perfil'
+                  ? 'bg-[#ff2c03] text-white'
+                  : 'bg-[#ff2c03]/10 text-[#ff2c03] hover:bg-[#ff2c03]/20'
+              }`}
+            >
+              {iniciaisInsider(insider.nome)}
+            </button>
+            <div className="w-px h-4 bg-zinc-800" />
+            <button
               onClick={() => location.reload()}
               className="flex items-center gap-1.5 text-zinc-500 hover:text-white text-xs transition-colors"
               title="Atualizar dados"
@@ -1660,6 +1684,8 @@ function Painel({ insider, onLogout }: { insider: Insider; onLogout: () => void 
               )
             })}
           </div>
+        ) : modulo === 'perfil' ? (
+          <PerfilInsiderView />
         ) : modulo === 'membros' ? (
           <ModuloMembros />
         ) : modulo === 'checkins' ? (
