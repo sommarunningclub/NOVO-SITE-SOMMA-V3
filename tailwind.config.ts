@@ -19,6 +19,16 @@ const config: Config = {
           text: "#FFFFFF",
         },
         light: "#F5F5F5",
+        // Paleta do Wings das Atléticas (Wings for Life x Red Bull), usada só
+        // em /wings-das-atleticas-2026 e /wings/ranking.
+        wfl: {
+          red: "#E30D3F",
+          navy: "#022755",
+          yellow: "#F6E331",
+          dark: "#34383B",
+          card: "#ECEEF3",
+          border: "#DEE1E7",
+        },
       },
       fontFamily: {
         sans: ["var(--font-geist-sans)", "system-ui", "sans-serif"],
