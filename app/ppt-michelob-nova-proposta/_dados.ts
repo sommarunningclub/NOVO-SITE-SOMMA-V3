@@ -141,22 +141,22 @@ export const TAKEOVER_MICHELOB = [
 
 /* ── Slide 08 · Opção 2 ──────────────────────────────────────────────────── */
 
-export const SERIES_BLOCOS = [
-  { rotulo: "Duração", valor: "8 sábados" },
-  { rotulo: "Formato", valor: "Temporada recorrente" },
+export const MES_BLOCOS = [
+  { rotulo: "Duração", valor: "4 sábados" },
+  { rotulo: "Formato", valor: "Mês de ativação" },
   { rotulo: "Objetivo", valor: "Criar frequência e vínculo" },
   { rotulo: "Complexidade", valor: "Média" },
   {
     rotulo: "Investimento Somma",
-    valor: "R$ 140.000,00",
-    apoio: "Temporada completa · impostos inclusos",
+    valor: "R$ 80.000,00",
+    apoio: "Mês completo · impostos inclusos",
   },
-  { rotulo: "Recomendação", valor: "Melhor custo por sábado", destaque: true },
+  { rotulo: "Recomendação", valor: "Melhor custo-benefício", destaque: true },
 ] as const;
 
-/* ── Slide 09 · Jornada da Saturday Series ───────────────────────────────── */
+/* ── Slide 09 · Jornada do mês de ativação ───────────────────────────────── */
 
-export const SERIES_JORNADA = [
+export const MES_JORNADA = [
   {
     sabado: "Sábado 1",
     ativacao: "Ultra Opening Run",
@@ -175,28 +175,7 @@ export const SERIES_JORNADA = [
   {
     sabado: "Sábado 4",
     ativacao: "Somma Day x Michelob Ultra",
-    experiencia: "Maior ativação do primeiro ciclo, DJ, trial, brindes e conteúdo",
-    marco: true,
-  },
-  {
-    sabado: "Sábado 5",
-    ativacao: "Social Check-in Challenge",
-    experiencia: "Pontos para quem leva amigos, faz check-in e gera conteúdo",
-  },
-  {
-    sabado: "Sábado 6",
-    ativacao: "Perfect Pace Challenge",
-    experiencia: "Segunda edição do desafio de pace, agora valendo ranking da temporada",
-  },
-  {
-    sabado: "Sábado 7",
-    ativacao: "Ultra Crew Relay",
-    experiencia: "Revezamento final entre as crews, torcida e premiação",
-  },
-  {
-    sabado: "Sábado 8",
-    ativacao: "Somma Day x Michelob Ultra",
-    experiencia: "Encerramento da temporada, premiação do Ultra Pass e recap da parceria",
+    experiencia: "Maior ativação, DJ, trial, brindes, conteúdo e encerramento",
     marco: true,
   },
 ] as const;
@@ -215,7 +194,7 @@ export const ULTRA_PASS = [
 ] as const;
 
 export const ULTRA_PASS_NOTA =
-  "No mês de ativação a régua roda uma vez. Na temporada de 8 sábados ela se repete a cada ciclo de 4, com premiação maior no Somma Day de encerramento.";
+  "A régua roda ao longo dos quatro sábados do mês de ativação, com a maior premiação no Somma Day de encerramento.";
 
 /* ── Slide 11 · Desafios ─────────────────────────────────────────────────── */
 
@@ -256,44 +235,18 @@ export const CONVIVENCIA = [
 /* ── Slide 13 · Comparativo ──────────────────────────────────────────────── */
 
 export const COMPARATIVO = [
-  { criterio: "Duração", takeover: "1 sábado", mes: "4 sábados", series: "8 sábados" },
-  {
-    criterio: "Objetivo",
-    takeover: "Testar ativação",
-    mes: "Criar recorrência",
-    series: "Virar plataforma",
-  },
-  { criterio: "Complexidade", takeover: "Baixa", mes: "Média", series: "Média a alta" },
-  { criterio: "Presença da marca", takeover: "Pontual", mes: "Recorrente", series: "Contínua" },
-  {
-    criterio: "Conteúdo",
-    takeover: "1 cobertura",
-    mes: "4 coberturas",
-    series: "8 coberturas",
-  },
-  {
-    criterio: "Dados",
-    takeover: "Check-in do dia",
-    mes: "Frequência e evolução",
-    series: "Frequência, ranking e dashboards",
-  },
-  {
-    criterio: "Brindes",
-    takeover: "Entrega pontual",
-    mes: "Entrega progressiva",
-    series: "Entrega progressiva na temporada",
-  },
-  {
-    criterio: "Melhor uso",
-    takeover: "Entrada rápida",
-    mes: "Melhor custo-benefício",
-    series: "Melhor custo por sábado",
-  },
+  { criterio: "Duração", takeover: "1 sábado", mes: "4 sábados" },
+  { criterio: "Objetivo", takeover: "Testar ativação", mes: "Criar recorrência" },
+  { criterio: "Complexidade", takeover: "Baixa", mes: "Média" },
+  { criterio: "Presença da marca", takeover: "Pontual", mes: "Recorrente" },
+  { criterio: "Conteúdo", takeover: "1 cobertura", mes: "4 momentos de conteúdo" },
+  { criterio: "Dados", takeover: "Check-in do dia", mes: "Frequência e evolução" },
+  { criterio: "Brindes", takeover: "Entrega pontual", mes: "Entrega progressiva" },
+  { criterio: "Melhor uso", takeover: "Entrada rápida", mes: "Melhor custo-benefício" },
   {
     criterio: "Investimento Somma",
     takeover: "R$ 35.000,00",
     mes: "R$ 80.000,00",
-    series: "R$ 140.000,00",
     valor: true,
   },
 ] as const;
@@ -313,17 +266,8 @@ export const INVESTIMENTOS = [
     nome: "Somma Day Takeover · Mês",
     duracao: "4 sábados",
     escopo:
-      "Conceito e planejamento da série, mobilização recorrente da comunidade, operação esportiva em 4 encontros, Ultra Opening Run, Perfect Pace Challenge, Ultra Crew Relay, Somma Day x Michelob, Ultra Pass, check-ins por QR Code, mecânica de frequência, gestão de insiders, comunicação e CRM, cobertura nos 4 encontros, dados de recorrência e relatório consolidado.",
+      "Conceito e planejamento do mês, mobilização recorrente da comunidade, operação esportiva em 4 encontros, Ultra Opening Run, Perfect Pace Challenge, Ultra Crew Relay, Somma Day x Michelob, Ultra Pass, check-ins por QR Code, mecânica de frequência, gestão de insiders, comunicação e CRM, cobertura nos 4 encontros, dados de recorrência e relatório consolidado.",
     valor: "R$ 80.000,00",
-    nota: "Impostos inclusos",
-    selo: "Melhor custo-benefício",
-  },
-  {
-    nome: "Michelob Ultra Saturday Series",
-    duracao: "8 sábados",
-    escopo:
-      "Estratégia de temporada, calendário completo de agosto e setembro, 8 ativações esportivas, 2 Somma Days, desafios recorrentes, Ultra Pass, ranking e mecânica de frequência, mobilização contínua da comunidade, CRM, operação esportiva, insiders e embaixadores, produção recorrente de conteúdo, dashboards de acompanhamento e relatório completo da temporada.",
-    valor: "R$ 140.000,00",
     nota: "Impostos inclusos",
     selo: "Recomendado",
     destaque: true,
@@ -336,53 +280,28 @@ export const INVESTIMENTO_OBS =
 /* ── Slide 15 · O que está incluído no fee ───────────────────────────────── */
 
 export const ESCOPO_FEE = [
-  { frente: "Estratégia e conceito", takeover: "Sim", mes: "Sim", series: "Sim" },
-  {
-    frente: "Planejamento da campanha",
-    takeover: "1 ativação",
-    mes: "4 ativações",
-    series: "8 ativações",
-  },
-  { frente: "Mobilização da comunidade Somma", takeover: "Sim", mes: "Sim", series: "Sim" },
-  { frente: "Divulgação nos canais Somma", takeover: "Sim", mes: "Sim", series: "Sim" },
-  { frente: "Comunicação e CRM", takeover: "Básico", mes: "Recorrente", series: "Contínuo" },
-  { frente: "Corrida temática", takeover: "Sim", mes: "Sim", series: "Sim" },
-  { frente: "Operação esportiva", takeover: "1 sábado", mes: "4 sábados", series: "8 sábados" },
-  { frente: "Professores e pacers Somma", takeover: "Sim", mes: "Sim", series: "Sim" },
-  { frente: "Check-in por QR Code", takeover: "Sim", mes: "Sim", series: "Sim" },
-  { frente: "Ultra Pass", takeover: "Não", mes: "Sim", series: "Sim" },
-  { frente: "Controle de recorrência", takeover: "Não", mes: "Sim", series: "Sim" },
-  {
-    frente: "Perfect Pace Challenge",
-    takeover: "1 desafio possível",
-    mes: "Sim",
-    series: "Recorrente",
-  },
-  { frente: "Crew Relay", takeover: "Opcional", mes: "Sim", series: "Sim" },
-  {
-    frente: "Outros desafios esportivos",
-    takeover: "1",
-    mes: "3 a 4",
-    series: "Calendário completo",
-  },
-  {
-    frente: "Gestão de insiders",
-    takeover: "Ativação pontual",
-    mes: "Recorrente",
-    series: "Temporada completa",
-  },
-  { frente: "Conteúdo", takeover: "1 cobertura", mes: "4 coberturas", series: "8 coberturas" },
-  { frente: "Reels e vídeos curtos", takeover: "Sim", mes: "Sim", series: "Sim" },
-  { frente: "Dados de participantes", takeover: "Sim", mes: "Sim", series: "Sim" },
-  { frente: "Dados de frequência", takeover: "Não", mes: "Sim", series: "Sim" },
-  { frente: "Relatório final", takeover: "Simples", mes: "Consolidado", series: "Completo" },
-  { frente: "Somma Day patrocinado", takeover: "Sim, se escolhido", mes: "1", series: "2" },
-  {
-    frente: "Possibilidade de evolução",
-    takeover: "Baixa",
-    mes: "Alta",
-    series: "Plataforma recorrente",
-  },
+  { frente: "Estratégia e conceito", takeover: "Sim", mes: "Sim" },
+  { frente: "Planejamento da campanha", takeover: "1 ativação", mes: "4 ativações" },
+  { frente: "Mobilização da comunidade Somma", takeover: "Sim", mes: "Sim" },
+  { frente: "Divulgação nos canais Somma", takeover: "Sim", mes: "Sim" },
+  { frente: "Comunicação e CRM", takeover: "Básico", mes: "Recorrente" },
+  { frente: "Corrida temática", takeover: "Sim", mes: "Sim" },
+  { frente: "Operação esportiva", takeover: "1 sábado", mes: "4 sábados" },
+  { frente: "Professores e pacers Somma", takeover: "Sim", mes: "Sim" },
+  { frente: "Check-in por QR Code", takeover: "Sim", mes: "Sim" },
+  { frente: "Ultra Pass", takeover: "Não", mes: "Sim" },
+  { frente: "Controle de recorrência", takeover: "Não", mes: "Sim" },
+  { frente: "Perfect Pace Challenge", takeover: "1 desafio possível", mes: "Sim" },
+  { frente: "Crew Relay", takeover: "Opcional", mes: "Sim" },
+  { frente: "Outros desafios esportivos", takeover: "1", mes: "3 a 4" },
+  { frente: "Gestão de insiders", takeover: "Ativação pontual", mes: "Recorrente" },
+  { frente: "Conteúdo", takeover: "1 cobertura", mes: "4 coberturas" },
+  { frente: "Reels e vídeos curtos", takeover: "Sim", mes: "Sim" },
+  { frente: "Dados de participantes", takeover: "Sim", mes: "Sim" },
+  { frente: "Dados de frequência", takeover: "Não", mes: "Sim" },
+  { frente: "Relatório final", takeover: "Simples", mes: "Consolidado" },
+  { frente: "Somma Day patrocinado", takeover: "Sim, se escolhido", mes: "1" },
+  { frente: "Possibilidade de evolução", takeover: "Baixa", mes: "Alta" },
 ] as const;
 
 /* ── Slide 16 · O que fica com a Michelob ────────────────────────────────── */

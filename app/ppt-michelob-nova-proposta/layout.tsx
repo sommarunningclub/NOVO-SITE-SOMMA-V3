@@ -11,7 +11,7 @@ const display = Barlow_Condensed({
 export const metadata: Metadata = {
   title: "Somma Club x Michelob Ultra · Formatos de ativação",
   description:
-    "Dois formatos de entrada nos sábados do Somma: o Somma Day Takeover e a Michelob Ultra Saturday Series, com escopo, responsabilidades e investimento.",
+    "Dois formatos de entrada nos sábados do Somma: o Somma Day Takeover em um sábado e o mês de ativação, com escopo, responsabilidades e investimento.",
   // Material comercial: só por link, fora do Google.
   robots: { index: false, follow: false },
   alternates: { canonical: "https://sommaclub.com.br/ppt-michelob-nova-proposta" },

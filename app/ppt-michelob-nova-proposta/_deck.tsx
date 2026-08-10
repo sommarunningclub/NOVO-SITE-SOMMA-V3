@@ -15,8 +15,8 @@ import {
   INVESTIMENTOS,
   INVESTIMENTO_OBS,
   MICHELOB_ESCOPO,
-  SERIES_BLOCOS,
-  SERIES_JORNADA,
+  MES_BLOCOS,
+  MES_JORNADA,
   TAKEOVER_BLOCOS,
   TAKEOVER_JORNADA,
   TAKEOVER_MES,
@@ -44,8 +44,8 @@ const SLIDES = [
   "takeover-jornada",
   "takeover-somma",
   "takeover-michelob",
-  "series",
-  "series-jornada",
+  "mes",
+  "mes-jornada",
   "ultra-pass",
   "desafios",
   "convivencia",
@@ -451,7 +451,7 @@ export function Deck() {
       </Slide>
 
       {/* ═══════════ 08 · OPÇÃO 2 ═══════════ */}
-      <Slide index={idx("series")} name="series">
+      <Slide index={idx("mes")} name="mes">
         <BgPhoto name="social-pace" alt="Comunidade do Somma Club reunida depois do treino" />
         <div className="container-somma relative z-10">
           <div className="flex items-center gap-3">
@@ -459,18 +459,18 @@ export function Deck() {
             <Kicker className="!mt-0">Opção 2</Kicker>
           </div>
           <H2>
-            Michelob Ultra <Accent>Saturday Series</Accent>
+            Somma Day Takeover <Accent>· Mês</Accent>
           </H2>
           <p className="a-up mt-4 font-display text-lg font-medium uppercase tracking-wide text-white/70 md:text-xl">
-            Oito sábados. Uma temporada. Uma comunidade em movimento.
+            Quatro sábados. Quatro experiências. Uma comunidade em movimento.
           </p>
           <Lead>
-            Uma temporada de oito ativações nos sábados do Somma, entre agosto e setembro, criando
-            recorrência, conteúdo, relacionamento e presença contínua da marca.
+            O mesmo Takeover esticado para um mês inteiro: quatro ativações seguidas nos sábados do
+            Somma, criando recorrência, conteúdo, relacionamento e maior presença da marca.
           </Lead>
 
           <div className="mt-10 grid grid-cols-2 gap-3 lg:grid-cols-6">
-            {SERIES_BLOCOS.map((b) => (
+            {MES_BLOCOS.map((b) => (
               <Bloco
                 key={b.rotulo}
                 rotulo={b.rotulo}
@@ -483,13 +483,13 @@ export function Deck() {
         </div>
       </Slide>
 
-      {/* ═══════════ 09 · JORNADA DA SERIES ═══════════ */}
-      <Slide index={idx("series-jornada")} name="series-jornada" className="bg-[#080F26]">
+      {/* ═══════════ 09 · JORNADA DO MÊS ═══════════ */}
+      <Slide index={idx("mes-jornada")} name="mes-jornada" className="bg-[#080F26]">
         <Grid />
         <div className="container-somma relative z-10">
-          <Kicker>Jornada da Saturday Series</Kicker>
+          <Kicker>Jornada do mês de ativação</Kicker>
           <H2>
-            Oito <Accent>sábados</Accent>
+            Quatro <Accent>sábados</Accent>
           </H2>
 
           <div className="mt-9">
@@ -497,7 +497,7 @@ export function Deck() {
               head={["Sábado", "Ativação", "Experiência"]}
               colW={["16%", "26%", "58%"]}
               accent={GOLD}
-              rows={SERIES_JORNADA.map((r) => ({
+              rows={MES_JORNADA.map((r) => ({
                 cells: [
                   r.sabado,
                   <span key="a" className="font-display text-sm font-semibold uppercase tracking-wide text-white sm:text-base">
@@ -630,10 +630,10 @@ export function Deck() {
 
           <div className="mt-9">
             <DataTable
-              head={["Critério", "Takeover", "Takeover Mês", "Saturday Series"]}
-              colW={["22%", "24%", "26%", "28%"]}
+              head={["Critério", "Somma Day Takeover", "Somma Day Takeover · Mês"]}
+              colW={["24%", "34%", "42%"]}
               accent={GOLD}
-              destaqueCol={3}
+              destaqueCol={2}
               rows={COMPARATIVO.map((r) =>
                 "valor" in r
                   ? {
@@ -641,11 +641,10 @@ export function Deck() {
                         r.criterio,
                         <ValorCell key="t">{r.takeover}</ValorCell>,
                         <ValorCell key="m">{r.mes}</ValorCell>,
-                        <ValorCell key="s">{r.series}</ValorCell>,
                       ],
                       marco: true,
                     }
-                  : { cells: [r.criterio, r.takeover, r.mes, r.series] },
+                  : { cells: [r.criterio, r.takeover, r.mes] },
               )}
             />
           </div>
@@ -690,20 +689,14 @@ export function Deck() {
 
           <div className="mt-9">
             <DataTable
-              head={[
-                "Entregável",
-                "Takeover R$ 35 mil",
-                "Mês R$ 80 mil",
-                "Series R$ 140 mil",
-              ]}
-              colW={["28%", "22%", "24%", "26%"]}
-              destaqueCol={3}
+              head={["Entregável", "Takeover R$ 35 mil", "Mês R$ 80 mil"]}
+              colW={["40%", "30%", "30%"]}
+              destaqueCol={2}
               rows={ESCOPO_FEE.map((r) => ({
                 cells: [
                   r.frente,
                   <Marca key="t" value={r.takeover} />,
                   <Marca key="m" value={r.mes} />,
-                  <Marca key="s" value={r.series} />,
                 ],
               }))}
             />
@@ -750,9 +743,9 @@ export function Deck() {
                 Começar por
               </p>
               <p className="mt-3 font-display text-3xl font-bold uppercase leading-[0.95] tracking-tight sm:text-4xl md:text-5xl">
-                Michelob Ultra
+                Somma Day Takeover
                 <br />
-                <span style={{ color: RED }}>Saturday Series</span>
+                <span style={{ color: RED }}>Mês de ativação</span>
               </p>
               <div className="mt-6">
                 <Selo>Recomendado</Selo>
@@ -761,14 +754,14 @@ export function Deck() {
 
             <div className="a-up rounded-3xl border border-white/10 bg-[#060B1C]/70 p-6 backdrop-blur-sm sm:p-8">
               <p className="text-[15px] leading-relaxed text-white/70">
-                Ela é mais acessível que a proposta original, mas mantém o que realmente cria valor:
+                Ele é mais acessível que a proposta original, mas mantém o que realmente cria valor:
                 recorrência, comunidade, conteúdo, dados e presença real da marca nos sábados do Somma.
               </p>
               <p
                 className="mt-7 border-l-2 pl-5 font-display text-xl font-medium uppercase leading-snug tracking-tight md:text-2xl"
                 style={{ borderColor: ORANGE }}
               >
-                Não é apenas aparecer em um treino. É ocupar oito rituais da comunidade.
+                Não é apenas aparecer em um treino. É ocupar quatro rituais da comunidade.
               </p>
             </div>
           </div>
@@ -786,15 +779,15 @@ export function Deck() {
             </h2>
           </div>
           <p className="a-up mx-auto mt-7 max-w-2xl text-[15px] leading-relaxed text-white/70 md:text-lg">
-            Dá para entrar por um sábado, esticar para um mês de ativação ou assumir a temporada inteira.
-            Em qualquer porta de entrada a marca ativa o toolkit Michelob, testa a resposta da comunidade e
-            gera aprendizado para a próxima campanha.
+            Dá para entrar por um sábado ou esticar para um mês inteiro de ativação. Nas duas portas de
+            entrada a marca ativa o toolkit Michelob, testa a resposta da comunidade e gera aprendizado
+            para a próxima campanha.
           </p>
 
           <div className="a-up mx-auto mt-11 flex max-w-2xl flex-col items-center gap-6 rounded-3xl border border-white/10 bg-[#060B1C]/75 px-6 py-9 backdrop-blur-sm sm:px-10">
             <Lockup size="md" />
             <p className="font-display text-xl font-semibold uppercase tracking-tight text-white md:text-2xl">
-              Um sábado, um mês ou oito sábados.
+              Um sábado ou um mês inteiro.
               <br />
               <span style={{ color: GOLD }}>Uma comunidade em movimento.</span>
             </p>
@@ -1230,7 +1223,7 @@ function PassMockup() {
             Ultra Pass
           </p>
           <p className="mt-1.5 font-display text-lg font-bold uppercase leading-tight tracking-tight">
-            Saturday Series
+            Mês de ativação
           </p>
 
           {/* QR estilizado */}
