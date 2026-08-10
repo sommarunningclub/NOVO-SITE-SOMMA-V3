@@ -51,7 +51,23 @@ export const TAKEOVER_BLOCOS = [
   { rotulo: "Objetivo", valor: "Testar presença da marca" },
   { rotulo: "Complexidade", valor: "Baixa" },
   { rotulo: "Investimento Somma", valor: "R$ 35.000,00", apoio: "Menor · impostos inclusos" },
+  {
+    rotulo: "Opção mês",
+    valor: "4 sábados",
+    apoio: "R$ 80.000,00 · impostos inclusos",
+    destaque: true,
+  },
 ] as const;
+
+/** Destaque do Takeover: o mesmo formato esticado para um mês de ativação. */
+export const TAKEOVER_MES = {
+  titulo: "Um mês de ativação, se a marca quiser",
+  texto:
+    "O mesmo Somma Day Takeover pode virar um mês inteiro: quatro sábados seguidos, com desafios recorrentes, Ultra Pass, controle de frequência e conteúdo em todos os encontros.",
+  duracao: "4 sábados",
+  valor: "R$ 80.000,00",
+  nota: "Impostos inclusos",
+} as const;
 
 /* ── Slide 05 · Jornada do Takeover ──────────────────────────────────────── */
 
@@ -126,16 +142,16 @@ export const TAKEOVER_MICHELOB = [
 /* ── Slide 08 · Opção 2 ──────────────────────────────────────────────────── */
 
 export const SERIES_BLOCOS = [
-  { rotulo: "Duração", valor: "4 sábados" },
-  { rotulo: "Formato", valor: "Série recorrente" },
+  { rotulo: "Duração", valor: "8 sábados" },
+  { rotulo: "Formato", valor: "Temporada recorrente" },
   { rotulo: "Objetivo", valor: "Criar frequência e vínculo" },
   { rotulo: "Complexidade", valor: "Média" },
   {
     rotulo: "Investimento Somma",
-    valor: "R$ 80.000,00",
-    apoio: "Intermediário · impostos inclusos",
+    valor: "R$ 140.000,00",
+    apoio: "Temporada completa · impostos inclusos",
   },
-  { rotulo: "Recomendação", valor: "Melhor custo-benefício", destaque: true },
+  { rotulo: "Recomendação", valor: "Melhor custo por sábado", destaque: true },
 ] as const;
 
 /* ── Slide 09 · Jornada da Saturday Series ───────────────────────────────── */
@@ -159,7 +175,28 @@ export const SERIES_JORNADA = [
   {
     sabado: "Sábado 4",
     ativacao: "Somma Day x Michelob Ultra",
-    experiencia: "Maior ativação, DJ, trial, brindes, conteúdo e encerramento",
+    experiencia: "Maior ativação do primeiro ciclo, DJ, trial, brindes e conteúdo",
+    marco: true,
+  },
+  {
+    sabado: "Sábado 5",
+    ativacao: "Social Check-in Challenge",
+    experiencia: "Pontos para quem leva amigos, faz check-in e gera conteúdo",
+  },
+  {
+    sabado: "Sábado 6",
+    ativacao: "Perfect Pace Challenge",
+    experiencia: "Segunda edição do desafio de pace, agora valendo ranking da temporada",
+  },
+  {
+    sabado: "Sábado 7",
+    ativacao: "Ultra Crew Relay",
+    experiencia: "Revezamento final entre as crews, torcida e premiação",
+  },
+  {
+    sabado: "Sábado 8",
+    ativacao: "Somma Day x Michelob Ultra",
+    experiencia: "Encerramento da temporada, premiação do Ultra Pass e recap da parceria",
     marco: true,
   },
 ] as const;
@@ -176,6 +213,9 @@ export const ULTRA_PASS = [
     marco: true,
   },
 ] as const;
+
+export const ULTRA_PASS_NOTA =
+  "No mês de ativação a régua roda uma vez. Na temporada de 8 sábados ela se repete a cada ciclo de 4, com premiação maior no Somma Day de encerramento.";
 
 /* ── Slide 11 · Desafios ─────────────────────────────────────────────────── */
 
@@ -216,18 +256,44 @@ export const CONVIVENCIA = [
 /* ── Slide 13 · Comparativo ──────────────────────────────────────────────── */
 
 export const COMPARATIVO = [
-  { criterio: "Duração", takeover: "1 sábado", series: "4 sábados" },
-  { criterio: "Objetivo", takeover: "Testar ativação", series: "Criar recorrência" },
-  { criterio: "Complexidade", takeover: "Baixa", series: "Média" },
-  { criterio: "Presença da marca", takeover: "Pontual", series: "Recorrente" },
-  { criterio: "Conteúdo", takeover: "1 cobertura", series: "4 momentos de conteúdo" },
-  { criterio: "Dados", takeover: "Check-in do dia", series: "Frequência e evolução" },
-  { criterio: "Brindes", takeover: "Entrega pontual", series: "Entrega progressiva" },
-  { criterio: "Melhor uso", takeover: "Entrada rápida", series: "Melhor custo-benefício" },
+  { criterio: "Duração", takeover: "1 sábado", mes: "4 sábados", series: "8 sábados" },
+  {
+    criterio: "Objetivo",
+    takeover: "Testar ativação",
+    mes: "Criar recorrência",
+    series: "Virar plataforma",
+  },
+  { criterio: "Complexidade", takeover: "Baixa", mes: "Média", series: "Média a alta" },
+  { criterio: "Presença da marca", takeover: "Pontual", mes: "Recorrente", series: "Contínua" },
+  {
+    criterio: "Conteúdo",
+    takeover: "1 cobertura",
+    mes: "4 coberturas",
+    series: "8 coberturas",
+  },
+  {
+    criterio: "Dados",
+    takeover: "Check-in do dia",
+    mes: "Frequência e evolução",
+    series: "Frequência, ranking e dashboards",
+  },
+  {
+    criterio: "Brindes",
+    takeover: "Entrega pontual",
+    mes: "Entrega progressiva",
+    series: "Entrega progressiva na temporada",
+  },
+  {
+    criterio: "Melhor uso",
+    takeover: "Entrada rápida",
+    mes: "Melhor custo-benefício",
+    series: "Melhor custo por sábado",
+  },
   {
     criterio: "Investimento Somma",
     takeover: "R$ 35.000,00",
-    series: "R$ 80.000,00",
+    mes: "R$ 80.000,00",
+    series: "R$ 140.000,00",
     valor: true,
   },
 ] as const;
@@ -238,26 +304,29 @@ export const INVESTIMENTOS = [
   {
     nome: "Somma Day Takeover",
     duracao: "1 sábado",
-    escopo: "Corrida temática, ativação do toolkit, trial, DJ, conteúdo e relatório",
+    escopo:
+      "Estratégia da ativação, corrida temática, mobilização da comunidade, operação esportiva, professores e pacers, check-in por QR Code, 1 desafio esportivo, gestão dos insiders, comunicação com participantes, cobertura de conteúdo, integração com o toolkit Michelob e relatório final.",
     valor: "R$ 35.000,00",
     nota: "Impostos inclusos",
   },
   {
-    nome: "Michelob Ultra Saturday Series",
+    nome: "Somma Day Takeover · Mês",
     duracao: "4 sábados",
-    escopo: "Recorrência, desafios, Ultra Pass, conteúdo, check-ins e Somma Day final",
+    escopo:
+      "Conceito e planejamento da série, mobilização recorrente da comunidade, operação esportiva em 4 encontros, Ultra Opening Run, Perfect Pace Challenge, Ultra Crew Relay, Somma Day x Michelob, Ultra Pass, check-ins por QR Code, mecânica de frequência, gestão de insiders, comunicação e CRM, cobertura nos 4 encontros, dados de recorrência e relatório consolidado.",
     valor: "R$ 80.000,00",
+    nota: "Impostos inclusos",
+    selo: "Melhor custo-benefício",
+  },
+  {
+    nome: "Michelob Ultra Saturday Series",
+    duracao: "8 sábados",
+    escopo:
+      "Estratégia de temporada, calendário completo de agosto e setembro, 8 ativações esportivas, 2 Somma Days, desafios recorrentes, Ultra Pass, ranking e mecânica de frequência, mobilização contínua da comunidade, CRM, operação esportiva, insiders e embaixadores, produção recorrente de conteúdo, dashboards de acompanhamento e relatório completo da temporada.",
+    valor: "R$ 140.000,00",
     nota: "Impostos inclusos",
     selo: "Recomendado",
     destaque: true,
-  },
-  {
-    nome: "Michelob Ultra Season",
-    duracao: "8 sábados",
-    escopo: "Temporada estendida entre agosto e setembro",
-    valor: "R$ 140.000,00",
-    nota: "Impostos inclusos",
-    selo: "Upgrade futuro",
   },
 ] as const;
 
@@ -267,16 +336,53 @@ export const INVESTIMENTO_OBS =
 /* ── Slide 15 · O que está incluído no fee ───────────────────────────────── */
 
 export const ESCOPO_FEE = [
-  { frente: "Estratégia", takeover: "Sim", series: "Sim" },
-  { frente: "Mobilização da comunidade", takeover: "Sim", series: "Sim" },
-  { frente: "Operação esportiva", takeover: "Sim", series: "Sim" },
-  { frente: "Check-in QR Code", takeover: "Sim", series: "Sim" },
-  { frente: "Ultra Pass", takeover: "Não", series: "Sim" },
-  { frente: "Desafios esportivos", takeover: "1 desafio", series: "3 a 4 desafios" },
-  { frente: "Insiders", takeover: "Apoio no dia", series: "Mobilização recorrente" },
-  { frente: "Conteúdo", takeover: "1 cobertura", series: "4 coberturas leves" },
-  { frente: "Relatório", takeover: "Relatório simples", series: "Relatório consolidado" },
-  { frente: "Coordenação", takeover: "Sim", series: "Sim" },
+  { frente: "Estratégia e conceito", takeover: "Sim", mes: "Sim", series: "Sim" },
+  {
+    frente: "Planejamento da campanha",
+    takeover: "1 ativação",
+    mes: "4 ativações",
+    series: "8 ativações",
+  },
+  { frente: "Mobilização da comunidade Somma", takeover: "Sim", mes: "Sim", series: "Sim" },
+  { frente: "Divulgação nos canais Somma", takeover: "Sim", mes: "Sim", series: "Sim" },
+  { frente: "Comunicação e CRM", takeover: "Básico", mes: "Recorrente", series: "Contínuo" },
+  { frente: "Corrida temática", takeover: "Sim", mes: "Sim", series: "Sim" },
+  { frente: "Operação esportiva", takeover: "1 sábado", mes: "4 sábados", series: "8 sábados" },
+  { frente: "Professores e pacers Somma", takeover: "Sim", mes: "Sim", series: "Sim" },
+  { frente: "Check-in por QR Code", takeover: "Sim", mes: "Sim", series: "Sim" },
+  { frente: "Ultra Pass", takeover: "Não", mes: "Sim", series: "Sim" },
+  { frente: "Controle de recorrência", takeover: "Não", mes: "Sim", series: "Sim" },
+  {
+    frente: "Perfect Pace Challenge",
+    takeover: "1 desafio possível",
+    mes: "Sim",
+    series: "Recorrente",
+  },
+  { frente: "Crew Relay", takeover: "Opcional", mes: "Sim", series: "Sim" },
+  {
+    frente: "Outros desafios esportivos",
+    takeover: "1",
+    mes: "3 a 4",
+    series: "Calendário completo",
+  },
+  {
+    frente: "Gestão de insiders",
+    takeover: "Ativação pontual",
+    mes: "Recorrente",
+    series: "Temporada completa",
+  },
+  { frente: "Conteúdo", takeover: "1 cobertura", mes: "4 coberturas", series: "8 coberturas" },
+  { frente: "Reels e vídeos curtos", takeover: "Sim", mes: "Sim", series: "Sim" },
+  { frente: "Dados de participantes", takeover: "Sim", mes: "Sim", series: "Sim" },
+  { frente: "Dados de frequência", takeover: "Não", mes: "Sim", series: "Sim" },
+  { frente: "Relatório final", takeover: "Simples", mes: "Consolidado", series: "Completo" },
+  { frente: "Somma Day patrocinado", takeover: "Sim, se escolhido", mes: "1", series: "2" },
+  {
+    frente: "Possibilidade de evolução",
+    takeover: "Baixa",
+    mes: "Alta",
+    series: "Plataforma recorrente",
+  },
 ] as const;
 
 /* ── Slide 16 · O que fica com a Michelob ────────────────────────────────── */
@@ -284,14 +390,23 @@ export const ESCOPO_FEE = [
 export const MICHELOB_ESCOPO = [
   {
     frente: "Toolkit",
-    responsabilidade: "Tenda, wind banner, caixa térmica, balcão, mesa de DJ e demais materiais",
+    responsabilidade: "Tenda, wind banners, balcão, caixa térmica, mesa de DJ e demais materiais",
   },
-  { frente: "Trial", responsabilidade: "Produto, gelo, copos, equipe e operação" },
-  { frente: "DJ", responsabilidade: "Contratação, equipamento e operador" },
-  { frente: "Brindes", responsabilidade: "Produção, quantidade e logística" },
-  { frente: "Transporte", responsabilidade: "Levar e retirar materiais" },
-  { frente: "Montagem", responsabilidade: "Equipe responsável pela montagem e desmontagem" },
-  { frente: "Mídia paga", responsabilidade: "Verba e gestão, se houver" },
-  { frente: "Jurídico", responsabilidade: "Regras de uso da marca e consumo responsável" },
-  { frente: "Aprovações", responsabilidade: "Peças, briefing, comunicação e materiais" },
+  { frente: "Produto", responsabilidade: "Michelob Ultra para trial" },
+  { frente: "Operação do trial", responsabilidade: "Gelo, copos, refrigeração e equipe" },
+  { frente: "DJ", responsabilidade: "Cachê, equipamento e operação" },
+  {
+    frente: "Brindes",
+    responsabilidade: "Meias, viseiras, corta-vento, pochetes, bolsas e demais produtos",
+  },
+  { frente: "Logística", responsabilidade: "Transporte, montagem e desmontagem" },
+  {
+    frente: "Estrutura adicional",
+    responsabilidade: "Som, energia, mobiliário ou estrutura extraordinária",
+  },
+  { frente: "Mídia paga", responsabilidade: "Investimento em impulsionamento, caso desejado" },
+  {
+    frente: "Jurídico e marca",
+    responsabilidade: "Aprovações, diretrizes e regras de experimentação",
+  },
 ] as const;

@@ -19,10 +19,12 @@ import {
   SERIES_JORNADA,
   TAKEOVER_BLOCOS,
   TAKEOVER_JORNADA,
+  TAKEOVER_MES,
   TAKEOVER_MICHELOB,
   TAKEOVER_SOMMA,
   TOOLKIT,
   ULTRA_PASS,
+  ULTRA_PASS_NOTA,
 } from "./_dados";
 
 const IMG = "/michelob";
@@ -364,16 +366,20 @@ export function Deck() {
             brindes, desafios simples, conteúdo e relacionamento com a comunidade.
           </Lead>
 
-          <div className="mt-10 grid grid-cols-2 gap-3 lg:grid-cols-5">
+          <div className="mt-10 grid grid-cols-2 gap-3 lg:grid-cols-6">
             {TAKEOVER_BLOCOS.map((b) => (
               <Bloco
                 key={b.rotulo}
                 rotulo={b.rotulo}
                 valor={b.valor}
                 apoio={"apoio" in b ? b.apoio : undefined}
+                destaque={"destaque" in b ? b.destaque : false}
               />
             ))}
           </div>
+
+          {/* O Takeover pode virar um mês inteiro de ativação, se a marca quiser. */}
+          <MesCard />
         </div>
       </Slide>
 
@@ -456,11 +462,11 @@ export function Deck() {
             Michelob Ultra <Accent>Saturday Series</Accent>
           </H2>
           <p className="a-up mt-4 font-display text-lg font-medium uppercase tracking-wide text-white/70 md:text-xl">
-            Quatro sábados. Quatro experiências. Uma comunidade em movimento.
+            Oito sábados. Uma temporada. Uma comunidade em movimento.
           </p>
           <Lead>
-            Uma sequência de quatro ativações nos sábados do Somma, criando recorrência, conteúdo,
-            relacionamento e maior presença da marca.
+            Uma temporada de oito ativações nos sábados do Somma, entre agosto e setembro, criando
+            recorrência, conteúdo, relacionamento e presença contínua da marca.
           </Lead>
 
           <div className="mt-10 grid grid-cols-2 gap-3 lg:grid-cols-6">
@@ -483,7 +489,7 @@ export function Deck() {
         <div className="container-somma relative z-10">
           <Kicker>Jornada da Saturday Series</Kicker>
           <H2>
-            Quatro <Accent>sábados</Accent>
+            Oito <Accent>sábados</Accent>
           </H2>
 
           <div className="mt-9">
@@ -537,6 +543,8 @@ export function Deck() {
                   }))}
                 />
               </div>
+
+              <Nota>{ULTRA_PASS_NOTA}</Nota>
             </div>
 
             <PassMockup />
@@ -622,21 +630,22 @@ export function Deck() {
 
           <div className="mt-9">
             <DataTable
-              head={["Critério", "Somma Day Takeover", "Michelob Ultra Saturday Series"]}
-              colW={["24%", "34%", "42%"]}
+              head={["Critério", "Takeover", "Takeover Mês", "Saturday Series"]}
+              colW={["22%", "24%", "26%", "28%"]}
               accent={GOLD}
-              destaqueCol={2}
+              destaqueCol={3}
               rows={COMPARATIVO.map((r) =>
                 "valor" in r
                   ? {
                       cells: [
                         r.criterio,
                         <ValorCell key="t">{r.takeover}</ValorCell>,
+                        <ValorCell key="m">{r.mes}</ValorCell>,
                         <ValorCell key="s">{r.series}</ValorCell>,
                       ],
                       marco: true,
                     }
-                  : { cells: [r.criterio, r.takeover, r.series] },
+                  : { cells: [r.criterio, r.takeover, r.mes, r.series] },
               )}
             />
           </div>
@@ -681,11 +690,21 @@ export function Deck() {
 
           <div className="mt-9">
             <DataTable
-              head={["Frente", "Takeover", "Saturday Series"]}
-              colW={["40%", "30%", "30%"]}
-              destaqueCol={2}
+              head={[
+                "Entregável",
+                "Takeover R$ 35 mil",
+                "Mês R$ 80 mil",
+                "Series R$ 140 mil",
+              ]}
+              colW={["28%", "22%", "24%", "26%"]}
+              destaqueCol={3}
               rows={ESCOPO_FEE.map((r) => ({
-                cells: [r.frente, <Marca key="t" value={r.takeover} />, <Marca key="s" value={r.series} />],
+                cells: [
+                  r.frente,
+                  <Marca key="t" value={r.takeover} />,
+                  <Marca key="m" value={r.mes} />,
+                  <Marca key="s" value={r.series} />,
+                ],
               }))}
             />
           </div>
@@ -703,7 +722,7 @@ export function Deck() {
 
           <div className="mt-9">
             <DataTable
-              head={["Frente", "Responsabilidade Michelob"]}
+              head={["Michelob / Agência", "Responsabilidade"]}
               colW={["28%", "72%"]}
               accent={RED}
               rows={MICHELOB_ESCOPO.map((r) => ({ cells: [r.frente, r.responsabilidade] }))}
@@ -749,7 +768,7 @@ export function Deck() {
                 className="mt-7 border-l-2 pl-5 font-display text-xl font-medium uppercase leading-snug tracking-tight md:text-2xl"
                 style={{ borderColor: ORANGE }}
               >
-                Não é apenas aparecer em um treino. É ocupar quatro rituais da comunidade.
+                Não é apenas aparecer em um treino. É ocupar oito rituais da comunidade.
               </p>
             </div>
           </div>
@@ -767,14 +786,15 @@ export function Deck() {
             </h2>
           </div>
           <p className="a-up mx-auto mt-7 max-w-2xl text-[15px] leading-relaxed text-white/70 md:text-lg">
-            A Saturday Series permite testar a parceria, entender a resposta da comunidade, ativar o toolkit
-            Michelob e criar aprendizados para evoluir futuramente para uma campanha maior.
+            Dá para entrar por um sábado, esticar para um mês de ativação ou assumir a temporada inteira.
+            Em qualquer porta de entrada a marca ativa o toolkit Michelob, testa a resposta da comunidade e
+            gera aprendizado para a próxima campanha.
           </p>
 
           <div className="a-up mx-auto mt-11 flex max-w-2xl flex-col items-center gap-6 rounded-3xl border border-white/10 bg-[#060B1C]/75 px-6 py-9 backdrop-blur-sm sm:px-10">
             <Lockup size="md" />
             <p className="font-display text-xl font-semibold uppercase tracking-tight text-white md:text-2xl">
-              Quatro sábados.
+              Um sábado, um mês ou oito sábados.
               <br />
               <span style={{ color: GOLD }}>Uma comunidade em movimento.</span>
             </p>
@@ -1077,6 +1097,42 @@ function Passo({
         {titulo}
       </h3>
       <p className="a-up mt-1.5 text-[13px] leading-relaxed text-white/55">{detalhe}</p>
+    </div>
+  );
+}
+
+/**
+ * Destaque do Takeover esticado para um mês. Fica logo abaixo dos blocos da
+ * Opção 1 para que o upgrade apareça junto do valor de entrada.
+ */
+function MesCard() {
+  return (
+    <div
+      className="a-up mt-5 flex flex-col gap-4 rounded-3xl border p-5 backdrop-blur-sm sm:flex-row sm:items-center sm:justify-between sm:p-7"
+      style={{ borderColor: `${RED}59`, backgroundColor: `${RED}12` }}
+    >
+      <div className="max-w-2xl">
+        <div className="flex items-center gap-2.5">
+          <RibbonMark />
+          <p className="font-mono text-[10px] uppercase tracking-[0.25em]" style={{ color: RED }}>
+            {TAKEOVER_MES.duracao}
+          </p>
+        </div>
+        <h3 className="mt-2.5 font-display text-xl font-semibold uppercase leading-tight tracking-tight sm:text-2xl">
+          {TAKEOVER_MES.titulo}
+        </h3>
+        <p className="mt-2.5 text-[13px] leading-relaxed text-white/60">{TAKEOVER_MES.texto}</p>
+      </div>
+
+      <div className="shrink-0 sm:text-right">
+        <p className="font-mono text-[9px] uppercase tracking-[0.22em] text-white/35">
+          Investimento Somma
+        </p>
+        <p className="mt-1.5 font-display text-3xl font-bold leading-none tracking-tight sm:text-4xl">
+          {TAKEOVER_MES.valor}
+        </p>
+        <p className="mt-2 text-[11px] text-white/40">{TAKEOVER_MES.nota}</p>
+      </div>
     </div>
   );
 }
