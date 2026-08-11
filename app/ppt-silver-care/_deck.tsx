@@ -32,7 +32,6 @@ import {
 import {
   Dashboard,
   ItemKit,
-  Necessaire,
   Phone,
   PostCard,
   QRCode,
@@ -42,7 +41,6 @@ import {
   TelaCupom,
   TelaPassaporte,
   TelaRanking,
-  Totem,
 } from "./_mockups";
 import {
   AVULSAS,
@@ -68,6 +66,7 @@ import {
   PORQUE,
   PREMIA,
   PROVAS,
+  REFERENCIAS,
   ROTINA,
   RUNNING_EDITION,
   SOMMA_DAY,
@@ -603,11 +602,34 @@ export function Deck() {
               </div>
             ))}
 
-            <div className="a-up flex flex-col items-center">
-              <Totem />
-              <p className="mt-3 text-center font-display text-[10px] font-semibold uppercase tracking-[0.2em] text-[color:var(--fg-faint)]">
-                Totem da ativação
+            <div className="a-up">
+              <PhotoFrame
+                src={FOTOS.totem}
+                alt="Totem inflável da Silver Care na área de concentração de uma corrida"
+                ratio="aspect-[3/4]"
+                className="!rounded-2xl"
+              />
+              <p className="mt-2.5 font-display text-[10px] font-semibold uppercase tracking-[0.2em] text-[color:var(--fg-faint)]">
+                Totem Silver Care na ativação
               </p>
+
+              {/* Referências de formato: estruturas produzidas para outras
+                  marcas, só para mostrar o que dá para levantar no local. */}
+              <div className="mt-3 grid grid-cols-2 gap-2">
+                {REFERENCIAS.map((r) => (
+                  <div key={r.foto}>
+                    <PhotoFrame
+                      src={r.foto}
+                      alt={r.legenda}
+                      ratio="aspect-[4/3]"
+                      className="!rounded-lg"
+                    />
+                    <p className="mt-1.5 text-[9px] leading-tight text-[color:var(--fg-faint)]">
+                      {r.legenda}
+                    </p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
@@ -871,9 +893,13 @@ export function Deck() {
         <div className="container-somma relative z-10">
           <div className="grid items-center gap-12 lg:grid-cols-[1fr_1.1fr]">
             <div className="a-up flex justify-center">
-              <div className="relative w-full max-w-[300px]">
-                <Necessaire />
-                <Sticker variante="sol" rotate={-8} className="absolute -left-4 -top-4">
+              <div className="relative w-full max-w-[420px]">
+                <PhotoFrame
+                  src={FOTOS.necessaire}
+                  alt="Necessaire vermelha Silver Care × Somma Club"
+                  ratio="aspect-[4/5]"
+                />
+                <Sticker variante="sol" rotate={-8} className="absolute -left-3 -top-4 z-10">
                   Bota a cara no sol
                 </Sticker>
               </div>
@@ -898,8 +924,7 @@ export function Deck() {
               </div>
 
               <Nota>
-                Referência conceitual em laranja Somma. Materiais, acabamento e aplicação das marcas
-                definidos na produção.
+                Mockup da necessaire Somma × Silver Care. Materiais e acabamento definidos na produção.
               </Nota>
             </div>
           </div>

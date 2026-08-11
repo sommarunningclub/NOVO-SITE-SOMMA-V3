@@ -28,7 +28,18 @@ export const FOTOS = {
   hero: "/somma/hero-background.jpg",
   jan: "/somma/PDCSK217JAN-2433.jpg",
   fev: "/somma/PDCSK21FEV-1794.jpg",
+  // Materiais da parceria e referências de estrutura (pasta /public/silver)
+  necessaire: "/silver/necessaire-somma-silver.jpg",
+  totem: "/silver/totem-silver-care.jpg",
+  refTotem: "/silver/ref-totem-inflavel.jpg",
+  refTenda: "/silver/ref-tenda-inflavel.jpg",
 } as const;
+
+/** Referências de estrutura: produções de outras marcas, só como formato. */
+export const REFERENCIAS = [
+  { foto: FOTOS.refTotem, legenda: "Totem inflável · outra produção" },
+  { foto: FOTOS.refTenda, legenda: "Tenda inflável · outra produção" },
+] as const;
 
 /* ── 02 · Insight ──────────────────────────────────────────────────────── */
 

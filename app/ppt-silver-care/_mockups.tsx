@@ -4,10 +4,10 @@ import { ORANGE, SUN, INK, BONE } from "./_ui";
 /* ══════════════════════════════════════════════════════════════════════════
    Mockups conceituais.
 
-   Tudo aqui é desenhado em CSS/SVG — não há foto de produto da Silver Care no
-   projeto. A logo oficial entra sempre como arquivo, sem recorte, distorção ou
-   recoloração: no stick ela fica sobre o rótulo branco; na necessaire laranja,
-   direto, porque a arte já é preta.
+   O que existe em foto — necessaire e totem — entra pelos arquivos de
+   /public/silver. O resto é desenhado em CSS/SVG. A logo oficial entra sempre
+   como arquivo, sem recorte, distorção ou recoloração: no stick e nas telas
+   ela fica sobre uma placa branca.
    ══════════════════════════════════════════════════════════════════════════ */
 
 const SILVER_LOGO = "/LOGO-SILVER_1_537x.webp";
@@ -123,64 +123,6 @@ export function SunStick({
           </div>
           </div>
         </div>
-      </div>
-    </div>
-  );
-}
-
-/* ── Necessaire do kit ─────────────────────────────────────────────────── */
-
-export function Necessaire({ className = "" }: { className?: string }) {
-  return (
-    <div className={`relative ${className}`}>
-      <div
-        className="relative overflow-hidden rounded-[26px] px-6 pb-7 pt-5 shadow-[0_30px_60px_-25px_rgba(0,0,0,0.7)]"
-        style={{ background: `linear-gradient(150deg, #ff4a1f 0%, ${ORANGE} 45%, #cc2003 100%)` }}
-      >
-        {/* brilho do tecido */}
-        <span
-          className="pointer-events-none absolute inset-x-0 top-0 h-1/2"
-          style={{ background: "linear-gradient(180deg, rgba(255,255,255,0.18), transparent)" }}
-          aria-hidden
-        />
-
-        {/* zíper */}
-        <div className="relative mb-6 flex items-center">
-          <div
-            className="h-[7px] flex-1 rounded-full"
-            style={{
-              background:
-                "repeating-linear-gradient(90deg, rgba(0,0,0,0.55) 0 3px, rgba(255,255,255,0.35) 3px 6px)",
-            }}
-          />
-          <span
-            className="ml-2 h-4 w-4 rounded-[5px] shadow-[0_2px_4px_rgba(0,0,0,0.4)]"
-            style={{ backgroundColor: "#F2EEE6" }}
-            aria-hidden
-          />
-        </div>
-
-        {/* marcas: a arte da Silver Care é preta e entra direta sobre o laranja */}
-        <div className="flex flex-col items-center gap-3 py-4">
-          <img src="/logo-somma.svg" alt="Somma Club" className="h-5 w-auto" />
-          <span className="font-display text-sm font-light text-white/60" aria-hidden>
-            ×
-          </span>
-          <img src={SILVER_LOGO} alt="Silver Care" className="h-7 w-auto" />
-        </div>
-
-        <div className="mt-4 border-t pt-3.5" style={{ borderColor: "rgba(0,0,0,0.18)" }}>
-          <p className="text-center font-display text-[10px] font-bold uppercase tracking-[0.28em] text-white/85">
-            Kit Runner · Edição limitada
-          </p>
-        </div>
-
-        {/* costura */}
-        <span
-          className="pointer-events-none absolute inset-3 rounded-[20px] border border-dashed"
-          style={{ borderColor: "rgba(255,255,255,0.28)" }}
-          aria-hidden
-        />
       </div>
     </div>
   );
@@ -535,40 +477,6 @@ export function Sticker({
     >
       {children}
     </span>
-  );
-}
-
-/* ── Cenas de ativação ─────────────────────────────────────────────────── */
-
-/** Totem/backdrop do Ponto de Proteção. */
-export function Totem({ className = "" }: { className?: string }) {
-  return (
-    <div className={`relative ${className}`}>
-      <div
-        className="relative mx-auto flex w-full max-w-[190px] flex-col items-center overflow-hidden rounded-t-[14px] px-4 pb-6 pt-7"
-        style={{ background: `linear-gradient(170deg, ${ORANGE} 0%, #d42300 100%)`, aspectRatio: "9 / 16" }}
-      >
-        <img src="/logo-somma.svg" alt="Somma Club" className="h-4 w-auto" />
-        <span className="mt-2 font-display text-[10px] font-light text-white/60" aria-hidden>
-          ×
-        </span>
-        <img src={SILVER_LOGO} alt="Silver Care" className="mt-2 h-6 w-auto" />
-
-        <p className="mt-auto text-center font-display text-[15px] font-bold uppercase leading-[0.95] tracking-tight text-white">
-          Ponto de
-          <br />
-          Proteção
-        </p>
-        <div className="mt-3 rounded bg-white p-1">
-          <QRCode size={38} />
-        </div>
-        <p className="mt-2 text-center font-display text-[7.5px] font-semibold uppercase tracking-[0.16em] text-white/80">
-          Passa o rosto no stick
-        </p>
-      </div>
-      {/* base */}
-      <div className="mx-auto h-2 w-[62%] rounded-b-lg" style={{ backgroundColor: "rgba(0,0,0,0.5)" }} aria-hidden />
-    </div>
   );
 }
 
