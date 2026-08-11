@@ -17,6 +17,8 @@ export interface CandidaturaEmailData {
   endereco: string;
   instituicao: string;
   semestre: string;
+  /** Texto já resolvido: "Não", "Sim" ou "Sim, por Fulano". */
+  indicacao: string;
   vaga_titulo: string;
   /** URL assinada do currículo — expira. Nunca é link público. */
   curriculo_url?: string | null;
@@ -60,6 +62,7 @@ export function renderCandidaturaInternalEmail(d: CandidaturaEmailData): string 
         ${linha("Nascimento", d.data_nascimento)}
         ${linha("Instituição", d.instituicao)}
         ${linha("Semestre", d.semestre)}
+        ${linha("Indicado", d.indicacao)}
         ${linha("CEP", d.cep)}
         ${linha("Endereço", d.endereco || "—")}
       </table>

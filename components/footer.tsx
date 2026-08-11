@@ -104,6 +104,7 @@ export function Footer() {
             <li><a href={WA_ASSESSORIA} target="_blank" rel="noopener noreferrer" className="hover:text-primary">Assessoria Somma Club</a></li>
             <li><a href="/insider-conect" className="hover:text-primary">Insider Conect</a></li>
             <li><a href="/parceiro-somma-club" className="hover:text-primary">Acesso Exclusivo Parceiro Somma</a></li>
+            <li><a href="/trabalhe-conosco-vagas" className="hover:text-primary">Trabalhe Conosco</a></li>
             <li><a href="/politica-de-privacidade" className="hover:text-primary">Política de Privacidade</a></li>
           </ul>
         </nav>

@@ -25,8 +25,11 @@ export async function POST(request: NextRequest) {
 
     const parsed = vagaCandidaturaSchema.safeParse({
       ...raw,
-      // FormData só carrega string: o checkbox chega como "true".
+      // FormData só carrega string: booleano chega como "true"/"false", e a
+      // string "false" é truthy — sem esta conversão toda candidatura entraria
+      // como indicada.
       consent_lgpd: raw.consent_lgpd === "true",
+      indicado: raw.indicado === "true",
     });
 
     if (!parsed.success) {
@@ -86,6 +89,8 @@ export async function POST(request: NextRequest) {
       complemento,
       instituicao,
       semestre,
+      indicado,
+      indicado_por,
     } = parsed.data;
 
     // 1. Currículo → bucket privado. Se falhar, a candidatura não é gravada:
@@ -132,6 +137,10 @@ export async function POST(request: NextRequest) {
           complemento: complemento || null,
           instituicao,
           semestre,
+          indicado,
+          // O CHECK do banco proíbe `indicado_por` sem indicação — normalizamos
+          // aqui para não depender só do que o cliente mandou.
+          indicado_por: indicado ? indicado_por?.trim() || null : null,
           curriculo_path: path,
           curriculo_nome: nomeArquivo,
           criado_em: criadoEm,
@@ -173,6 +182,9 @@ export async function POST(request: NextRequest) {
       endereco: enderecoCompleto,
       instituicao,
       semestre,
+      indicacao: indicado
+        ? `Sim, por ${indicado_por?.trim() || "(não informou)"}`
+        : "Não",
       vaga_titulo: vaga.titulo,
       curriculo_url: signed?.signedUrl ?? null,
       curriculo_nome: nomeArquivo,

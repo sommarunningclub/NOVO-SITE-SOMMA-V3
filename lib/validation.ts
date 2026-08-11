@@ -144,12 +144,17 @@ export const vagaCandidaturaSchema = z.object({
     .min(2, "Informe a faculdade ou instituição.")
     .max(160, "Nome da instituição muito longo."),
   semestre: z.enum(SEMESTRES, { message: "Selecione o semestre." }),
+  indicado: z.boolean(),
+  indicado_por: z.string().trim().max(120, "Nome muito longo.").optional().or(z.literal("")),
   consent_lgpd: z.literal(true, {
     message: "É preciso autorizar o uso dos seus dados para o processo seletivo.",
   }),
   // Honeypot anti-spam. Aceita qualquer valor aqui de propósito: quem decide é a
   // rota, que responde 200 silenciosamente quando vem preenchido.
   website: z.string().optional(),
+}).refine((d) => !d.indicado || Boolean(d.indicado_por?.trim()), {
+  message: "Informe quem indicou você.",
+  path: ["indicado_por"],
 });
 
 export type VagaCandidaturaInput = z.infer<typeof vagaCandidaturaSchema>;
