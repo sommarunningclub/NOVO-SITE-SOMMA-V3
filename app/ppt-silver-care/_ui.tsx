@@ -6,7 +6,7 @@ import { Icon, type IconName } from "./_icons";
 
    Duas bases alternadas: preto (fotografia e manifesto) e bone (produto,
    planos e tabelas). Cada slide publica as cores em variáveis CSS, e todos os
-   componentes leem essas variáveis — por isso o mesmo card funciona nos dois
+   componentes leem essas variáveis, por isso o mesmo card funciona nos dois
    temas sem duplicação.
    ══════════════════════════════════════════════════════════════════════════ */
 
@@ -120,7 +120,7 @@ export function BgPhoto({
   );
 }
 
-/** Retrato emoldurado — usado nos slides editoriais em duas colunas. */
+/** Retrato emoldurado, usado nos slides editoriais em duas colunas. */
 export function PhotoFrame({
   src,
   alt,
@@ -477,7 +477,7 @@ export function DataTable({
   rows: readonly DTRow[];
   colW?: readonly string[];
   accent?: string;
-  /** Linhas mais baixas — para tabelas longas que precisam caber no slide. */
+  /** Linhas mais baixas, para tabelas longas que precisam caber no slide. */
   compacto?: boolean;
 }) {
   const pad = compacto ? "px-4 py-2.5 sm:px-5" : "px-4 py-3.5 sm:px-5";
@@ -531,8 +531,21 @@ export function DataTable({
 
 /** Marca de presença/ausência no comparativo de planos. */
 export function Marca({ value }: { value: string }) {
-  if (value === "—") {
-    return <span className="text-[color:var(--fg-faint)]">—</span>;
+  if (value === "nao") {
+    // Ausência marcada por um círculo vazado, na mesma caixa da marca de
+    // presença, para as colunas ficarem alinhadas.
+    return (
+      <span
+        className="inline-flex h-5 w-5 items-center justify-center"
+        role="img"
+        aria-label="Não incluso"
+      >
+        <span
+          className="h-2.5 w-2.5 rounded-full border"
+          style={{ borderColor: "var(--fg-faint)" }}
+        />
+      </span>
+    );
   }
   if (value === "•") {
     return (

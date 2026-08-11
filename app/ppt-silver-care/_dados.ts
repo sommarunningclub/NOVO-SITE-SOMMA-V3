@@ -69,7 +69,7 @@ export const PORQUE = [
     icon: "sol" as IconName,
     titulo: "Sol de Brasília",
     texto:
-      "Céu aberto, altitude e treino ao ar livre o ano inteiro. Exposição solar aqui não é sazonal — é rotina.",
+      "Céu aberto, altitude e treino ao ar livre o ano inteiro. Exposição solar aqui não é sazonal, é rotina.",
   },
   {
     n: "02",
@@ -233,7 +233,7 @@ export const JORNADA = [
     etapa: "Somma Day",
     icon: "sol" as IconName,
     quando: "Último sábado",
-    texto: "O grande fechamento mensal — a única ativação presencial oficial.",
+    texto: "O grande fechamento mensal, com a única ativação presencial oficial.",
     itens: ["Ativação premium", "Premiação do desafio", "Kits e experiência de marca"],
   },
 ] as const;
@@ -272,7 +272,7 @@ export const TECH = [
 /* ── 15 · Comunidade ───────────────────────────────────────────────────── */
 
 export const COMUNIDADE = [
-  { icon: "chat" as IconName, titulo: "Grupos de WhatsApp", texto: "Onde o sábado é combinado — e onde a missão da semana aparece." },
+  { icon: "chat" as IconName, titulo: "Grupos de WhatsApp", texto: "Onde o sábado é combinado e onde a missão da semana aparece." },
   { icon: "comunidade" as IconName, titulo: "Pace leaders e tropa", texto: "Quem puxa o pelotão puxa o hábito. Eles usam primeiro." },
   { icon: "camera" as IconName, titulo: "Conteúdo da própria tropa", texto: "A comunidade produz mais imagem do que qualquer produção." },
   { icon: "presente" as IconName, titulo: "Recompensa que circula", texto: "Kit, cupom e edição limitada como moeda de participação." },
@@ -409,13 +409,13 @@ export const COMPARATIVO = [
   { item: "Reels", p1: "1 por mês", p2: "1 por mês", p3: "2 por mês" },
   { item: "Divulgação nos grupos", p1: "•", p2: "Ampliada", p3: "Recorrente" },
   { item: "Cupom exclusivo", p1: "•", p2: "•", p3: "•" },
-  { item: "Presença no site e no check-in", p1: "—", p2: "•", p3: "•" },
-  { item: "Check-in personalizado e conteúdo educacional", p1: "—", p2: "•", p3: "•" },
-  { item: "E-mail mensal", p1: "—", p2: "Até 1", p3: "Até 2" },
-  { item: "Desafios digitais", p1: "—", p2: "•", p3: "•" },
-  { item: "Passaporte, ranking e missões", p1: "—", p2: "—", p3: "•" },
-  { item: "Campanhas proprietárias e captação autorizada de leads", p1: "—", p2: "—", p3: "•" },
-  { item: "Exclusividade de categoria", p1: "—", p2: "—", p3: "•" },
+  { item: "Presença no site e no check-in", p1: "nao", p2: "•", p3: "•" },
+  { item: "Check-in personalizado e conteúdo educacional", p1: "nao", p2: "•", p3: "•" },
+  { item: "E-mail mensal", p1: "nao", p2: "Até 1", p3: "Até 2" },
+  { item: "Desafios digitais", p1: "nao", p2: "•", p3: "•" },
+  { item: "Passaporte, ranking e missões", p1: "nao", p2: "nao", p3: "•" },
+  { item: "Campanhas proprietárias e captação autorizada de leads", p1: "nao", p2: "nao", p3: "•" },
+  { item: "Exclusividade de categoria", p1: "nao", p2: "nao", p3: "•" },
   { item: "Relatório", p1: "Básico", p2: "Ampliado", p3: "Completo" },
 ] as const;
 

@@ -21,7 +21,7 @@ const editorial = Instrument_Serif({
 export const metadata: Metadata = {
   title: "Somma Club × Silver Care · Proposta de parceria",
   description:
-    "Proposta de parceria recorrente: colocar a Silver Care dentro da rotina de quem corre — antes, durante e depois do treino.",
+    "Proposta de parceria recorrente para colocar a Silver Care dentro da rotina de quem corre: antes, durante e depois do treino.",
   robots: { index: false, follow: false },
   alternates: { canonical: "https://sommaclub.com.br/ppt-silver-care" },
 };

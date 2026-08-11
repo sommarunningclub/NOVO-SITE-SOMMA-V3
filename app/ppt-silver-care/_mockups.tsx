@@ -4,7 +4,7 @@ import { ORANGE, SUN, INK, BONE } from "./_ui";
 /* ══════════════════════════════════════════════════════════════════════════
    Mockups conceituais.
 
-   O que existe em foto — necessaire e totem — entra pelos arquivos de
+   O que existe em foto (necessaire e totem) entra pelos arquivos de
    /public/silver. O resto é desenhado em CSS/SVG. A logo oficial entra sempre
    como arquivo, sem recorte, distorção ou recoloração: no stick e nas telas
    ela fica sobre uma placa branca.
@@ -345,7 +345,7 @@ export function TelaRanking() {
 
         <div className="mt-3 rounded-lg border border-dashed border-white/15 px-2.5 py-2">
           <p className="text-[8.5px] leading-snug text-white/50">
-            Pontua quem participa — não quem corre mais rápido.
+            Pontua quem participa, não quem corre mais rápido.
           </p>
         </div>
       </div>
@@ -522,7 +522,7 @@ export function PostCard({
   );
 }
 
-/** Painel de resultados — mostra o formato do relatório mensal. */
+/** Painel de resultados: mostra o formato do relatório mensal. */
 export function Dashboard({ className = "" }: { className?: string }) {
   const barras = [42, 68, 55, 88, 74, 96];
   const kpis = [
@@ -574,7 +574,7 @@ export function Dashboard({ className = "" }: { className?: string }) {
   );
 }
 
-/** Item ilustrado do kit — ícone + nome, no formato de etiqueta. */
+/** Item ilustrado do kit: ícone + nome, no formato de etiqueta. */
 export function ItemKit({ icon, nome, nota }: { icon: IconName; nome: string; nota?: string }) {
   return (
     <div className="a-up flex items-center gap-3 rounded-2xl border border-[color:var(--line)] bg-[color:var(--surface)] p-3.5">

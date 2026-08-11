@@ -3,7 +3,7 @@
  *
  * As duas marcas entram nos arquivos oficiais, sem recorte, recoloração ou
  * redesenho. A logo do Somma (/logo-somma.svg) já é a versão para fundo escuro
- * — branco com o laranja da marca. A da Silver Care é preta sobre transparente,
+ * (branco com o laranja da marca). A da Silver Care é preta sobre transparente,
  * então em fundo escuro ela fica sobre uma placa branca; em fundo claro entra
  * direto, sem placa.
  */

@@ -336,7 +336,7 @@ export function Deck() {
           <div className="mt-10 grid grid-cols-2 gap-3 lg:grid-cols-4">
             {TERRITORIO.map((t) => (
               <div key={t.palavra} className="a-up">
-                <PhotoFrame src={t.foto} alt={`${t.palavra} — comunidade Somma Club`} ratio="aspect-[3/4]" />
+                <PhotoFrame src={t.foto} alt={`${t.palavra} na comunidade Somma Club`} ratio="aspect-[3/4]" />
                 <p className="mt-3.5 font-display text-xl font-bold uppercase leading-none tracking-tight sm:text-2xl">
                   {t.palavra}
                 </p>
@@ -495,7 +495,7 @@ export function Deck() {
                 ))}
               </div>
 
-              <Nota>Mockup conceitual para leitura da proposta — a arte final segue a embalagem oficial.</Nota>
+              <Nota>Mockup conceitual para leitura da proposta. A arte final segue a embalagem oficial.</Nota>
             </div>
           </div>
         </div>
@@ -519,7 +519,7 @@ export function Deck() {
               </H2>
               <Lead>
                 Uma edição especial do stick pensada para o universo running, assinada Somma × Silver
-                Care. Não existe ainda — e é exatamente por isso que vale construir junto.
+                Care. Não existe ainda, e é exatamente por isso que vale construir junto.
               </Lead>
 
               <ul className="mt-8 grid gap-2.5 sm:grid-cols-2">
@@ -588,8 +588,8 @@ export function Deck() {
             Ponto de <Accent>Proteção</Accent>
           </H2>
           <Lead>
-            Uma estação da marca no ponto de encontro. Antes de correr, todo mundo passa por ali — e sai
-            protegido.
+            Uma estação da marca no ponto de encontro. Antes de correr, todo mundo passa por ali e
+            sai protegido.
           </Lead>
 
           <div className="mt-10 grid gap-8 lg:grid-cols-[1fr_1fr_1fr_0.8fr]">
@@ -644,7 +644,7 @@ export function Deck() {
             Quatro <Accent>etapas</Accent>
           </H2>
           <Lead>
-            Do conteúdo digital ao fechamento mensal. Cada etapa alimenta a seguinte — e a marca aparece
+            Do conteúdo digital ao fechamento mensal. Cada etapa alimenta a seguinte, e a marca aparece
             em todas.
           </Lead>
 
@@ -761,7 +761,7 @@ export function Deck() {
                 <div className="flex items-center gap-4">
                   <QRCode size={72} />
                   <p className="text-sm leading-relaxed text-[color:var(--fg-soft)]">
-                    Cada QR — no totem, no sample, no kit — leva direto para a missão da semana.
+                    Cada QR, no totem, no sample ou no kit, leva direto para a missão da semana.
                   </p>
                 </div>
               </Card>
@@ -823,7 +823,7 @@ export function Deck() {
           </H2>
           <Lead>
             Campanha em comunidade não se anuncia: se combina. O Somma já tem os canais onde o sábado é
-            marcado — é por ali que a missão chega.
+            marcado. É por ali que a missão chega.
           </Lead>
 
           <div className="mt-10 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -859,7 +859,7 @@ export function Deck() {
                 Último sábado de cada mês
               </p>
               <Lead>
-                É o encontro grande do clube — e o palco da ativação presencial da Silver Care. Uma vez
+                É o encontro grande do clube, e o palco da ativação presencial da Silver Care. Uma vez
                 por mês, com peso de evento, não de estande.
               </Lead>
 
@@ -913,7 +913,7 @@ export function Deck() {
                 <Accent>Somma × Silver Care</Accent>
               </H2>
               <Lead>
-                Não é brinde. É um objeto que a pessoa quer ter — e que carrega a marca para dentro da
+                Não é brinde. É um objeto que a pessoa quer ter, e que carrega a marca para dentro da
                 mochila, do carro e da rotina.
               </Lead>
 
@@ -940,7 +940,7 @@ export function Deck() {
           </H2>
           <Lead>
             Sticker é a mídia mais barata e mais duradoura de uma comunidade. Ele vai parar na garrafa,
-            no celular, no capacete e no carro — e continua falando depois do sábado.
+            no celular, no capacete e no carro. E continua falando depois do sábado.
           </Lead>
 
           <div className="mt-10 flex flex-wrap items-center gap-4">
@@ -990,8 +990,8 @@ export function Deck() {
               <div>
                 <p className="font-display text-sm font-semibold uppercase tracking-wide">Sticker com QR</p>
                 <p className="mt-1.5 text-[13px] leading-relaxed text-[color:var(--fg-soft)]">
-                  Aplicado em garrafa, necessaire, celular, embalagem e placas da ativação — cada leitura
-                  entra no relatório.
+                  Aplicado em garrafa, necessaire, celular, embalagem e placas da ativação. Cada
+                  leitura entra no relatório.
                 </p>
               </div>
             </div>
@@ -1177,8 +1177,8 @@ export function Deck() {
             Projetos <Accent>sob medida</Accent>
           </H2>
           <Lead>
-            Além da parceria mensal, podemos construir projetos pontuais — orçados por escopo, conforme a
-            necessidade da marca.
+            Além da parceria mensal, podemos construir projetos pontuais, orçados por escopo, conforme
+            a necessidade da marca.
           </Lead>
 
           <div className="mt-9 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
