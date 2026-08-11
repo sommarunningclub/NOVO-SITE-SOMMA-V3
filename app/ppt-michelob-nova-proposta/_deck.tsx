@@ -26,6 +26,7 @@ import {
   TAKEOVER_SOMMA,
   TOOLKIT,
   ULTRA_PASS,
+  ULTRA_PASS_JORNADA,
   ULTRA_PASS_NOTA,
 } from "./_dados";
 
@@ -49,6 +50,7 @@ const SLIDES = [
   "mes",
   "mes-jornada",
   "ultra-pass",
+  "ultra-pass-regua",
   "desafios",
   "convivencia",
   "comparativo",
@@ -542,35 +544,75 @@ export function Deck() {
       <Slide index={idx("ultra-pass")} name="ultra-pass">
         <BgPhoto name="digital" alt="Corredora usando o celular depois do treino" />
         <div className="container-somma relative z-10">
-          <Kicker>Ultra Pass</Kicker>
+          <Kicker>Ultra Pass · como funciona</Kicker>
           <H2 className="max-w-3xl">
-            Uma mecânica simples para gerar <Accent>recorrência</Accent>
+            Do cadastro ao <Accent>prêmio</Accent>, semana a semana
           </H2>
 
-          <div className="mt-9 grid items-center gap-9 lg:grid-cols-[minmax(0,1fr)_auto]">
-            <div>
-              <Lead className="!mt-0">
-                Cada participante recebe um passaporte digital com QR Code. A cada sábado, realiza check-in,
-                acumula presença e desbloqueia benefícios.
-              </Lead>
-
-              <div className="mt-7">
-                <DataTable
-                  head={["Frequência", "Benefício sugerido"]}
-                  colW={["30%", "70%"]}
-                  accent={ORANGE}
-                  rows={ULTRA_PASS.map((r) => ({
-                    cells: [r.frequencia, r.beneficio],
-                    marco: "marco" in r ? r.marco : false,
-                  }))}
+          {/* Duas trilhas de três passos, para a jornada caber na tela ao lado
+              do mockup do pass. A leitura segue coluna a coluna. */}
+          <div className="mt-7 grid items-start gap-x-8 gap-y-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
+            {[ULTRA_PASS_JORNADA.slice(0, 3), ULTRA_PASS_JORNADA.slice(3)].map((grupo, coluna) => (
+              <ol key={coluna} className="relative">
+                <span
+                  className="a-rail absolute bottom-7 left-[19px] top-7 w-px origin-top"
+                  style={{
+                    background: coluna === 0
+                      ? `linear-gradient(180deg, ${GOLD}, ${GOLD}88)`
+                      : `linear-gradient(180deg, ${GOLD}88, ${RED})`,
+                  }}
+                  aria-hidden
                 />
-              </div>
-
-              <Nota>{ULTRA_PASS_NOTA}</Nota>
-            </div>
+                {grupo.map((p) => {
+                  const ultimo = p.n === String(ULTRA_PASS_JORNADA.length);
+                  return (
+                    <li key={p.n} className="relative flex gap-4 pb-6 last:pb-0">
+                      <span
+                        data-node
+                        className="relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 bg-[#060B1C]"
+                        style={{ borderColor: ultimo ? RED : GOLD, color: ultimo ? RED : GOLD }}
+                      >
+                        <Icon name={p.icon} className="h-4 w-4" />
+                      </span>
+                      <div className="a-up pt-1">
+                        <div className="flex items-baseline gap-2.5">
+                          <span className="font-mono text-[10px] tracking-[0.3em] text-white/30">
+                            {p.n.padStart(2, "0")}
+                          </span>
+                          <h3 className="font-display text-base font-semibold uppercase leading-tight tracking-wide">
+                            {p.titulo}
+                          </h3>
+                        </div>
+                        <p className="mt-1.5 text-[12.5px] leading-relaxed text-white/55">{p.detalhe}</p>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ol>
+            ))}
 
             <PassMockup />
           </div>
+        </div>
+      </Slide>
+
+      {/* ═══════════ 11 · RÉGUA DO ULTRA PASS ═══════════ */}
+      <Slide index={idx("ultra-pass-regua")} name="ultra-pass-regua" className="bg-[#080F26]">
+        <Grid />
+        <div className="container-somma relative z-10">
+          <Kicker>Ultra Pass · régua de benefícios</Kicker>
+          <H2 className="max-w-3xl">
+            Cada selo <Accent>abre</Accent> o degrau seguinte
+          </H2>
+
+          {/* Escada: a altura e a barra crescem junto com o número de selos. */}
+          <div className="mt-10 grid grid-cols-2 items-end gap-3 lg:grid-cols-4">
+            {ULTRA_PASS.map((d) => (
+              <DegrauPass key={d.selos} {...d} marco={"marco" in d ? d.marco : false} />
+            ))}
+          </div>
+
+          <Nota>{ULTRA_PASS_NOTA}</Nota>
         </div>
       </Slide>
 
@@ -1120,6 +1162,71 @@ function Passo({
         {titulo}
       </h3>
       <p className="a-up mt-1.5 text-[13px] leading-relaxed text-white/55">{detalhe}</p>
+    </div>
+  );
+}
+
+/**
+ * Degrau da régua do Ultra Pass. Os quatro cartões ficam alinhados pela base e
+ * crescem em altura conforme os selos, então a escada se lê antes do texto.
+ */
+function DegrauPass({
+  selos,
+  frequencia,
+  rotulo,
+  beneficio,
+  marco,
+}: {
+  selos: number;
+  frequencia: string;
+  rotulo: string;
+  beneficio: string;
+  marco?: boolean;
+}) {
+  const cor = marco ? RED : GOLD;
+  return (
+    <div
+      // A altura mínima é o que desenha a escada: o texto varia de tamanho e
+      // sozinho não daria degraus regulares.
+      className="a-up flex flex-col rounded-2xl border p-4 sm:p-5"
+      style={{
+        borderColor: marco ? `${RED}59` : "rgba(255,255,255,0.1)",
+        backgroundColor: marco ? `${RED}12` : "rgba(255,255,255,0.03)",
+        minHeight: `${170 + selos * 26}px`,
+      }}
+    >
+      {/* Selos carimbados até aqui */}
+      <div className="flex gap-1.5" aria-label={`${selos} de 4 selos`}>
+        {[1, 2, 3, 4].map((i) => (
+          <span
+            key={i}
+            className="h-2.5 w-2.5 rounded-full border"
+            style={
+              i <= selos
+                ? { backgroundColor: cor, borderColor: cor }
+                : { borderColor: "rgba(255,255,255,0.22)" }
+            }
+          />
+        ))}
+      </div>
+
+      <div className="mt-auto pt-5">
+        <p className="font-display text-2xl font-bold leading-none tracking-tight sm:text-3xl">
+          {frequencia}
+        </p>
+        <p className="mt-1.5 font-mono text-[9px] uppercase tracking-[0.22em]" style={{ color: cor }}>
+          {rotulo}
+        </p>
+
+        <div className="mt-4 h-1 w-full overflow-hidden rounded-full bg-white/10">
+          <span
+            className="block h-full rounded-full"
+            style={{ width: `${(selos / 4) * 100}%`, backgroundColor: cor }}
+          />
+        </div>
+
+        <p className="mt-3 text-[12px] leading-relaxed text-white/60">{beneficio}</p>
+      </div>
     </div>
   );
 }

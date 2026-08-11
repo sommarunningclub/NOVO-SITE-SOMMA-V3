@@ -195,12 +195,76 @@ export const MES_CONDICOES = [
 
 /* ── Slide 10 · Ultra Pass ───────────────────────────────────────────────── */
 
-export const ULTRA_PASS = [
-  { frequencia: "1 semana", beneficio: "Participação em sorteio ou brinde inicial" },
-  { frequencia: "2 semanas", beneficio: "Brinde intermediário" },
-  { frequencia: "3 semanas", beneficio: "Concorrência a prêmio especial" },
+/** Passo a passo do participante, da inscrição ao prêmio do evento final. */
+export const ULTRA_PASS_JORNADA = [
   {
+    n: "1",
+    icon: "conteudo" as IconName,
+    titulo: "Inscrição na landing page",
+    detalhe:
+      "O participante se inscreve na página do evento com nome, e-mail e telefone. A base entra no CRM do Somma no mesmo instante.",
+  },
+  {
+    n: "2",
+    icon: "arte" as IconName,
+    titulo: "Recebe o Ultra Pass",
+    detalhe:
+      "Um passaporte digital com QR Code único, aberto no navegador do celular. Sem app, sem cadastro extra, sem senha.",
+  },
+  {
+    n: "3",
+    icon: "checkin" as IconName,
+    titulo: "Check-in no sábado",
+    detalhe:
+      "Na chegada, a equipe do Somma lê o QR Code. O check-in leva segundos e alimenta a lista de presença em tempo real.",
+  },
+  {
+    n: "4",
+    icon: "escala" as IconName,
+    titulo: "Selo da semana carimbado",
+    detalhe:
+      "O pass marca a presença daquela semana e mostra o progresso: quantos selos já tem e quanto falta para o próximo benefício.",
+  },
+  {
+    n: "5",
+    icon: "brinde" as IconName,
+    titulo: "Benefício desbloqueado",
+    detalhe:
+      "A cada novo selo, um benefício entra: sorteio, brinde intermediário e concorrência ao prêmio especial.",
+  },
+  {
+    n: "6",
+    icon: "comunidade" as IconName,
+    titulo: "Prêmio no evento final",
+    detalhe:
+      "Quem completa as quatro semanas retira o brinde premium ou a experiência exclusiva no domingo, no Parque da Cidade.",
+  },
+] as const;
+
+/** Régua de benefícios: cada selo acumulado libera o degrau seguinte. */
+export const ULTRA_PASS = [
+  {
+    selos: 1,
+    frequencia: "1 semana",
+    rotulo: "Primeiro selo",
+    beneficio: "Participação em sorteio ou brinde inicial",
+  },
+  {
+    selos: 2,
+    frequencia: "2 semanas",
+    rotulo: "Pegou o ritmo",
+    beneficio: "Brinde intermediário",
+  },
+  {
+    selos: 3,
+    frequencia: "3 semanas",
+    rotulo: "Quase lá",
+    beneficio: "Concorrência a prêmio especial",
+  },
+  {
+    selos: 4,
     frequencia: "4 semanas",
+    rotulo: "Pass completo",
     beneficio: "Brinde premium ou experiência exclusiva no evento final",
     marco: true,
   },
