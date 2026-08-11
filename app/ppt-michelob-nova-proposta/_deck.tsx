@@ -6,6 +6,7 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Icon, type IconName } from "./_icons";
 import { Lockup } from "./_marca";
+import { ParqueMap } from "./_parque-map";
 import {
   COMPARATIVO,
   CONTEXTO_CARDS,
@@ -506,33 +507,34 @@ export function Deck() {
             />
           </div>
 
-          {/* Prazo de setup e desenho do evento final, que mudam o planejamento da marca. */}
-          <div className="mt-6 grid gap-3 sm:grid-cols-2">
-            {MES_CONDICOES.map((c) => (
-              <div
-                key={c.titulo}
-                className="a-up flex gap-3.5 rounded-2xl border border-white/10 bg-white/[0.03] p-4 sm:p-5"
-              >
-                <span
-                  data-node
-                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 bg-[#060B1C]"
-                  style={{ borderColor: GOLD, color: GOLD }}
+          {/* Prazo de setup e desenho do evento final, que mudam o planejamento
+              da marca. O mapa 3D fica ao lado, mostrando onde o mês termina. */}
+          <div className="mt-6 grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)]">
+            <div className="flex flex-col gap-3">
+              {MES_CONDICOES.map((c) => (
+                <div
+                  key={c.titulo}
+                  className="a-up flex flex-1 gap-3.5 rounded-2xl border border-white/10 bg-white/[0.03] p-4 sm:p-5"
                 >
-                  <Icon name={c.icon} className="h-4.5 w-4.5" />
-                </span>
-                <div>
-                  <h3 className="font-display text-base font-semibold uppercase leading-tight tracking-wide">
-                    {c.titulo}
-                  </h3>
-                  <p className="mt-1.5 text-[13px] leading-relaxed text-white/55">{c.texto}</p>
+                  <span
+                    data-node
+                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 bg-[#060B1C]"
+                    style={{ borderColor: GOLD, color: GOLD }}
+                  >
+                    <Icon name={c.icon} className="h-4.5 w-4.5" />
+                  </span>
+                  <div>
+                    <h3 className="font-display text-base font-semibold uppercase leading-tight tracking-wide">
+                      {c.titulo}
+                    </h3>
+                    <p className="mt-1.5 text-[13px] leading-relaxed text-white/55">{c.texto}</p>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
 
-          <Destaque>
-            A marca deixa de aparecer uma vez e passa a fazer parte do calendário da comunidade.
-          </Destaque>
+            <ParqueMap />
+          </div>
         </div>
       </Slide>
 
