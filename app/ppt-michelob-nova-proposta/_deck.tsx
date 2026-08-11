@@ -327,24 +327,19 @@ export function Deck() {
             organizada dentro dos encontros do Somma.
           </Lead>
 
-          <div className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+          {/* Fotos de ativações reais da marca: o material já existe, não é render. */}
+          <div className="mt-9 grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-5">
             {TOOLKIT.map((item) => (
-              <div
+              <ToolkitCard
                 key={item.nome}
-                className="a-up flex flex-col items-start gap-4 rounded-2xl border border-white/10 bg-white/[0.03] p-5 transition-colors hover:border-white/25 sm:p-6"
-              >
-                <span
-                  className="flex h-11 w-11 items-center justify-center rounded-xl"
-                  style={{ backgroundColor: `${NAVY}59`, color: "#fff" }}
-                >
-                  <Icon name={item.icon} className="h-5 w-5" />
-                </span>
-                <p className="font-display text-base font-semibold uppercase leading-tight tracking-wide sm:text-lg">
-                  {item.nome}
-                </p>
-              </div>
+                icon={item.icon}
+                nome={item.nome}
+                foto={"foto" in item ? item.foto : undefined}
+              />
             ))}
           </div>
+
+          <Nota>Registros de ativações da Michelob Ultra em Brasília.</Nota>
         </div>
       </Slide>
 
@@ -374,7 +369,6 @@ export function Deck() {
                 key={b.rotulo}
                 rotulo={b.rotulo}
                 valor={b.valor}
-                apoio={"apoio" in b ? b.apoio : undefined}
                 destaque={"destaque" in b ? b.destaque : false}
               />
             ))}
@@ -478,7 +472,6 @@ export function Deck() {
                 key={b.rotulo}
                 rotulo={b.rotulo}
                 valor={b.valor}
-                apoio={"apoio" in b ? b.apoio : undefined}
                 destaque={"destaque" in b ? b.destaque : false}
               />
             ))}
@@ -1125,6 +1118,41 @@ function Passo({
         {titulo}
       </h3>
       <p className="a-up mt-1.5 text-[13px] leading-relaxed text-white/55">{detalhe}</p>
+    </div>
+  );
+}
+
+/**
+ * Item do toolkit. Com foto, o card vira a própria imagem da ativação, com o
+ * nome sobreposto; sem foto, cai no cartão de ícone, mantendo a mesma altura.
+ */
+function ToolkitCard({ icon, nome, foto }: { icon: IconName; nome: string; foto?: string }) {
+  return (
+    <div className="a-up group relative aspect-[3/4] overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] transition-colors hover:border-white/25">
+      {foto && (
+        <>
+          <Image
+            src={`${IMG}/toolkit/${foto}.jpg`}
+            alt={`${nome} em ativação da Michelob Ultra`}
+            fill
+            quality={75}
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+            className="object-cover transition-transform duration-700 group-hover:scale-105"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#060B1C] via-[#060B1C]/25 to-transparent" />
+        </>
+      )}
+
+      <span
+        className="absolute left-3 top-3 flex h-9 w-9 items-center justify-center rounded-xl backdrop-blur-sm"
+        style={{ backgroundColor: `${NAVY}A6`, color: "#fff" }}
+      >
+        <Icon name={icon} className="h-4 w-4" />
+      </span>
+
+      <p className="absolute inset-x-3 bottom-3 font-display text-sm font-semibold uppercase leading-tight tracking-wide sm:text-base">
+        {nome}
+      </p>
     </div>
   );
 }

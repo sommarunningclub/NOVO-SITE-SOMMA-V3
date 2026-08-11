@@ -32,15 +32,20 @@ export const CONTEXTO_CARDS = [
 
 /* ── Slide 03 · Toolkit ──────────────────────────────────────────────────── */
 
+/**
+ * Materiais que a marca já possui. As fotos são de ativações reais da
+ * Michelob Ultra em Brasília e ficam em /public/michelob/toolkit.
+ */
 export const TOOLKIT = [
-  { icon: "tenda" as IconName, nome: "Tenda" },
-  { icon: "banner" as IconName, nome: "Wind banners" },
-  { icon: "cooler" as IconName, nome: "Caixa térmica" },
-  { icon: "dj" as IconName, nome: "Mesa de DJ" },
-  { icon: "bar" as IconName, nome: "Balcão ou bar" },
+  { icon: "tenda" as IconName, nome: "Tenda", foto: "tenda" },
+  { icon: "banner" as IconName, nome: "Wind banners", foto: "wind-banners" },
+  { icon: "dj" as IconName, nome: "Mesa de DJ", foto: "dj" },
+  { icon: "bar" as IconName, nome: "Balcão ou bar", foto: "balcao" },
+  { icon: "bar" as IconName, nome: "Carrinho refrigerado", foto: "carrinho" },
+  { icon: "cooler" as IconName, nome: "Caixa térmica", foto: "caixa-termica" },
+  { icon: "arte" as IconName, nome: "Display de produto", foto: "display" },
+  { icon: "trial" as IconName, nome: "Produto para trial", foto: "trial" },
   { icon: "brinde" as IconName, nome: "Brindes" },
-  { icon: "trial" as IconName, nome: "Produto para trial" },
-  { icon: "arte" as IconName, nome: "Materiais visuais da marca" },
 ] as const;
 
 /* ── Slide 04 · Opção 1 ──────────────────────────────────────────────────── */
