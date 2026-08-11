@@ -544,7 +544,19 @@ export function Deck() {
       <Slide index={idx("ultra-pass")} name="ultra-pass">
         <BgPhoto name="digital" alt="Corredora usando o celular depois do treino" />
         <div className="container-somma relative z-10">
-          <Kicker>Ultra Pass · como funciona</Kicker>
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <Kicker>Ultra Pass · como funciona</Kicker>
+            {/* Simulação clicável, para abrir na reunião. */}
+            <a
+              href="/ppt-michelob-nova-proposta/ultra-pass"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-full border px-4 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-white/70 transition-colors hover:text-white"
+              style={{ borderColor: `${RED}59` }}
+            >
+              Abrir simulação →
+            </a>
+          </div>
           <H2 className="max-w-3xl">
             Do cadastro ao <Accent>prêmio</Accent>, semana a semana
           </H2>
