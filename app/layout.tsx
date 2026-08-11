@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import { GoogleTagManager, GoogleAnalytics } from "@next/third-parties/google";
 import { SOMMA } from "@/lib/somma-data";
+import { PopupCampaign } from "@/components/popup-campaign";
 import "./globals.css";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-geist-sans" });
@@ -87,7 +88,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       </head>
-      <body className="font-sans antialiased">{children}</body>
+      <body className="font-sans antialiased">
+        {children}
+        <PopupCampaign />
+      </body>
       <GoogleTagManager gtmId={SOMMA.analytics.gtm} />
       <GoogleAnalytics gaId={SOMMA.analytics.ga4} />
     </html>
