@@ -25,8 +25,8 @@ export const CONTEXTO_CARDS = [
   {
     n: "03",
     icon: "escala" as IconName,
-    titulo: "Ativações escaláveis por investimento",
-    texto: "Do sábado único à temporada, no ritmo que a marca quiser assumir.",
+    titulo: "Dois formatos de entrada",
+    texto: "De um Somma Day a um mês inteiro, no ritmo que a marca quiser assumir.",
   },
 ] as const;
 
@@ -46,27 +46,19 @@ export const TOOLKIT = [
 /* ── Slide 04 · Opção 1 ──────────────────────────────────────────────────── */
 
 export const TAKEOVER_BLOCOS = [
-  { rotulo: "Duração", valor: "1 sábado" },
-  { rotulo: "Formato", valor: "Ativação pontual" },
+  { rotulo: "Duração", valor: "Um sábado do mês" },
+  { rotulo: "Formato", valor: "Somma Day" },
   { rotulo: "Objetivo", valor: "Testar presença da marca" },
   { rotulo: "Complexidade", valor: "Baixa" },
-  { rotulo: "Investimento Somma", valor: "R$ 35.000,00", apoio: "Menor · impostos inclusos" },
-  {
-    rotulo: "Opção mês",
-    valor: "4 sábados",
-    apoio: "R$ 80.000,00 · impostos inclusos",
-    destaque: true,
-  },
+  { rotulo: "Opção mês", valor: "4 semanas", destaque: true },
 ] as const;
 
 /** Destaque do Takeover: o mesmo formato esticado para um mês de ativação. */
 export const TAKEOVER_MES = {
   titulo: "Um mês de ativação, se a marca quiser",
   texto:
-    "O mesmo Somma Day Takeover pode virar um mês inteiro: quatro sábados seguidos, com desafios recorrentes, Ultra Pass, controle de frequência e conteúdo em todos os encontros.",
-  duracao: "4 sábados",
-  valor: "R$ 80.000,00",
-  nota: "Impostos inclusos",
+    "O mesmo Somma Day Takeover pode virar um mês inteiro: quatro semanas seguidas, com desafios recorrentes, Ultra Pass, controle de frequência, conteúdo em todos os encontros e um evento final aberto.",
+  duracao: "4 semanas",
 } as const;
 
 /* ── Slide 05 · Jornada do Takeover ──────────────────────────────────────── */
@@ -120,8 +112,11 @@ export const TAKEOVER_JORNADA = [
 
 export const TAKEOVER_SOMMA = [
   { frente: "Estratégia", entrega: "Conceito da ativação e planejamento" },
-  { frente: "Comunidade", entrega: "Divulgação para a base e mobilização" },
-  { frente: "Operação esportiva", entrega: "Percurso, professores, pacers e check-in" },
+  { frente: "Landing page", entrega: "Página do evento, inscrição e confirmação de presença" },
+  { frente: "Check-in", entrega: "QR Code na chegada e lista de presença em tempo real" },
+  { frente: "Comunidade", entrega: "Chamada do evento, divulgação para a base e mobilização" },
+  { frente: "Mídia e influenciadores", entrega: "Canais do Somma e perfis da nossa base" },
+  { frente: "Operação esportiva", entrega: "Percurso, professores, pacers e largada" },
   { frente: "Conteúdo", entrega: "Cobertura, fotos, vídeos e recap" },
   { frente: "Insiders", entrega: "Apoio na mobilização e presença no dia" },
   { frente: "Dados", entrega: "Relatório de presença e engajamento" },
@@ -142,15 +137,11 @@ export const TAKEOVER_MICHELOB = [
 /* ── Slide 08 · Opção 2 ──────────────────────────────────────────────────── */
 
 export const MES_BLOCOS = [
-  { rotulo: "Duração", valor: "4 sábados" },
+  { rotulo: "Duração", valor: "4 semanas" },
   { rotulo: "Formato", valor: "Mês de ativação" },
   { rotulo: "Objetivo", valor: "Criar frequência e vínculo" },
-  { rotulo: "Complexidade", valor: "Média" },
-  {
-    rotulo: "Investimento Somma",
-    valor: "R$ 80.000,00",
-    apoio: "Mês completo · impostos inclusos",
-  },
+  { rotulo: "Setup", valor: "Até 2 semanas" },
+  { rotulo: "Evento final", valor: "Domingo, aberto" },
   { rotulo: "Recomendação", valor: "Melhor custo-benefício", destaque: true },
 ] as const;
 
@@ -158,43 +149,60 @@ export const MES_BLOCOS = [
 
 export const MES_JORNADA = [
   {
-    sabado: "Sábado 1",
+    sabado: "Semana 1",
     ativacao: "Ultra Opening Run",
-    experiencia: "Lançamento da parceria, corrida temática, DJ, trial e brindes",
+    experiencia: "Sábado. Lançamento da parceria, corrida temática, DJ, trial e brindes",
   },
   {
-    sabado: "Sábado 2",
+    sabado: "Semana 2",
     ativacao: "Perfect Pace Challenge",
-    experiencia: "Vence quem termina mais próximo do tempo previsto",
+    experiencia: "Sábado. Vence quem termina mais próximo do tempo previsto",
   },
   {
-    sabado: "Sábado 3",
+    sabado: "Semana 3",
     ativacao: "Ultra Crew Relay",
-    experiencia: "Revezamento curto entre equipes, torcida e premiação",
+    experiencia: "Sábado. Revezamento curto entre equipes, torcida e premiação",
   },
   {
-    sabado: "Sábado 4",
+    sabado: "Semana 4",
     ativacao: "Somma Day x Michelob Ultra",
-    experiencia: "Maior ativação, DJ, trial, brindes, conteúdo e encerramento",
+    experiencia:
+      "Domingo, no Parque da Cidade, estacionamento 9. Evento final aberto, limitado a mil pessoas",
     marco: true,
+  },
+] as const;
+
+/** Condições operacionais do mês: prazo de setup e desenho do evento final. */
+export const MES_CONDICOES = [
+  {
+    icon: "escala" as IconName,
+    titulo: "Até 2 semanas de setup",
+    texto:
+      "Prazo para montar a campanha e alinhar tudo com a marca antes da primeira semana. Pode ser menos, mas duas semanas dão folga para aprovações, produção e divulgação.",
+  },
+  {
+    icon: "comunidade" as IconName,
+    titulo: "Evento final no Parque da Cidade",
+    texto:
+      "A quarta semana fecha em um domingo, no estacionamento 9 do Parque da Cidade, com o evento aberto ao público e limitado a mil pessoas.",
   },
 ] as const;
 
 /* ── Slide 10 · Ultra Pass ───────────────────────────────────────────────── */
 
 export const ULTRA_PASS = [
-  { frequencia: "1 sábado", beneficio: "Participação em sorteio ou brinde inicial" },
-  { frequencia: "2 sábados", beneficio: "Brinde intermediário" },
-  { frequencia: "3 sábados", beneficio: "Concorrência a prêmio especial" },
+  { frequencia: "1 semana", beneficio: "Participação em sorteio ou brinde inicial" },
+  { frequencia: "2 semanas", beneficio: "Brinde intermediário" },
+  { frequencia: "3 semanas", beneficio: "Concorrência a prêmio especial" },
   {
-    frequencia: "4 sábados",
-    beneficio: "Brinde premium ou experiência exclusiva no Somma Day",
+    frequencia: "4 semanas",
+    beneficio: "Brinde premium ou experiência exclusiva no evento final",
     marco: true,
   },
 ] as const;
 
 export const ULTRA_PASS_NOTA =
-  "A régua roda ao longo dos quatro sábados do mês de ativação, com a maior premiação no Somma Day de encerramento.";
+  "A régua roda ao longo das quatro semanas do mês de ativação, com a maior premiação no evento final de domingo.";
 
 /* ── Slide 11 · Desafios ─────────────────────────────────────────────────── */
 
@@ -235,19 +243,36 @@ export const CONVIVENCIA = [
 /* ── Slide 13 · Comparativo ──────────────────────────────────────────────── */
 
 export const COMPARATIVO = [
-  { criterio: "Duração", takeover: "1 sábado", mes: "4 sábados" },
+  { criterio: "Duração", takeover: "Um sábado do mês", mes: "4 semanas" },
   { criterio: "Objetivo", takeover: "Testar ativação", mes: "Criar recorrência" },
   { criterio: "Complexidade", takeover: "Baixa", mes: "Média" },
+  { criterio: "Setup até o evento", takeover: "Curto", mes: "Até 2 semanas" },
   { criterio: "Presença da marca", takeover: "Pontual", mes: "Recorrente" },
   { criterio: "Conteúdo", takeover: "1 cobertura", mes: "4 momentos de conteúdo" },
   { criterio: "Dados", takeover: "Check-in do dia", mes: "Frequência e evolução" },
   { criterio: "Brindes", takeover: "Entrega pontual", mes: "Entrega progressiva" },
+  {
+    criterio: "Evento final",
+    takeover: "O próprio Somma Day",
+    mes: "Domingo no Parque da Cidade, estacionamento 9, até mil pessoas",
+  },
   { criterio: "Melhor uso", takeover: "Entrada rápida", mes: "Melhor custo-benefício" },
   {
     criterio: "Investimento Somma",
-    takeover: "R$ 35.000,00",
-    mes: "R$ 80.000,00",
+    takeover: "R$ 15.000,00",
+    mes: "R$ 50.000,00",
     valor: true,
+  },
+  { criterio: "Impostos", takeover: "Inclusos", mes: "Inclusos" },
+  {
+    criterio: "Liberação da marca em espaço público",
+    takeover: "R$ 2.000,00 à parte, via despachante",
+    mes: "Incluso no investimento",
+  },
+  {
+    criterio: "Pagamento",
+    takeover: "A combinar no fechamento",
+    mes: "50% no fechamento do contrato e 50% até 15 dias após a última semana",
   },
 ] as const;
 
@@ -256,37 +281,37 @@ export const COMPARATIVO = [
 export const INVESTIMENTOS = [
   {
     nome: "Somma Day Takeover",
-    duracao: "1 sábado",
+    duracao: "Um sábado do mês",
     escopo:
-      "Estratégia da ativação, corrida temática, mobilização da comunidade, operação esportiva, professores e pacers, check-in por QR Code, 1 desafio esportivo, gestão dos insiders, comunicação com participantes, cobertura de conteúdo, integração com o toolkit Michelob e relatório final.",
-    valor: "R$ 35.000,00",
-    nota: "Impostos inclusos",
+      "Estratégia da ativação, landing page do evento, check-in por QR Code, chamada e divulgação nos canais do Somma, influenciadores da nossa base, corrida temática, mobilização da comunidade, operação esportiva, professores e pacers, 1 desafio esportivo, gestão dos insiders, cobertura de conteúdo, integração com o toolkit Michelob e relatório final.",
   },
   {
     nome: "Somma Day Takeover · Mês",
-    duracao: "4 sábados",
+    duracao: "4 semanas",
     escopo:
-      "Conceito e planejamento do mês, mobilização recorrente da comunidade, operação esportiva em 4 encontros, Ultra Opening Run, Perfect Pace Challenge, Ultra Crew Relay, Somma Day x Michelob, Ultra Pass, check-ins por QR Code, mecânica de frequência, gestão de insiders, comunicação e CRM, cobertura nos 4 encontros, dados de recorrência e relatório consolidado.",
-    valor: "R$ 80.000,00",
-    nota: "Impostos inclusos",
+      "Conceito e planejamento do mês, landing page e inscrição, check-ins por QR Code, chamada do evento, mídia nos canais do Somma e influenciadores da base, mobilização recorrente da comunidade, operação esportiva em 4 encontros, Ultra Opening Run, Perfect Pace Challenge, Ultra Crew Relay, Ultra Pass, mecânica de frequência, gestão de insiders, comunicação e CRM, cobertura nas 4 semanas, evento final de domingo no Parque da Cidade e relatório consolidado.",
     selo: "Recomendado",
     destaque: true,
   },
 ] as const;
 
 export const INVESTIMENTO_OBS =
-  "Os valores se referem às entregas do Somma. Toolkit, produto, DJ, brindes, transporte, montagem, equipe de trial, mídia e estruturas adicionais são responsabilidade da Michelob ou agência.";
+  "Os valores de cada formato estão na tabela comparativa. Toolkit, produto, DJ, brindes, transporte, montagem, equipe de trial, mídia paga e estruturas adicionais são responsabilidade da Michelob ou agência.";
 
 /* ── Slide 15 · O que está incluído no fee ───────────────────────────────── */
 
 export const ESCOPO_FEE = [
   { frente: "Estratégia e conceito", takeover: "Sim", mes: "Sim" },
   { frente: "Planejamento da campanha", takeover: "1 ativação", mes: "4 ativações" },
+  { frente: "Landing page do evento", takeover: "Sim", mes: "Sim" },
+  { frente: "Inscrição e confirmação de presença", takeover: "Sim", mes: "Sim" },
   { frente: "Mobilização da comunidade Somma", takeover: "Sim", mes: "Sim" },
-  { frente: "Divulgação nos canais Somma", takeover: "Sim", mes: "Sim" },
+  { frente: "Chamada e divulgação do evento", takeover: "Sim", mes: "Recorrente" },
+  { frente: "Mídia nos canais Somma", takeover: "Sim", mes: "Sim" },
+  { frente: "Influenciadores da base Somma", takeover: "Sim", mes: "Recorrente" },
   { frente: "Comunicação e CRM", takeover: "Básico", mes: "Recorrente" },
   { frente: "Corrida temática", takeover: "Sim", mes: "Sim" },
-  { frente: "Operação esportiva", takeover: "1 sábado", mes: "4 sábados" },
+  { frente: "Operação esportiva", takeover: "1 sábado", mes: "4 semanas" },
   { frente: "Professores e pacers Somma", takeover: "Sim", mes: "Sim" },
   { frente: "Check-in por QR Code", takeover: "Sim", mes: "Sim" },
   { frente: "Ultra Pass", takeover: "Não", mes: "Sim" },
@@ -301,6 +326,8 @@ export const ESCOPO_FEE = [
   { frente: "Dados de frequência", takeover: "Não", mes: "Sim" },
   { frente: "Relatório final", takeover: "Simples", mes: "Consolidado" },
   { frente: "Somma Day patrocinado", takeover: "Sim, se escolhido", mes: "1" },
+  { frente: "Evento final aberto ao público", takeover: "Não", mes: "Domingo, até mil pessoas" },
+  { frente: "Liberação da marca em espaço público", takeover: "À parte", mes: "Incluso" },
   { frente: "Possibilidade de evolução", takeover: "Baixa", mes: "Alta" },
 ] as const;
 

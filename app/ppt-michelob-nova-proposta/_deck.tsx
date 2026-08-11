@@ -16,6 +16,7 @@ import {
   INVESTIMENTO_OBS,
   MICHELOB_ESCOPO,
   MES_BLOCOS,
+  MES_CONDICOES,
   MES_JORNADA,
   TAKEOVER_BLOCOS,
   TAKEOVER_JORNADA,
@@ -359,14 +360,15 @@ export function Deck() {
             Somma Day <Accent>Takeover</Accent>
           </H2>
           <p className="a-up mt-4 font-display text-lg font-medium uppercase tracking-wide text-white/70 md:text-xl">
-            Uma ativação pontual em um sábado estratégico.
+            Um sábado do mês. Um Somma Day inteiro da marca.
           </p>
           <Lead>
-            A Michelob Ultra ocupa um Somma Day com corrida temática, presença visual da marca, DJ, trial,
-            brindes, desafios simples, conteúdo e relacionamento com a comunidade.
+            A Michelob Ultra ocupa um Somma Day com landing page e check-in próprios, chamada do evento,
+            corrida temática, presença visual da marca, DJ, trial, brindes, desafios simples, conteúdo e
+            relacionamento com a comunidade.
           </Lead>
 
-          <div className="mt-10 grid grid-cols-2 gap-3 lg:grid-cols-6">
+          <div className="mt-10 grid grid-cols-2 gap-3 lg:grid-cols-5">
             {TAKEOVER_BLOCOS.map((b) => (
               <Bloco
                 key={b.rotulo}
@@ -462,11 +464,12 @@ export function Deck() {
             Somma Day Takeover <Accent>· Mês</Accent>
           </H2>
           <p className="a-up mt-4 font-display text-lg font-medium uppercase tracking-wide text-white/70 md:text-xl">
-            Quatro sábados. Quatro experiências. Uma comunidade em movimento.
+            Quatro semanas. Quatro experiências. Um evento final aberto.
           </p>
           <Lead>
-            O mesmo Takeover esticado para um mês inteiro: quatro ativações seguidas nos sábados do
-            Somma, criando recorrência, conteúdo, relacionamento e maior presença da marca.
+            O mesmo Takeover esticado para um mês inteiro: quatro ativações seguidas, criando
+            recorrência, conteúdo e relacionamento, com fechamento em um evento de domingo no Parque da
+            Cidade.
           </Lead>
 
           <div className="mt-10 grid grid-cols-2 gap-3 lg:grid-cols-6">
@@ -489,12 +492,12 @@ export function Deck() {
         <div className="container-somma relative z-10">
           <Kicker>Jornada do mês de ativação</Kicker>
           <H2>
-            Quatro <Accent>sábados</Accent>
+            Quatro <Accent>semanas</Accent>
           </H2>
 
           <div className="mt-9">
             <DataTable
-              head={["Sábado", "Ativação", "Experiência"]}
+              head={["Semana", "Ativação", "Experiência"]}
               colW={["16%", "26%", "58%"]}
               accent={GOLD}
               rows={MES_JORNADA.map((r) => ({
@@ -508,6 +511,30 @@ export function Deck() {
                 marco: "marco" in r ? r.marco : false,
               }))}
             />
+          </div>
+
+          {/* Prazo de setup e desenho do evento final, que mudam o planejamento da marca. */}
+          <div className="mt-6 grid gap-3 sm:grid-cols-2">
+            {MES_CONDICOES.map((c) => (
+              <div
+                key={c.titulo}
+                className="a-up flex gap-3.5 rounded-2xl border border-white/10 bg-white/[0.03] p-4 sm:p-5"
+              >
+                <span
+                  data-node
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 bg-[#060B1C]"
+                  style={{ borderColor: GOLD, color: GOLD }}
+                >
+                  <Icon name={c.icon} className="h-4.5 w-4.5" />
+                </span>
+                <div>
+                  <h3 className="font-display text-base font-semibold uppercase leading-tight tracking-wide">
+                    {c.titulo}
+                  </h3>
+                  <p className="mt-1.5 text-[13px] leading-relaxed text-white/55">{c.texto}</p>
+                </div>
+              </div>
+            ))}
           </div>
 
           <Destaque>
@@ -623,7 +650,7 @@ export function Deck() {
       <Slide index={idx("comparativo")} name="comparativo" className="bg-[#080F26]">
         <Grid />
         <div className="container-somma relative z-10">
-          <Kicker>Comparativo dos formatos</Kicker>
+          <Kicker>Comparativo dos formatos e investimento</Kicker>
           <H2>
             Lado a <Accent>lado</Accent>
           </H2>
@@ -631,7 +658,7 @@ export function Deck() {
           <div className="mt-9">
             <DataTable
               head={["Critério", "Somma Day Takeover", "Somma Day Takeover · Mês"]}
-              colW={["24%", "34%", "42%"]}
+              colW={["22%", "33%", "45%"]}
               accent={GOLD}
               destaqueCol={2}
               rows={COMPARATIVO.map((r) =>
@@ -648,6 +675,11 @@ export function Deck() {
               )}
             />
           </div>
+
+          <Nota>
+            Esta é a única tela com valores. Os dois formatos já incluem impostos; a liberação da marca
+            em espaço público é cobrada à parte apenas no Somma Day Takeover.
+          </Nota>
         </div>
       </Slide>
 
@@ -655,12 +687,12 @@ export function Deck() {
       <Slide index={idx("investimentos")} name="investimentos">
         <BgPhoto name="marca" alt="Ativação de marca em um sábado do Somma Club" />
         <div className="container-somma relative z-10">
-          <Kicker>Investimentos</Kicker>
+          <Kicker>Formatos comerciais</Kicker>
           <H2>
-            Formatos <Accent>comerciais</Accent>
+            Dois caminhos de <Accent>entrada</Accent>
           </H2>
 
-          <div className="mt-9 grid grid-cols-1 gap-4 lg:grid-cols-3">
+          <div className="mt-9 grid grid-cols-1 gap-4 lg:grid-cols-2">
             {INVESTIMENTOS.map((i) => (
               <PrecoCard key={i.nome} {...i} />
             ))}
@@ -689,7 +721,7 @@ export function Deck() {
 
           <div className="mt-9">
             <DataTable
-              head={["Entregável", "Takeover R$ 35 mil", "Mês R$ 80 mil"]}
+              head={["Entregável", "Somma Day Takeover", "Takeover · Mês"]}
               colW={["40%", "30%", "30%"]}
               destaqueCol={2}
               rows={ESCOPO_FEE.map((r) => ({
@@ -755,13 +787,16 @@ export function Deck() {
             <div className="a-up rounded-3xl border border-white/10 bg-[#060B1C]/70 p-6 backdrop-blur-sm sm:p-8">
               <p className="text-[15px] leading-relaxed text-white/70">
                 Ele é mais acessível que a proposta original, mas mantém o que realmente cria valor:
-                recorrência, comunidade, conteúdo, dados e presença real da marca nos sábados do Somma.
+                recorrência, comunidade, conteúdo, dados e presença real da marca nos sábados do Somma —
+                com landing page, check-in, chamada do evento, mídia e influenciadores da nossa base em
+                todas as semanas.
               </p>
               <p
                 className="mt-7 border-l-2 pl-5 font-display text-xl font-medium uppercase leading-snug tracking-tight md:text-2xl"
                 style={{ borderColor: ORANGE }}
               >
-                Não é apenas aparecer em um treino. É ocupar quatro rituais da comunidade.
+                Não é apenas aparecer em um treino. É ocupar quatro semanas da comunidade e fechar com
+                um evento aberto.
               </p>
             </div>
           </div>
@@ -1117,15 +1152,9 @@ function MesCard() {
         <p className="mt-2.5 text-[13px] leading-relaxed text-white/60">{TAKEOVER_MES.texto}</p>
       </div>
 
-      <div className="shrink-0 sm:text-right">
-        <p className="font-mono text-[9px] uppercase tracking-[0.22em] text-white/35">
-          Investimento Somma
-        </p>
-        <p className="mt-1.5 font-display text-3xl font-bold leading-none tracking-tight sm:text-4xl">
-          {TAKEOVER_MES.valor}
-        </p>
-        <p className="mt-2 text-[11px] text-white/40">{TAKEOVER_MES.nota}</p>
-      </div>
+      <p className="shrink-0 font-mono text-[10px] uppercase leading-relaxed tracking-[0.22em] text-white/35 sm:max-w-[10rem] sm:text-right">
+        Opção 2 a seguir
+      </p>
     </div>
   );
 }
@@ -1135,16 +1164,12 @@ function PrecoCard({
   nome,
   duracao,
   escopo,
-  valor,
-  nota,
   selo,
   destaque,
 }: {
   nome: string;
   duracao: string;
   escopo: string;
-  valor: string;
-  nota: string;
   selo?: string;
   destaque?: boolean;
 }) {
@@ -1158,7 +1183,7 @@ function PrecoCard({
       }
     >
       {destaque && <Corners />}
-      {/* O selo fica no topo para que os valores dos três cartões alinhem na base. */}
+      {/* O selo fica no topo para que os títulos dos cartões alinhem na mesma linha. */}
       <div className="relative z-10 flex min-h-[26px] items-start justify-end">
         {selo && (destaque ? <Selo>{selo}</Selo> : <SeloNeutro>{selo}</SeloNeutro>)}
       </div>
@@ -1175,12 +1200,11 @@ function PrecoCard({
 
       <p className="relative z-10 mt-5 text-[13px] leading-relaxed text-white/55">{escopo}</p>
 
+      {/* Os valores ficam só na tabela comparativa, para a conversa aqui ser de escopo. */}
       <div className="relative z-10 mt-auto pt-7">
-        <p className="font-mono text-[9px] uppercase tracking-[0.22em] text-white/35">Investimento Somma</p>
-        <p className="mt-1.5 font-display text-3xl font-bold leading-none tracking-tight sm:text-4xl">
-          {valor}
+        <p className="font-mono text-[9px] uppercase tracking-[0.22em] text-white/35">
+          Investimento na tabela comparativa
         </p>
-        <p className="mt-2 text-[11px] text-white/40">{nota}</p>
       </div>
     </div>
   );
