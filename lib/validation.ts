@@ -84,6 +84,121 @@ export const partnerSchema = z
 
 export type PartnerInput = z.infer<typeof partnerSchema>;
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Candidatura a vaga (/trabalhe-conosco-vagas) → tabela `candidatos_vagas`
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const SEMESTRES = [
+  "1º semestre",
+  "2º semestre",
+  "3º semestre",
+  "4º semestre",
+  "5º semestre",
+  "6º semestre",
+  "7º semestre",
+  "8º semestre",
+  "9º semestre",
+  "10º semestre",
+] as const;
+
+// Limites do currículo. Compartilhados: o client barra antes de subir e a rota
+// revalida — o check do client é conveniência, não segurança.
+export const CURRICULO_MAX_BYTES = 5 * 1024 * 1024;
+export const CURRICULO_MIME_TYPES = [
+  "application/pdf",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+] as const;
+export const CURRICULO_ACCEPT = ".pdf,.doc,.docx";
+
+export const vagaCandidaturaSchema = z.object({
+  vaga_slug: z.string().trim().min(1, "Vaga inválida.").max(80),
+  vaga_titulo: z.string().trim().min(1, "Vaga inválida.").max(160),
+  nome: z.string().trim().min(3, "Informe seu nome completo.").max(120, "Nome muito longo."),
+  email: z.string().trim().toLowerCase().email("E-mail inválido."),
+  telefone: z
+    .string()
+    .trim()
+    .refine((v) => v.replace(/\D/g, "").length >= 10, "Telefone inválido."),
+  data_nascimento: z
+    .string()
+    .trim()
+    .refine((v) => isValidBirthDate(v), "Data de nascimento inválida.")
+    // Estágio exige vínculo com instituição de ensino superior; abaixo de 16 o
+    // cadastro seria de menor aprendiz, que não é o caso desta vaga.
+    .refine((v) => isAtLeastYearsOld(v, 16), "É preciso ter ao menos 16 anos."),
+  cep: z
+    .string()
+    .trim()
+    .refine((v) => v.replace(/\D/g, "").length === 8, "CEP inválido."),
+  // Preenchidos pela BrasilAPI. Opcionais de propósito: se a API estiver fora,
+  // o candidato ainda consegue enviar a candidatura.
+  logradouro: z.string().trim().max(200).optional().or(z.literal("")),
+  bairro: z.string().trim().max(120).optional().or(z.literal("")),
+  cidade: z.string().trim().max(120).optional().or(z.literal("")),
+  estado: z.string().trim().max(2).optional().or(z.literal("")),
+  complemento: z.string().trim().max(160, "Complemento muito longo.").optional().or(z.literal("")),
+  instituicao: z
+    .string()
+    .trim()
+    .min(2, "Informe a faculdade ou instituição.")
+    .max(160, "Nome da instituição muito longo."),
+  semestre: z.enum(SEMESTRES, { message: "Selecione o semestre." }),
+  consent_lgpd: z.literal(true, {
+    message: "É preciso autorizar o uso dos seus dados para o processo seletivo.",
+  }),
+  // Honeypot anti-spam. Aceita qualquer valor aqui de propósito: quem decide é a
+  // rota, que responde 200 silenciosamente quando vem preenchido.
+  website: z.string().optional(),
+});
+
+export type VagaCandidaturaInput = z.infer<typeof vagaCandidaturaSchema>;
+
+// Idade mínima a partir de DD/MM/AAAA.
+export function isAtLeastYearsOld(value: string, years: number): boolean {
+  const iso = brDateToISO(value);
+  if (!iso) return false;
+  const birth = new Date(`${iso}T00:00:00`);
+  const limite = new Date();
+  limite.setFullYear(limite.getFullYear() - years);
+  return birth <= limite;
+}
+
+// Valida o arquivo do currículo. Retorna a mensagem de erro ou null.
+export function validateCurriculo(file: File | null): string | null {
+  if (!file || file.size === 0) return "Anexe seu currículo em PDF, DOC ou DOCX.";
+  if (file.size > CURRICULO_MAX_BYTES) return "O currículo deve ter no máximo 5MB.";
+
+  const mimeOk = (CURRICULO_MIME_TYPES as readonly string[]).includes(file.type);
+  // Alguns navegadores/SOs entregam type vazio; nesse caso caímos na extensão.
+  const extOk = /\.(pdf|doc|docx)$/i.test(file.name);
+  if (!mimeOk && !extOk) return "Formato não aceito. Envie PDF, DOC ou DOCX.";
+
+  return null;
+}
+
+// Marcas de acento que sobram após normalize("NFD"). Construído por escape para
+// não depender de caracteres invisíveis no código-fonte.
+const COMBINING_MARKS = new RegExp("[\\u0300-\\u036f]", "g");
+
+// Nome de arquivo seguro para o Storage: sem acento, espaço ou caractere solto.
+export function slugifyFileName(name: string): string {
+  const dot = name.lastIndexOf(".");
+  const base = dot > 0 ? name.slice(0, dot) : name;
+  const ext = dot > 0 ? name.slice(dot + 1).toLowerCase() : "pdf";
+
+  const safeBase =
+    base
+      .normalize("NFD")
+      .replace(COMBINING_MARKS, "")
+      .replace(/[^a-zA-Z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 60)
+      .toLowerCase() || "curriculo";
+
+  return `${safeBase}.${ext.replace(/[^a-z0-9]/g, "") || "pdf"}`;
+}
+
 // Máscara e validação de CPF (frontend + backend)
 export function maskCpf(value: string): string {
   const d = value.replace(/\D/g, "").slice(0, 11);
