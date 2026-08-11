@@ -21,7 +21,7 @@ import {
   MES_JORNADA,
   TAKEOVER_BLOCOS,
   TAKEOVER_JORNADA,
-  TAKEOVER_MES,
+  TAKEOVER_PONTE,
   TAKEOVER_MICHELOB,
   TAKEOVER_SOMMA,
   TOOLKIT,
@@ -36,6 +36,12 @@ const IMG = "/michelob";
 const NAVY = "#283280";
 const RED = "#D22030";
 const GOLD = "#C6A664";
+/**
+ * Azul Michelob clareado. O navy da marca não tem contraste sobre o fundo
+ * escuro do deck, então tudo que é recomendado usa este tom — e o vermelho
+ * fica só nos detalhes (cantos, marcadores, marcos de tabela).
+ */
+const BLUE = "#7A88F0";
 /** Laranja Somma — só em acentos pontuais. */
 const ORANGE = "#FF2C03";
 
@@ -366,19 +372,15 @@ export function Deck() {
             relacionamento com a comunidade.
           </Lead>
 
-          <div className="mt-10 grid grid-cols-2 gap-3 lg:grid-cols-5">
+          <div className="mt-10 grid grid-cols-2 gap-3 lg:grid-cols-4">
             {TAKEOVER_BLOCOS.map((b) => (
-              <Bloco
-                key={b.rotulo}
-                rotulo={b.rotulo}
-                valor={b.valor}
-                destaque={"destaque" in b ? b.destaque : false}
-              />
+              <Bloco key={b.rotulo} rotulo={b.rotulo} valor={b.valor} />
             ))}
           </div>
 
-          {/* O Takeover pode virar um mês inteiro de ativação, se a marca quiser. */}
-          <MesCard />
+          {/* Aviso curto de que existe um formato de mês. O conteúdo dele fica
+              na Opção 2, para esta tela falar de uma ativação só. */}
+          <PonteOpcao />
         </div>
       </Slide>
 
@@ -817,7 +819,7 @@ export function Deck() {
           <div className="mt-9 grid gap-5 lg:grid-cols-[1.1fr_1fr]">
             <div
               className="a-up relative overflow-hidden rounded-3xl border p-6 sm:p-9"
-              style={{ borderColor: `${RED}59`, backgroundColor: `${RED}0F` }}
+              style={{ borderColor: `${BLUE}59`, backgroundColor: `${BLUE}0F` }}
             >
               <Corners />
               <p className="font-display text-xs font-semibold uppercase tracking-[0.3em] text-white/55">
@@ -826,7 +828,7 @@ export function Deck() {
               <p className="mt-3 font-display text-3xl font-bold uppercase leading-[0.95] tracking-tight sm:text-4xl md:text-5xl">
                 Somma Day Takeover
                 <br />
-                <span style={{ color: RED }}>Mês de ativação</span>
+                <span style={{ color: BLUE }}>Mês de ativação</span>
               </p>
               <div className="mt-6">
                 <Selo>Recomendado</Selo>
@@ -995,7 +997,7 @@ function Corners() {
 
 /** Numeral grande das opções 01 e 02. */
 function OpcaoTag({ n, destaque }: { n: string; destaque?: boolean }) {
-  const cor = destaque ? RED : GOLD;
+  const cor = destaque ? BLUE : GOLD;
   return (
     <span
       className="a-up flex h-9 items-center rounded-lg border px-3 font-display text-sm font-bold tracking-[0.2em]"
@@ -1006,11 +1008,12 @@ function OpcaoTag({ n, destaque }: { n: string; destaque?: boolean }) {
   );
 }
 
+/** Selo do formato recomendado: azul Michelob, com o ponto vermelho de detalhe. */
 function Selo({ children }: { children: React.ReactNode }) {
   return (
     <span
       className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 font-display text-[11px] font-bold uppercase tracking-[0.2em]"
-      style={{ backgroundColor: `${RED}1F`, color: RED }}
+      style={{ backgroundColor: `${BLUE}1F`, color: BLUE }}
     >
       <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: RED }} aria-hidden />
       {children}
@@ -1113,14 +1116,14 @@ function Bloco({
   destaque?: boolean;
 }) {
   // O bloco de investimento é o único que carrega uma linha de apoio, e ganha
-  // moldura dourada para o número saltar sem competir com o selo vermelho.
+  // moldura dourada para o número saltar sem competir com o bloco recomendado.
   const realce = Boolean(apoio);
   return (
     <div
       className="a-up rounded-2xl border p-4 backdrop-blur-sm sm:p-5"
       style={
         destaque
-          ? { borderColor: `${RED}59`, backgroundColor: `${RED}12` }
+          ? { borderColor: `${BLUE}59`, backgroundColor: `${BLUE}12` }
           : realce
             ? { borderColor: `${GOLD}59`, backgroundColor: `${GOLD}0F` }
             : { borderColor: "rgba(255,255,255,0.1)", backgroundColor: "rgba(255,255,255,0.03)" }
@@ -1128,7 +1131,7 @@ function Bloco({
     >
       <p
         className="font-mono text-[9px] uppercase tracking-[0.22em]"
-        style={{ color: destaque ? RED : realce ? GOLD : "rgba(255,255,255,0.35)" }}
+        style={{ color: destaque ? BLUE : realce ? GOLD : "rgba(255,255,255,0.35)" }}
       >
         {rotulo}
       </p>
@@ -1279,31 +1282,16 @@ function ToolkitCard({ icon, nome, foto }: { icon: IconName; nome: string; foto?
 }
 
 /**
- * Destaque do Takeover esticado para um mês. Fica logo abaixo dos blocos da
- * Opção 1 para que o upgrade apareça junto do valor de entrada.
+ * Faixa fina no rodapé da Opção 1: avisa que o formato de mês existe sem
+ * abrir conteúdo dele, para a tela continuar falando de uma ativação só.
  */
-function MesCard() {
+function PonteOpcao() {
   return (
-    <div
-      className="a-up mt-5 flex flex-col gap-4 rounded-3xl border p-5 backdrop-blur-sm sm:flex-row sm:items-center sm:justify-between sm:p-7"
-      style={{ borderColor: `${RED}59`, backgroundColor: `${RED}12` }}
-    >
-      <div className="max-w-2xl">
-        <div className="flex items-center gap-2.5">
-          <RibbonMark />
-          <p className="font-mono text-[10px] uppercase tracking-[0.25em]" style={{ color: RED }}>
-            {TAKEOVER_MES.duracao}
-          </p>
-        </div>
-        <h3 className="mt-2.5 font-display text-xl font-semibold uppercase leading-tight tracking-tight sm:text-2xl">
-          {TAKEOVER_MES.titulo}
-        </h3>
-        <p className="mt-2.5 text-[13px] leading-relaxed text-white/60">{TAKEOVER_MES.texto}</p>
-      </div>
-
-      <p className="shrink-0 font-mono text-[10px] uppercase leading-relaxed tracking-[0.22em] text-white/35 sm:max-w-[10rem] sm:text-right">
-        Opção 2 a seguir
+    <div className="a-up mt-5 flex flex-col gap-1.5 border-l-2 py-1 pl-4 sm:flex-row sm:items-center sm:gap-4" style={{ borderColor: `${BLUE}66` }}>
+      <p className="shrink-0 font-mono text-[10px] uppercase tracking-[0.25em]" style={{ color: BLUE }}>
+        {TAKEOVER_PONTE.rotulo}
       </p>
+      <p className="text-[13px] leading-relaxed text-white/55">{TAKEOVER_PONTE.texto}</p>
     </div>
   );
 }
@@ -1327,7 +1315,7 @@ function PrecoCard({
       className="a-up relative flex flex-col overflow-hidden rounded-3xl border p-6 backdrop-blur-sm sm:p-7"
       style={
         destaque
-          ? { borderColor: `${RED}59`, backgroundColor: `${RED}12` }
+          ? { borderColor: `${BLUE}59`, backgroundColor: `${BLUE}12` }
           : { borderColor: "rgba(255,255,255,0.1)", backgroundColor: "rgba(255,255,255,0.03)" }
       }
     >
@@ -1342,7 +1330,7 @@ function PrecoCard({
       </h3>
       <p
         className="relative z-10 mt-1.5 font-mono text-[10px] uppercase tracking-[0.25em]"
-        style={{ color: destaque ? RED : GOLD }}
+        style={{ color: destaque ? BLUE : GOLD }}
       >
         {duracao}
       </p>
@@ -1496,8 +1484,8 @@ function DataTable({
                 className="px-4 py-3.5 font-display text-[10px] font-semibold uppercase tracking-[0.2em] sm:px-6 sm:py-4 sm:text-xs sm:tracking-[0.25em]"
                 style={{
                   width: colW ? colW[i] : undefined,
-                  color: i === destaqueCol ? RED : "rgba(255,255,255,0.4)",
-                  backgroundColor: i === destaqueCol ? `${RED}0D` : undefined,
+                  color: i === destaqueCol ? BLUE : "rgba(255,255,255,0.4)",
+                  backgroundColor: i === destaqueCol ? `${BLUE}12` : undefined,
                 }}
               >
                 {h}
@@ -1518,7 +1506,7 @@ function DataTable({
                   }
                   style={{
                     color: ci === 0 ? (r.marco ? RED : accent) : undefined,
-                    backgroundColor: ci === destaqueCol ? `${RED}0D` : undefined,
+                    backgroundColor: ci === destaqueCol ? `${BLUE}0D` : undefined,
                   }}
                 >
                   {cell}
@@ -1529,28 +1517,55 @@ function DataTable({
         </tbody>
       </table>
 
-      {/* mobile: cada linha vira card */}
+      {/* mobile: cada linha vira card. Com duas ou mais colunas de valor, os
+          rótulos têm larguras diferentes e, lado a lado, desalinhavam o texto —
+          então cada valor vira um bloco com o rótulo em cima. */}
       <ul className="divide-y divide-white/[0.07] md:hidden">
-        {rows.map((r, ri) => (
-          <li key={ri} className="p-4">
-            <p
-              className="font-display text-base font-semibold uppercase leading-tight tracking-wide"
-              style={{ color: r.marco ? RED : accent }}
-            >
-              {r.cells[0]}
-            </p>
-            <dl className="mt-2 space-y-1.5">
-              {r.cells.slice(1).map((cell, ci) => (
-                <div key={ci} className="grid grid-cols-[auto_1fr] gap-x-3">
-                  <dt className="font-mono text-[9px] uppercase tracking-[0.16em] text-white/35">
-                    {head[ci + 1]}
-                  </dt>
-                  <dd className="text-[13px] leading-snug text-white/70">{cell}</dd>
-                </div>
-              ))}
-            </dl>
-          </li>
-        ))}
+        {rows.map((r, ri) => {
+          const valores = r.cells.slice(1);
+          const empilhado = valores.length > 1;
+          return (
+            <li key={ri} className="p-4">
+              <p
+                className="font-display text-base font-semibold uppercase leading-tight tracking-wide"
+                style={{ color: r.marco ? RED : accent }}
+              >
+                {r.cells[0]}
+              </p>
+              <dl className={empilhado ? "mt-3 space-y-2" : "mt-2 space-y-1.5"}>
+                {valores.map((cell, ci) => {
+                  const alvo = ci + 1 === destaqueCol;
+                  return empilhado ? (
+                    <div
+                      key={ci}
+                      className="rounded-xl border px-3 py-2.5"
+                      style={
+                        alvo
+                          ? { borderColor: `${BLUE}45`, backgroundColor: `${BLUE}12` }
+                          : { borderColor: "rgba(255,255,255,0.08)" }
+                      }
+                    >
+                      <dt
+                        className="font-mono text-[9px] uppercase tracking-[0.16em]"
+                        style={{ color: alvo ? BLUE : "rgba(255,255,255,0.35)" }}
+                      >
+                        {head[ci + 1]}
+                      </dt>
+                      <dd className="mt-1.5 text-[13px] leading-snug text-white/75">{cell}</dd>
+                    </div>
+                  ) : (
+                    <div key={ci} className="grid grid-cols-[auto_1fr] gap-x-3">
+                      <dt className="font-mono text-[9px] uppercase tracking-[0.16em] text-white/35">
+                        {head[ci + 1]}
+                      </dt>
+                      <dd className="text-[13px] leading-snug text-white/70">{cell}</dd>
+                    </div>
+                  );
+                })}
+              </dl>
+            </li>
+          );
+        })}
       </ul>
     </div>
   );

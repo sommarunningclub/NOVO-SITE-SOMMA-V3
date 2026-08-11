@@ -55,15 +55,15 @@ export const TAKEOVER_BLOCOS = [
   { rotulo: "Formato", valor: "Somma Day" },
   { rotulo: "Objetivo", valor: "Testar presença da marca" },
   { rotulo: "Complexidade", valor: "Baixa" },
-  { rotulo: "Opção mês", valor: "4 semanas", destaque: true },
 ] as const;
 
-/** Destaque do Takeover: o mesmo formato esticado para um mês de ativação. */
-export const TAKEOVER_MES = {
-  titulo: "Um mês de ativação, se a marca quiser",
-  texto:
-    "O mesmo Somma Day Takeover pode virar um mês inteiro: quatro semanas seguidas, com desafios recorrentes, Ultra Pass, controle de frequência, conteúdo em todos os encontros e um evento final aberto.",
-  duracao: "4 semanas",
+/**
+ * Ponte para a Opção 2. Fica só como aviso de que existe um formato maior a
+ * seguir: o mês inteiro é apresentado nos slides da Opção 2, não aqui.
+ */
+export const TAKEOVER_PONTE = {
+  rotulo: "Opção 2 · a seguir",
+  texto: "O mesmo formato também pode ser contratado por quatro semanas seguidas.",
 } as const;
 
 /* ── Slide 05 · Jornada do Takeover ──────────────────────────────────────── */
