@@ -7,8 +7,8 @@ import { UltraPassSim } from "../_ultra-pass-sim";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Simulação do Ultra Pass | Somma Club × Michelob Ultra",
-  description: "Demonstração da mecânica do Ultra Pass proposta para o mês de ativação.",
+  title: "Simulação do Ultra Pass Pocket | Somma Club × Michelob Ultra",
+  description: "Demonstração da mecânica do Ultra Pass Pocket proposta para as duas datas.",
   robots: { index: false, follow: false },
 };
 

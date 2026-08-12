@@ -9,9 +9,9 @@ const display = Barlow_Condensed({
 });
 
 export const metadata: Metadata = {
-  title: "Somma Club x Michelob Ultra · Formatos de ativação",
+  title: "Somma Club x Michelob Ultra · Dois Somma Days",
   description:
-    "Dois formatos de entrada nos sábados do Somma: o Somma Day Takeover em um sábado e o mês de ativação, com escopo, responsabilidades e investimento.",
+    "Proposta de ativação em duas datas, 29 de agosto e 26 de setembro, com escopo, responsabilidades, prazos e investimento.",
   // Material comercial: só por link, fora do Google.
   robots: { index: false, follow: false },
   alternates: { canonical: "https://sommaclub.com.br/ppt-michelob-nova-proposta" },
