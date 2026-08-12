@@ -12,8 +12,8 @@ import {
   CAPITULO_1,
   CAPITULO_2,
   CONDICAO,
+  CONDICAO_APARTE,
   CONDICAO_INCLUSO,
-  CONDICAO_MICHELOB,
   CONTEXTO_CARDS,
   CONVIVENCIA,
   ENTREGAS_SOMMA,
@@ -678,10 +678,10 @@ export function Deck() {
                 </ul>
               </div>
 
-              {CONDICAO_MICHELOB.map((c) => (
+              {CONDICAO_APARTE.map((c) => (
                 <div
                   key={c.titulo}
-                  className="a-up flex flex-1 gap-3.5 rounded-3xl border border-white/10 bg-white/[0.03] p-5 sm:p-6"
+                  className="a-up flex gap-3.5 rounded-3xl border border-white/10 bg-white/[0.03] p-5 sm:p-6"
                 >
                   <span
                     data-node
@@ -691,10 +691,7 @@ export function Deck() {
                     <Icon name={c.icon} className="h-4 w-4" />
                   </span>
                   <div>
-                    <p className="font-mono text-[9px] uppercase tracking-[0.22em]" style={{ color: RED }}>
-                      Fica com a marca
-                    </p>
-                    <h3 className="mt-1.5 font-display text-base font-semibold uppercase leading-tight tracking-wide">
+                    <h3 className="font-display text-base font-semibold uppercase leading-tight tracking-wide">
                       {c.titulo}
                     </h3>
                     <p className="mt-1.5 text-[12.5px] leading-relaxed text-white/55">{c.texto}</p>

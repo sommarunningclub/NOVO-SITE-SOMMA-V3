@@ -272,14 +272,18 @@ export const CONDICAO = {
 export const CONDICAO_INCLUSO = [
   "Escopo completo do Somma nas duas datas",
   "Impostos",
-  "Liberação da marca em espaço público",
   "Landing page única da temporada",
   "Ultra Pass Pocket e check-in por QR Code",
   "Relatório consolidado das duas datas",
 ] as const;
 
-/** O que continua com a marca. A liberação saiu daqui: quem arca é o Somma. */
-export const CONDICAO_MICHELOB = [
+export const CONDICAO_APARTE = [
+  {
+    icon: "escala" as IconName,
+    titulo: "Liberação da marca em espaço público",
+    texto:
+      "R$ 2.500 por data, via despachante, cobrado à parte. São R$ 5.000 pelas duas datas, e a entrada precisa ser feita logo após o aceite: o prazo do órgão é curto e é ele que define se o dia 29 acontece.",
+  },
   {
     icon: "tenda" as IconName,
     titulo: "Toolkit, produto, DJ e brindes",
@@ -301,8 +305,7 @@ export const PRAZOS = [
     n: "02",
     data: "Logo após o aceite",
     titulo: "Entrada da liberação",
-    texto:
-      "O Somma dá entrada no despachante para as duas datas, e o prazo do órgão é o mais lento da operação.",
+    texto: "Processo no despachante para as duas datas, por causa do prazo do órgão.",
   },
   {
     n: "03",
@@ -344,7 +347,7 @@ export const ESCOPO_FEE = [
   { frente: "Relatório", capitulos: "Consolidado das 2 datas", mes: "Consolidado do mês" },
   { frente: "Somma Day patrocinado", capitulos: "2", mes: "1" },
   { frente: "Evento final aberto ao público", capitulos: "Não", mes: "Domingo, até mil pessoas" },
-  { frente: "Liberação em espaço público", capitulos: "Incluso", mes: "Incluso" },
+  { frente: "Liberação em espaço público", capitulos: "À parte", mes: "Incluso" },
 ] as const;
 
 /* ── Slide 13 · Evolução: o mês de ativação ──────────────────────────────── */
