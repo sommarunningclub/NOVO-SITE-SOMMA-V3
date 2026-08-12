@@ -462,17 +462,32 @@ export function Deck() {
       <Slide index={idx("pass-pocket")} name="pass-pocket">
         <BgPhoto name="digital" alt="Corredora usando o celular depois do treino" />
         <div className="container-somma relative z-10">
-          <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex flex-wrap items-center justify-between gap-5">
             <Kicker>Ultra Pass Pocket</Kicker>
-            {/* Simulação clicável, para abrir na reunião. */}
+            {/* Simulação clicável: é o que abre na reunião, então o botão pulsa
+                para ninguém passar do slide sem ver que dá para clicar. */}
             <a
               href="/ppt-michelob-nova-proposta/ultra-pass"
               target="_blank"
               rel="noopener noreferrer"
-              className="rounded-full border px-4 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-white/70 transition-colors hover:text-white"
-              style={{ borderColor: `${RED}59` }}
+              className="ppt-cta ppt-cta-glow group inline-flex items-center gap-3 rounded-full px-6 py-3.5 font-display text-sm font-bold uppercase tracking-[0.18em] text-white hover:opacity-95 sm:px-8 sm:py-4 sm:text-base"
+              style={{ backgroundColor: RED }}
             >
-              Abrir simulação →
+              <span
+                className="flex h-6 w-6 items-center justify-center rounded-full bg-white/20"
+                aria-hidden
+              >
+                <svg width="10" height="12" viewBox="0 0 10 12" fill="currentColor">
+                  <path d="M0 0v12l10-6z" />
+                </svg>
+              </span>
+              Abrir simulação
+              <span
+                className="transition-transform duration-300 group-hover:translate-x-1"
+                aria-hidden
+              >
+                →
+              </span>
             </a>
           </div>
           <H2 className="max-w-3xl">

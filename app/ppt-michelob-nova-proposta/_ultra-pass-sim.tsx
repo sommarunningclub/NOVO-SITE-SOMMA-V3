@@ -81,10 +81,11 @@ export function UltraPassSim() {
           </div>
           <Link
             href="/ppt-michelob-nova-proposta"
-            className="rounded-full border px-4 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-white/70 transition-colors hover:text-white"
-            style={{ borderColor: `${GOLD}59` }}
+            className="inline-flex items-center gap-2.5 rounded-full px-6 py-3.5 font-display text-sm font-bold uppercase tracking-[0.15em] text-white transition-opacity hover:opacity-90"
+            style={{ backgroundColor: RED }}
           >
-            ← Voltar à proposta
+            <span aria-hidden>←</span>
+            Voltar à apresentação
           </Link>
         </header>
 
@@ -357,6 +358,16 @@ export function UltraPassSim() {
           </div>
         </div>
       </div>
+      {/* Volta sempre à mão: no celular e depois de rolar a página, o botão do
+          cabeçalho sai da tela. */}
+      <Link
+        href="/ppt-michelob-nova-proposta"
+        className="fixed bottom-5 right-5 z-50 inline-flex items-center gap-2 rounded-full border px-5 py-3 font-display text-xs font-bold uppercase tracking-[0.15em] text-white shadow-2xl backdrop-blur-md transition-colors hover:bg-[#0B1230] sm:bottom-7 sm:right-7"
+        style={{ borderColor: `${GOLD}66`, backgroundColor: "rgba(6,11,28,0.9)" }}
+      >
+        <span aria-hidden>←</span>
+        Voltar à apresentação
+      </Link>
     </main>
   );
 }
