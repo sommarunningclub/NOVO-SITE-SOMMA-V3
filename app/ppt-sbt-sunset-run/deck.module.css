@@ -1,0 +1,653 @@
+/* =========================================================================
+   SBT SUNSET RUN × SOMMA CLUB — sistema visual da apresentação
+   Tokens, tipografia, camadas de profundidade e primitivas de motion.
+   ========================================================================= */
+
+.deck {
+  /* --- superfícies --- */
+  --ink: #04081a;
+  --ink-2: #061031;
+  --ink-3: #081a4d;
+  --navy: #0a2166;
+
+  /* --- azuis SBT Sunset Run --- */
+  --blue: #1466e0;
+  --blue-el: #3b8cff;
+  --cyan: #55daff;
+
+  /* --- passagem sunset --- */
+  --violet: #7a3be0;
+  --sunset: #ff6a2b;
+
+  /* --- energia Somma --- */
+  --somma: #ff2c04;
+
+  /* --- texto --- */
+  --paper: #ffffff;
+  --dim: rgba(255, 255, 255, 0.58);
+  --dim-2: rgba(255, 255, 255, 0.38);
+  --faint: rgba(255, 255, 255, 0.14);
+  --hair: rgba(255, 255, 255, 0.1);
+
+  /* --- ritmo ---
+     o container para em 1400px para deixar a faixa direita livre: é por ela
+     que o indicador da jornada corre sem sobrepor o texto */
+  --gut: clamp(1.25rem, 4vw, 3.5rem);
+  --maxw: 1400px;
+
+  position: relative;
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--f-text), ui-sans-serif, system-ui, sans-serif;
+  font-synthesis-weight: none;
+  overflow-x: clip;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------------------------------------------------------------- tipografia */
+
+.display,
+.h1,
+.h2,
+.h3 {
+  font-family: var(--f-display), ui-sans-serif, system-ui, sans-serif;
+  font-weight: 800;
+  text-transform: uppercase;
+  line-height: 0.84;
+  letter-spacing: -0.028em;
+  /* eixo de largura da Archivo: headline expandida, presença de brand esportiva */
+  font-variation-settings: "wdth" 112;
+  text-wrap: balance;
+  margin: 0;
+}
+
+/* calibrado para "SBT SUNSET RUN" ocupar a largura do container sem estourar */
+.h1 {
+  font-size: clamp(2.75rem, 8.7vw, 8.75rem);
+}
+.h2 {
+  font-size: clamp(2rem, 4.8vw, 4.9rem);
+  line-height: 0.88;
+}
+.h3 {
+  font-size: clamp(1.45rem, 2.7vw, 2.4rem);
+  line-height: 0.92;
+  letter-spacing: -0.02em;
+  font-variation-settings: "wdth" 100;
+}
+
+/* headline com respiro — usada quando o bloco precisa de mais ar que impacto */
+.h2Soft {
+  font-variation-settings: "wdth" 100;
+  font-weight: 700;
+  letter-spacing: -0.024em;
+}
+
+.eyebrow {
+  font-family: var(--f-mono), ui-monospace, monospace;
+  font-size: clamp(0.625rem, 0.86vw, 0.75rem);
+  font-weight: 500;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: var(--dim-2);
+  margin: 0;
+}
+
+.lead {
+  font-size: clamp(1.0625rem, 1.65vw, 1.5rem);
+  line-height: 1.42;
+  letter-spacing: -0.012em;
+  color: var(--dim);
+  font-weight: 300;
+  text-wrap: pretty;
+  margin: 0;
+}
+
+.body {
+  font-size: clamp(0.9375rem, 1.05vw, 1.0625rem);
+  line-height: 1.6;
+  color: var(--dim);
+  font-weight: 300;
+  text-wrap: pretty;
+  margin: 0;
+}
+
+.mono {
+  font-family: var(--f-mono), ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+.num {
+  font-family: var(--f-display), sans-serif;
+  font-weight: 800;
+  font-variation-settings: "wdth" 100;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.04em;
+  line-height: 0.82;
+}
+
+/* ---------------------------------------------------------------- layout */
+
+.shell {
+  position: relative;
+  width: 100%;
+  max-width: var(--maxw);
+  margin-inline: auto;
+  padding-inline: var(--gut);
+}
+
+.section {
+  position: relative;
+  isolation: isolate;
+}
+
+/* filete horizontal fino — a "linha de largada" recorrente */
+.rule {
+  height: 1px;
+  width: 100%;
+  background: var(--hair);
+  transform-origin: left center;
+}
+
+.ruleHot {
+  background: linear-gradient(90deg, var(--somma), rgba(255, 44, 4, 0));
+}
+
+/* ---------------------------------------------------------------- reveal de texto */
+
+/* wrapper por palavra: a máscara corta a palavra que sobe */
+.rw {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: bottom;
+  /* o padding evita corte de descendentes (g, p, y) durante o clip */
+  padding-bottom: 0.12em;
+  margin-bottom: -0.12em;
+}
+
+.rwIn {
+  display: inline-block;
+  will-change: transform;
+}
+
+/* estado inicial só quando o JS assume o controle */
+.deck[data-motion="on"] .rwIn {
+  transform: translate3d(0, 106%, 0);
+}
+
+/* ---------------------------------------------------------------- estados iniciais
+   Todos os "escondidos antes de animar" moram aqui, condicionados ao
+   data-motion. Sem motion (leitor com prefers-reduced-motion, JS desligado) o
+   atributo nunca é escrito e o conteúdo nasce visível — em vez de ficar
+   invisível para sempre esperando uma animação que não vai rodar. */
+
+.deck[data-motion="on"] .mHide {
+  opacity: 0;
+}
+.deck[data-motion="on"] .mDim {
+  opacity: 0.28;
+}
+.deck[data-motion="on"] .mDimSoft {
+  opacity: 0.18;
+}
+/* via `transform`, e não pela propriedade `scale`: o GSAP lê e substitui o
+   transform, enquanto `scale` seria multiplicado por cima e travaria em zero */
+.deck[data-motion="on"] .mBarX {
+  transform: scaleX(0);
+}
+.deck[data-motion="on"] .mBarY {
+  transform: scaleY(0);
+}
+
+/* Estados que se revezam na mesma moldura. Com motion eles se empilham no
+   centro e trocam por animação; sem motion viram uma sequência vertical, que é
+   a única forma de continuarem legíveis. */
+.swap {
+  margin-top: clamp(2.5rem, 6vw, 4.5rem);
+}
+
+.deck[data-motion="on"] .swap {
+  position: absolute;
+  /* absoluto se apoia no padding box do container, então o recuo é reposto aqui */
+  left: var(--gut);
+  right: var(--gut);
+  top: 50%;
+  translate: 0 -50%;
+  margin-top: 0;
+}
+
+/* mesma ideia da .swap, mas ancorada no topo da moldura */
+.swapTop {
+  margin-top: clamp(2rem, 5vw, 3.5rem);
+}
+
+.deck[data-motion="on"] .swapTop {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  margin-top: 0;
+}
+
+/* Sem motion nada fica preso e nenhum trilho estica: a apresentação vira um
+   documento vertical comum, que é o que um leitor sem animação precisa. */
+.deck:not([data-motion="on"]) :global(.js-pin-track) {
+  height: auto;
+}
+
+.deck:not([data-motion="on"]) :global(.js-pin-frame) {
+  position: static;
+  height: auto;
+  overflow: visible;
+  display: block;
+}
+
+.deck:not([data-motion="on"]) :global(.js-pin-layer) {
+  position: relative;
+  inset: auto;
+  padding-block: clamp(3rem, 9vw, 7rem);
+}
+
+/* ---------------------------------------------------------------- atmosfera */
+
+/* grão fino: tira o aspecto "chapado" dos gradientes grandes */
+.grain {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 3;
+  opacity: 0.24;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.86' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+}
+
+/* halo do pôr do sol */
+.sunGlow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(120% 62% at 78% 104%, rgba(255, 106, 43, 0.5) 0%, rgba(255, 106, 43, 0) 62%),
+    radial-gradient(90% 48% at 22% 108%, rgba(122, 59, 224, 0.42) 0%, rgba(122, 59, 224, 0) 60%);
+}
+
+/* light leak diagonal discreto */
+.leak {
+  position: absolute;
+  inset: -20% -30%;
+  pointer-events: none;
+  background: linear-gradient(
+    104deg,
+    rgba(255, 255, 255, 0) 38%,
+    rgba(85, 218, 255, 0.13) 48%,
+    rgba(255, 255, 255, 0) 58%
+  );
+  mix-blend-mode: screen;
+}
+
+/* ---------------------------------------------------------------- skyline */
+
+/* as três camadas são máscaras do mesmo PNG separadas por profundidade,
+   pintadas por CSS — dá parallax real e liberdade total de cor */
+.skyLayer {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  /* no retrato o skyline precisa de bem mais escala para continuar legível */
+  width: 300%;
+  translate: -50% 0;
+  aspect-ratio: 1920 / 700;
+  -webkit-mask-image: var(--mask);
+  mask-image: var(--mask);
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: bottom center;
+  mask-position: bottom center;
+  will-change: transform;
+}
+
+.skyFar {
+  background: linear-gradient(180deg, #1b3f8c 0%, #0d245f 78%);
+  opacity: 0.5;
+}
+.skyMid {
+  background: linear-gradient(180deg, #123072 0%, #08163d 82%);
+  opacity: 0.82;
+}
+.skyNear {
+  background: linear-gradient(180deg, #050c22 0%, #04081a 70%);
+}
+
+@media (min-width: 700px) {
+  .skyLayer {
+    width: 168%;
+  }
+}
+
+@media (min-width: 1100px) {
+  .skyLayer {
+    width: 122%;
+  }
+}
+
+/* ---------------------------------------------------------------- pace lines */
+
+/* linhas horizontais de velocidade, herdadas do padrão gráfico da corrida */
+.paceLines {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.paceLine {
+  position: absolute;
+  height: 1px;
+  left: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(85, 218, 255, 0) 0%,
+    rgba(85, 218, 255, 0.55) 38%,
+    rgba(85, 218, 255, 0.75) 55%,
+    rgba(85, 218, 255, 0) 100%
+  );
+  will-change: transform;
+}
+
+/* ---------------------------------------------------------------- cartões */
+
+.card {
+  position: relative;
+  border: 1px solid var(--hair);
+  background: linear-gradient(168deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.014));
+  border-radius: 2px;
+}
+
+/* marcador de quilômetro / número de peito */
+.bib {
+  font-family: var(--f-mono), monospace;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.6875rem;
+  letter-spacing: 0.16em;
+  color: var(--cyan);
+}
+
+/* ---------------------------------------------------------------- rail global */
+
+.rail {
+  position: fixed;
+  z-index: 60;
+  right: clamp(1rem, 2.2vw, 2.25rem);
+  top: 50%;
+  translate: 0 -50%;
+  display: none;
+  flex-direction: column;
+  gap: 0;
+  pointer-events: none;
+}
+
+@media (min-width: 1100px) {
+  .rail {
+    display: flex;
+  }
+}
+
+.railItem {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.7rem;
+  height: 46px;
+}
+
+.railDot {
+  position: relative;
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.22);
+  transition:
+    background-color 0.45s ease,
+    scale 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.railItemOn .railDot {
+  background: var(--somma);
+  scale: 1.55;
+}
+.railItemDone .railDot {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+/* abaixo de 1600px só os pontos aparecem — o rótulo invadiria a coluna de texto */
+.railLabel {
+  display: none;
+  font-family: var(--f-mono), monospace;
+  font-size: 0.5625rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.28);
+  white-space: nowrap;
+  transition:
+    color 0.45s ease,
+    opacity 0.45s ease;
+  opacity: 0;
+  translate: -6px 0;
+}
+
+@media (min-width: 1600px) {
+  .railLabel {
+    display: block;
+  }
+}
+
+.railItemOn .railLabel {
+  color: var(--paper);
+  opacity: 1;
+  translate: 0 0;
+}
+
+/* trilho: a linha que progride junto com a leitura */
+.railTrack {
+  position: absolute;
+  right: 3px;
+  top: 23px;
+  bottom: 23px;
+  width: 1px;
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.railFill {
+  position: absolute;
+  inset: 0 0 auto 0;
+  width: 1px;
+  background: linear-gradient(180deg, var(--cyan), var(--somma));
+  transform-origin: top center;
+  scale: 1 0;
+}
+
+/* ---------------------------------------------------------------- barra mobile */
+
+.mbar {
+  position: fixed;
+  z-index: 60;
+  inset: 0 0 auto 0;
+  padding-top: env(safe-area-inset-top);
+  background: linear-gradient(180deg, rgba(4, 8, 26, 0.92), rgba(4, 8, 26, 0));
+  pointer-events: none;
+}
+
+@media (min-width: 1100px) {
+  .mbar {
+    display: none;
+  }
+}
+
+.mbarRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.7rem var(--gut) 0.85rem;
+}
+
+.mbarTrack {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.14);
+  margin-inline: var(--gut);
+}
+
+.mbarFill {
+  height: 1px;
+  background: linear-gradient(90deg, var(--cyan), var(--somma));
+  transform-origin: left center;
+  scale: 0 1;
+}
+
+/* ---------------------------------------------------------------- nav */
+
+.nav {
+  position: fixed;
+  z-index: 61;
+  inset: 0 0 auto 0;
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+  padding: 1.35rem var(--gut);
+  mix-blend-mode: difference;
+  pointer-events: none;
+}
+
+@media (min-width: 1100px) {
+  .nav {
+    display: flex;
+  }
+}
+
+.navLink {
+  font-family: var(--f-mono), monospace;
+  font-size: 0.625rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: #fff;
+  opacity: 0.55;
+  transition: opacity 0.3s ease;
+  pointer-events: auto;
+  text-decoration: none;
+}
+.navLink:hover {
+  opacity: 1;
+}
+
+/* ---------------------------------------------------------------- app mockup */
+
+.phone {
+  position: relative;
+  width: 100%;
+  /* no celular o aparelho desenhado não pode ficar mais alto que a tela real */
+  max-width: 272px;
+  aspect-ratio: 393 / 852;
+  border-radius: 44px;
+  padding: 10px;
+  background: linear-gradient(160deg, #2a3552, #0a1024 42%, #1d2740);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.11),
+    0 40px 90px -30px rgba(0, 0, 0, 0.9),
+    0 0 90px -30px rgba(59, 140, 255, 0.5);
+}
+
+.phoneScreen {
+  position: relative;
+  height: 100%;
+  width: 100%;
+  border-radius: 35px;
+  overflow: hidden;
+  background: radial-gradient(120% 78% at 50% 0%, #10306e 0%, #050b1e 62%);
+  display: flex;
+  flex-direction: column;
+}
+
+@media (min-width: 900px) {
+  .phone {
+    max-width: 330px;
+  }
+}
+
+.notch {
+  position: absolute;
+  top: 9px;
+  left: 50%;
+  translate: -50% 0;
+  width: 92px;
+  height: 25px;
+  border-radius: 999px;
+  background: #04081a;
+  z-index: 5;
+}
+
+/* ---------------------------------------------------------------- progress ring */
+
+.ringTrack {
+  stroke: rgba(255, 255, 255, 0.12);
+}
+.ringFill {
+  stroke-linecap: round;
+  transform: rotate(-90deg);
+  transform-origin: center;
+}
+
+/* ---------------------------------------------------------------- diversos */
+
+.hot {
+  color: var(--somma);
+}
+.cyanTx {
+  color: var(--cyan);
+}
+
+.gradText {
+  background: linear-gradient(96deg, var(--cyan) 0%, var(--blue-el) 32%, var(--violet) 62%, var(--sunset) 92%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.stroke {
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(255, 255, 255, 0.34);
+}
+
+.noise::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.5;
+  background: radial-gradient(140% 100% at 50% 0%, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0) 55%);
+}
+
+/* faixa marquee */
+.marquee {
+  display: flex;
+  width: max-content;
+  will-change: transform;
+}
+
+/* ---------------------------------------------------------------- acessibilidade */
+
+@media (prefers-reduced-motion: reduce) {
+  .deck[data-motion="on"] .rwIn,
+  .deck[data-motion="on"] .aUp,
+  .deck[data-motion="on"] .aFade {
+    transform: none !important;
+    opacity: 1 !important;
+  }
+  .paceLines {
+    display: none;
+  }
+}
