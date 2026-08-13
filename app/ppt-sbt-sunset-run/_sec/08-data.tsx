@@ -1,9 +1,9 @@
 "use client";
 
-import { gsap, useScope } from "../_motion";
+import { gsap, useScope, scrub } from "../_motion";
 import { Headline, Chapter, Section, cx, s } from "../_ui";
 
-/** O que a operação mede — não é promessa de resultado, é o que passa a existir. */
+/** O que a operação mede. Não é promessa de resultado, é o que passa a existir. */
 const METRICS = [
   { k: "Cadastros no Sunset Pass", u: "por atleta identificado" },
   { k: "Check-ins nos treinões", u: "presença real, com data e hora" },
@@ -15,7 +15,7 @@ const METRICS = [
   { k: "Conteúdo gerado", u: "stories, reels e menções da base" },
 ];
 
-/** Curva de participação semana a semana — usada só como forma, não como projeção. */
+/** Curva de participação semana a semana, usada só como forma, não como projeção. */
 const CURVE = [12, 26, 34, 48, 61, 74, 88, 100];
 
 export function DataSection() {
@@ -45,7 +45,7 @@ export function DataSection() {
         {
           strokeDashoffset: 0,
           ease: "none",
-          scrollTrigger: { trigger: q(".js-chart")[0], start: "top 85%", end: "bottom 55%", scrub: 0.6 },
+          scrollTrigger: { trigger: q(".js-chart")[0], start: "top 85%", end: "bottom 55%", scrub: scrub(0.6) },
         },
       );
       gsap.fromTo(
@@ -55,7 +55,7 @@ export function DataSection() {
           scaleY: 1,
           ease: "none",
           stagger: 0.06,
-          scrollTrigger: { trigger: q(".js-chart")[0], start: "top 85%", end: "bottom 55%", scrub: 0.6 },
+          scrollTrigger: { trigger: q(".js-chart")[0], start: "top 85%", end: "bottom 55%", scrub: scrub(0.6) },
         },
       );
     }
@@ -76,7 +76,7 @@ export function DataSection() {
             </div>
             <div className="flex items-end md:col-span-4 md:col-start-9" data-rise>
               <p className={s.body}>
-                Cada etapa da jornada acontece dentro de um sistema. Isso significa que ela pode ser medida — e que o
+                Cada etapa da jornada acontece dentro de um sistema. Isso significa que ela pode ser medida, e que o
                 SBT recebe um retrato de comportamento, não uma estimativa de alcance.
               </p>
             </div>

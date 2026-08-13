@@ -1,6 +1,6 @@
 "use client";
 
-import { gsap, useScope, EASE } from "../_motion";
+import { gsap, useScope, EASE, scrub } from "../_motion";
 import { Headline, Chapter, Section, cx, s } from "../_ui";
 
 const STEPS = [
@@ -30,7 +30,7 @@ export function Journey() {
         {
           scaleX: 1,
           ease: "none",
-          scrollTrigger: { trigger: q(".js-journey")[0], start: "top 74%", end: "bottom 62%", scrub: 0.6 },
+          scrollTrigger: { trigger: q(".js-journey")[0], start: "top 74%", end: "bottom 62%", scrub: scrub(0.6) },
         },
       );
 
@@ -57,7 +57,7 @@ export function Journey() {
         {
           scaleY: 1,
           ease: "none",
-          scrollTrigger: { trigger: q(".js-journey")[0], start: "top 80%", end: "bottom 70%", scrub: 0.6 },
+          scrollTrigger: { trigger: q(".js-journey")[0], start: "top 80%", end: "bottom 70%", scrub: scrub(0.6) },
         },
       );
       gsap.fromTo(
@@ -87,7 +87,7 @@ export function Journey() {
             </div>
             <div className="flex items-end md:col-span-4 md:col-start-9" data-rise>
               <p className={s.body}>
-                Do primeiro contato ao pós-prova. Cada etapa tem um responsável, uma ferramenta e um indicador — não é
+                Do primeiro contato ao pós-prova. Cada etapa tem um responsável, uma ferramenta e um indicador. Não é
                 um conceito, é uma operação.
               </p>
             </div>

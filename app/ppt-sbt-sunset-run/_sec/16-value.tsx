@@ -1,6 +1,6 @@
 "use client";
 
-import { gsap, useScope, EASE } from "../_motion";
+import { gsap, useScope, EASE, scrub } from "../_motion";
 import { Headline, Chapter, Section, cx, s } from "../_ui";
 
 const ASKS = [
@@ -16,7 +16,7 @@ const ASKS = [
  * Contrapartida.
  *
  * Os dois círculos se encontram: o SBT entra na comunidade antes da prova, a
- * Somma alcança os corredores da prova depois dela. A troca é o argumento — não
+ * Somma alcança os corredores da prova depois dela. A troca é o argumento, não
  * um pedido de cortesias.
  */
 export function ValueBothWays() {
@@ -25,7 +25,7 @@ export function ValueBothWays() {
 
     gsap
       .timeline({
-        scrollTrigger: { trigger: q(".js-venn")[0], start: "top 82%", end: "bottom 60%", scrub: 0.6 },
+        scrollTrigger: { trigger: q(".js-venn")[0], start: "top 82%", end: "bottom 60%", scrub: scrub(0.6) },
       })
       .fromTo(q(".js-c-left"), { xPercent: -34, opacity: 0 }, { xPercent: 0, opacity: 1, ease: "none" }, 0)
       .fromTo(q(".js-c-right"), { xPercent: 34, opacity: 0 }, { xPercent: 0, opacity: 1, ease: "none" }, 0)
@@ -57,7 +57,7 @@ export function ValueBothWays() {
             </div>
             <div className="flex items-end md:col-span-3 md:col-start-10" data-rise>
               <p className={s.body}>
-                Não queremos somente cortesias. Queremos uma troca em que as duas bases crescem — antes e depois da
+                Não queremos somente cortesias. Queremos uma troca em que as duas bases crescem, antes e depois da
                 corrida.
               </p>
             </div>
@@ -164,7 +164,7 @@ export function ValueBothWays() {
               <p className={cx(s.h3, "mt-3")}>Treine com a Somma para sua próxima prova</p>
               <p className={cx(s.body, "mt-3 max-w-[52ch] !text-[0.875rem]")}>
                 Um cartão com QR dentro do kit transforma os 2.000 corredores da Sunset Run em entrada para a
-                comunidade — e dá ao SBT um pós-evento que hoje não existe.
+                comunidade, e dá ao SBT um pós-evento que hoje não existe.
               </p>
             </div>
           </div>

@@ -2,7 +2,7 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Lenis from "lenis";
-import { gsap, ScrollTrigger, reduced, EASE } from "./_motion";
+import { gsap, ScrollTrigger, reduced, isTouch, EASE } from "./_motion";
 import { cx, s } from "./_ui";
 
 export const STAGES = ["DISCOVER", "JOIN", "TRAIN", "ENGAGE", "RUN", "CONTINUE"] as const;
@@ -32,18 +32,30 @@ export function useDeckMotion(rootRef: React.RefObject<HTMLDivElement | null>) {
 
     root.dataset.motion = "on";
 
-    // --- scroll suave -------------------------------------------------------
-    const lenis = new Lenis({
-      duration: 1.05,
-      easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-      smoothWheel: true,
-      // no touch o scroll nativo é melhor: mantém o momentum do sistema
-      syncTouch: false,
-    });
-    const raf = (time: number) => lenis.raf(time * 1000);
-    lenis.on("scroll", ScrollTrigger.update);
-    gsap.ticker.add(raf);
-    gsap.ticker.lagSmoothing(0);
+    // No celular a barra de endereço entra e sai durante a rolagem e muda a
+    // altura da viewport. Sem isto o ScrollTrigger remede tudo no meio do gesto
+    // e as seções dão um salto sob o dedo.
+    ScrollTrigger.config({ ignoreMobileResize: true });
+
+    // --- scroll suave (só onde existe roda de mouse) -------------------------
+    // No toque o scroll do sistema já é o melhor que existe: tem o momentum e a
+    // borracha que o usuário conhece. Interpor qualquer coisa aí só atrasa.
+    const touch = isTouch();
+    const lenis = touch
+      ? null
+      : new Lenis({
+          duration: 1.05,
+          easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+          smoothWheel: true,
+          syncTouch: false,
+        });
+
+    const raf = lenis ? (time: number) => lenis.raf(time * 1000) : null;
+    if (lenis && raf) {
+      lenis.on("scroll", ScrollTrigger.update);
+      gsap.ticker.add(raf);
+      gsap.ticker.lagSmoothing(0);
+    }
 
     const ctx = gsap.context(() => {
       // --- reveal das headlines --------------------------------------------
@@ -126,8 +138,8 @@ export function useDeckMotion(rootRef: React.RefObject<HTMLDivElement | null>) {
     return () => {
       window.removeEventListener("load", refresh);
       ctx.revert();
-      gsap.ticker.remove(raf);
-      lenis.destroy();
+      if (raf) gsap.ticker.remove(raf);
+      lenis?.destroy();
       delete root.dataset.motion;
     };
   }, [rootRef]);

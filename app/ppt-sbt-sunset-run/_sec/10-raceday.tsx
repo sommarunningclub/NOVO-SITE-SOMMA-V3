@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { gsap, useScope, EASE } from "../_motion";
+import { gsap, useScope, EASE, scrub } from "../_motion";
 import { Headline, Chapter, Section, cx, s } from "../_ui";
 
 const CREW = [
@@ -17,7 +17,7 @@ const CREW = [
  * Race Day.
  *
  * É aqui que a apresentação troca de temperatura: sai da preparação e entra no
- * evento. A imagem da largada só aparece quando a leitura chega — antes disso a
+ * evento. A imagem da largada só aparece quando a leitura chega. Antes disso a
  * tela está fechada.
  */
 export function RaceDay() {
@@ -26,7 +26,7 @@ export function RaceDay() {
 
     gsap
       .timeline({
-        scrollTrigger: { trigger: q(".js-rd-wrap")[0], start: "top top", end: "bottom bottom", scrub: 0.55 },
+        scrollTrigger: { trigger: q(".js-rd-wrap")[0], start: "top top", end: "bottom bottom", scrub: scrub(0.55) },
       })
       // a foto abre de dentro para fora
       .fromTo(
@@ -83,7 +83,7 @@ export function RaceDay() {
               </Headline>
               <p className={cx(s.lead, s.mHide, "js-rd-sub mt-6 max-w-[34ch] !text-white")}>
                 Quatro semanas depois, a comunidade não chega na Esplanada. Ela{" "}
-                <span style={{ color: "var(--somma)" }}>volta</span> para lá — junto.
+                <span style={{ color: "var(--somma)" }}>volta</span> para lá. Junto.
               </p>
             </div>
           </div>

@@ -72,7 +72,7 @@ export function Eyebrow({
   );
 }
 
-/** Índice da seção — funciona como número de peito ao longo do deck. */
+/** Índice da seção. Funciona como número de peito ao longo do deck. */
 export function Chapter({ n, label }: { n: string; label: string }) {
   return (
     <div className="mb-8 flex items-baseline gap-4 md:mb-12">
@@ -195,7 +195,7 @@ export function Atmosphere({
   );
 }
 
-/** Linhas de velocidade — o padrão gráfico da camiseta virando textura de fundo. */
+/** Linhas de velocidade: o padrão gráfico da camiseta virando textura de fundo. */
 export function PaceLines({ count = 7, className }: { count?: number; className?: string }) {
   return (
     <div aria-hidden className={cx(s.paceLines, "js-pace", className)}>

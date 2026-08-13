@@ -6,16 +6,16 @@ const BLOCKS: { g: string; items: string[] }[] = [
   {
     g: "Estratégia e plataforma",
     items: [
-      "Road to SBT Sunset Run — conceito e narrativa da jornada",
-      "SBT Sunset Run Training Series — 4 encontros",
+      "Road to SBT Sunset Run: conceito e narrativa da jornada",
+      "SBT Sunset Run Training Series: 4 encontros",
       "Ativações da marca nos treinões selecionados",
     ],
   },
   {
     g: "Tecnologia",
     items: [
-      "Sunset Pass — versão base",
-      "Sunset 5 Challenge — missões e progressão",
+      "Sunset Pass: versão base",
+      "Sunset 5 Challenge: missões e progressão",
       "Check-in e registro de participação",
     ],
   },
@@ -62,7 +62,7 @@ export function Deliverables() {
           </div>
           <div className="flex items-end md:col-span-4 md:col-start-9" data-rise>
             <p className={s.body}>
-              O escopo abaixo é o que a Somma entrega dentro do investimento proposto — da estratégia à operação no dia
+              O escopo abaixo é o que a Somma entrega dentro do investimento proposto, da estratégia à operação no dia
               da prova.
             </p>
           </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { gsap, useScope, EASE } from "../_motion";
+import { gsap, useScope, EASE, scrub } from "../_motion";
 import { Headline, Chapter, Section, cx, s } from "../_ui";
 
 const EPISODES = [
@@ -41,7 +41,7 @@ export function ContentEngine() {
         gsap.to(el, {
           yPercent: i % 2 === 0 ? -9 : 9,
           ease: "none",
-          scrollTrigger: { trigger: q(".js-eps")[0], start: "top bottom", end: "bottom top", scrub: 0.8 },
+          scrollTrigger: { trigger: q(".js-eps")[0], start: "top bottom", end: "bottom top", scrub: scrub(0.8) },
         });
       });
     });
@@ -59,7 +59,7 @@ export function ContentEngine() {
             </div>
             <div className="flex items-end md:col-span-4 md:col-start-9" data-rise>
               <p className={s.body}>
-                Quatro semanas de treinos geram histórias reais — gente que nunca correu 5 km, grupos que se formam,
+                Quatro semanas de treinos geram histórias reais: gente que nunca correu 5 km, grupos que se formam,
                 estreias. Não é produção publicitária: é registro de uma coisa que aconteceu.
               </p>
             </div>

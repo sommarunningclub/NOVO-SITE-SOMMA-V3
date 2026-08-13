@@ -1,6 +1,6 @@
 "use client";
 
-import { gsap, useScope, EASE } from "../_motion";
+import { gsap, useScope, EASE, scrub } from "../_motion";
 import { Headline, Chapter, Section, cx, s } from "../_ui";
 
 const MISSIONS = [
@@ -15,7 +15,7 @@ const MISSIONS = [
  * Sunset 5.
  *
  * Gamificação sem placar: cinco missões que qualquer corredor consegue cumprir
- * e uma delas — a quinta — é a própria inscrição. O prêmio é um card que o
+ * e uma delas, a quinta, é a própria inscrição. O prêmio é um card que o
  * atleta quer postar, e que carrega as duas marcas junto.
  */
 export function Missions() {
@@ -23,7 +23,7 @@ export function Missions() {
     const q = gsap.utils.selector(root);
 
     const tl = gsap.timeline({
-      scrollTrigger: { trigger: q(".js-mis-wrap")[0], start: "top top", end: "bottom bottom", scrub: 0.5 },
+      scrollTrigger: { trigger: q(".js-mis-wrap")[0], start: "top top", end: "bottom bottom", scrub: scrub(0.5) },
     });
 
     // uma missão é marcada por vez
@@ -57,7 +57,7 @@ export function Missions() {
             </div>
             <div className="flex items-end md:col-span-4 md:col-start-9" data-rise>
               <p className={s.body}>
-                Cinco desafios simples que qualquer corredor cumpre em quatro semanas. A última missão é a inscrição —
+                Cinco desafios simples que qualquer corredor cumpre em quatro semanas. A última missão é a inscrição:
                 a gamificação e a conversão são a mesma coisa.
               </p>
             </div>

@@ -9,15 +9,15 @@ const GROUPS: { dist: string; rows: Group[] }[] = [
   {
     dist: "5K",
     rows: [
-      { tier: "Comfort", pace: "7'30\" – 8'30\"", target: "≈ 40 min", who: "Seu primeiro 5K. Caminhar um pouco é permitido." },
-      { tier: "Intermediate", pace: "6'00\" – 7'00\"", target: "≈ 32 min", who: "Já corre, quer terminar forte." },
+      { tier: "Comfort", pace: "7'30\" a 8'30\"", target: "≈ 40 min", who: "Seu primeiro 5K. Caminhar um pouco é permitido." },
+      { tier: "Intermediate", pace: "6'00\" a 7'00\"", target: "≈ 32 min", who: "Já corre, quer terminar forte." },
       { tier: "Fast", pace: "sub 5'30\"", target: "sub 27 min", who: "Quem corre pelo relógio." },
     ],
   },
   {
     dist: "10K",
     rows: [
-      { tier: "Comfort", pace: "7'00\" – 8'00\"", target: "≈ 75 min", who: "Quer simplesmente chegar sorrindo." },
+      { tier: "Comfort", pace: "7'00\" a 8'00\"", target: "≈ 75 min", who: "Quer simplesmente chegar sorrindo." },
       { tier: "Intermediate", pace: "6'00\"", target: "sub 60 min", who: "Quer correr 10K abaixo de 60." },
       { tier: "Fast", pace: "sub 5'00\"", target: "sub 50 min", who: "Ritmo de prova, do início ao fim." },
     ],

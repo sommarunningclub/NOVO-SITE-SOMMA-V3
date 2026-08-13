@@ -1,13 +1,13 @@
 "use client";
 
-import { gsap, useScope, EASE } from "../_motion";
+import { gsap, useScope, EASE, scrub } from "../_motion";
 import { Headline, Chapter, Section, cx, s } from "../_ui";
 
 const STEPS = [
   { t: "Entra na jornada", d: "Um toque no link da Somma ou do SBT abre o Pass. Sem app para baixar." },
   { t: "Faz check-in nos treinões", d: "Cada sábado presente é registrado no perfil do atleta." },
   { t: "Completa missões", d: "Cinco desafios simples destravam a progressão da Sunset 5." },
-  { t: "Acumula quilômetros", d: "O volume da preparação vira número visível — e motivo para voltar." },
+  { t: "Acumula quilômetros", d: "O volume da preparação vira número visível, e motivo para voltar." },
   { t: "Recebe badges", d: "Conquistas digitais que o corredor mostra no story antes da prova." },
   { t: "Chega conectado", d: "No Race Day ele não conhece a marca. Ele já pertence a ela." },
 ];
@@ -22,7 +22,7 @@ export function Pass() {
     const q = gsap.utils.selector(root);
 
     const tl = gsap.timeline({
-      scrollTrigger: { trigger: q(".js-pass-wrap")[0], start: "top top", end: "bottom bottom", scrub: 0.55 },
+      scrollTrigger: { trigger: q(".js-pass-wrap")[0], start: "top top", end: "bottom bottom", scrub: scrub(0.55) },
     });
 
     // anel de progresso: 0 → 92%

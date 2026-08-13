@@ -1,6 +1,6 @@
 "use client";
 
-import { gsap, useScope, EASE } from "../_motion";
+import { gsap, useScope, EASE, scrub } from "../_motion";
 import { Headline, Chapter, Section, KmTick, cx, s } from "../_ui";
 
 const WEEKS = [
@@ -38,7 +38,7 @@ const WEEKS = [
  * Training Series.
  *
  * No desktop as quatro semanas correm na horizontal puxadas pelo scroll
- * vertical — a leitura anda para a frente igual à jornada. No mobile viram
+ * vertical: a leitura anda para a frente igual à jornada. No mobile viram
  * cartões empilhados, porque arrastar lateralmente dentro de uma página que já
  * rola é um gesto que briga com o polegar.
  */
@@ -60,7 +60,7 @@ export function Road() {
           trigger: wrap,
           start: "top top",
           end: () => `+=${distance()}`,
-          scrub: 0.5,
+          scrub: scrub(0.5),
           invalidateOnRefresh: true,
         },
       });
@@ -76,7 +76,7 @@ export function Road() {
             trigger: wrap,
             start: "top top",
             end: () => `+=${distance()}`,
-            scrub: 0.5,
+            scrub: scrub(0.5),
             invalidateOnRefresh: true,
           },
         },
@@ -119,7 +119,7 @@ export function Road() {
               </div>
               <p className={s.body}>
                 Os treinões que a Somma já realiza todo sábado passam a ser a preparação oficial da corrida. Cada
-                semana vira um capítulo — e a Esplanada deixa de ser o começo para virar o destino.
+                semana vira um capítulo, e a Esplanada deixa de ser o começo para virar o destino.
               </p>
             </div>
           </div>
@@ -187,7 +187,7 @@ export function Road() {
                   <span style={{ color: "var(--somma)" }}>Day</span>
                 </p>
                 <p className={cx(s.body, "mt-4")}>
-                  Quatro semanas depois, a comunidade chega na Esplanada já conectada — e correndo junta.
+                  Quatro semanas depois, a comunidade chega na Esplanada já conectada, e correndo junta.
                 </p>
               </article>
             </div>

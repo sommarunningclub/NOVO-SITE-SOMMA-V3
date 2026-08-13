@@ -7,7 +7,7 @@ import { Headline, Chapter, Section, cx, s } from "../_ui";
  * O que o SBT acessa.
  *
  * Composição editorial em vez de grade de quadradinhos: os ativos têm pesos
- * diferentes e a página mostra isso — a comunidade proprietária e os treinões
+ * diferentes e a página mostra isso: a comunidade proprietária e os treinões
  * ocupam mais espaço do que uma linha de e-mail.
  */
 export function Access() {
@@ -84,7 +84,7 @@ export function Access() {
               </p>
               <p className={cx(s.h3, "mt-3")}>Treinões semanais</p>
               <p className={cx(s.body, "mt-3 !text-[0.875rem]")}>
-                Encontros de sábado com treinadores, pacers e operação própria — o palco onde a ativação acontece.
+                Encontros de sábado com treinadores, pacers e operação própria. É o palco onde a ativação acontece.
               </p>
               <div className="mt-6 flex flex-wrap gap-2">
                 {["Treinadores", "Insiders", "Pacers", "Eventos"].map((t) => (
@@ -129,7 +129,7 @@ export function Access() {
             </p>
             <p className={cx(s.h3, "mt-4")}>Tecnologia própria</p>
             <p className={cx(s.body, "mt-3 !text-[0.875rem]")}>
-              Sistema de check-in, perfis, missões e progressão — a base do Sunset Pass já existe e roda.
+              Sistema de check-in, perfis, missões e progressão. A base do Sunset Pass já existe e roda.
             </p>
           </article>
 
@@ -139,7 +139,7 @@ export function Access() {
             </p>
             <p className={cx(s.h3, "mt-4")}>Conteúdo nativo</p>
             <p className={cx(s.body, "mt-3 !text-[0.875rem]")}>
-              Produção que nasce dentro do treino, com pessoas reais da comunidade — e não em estúdio.
+              Produção que nasce dentro do treino, com pessoas reais da comunidade, e não em estúdio.
             </p>
           </article>
 

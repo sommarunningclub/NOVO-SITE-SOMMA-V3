@@ -1,13 +1,13 @@
 "use client";
 
-import { gsap, useScope, EASE } from "../_motion";
+import { gsap, useScope, EASE, scrub } from "../_motion";
 import { Headline, Eyebrow, Lockup, PaceLines, Section, cx, s } from "../_ui";
 
 /**
  * Abertura.
  *
  * O skyline de Brasília é o mesmo PNG do KV separado em três máscaras por
- * profundidade — cada uma entra numa velocidade e recebe cor por CSS, o que dá
+ * profundidade: cada uma entra numa velocidade e recebe cor por CSS, o que dá
  * parallax de verdade em vez de uma imagem chapada deslizando.
  */
 export function Hero() {
@@ -64,7 +64,7 @@ export function Hero() {
     // ---- saída em parallax ----------------------------------------------
     gsap
       .timeline({
-        scrollTrigger: { trigger: root, start: "top top", end: "bottom top", scrub: 0.6 },
+        scrollTrigger: { trigger: root, start: "top top", end: "bottom top", scrub: scrub(0.6) },
       })
       .to(q(".js-hero-copy"), { yPercent: -34, opacity: 0.15, ease: "none" }, 0)
       .to(q(".js-sky-far"), { yPercent: -13, ease: "none" }, 0)

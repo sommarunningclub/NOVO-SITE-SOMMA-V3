@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Archivo, Chivo, Chivo_Mono } from "next/font/google";
 
-/** Display: grotesk com eixo de largura — headlines expandidas de brand esportiva. */
+/** Display: grotesk com eixo de largura, para headlines expandidas de brand esportiva. */
 const display = Archivo({
   subsets: ["latin"],
   axes: ["wdth"],

@@ -18,12 +18,26 @@ export const EASE = {
 export const reduced = () =>
   typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+/** Dedo em vez de roda: muda quem controla o tempo da animação. */
+export const isTouch = () =>
+  typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches;
+
+/**
+ * Valor de `scrub` por tipo de entrada.
+ *
+ * No desktop um scrub numérico suaviza os saltos da roda do mouse, que chega em
+ * degraus grandes. No toque não existe degrau: o dedo já é contínuo e o mesmo
+ * atraso vira descolamento, com a animação chegando depois do gesto. Ali o
+ * scrub precisa ser 1:1 com a posição real da rolagem.
+ */
+export const scrub = (desktop: number): number | true => (isTouch() ? true : desktop);
+
 /**
  * Escopo GSAP por seção.
  *
  * Todo o motion vive dentro de um gsap.context() amarrado ao elemento, então
  * o cleanup mata timelines e ScrollTriggers da seção sem vazar entre rotas.
- * Com `prefers-reduced-motion` nada é registrado — o conteúdo já nasce visível.
+ * Com `prefers-reduced-motion` nada é registrado e o conteúdo já nasce visível.
  */
 export function useScope<T extends HTMLElement = HTMLDivElement>(
   build: (ctx: { root: T; mm: gsap.MatchMedia }) => void,

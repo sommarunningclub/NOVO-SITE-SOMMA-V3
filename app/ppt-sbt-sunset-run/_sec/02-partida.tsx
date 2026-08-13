@@ -1,6 +1,6 @@
 "use client";
 
-import { gsap, useScope, EASE } from "../_motion";
+import { gsap, useScope, EASE, scrub } from "../_motion";
 import { Headline, Chapter, Section, cx, s } from "../_ui";
 
 const DIVULGACAO = ["post", "story", "cupom", "cortesia", "alcance"];
@@ -17,7 +17,7 @@ export function Partida() {
     const q = gsap.utils.selector(root);
 
     const tl = gsap.timeline({
-      scrollTrigger: { trigger: q(".js-stage-wrap")[0], start: "top top", end: "bottom bottom", scrub: 0.5 },
+      scrollTrigger: { trigger: q(".js-stage-wrap")[0], start: "top top", end: "bottom bottom", scrub: scrub(0.5) },
     });
 
     // --- divulgação sai --------------------------------------------------

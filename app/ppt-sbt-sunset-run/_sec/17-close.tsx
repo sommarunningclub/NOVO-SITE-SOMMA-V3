@@ -1,13 +1,13 @@
 "use client";
 
-import { gsap, useScope, EASE } from "../_motion";
+import { gsap, useScope, EASE, scrub } from "../_motion";
 import { Headline, Lockup, Section, cx, s } from "../_ui";
 
 /**
  * Fechamento.
  *
  * Espelha a abertura: o mesmo skyline, agora com o sol nascendo em vez de se
- * pondo. A primeira frase é negada pela segunda — que só aparece quando a
+ * pondo. A primeira frase é negada pela segunda, que só aparece quando a
  * primeira sai.
  */
 export function Close() {
@@ -16,7 +16,7 @@ export function Close() {
 
     gsap
       .timeline({
-        scrollTrigger: { trigger: q(".js-close-wrap")[0], start: "top top", end: "bottom bottom", scrub: 0.55 },
+        scrollTrigger: { trigger: q(".js-close-wrap")[0], start: "top top", end: "bottom bottom", scrub: scrub(0.55) },
       })
       .fromTo(q(".js-sun-rise"), { yPercent: 42, opacity: 0.15 }, { yPercent: 0, opacity: 1, ease: "none", duration: 1 }, 0)
       .fromTo(q(".js-sky-close"), { yPercent: 16, opacity: 0 }, { yPercent: 0, opacity: 1, ease: "none", duration: 0.6 }, 0)

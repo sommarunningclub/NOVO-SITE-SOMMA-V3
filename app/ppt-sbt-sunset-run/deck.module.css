@@ -1,5 +1,5 @@
 /* =========================================================================
-   SBT SUNSET RUN × SOMMA CLUB — sistema visual da apresentação
+   SBT SUNSET RUN × SOMMA CLUB · sistema visual da apresentação
    Tokens, tipografia, camadas de profundidade e primitivas de motion.
    ========================================================================= */
 
@@ -76,7 +76,7 @@
   font-variation-settings: "wdth" 100;
 }
 
-/* headline com respiro — usada quando o bloco precisa de mais ar que impacto */
+/* headline com respiro, usada quando o bloco precisa de mais ar que impacto */
 .h2Soft {
   font-variation-settings: "wdth" 100;
   font-weight: 700;
@@ -142,7 +142,7 @@
   isolation: isolate;
 }
 
-/* filete horizontal fino — a "linha de largada" recorrente */
+/* filete horizontal fino: a "linha de largada" recorrente */
 .rule {
   height: 1px;
   width: 100%;
@@ -179,7 +179,7 @@
 /* ---------------------------------------------------------------- estados iniciais
    Todos os "escondidos antes de animar" moram aqui, condicionados ao
    data-motion. Sem motion (leitor com prefers-reduced-motion, JS desligado) o
-   atributo nunca é escrito e o conteúdo nasce visível — em vez de ficar
+   atributo nunca é escrito e o conteúdo nasce visível, em vez de ficar
    invisível para sempre esperando uma animação que não vai rodar. */
 
 .deck[data-motion="on"] .mHide {
@@ -289,7 +289,7 @@
 /* ---------------------------------------------------------------- skyline */
 
 /* as três camadas são máscaras do mesmo PNG separadas por profundidade,
-   pintadas por CSS — dá parallax real e liberdade total de cor */
+   pintadas por CSS, o que dá parallax real e liberdade total de cor */
 .skyLayer {
   position: absolute;
   left: 50%;
@@ -375,6 +375,107 @@
   color: var(--cyan);
 }
 
+/* ---------------------------------------------------------------- tabela
+
+   Tabela de verdade, com cabeçalho e rodapé semânticos: é a peça que o
+   executivo imprime ou cola numa pauta interna. No celular as linhas viram
+   blocos, com o nome da coluna vindo do atributo data-label. */
+
+.tableWrap {
+  width: 100%;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.table th {
+  font-family: var(--f-mono), monospace;
+  font-size: 0.5625rem;
+  font-weight: 500;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--dim-2);
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.24);
+  white-space: nowrap;
+}
+
+.table td {
+  padding: 1.35rem 1.5rem 1.35rem 0;
+  border-bottom: 1px solid var(--hair);
+  vertical-align: top;
+}
+
+.table td:last-child,
+.table th:last-child {
+  padding-right: 0;
+  text-align: right;
+}
+
+/* linha do total: o número não divide espaço com mais nada */
+.tableTotal td {
+  border-bottom: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.3);
+  padding-top: 1.75rem;
+}
+
+/* linha do que fica de fora, marcada em laranja para não passar batido */
+.tableOut td {
+  color: var(--dim-2);
+}
+
+@media (max-width: 767px) {
+  .table thead {
+    display: none;
+  }
+
+  .table,
+  .table tbody,
+  .table tfoot,
+  .table tr,
+  .table td {
+    display: block;
+    width: 100%;
+  }
+
+  .table tr {
+    padding: 1.25rem 0;
+    border-bottom: 1px solid var(--hair);
+  }
+
+  .table td {
+    padding: 0;
+    border-bottom: none;
+  }
+
+  .table td + td {
+    margin-top: 0.6rem;
+  }
+
+  .table td:last-child {
+    text-align: left;
+  }
+
+  .table td[data-label]::before {
+    content: attr(data-label);
+    display: block;
+    margin-bottom: 0.35rem;
+    font-family: var(--f-mono), monospace;
+    font-size: 0.5rem;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--dim-2);
+  }
+
+  .tableTotal td {
+    border-top: none;
+    padding-top: 0;
+  }
+}
+
 /* ---------------------------------------------------------------- rail global */
 
 .rail {
@@ -423,7 +524,7 @@
   background: rgba(255, 255, 255, 0.5);
 }
 
-/* abaixo de 1600px só os pontos aparecem — o rótulo invadiria a coluna de texto */
+/* abaixo de 1600px só os pontos aparecem: o rótulo invadiria a coluna de texto */
 .railLabel {
   display: none;
   font-family: var(--f-mono), monospace;

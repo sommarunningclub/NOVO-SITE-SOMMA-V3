@@ -5,6 +5,40 @@ import { Chapter, Section, cx, s } from "../_ui";
 
 const PILLARS = ["Estratégia", "Comunidade", "Experiência", "Tecnologia", "Conteúdo", "Operação"];
 
+/** Resumo do escopo por frente. A seção 14 detalha; aqui é o que se lê de relance. */
+const ESCOPO: { frente: string; entrega: string; status: string }[] = [
+  {
+    frente: "Estratégia e plataforma",
+    entrega: "Conceito Road to SBT Sunset Run, Training Series de 4 encontros e ativações da marca nos treinões",
+    status: "Incluso",
+  },
+  {
+    frente: "Tecnologia",
+    entrega: "Sunset Pass versão base, Sunset 5 Challenge e check-in com registro de participação",
+    status: "Incluso",
+  },
+  {
+    frente: "Comunicação",
+    entrega: "Base Somma, disparos de e-mail, grupos de WhatsApp, stories de sustentação e 1 Reel em Collab",
+    status: "Incluso",
+  },
+  {
+    frente: "Pessoas e conteúdo",
+    entrega: "Conteúdo da jornada, treinadores, insiders, pacers e Somma Sunset Crew no Race Day",
+    status: "Incluso",
+  },
+  {
+    frente: "Fechamento",
+    entrega: "Relatório final com dados de participação e engajamento",
+    status: "Incluso",
+  },
+  {
+    frente: "Produções especiais",
+    entrega: "Cenografia, brindes, estruturas, materiais gráficos, audiovisual extraordinário e tecnologia adicional",
+    status: "Sob orçamento",
+  },
+];
+
 export function Investment() {
   const ref = useScope<HTMLDivElement>(({ root }) => {
     const q = gsap.utils.selector(root);
@@ -33,6 +67,19 @@ export function Investment() {
         stagger: 0.07,
         ease: EASE.soft,
         scrollTrigger: { trigger: q(".js-pillars")[0], start: "top 86%", once: true },
+      },
+    );
+
+    gsap.fromTo(
+      q(".js-row"),
+      { opacity: 0, y: 14 },
+      {
+        opacity: 1,
+        y: 0,
+        duration: 0.6,
+        stagger: 0.06,
+        ease: EASE.soft,
+        scrollTrigger: { trigger: q(".js-table")[0], start: "top 84%", once: true },
       },
     );
 
@@ -104,11 +151,89 @@ export function Investment() {
             </ul>
 
             <p
-              className={cx(s.mono, "mt-16 max-w-[52ch] text-[0.625rem] uppercase leading-[1.8] tracking-[0.14em]")}
+              className={cx(s.mono, "mt-14 max-w-[52ch] text-[0.625rem] uppercase leading-[1.8] tracking-[0.14em]")}
               style={{ color: "rgba(255,255,255,.3)" }}
             >
               Produções especiais e custos extraordinários são orçados separadamente.
             </p>
+          </div>
+
+          {/* ------------------------------------------------ resumo em tabela */}
+          <div className="js-table pb-8 text-left md:pb-16">
+            <div className="mb-8 flex items-baseline gap-4 md:mb-10">
+              <span className={cx(s.mono, "text-[0.6875rem] uppercase tracking-[0.28em]")} style={{ color: "var(--cyan)" }}>
+                O que está incluído
+              </span>
+              <span className={cx(s.rule, "js-rule flex-1")} />
+            </div>
+
+            <div className={s.tableWrap}>
+              <table className={s.table}>
+                <caption className="sr-only">
+                  Escopo da Community Experience Partnership e investimento total
+                </caption>
+                <thead>
+                  <tr>
+                    <th scope="col" className="w-[26%]">
+                      Frente
+                    </th>
+                    <th scope="col">Entrega</th>
+                    <th scope="col" className="w-[16%]">
+                      Status
+                    </th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {ESCOPO.map((r) => {
+                    const fora = r.status !== "Incluso";
+                    return (
+                      <tr key={r.frente} className={cx("js-row", fora && s.tableOut)}>
+                        <td data-label="Frente">
+                          <span
+                            className={cx(s.mono, "text-[0.8125rem] uppercase tracking-[0.1em]")}
+                            style={{ color: fora ? "var(--dim)" : "#fff" }}
+                          >
+                            {r.frente}
+                          </span>
+                        </td>
+                        <td data-label="Entrega">
+                          <span className={cx(s.body, "!text-[0.875rem] !leading-[1.5]")}>{r.entrega}</span>
+                        </td>
+                        <td data-label="Status">
+                          <span
+                            className={cx(s.mono, "whitespace-nowrap text-[0.625rem] uppercase tracking-[0.16em]")}
+                            style={{ color: fora ? "var(--somma)" : "var(--cyan)" }}
+                          >
+                            {r.status}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+
+                <tfoot>
+                  <tr className={s.tableTotal}>
+                    <td data-label="Total">
+                      <span className={cx(s.mono, "text-[0.8125rem] uppercase tracking-[0.1em] text-white")}>
+                        Investimento total
+                      </span>
+                    </td>
+                    <td>
+                      <span className={cx(s.mono, "text-[0.625rem] uppercase tracking-[0.16em]")} style={{ color: "var(--dim-2)" }}>
+                        Community Experience Partnership
+                      </span>
+                    </td>
+                    <td data-label="Valor">
+                      <span className={cx(s.num, "!text-[clamp(1.6rem,3vw,2.4rem)]")} style={{ color: "var(--somma)" }}>
+                        R$ 15.000
+                      </span>
+                    </td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
           </div>
         </div>
       </div>

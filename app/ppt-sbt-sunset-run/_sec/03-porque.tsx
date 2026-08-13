@@ -1,16 +1,16 @@
 "use client";
 
-import { gsap, useScope, EASE } from "../_motion";
+import { gsap, useScope, EASE, scrub } from "../_motion";
 import { Headline, Chapter, Section, cx, s } from "../_ui";
 
 /** O outro lado da mesa: o que a Somma põe na parceria. */
 const SOMMA = [
   { k: "O maior running club do Distrito Federal", d: "Base própria, construída em Brasília, treino a treino." },
-  { k: "Encontros todos os sábados", d: "Operação presencial que já roda — não precisa ser inventada para a campanha." },
+  { k: "Encontros todos os sábados", d: "Operação presencial que já roda. Não precisa ser inventada para a campanha." },
   { k: "Uma comunidade democrática", d: "Quem estreia nos 5 km e quem corre abaixo de 50 nos 10 km treinam no mesmo lugar." },
 ];
 
-/** Números da edição 2025 — fonte: relatório de pós-venda SBT Sunset Run. */
+/** Números da edição 2025. Fonte: relatório de pós-venda SBT Sunset Run. */
 const STATS = [
   { v: 2000, fmt: "int", label: "atletas na edição 2025", note: "5 km e 10 km · Esplanada dos Ministérios" },
   { v: 2, fmt: "mm", label: "telespectadores alcançados", note: "Cobertura em TV aberta no período" },
@@ -31,7 +31,7 @@ export function PorQue() {
     const cards = q<HTMLElement>(".js-stat");
 
     const tl = gsap.timeline({
-      scrollTrigger: { trigger: q(".js-stats-wrap")[0], start: "top top", end: "bottom bottom", scrub: 0.45 },
+      scrollTrigger: { trigger: q(".js-stats-wrap")[0], start: "top top", end: "bottom bottom", scrub: scrub(0.45) },
     });
 
     cards.forEach((card, i) => {
@@ -99,7 +99,7 @@ export function PorQue() {
 
     // conclusão: duas batidas separadas, a segunda entra depois da primeira sumir
     const closer = gsap.timeline({
-      scrollTrigger: { trigger: q(".js-closer-wrap")[0], start: "top top", end: "bottom bottom", scrub: 0.5 },
+      scrollTrigger: { trigger: q(".js-closer-wrap")[0], start: "top top", end: "bottom bottom", scrub: scrub(0.5) },
     });
     closer
       .to(q(".js-closer-a"), { opacity: 0, yPercent: -18, filter: "blur(8px)", duration: 0.4 }, 0.42)

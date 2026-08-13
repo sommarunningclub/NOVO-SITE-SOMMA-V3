@@ -15,7 +15,7 @@ const SHIFTS = [
  *
  * Cada ponto começa espalhado (audiência: muita gente, nenhuma ligação) e é
  * puxado para um de cinco núcleos conforme a leitura avança. Quando se
- * aproximam, os vizinhos passam a se conectar — a comunidade aparece como
+ * aproximam, os vizinhos passam a se conectar. A comunidade aparece como
  * consequência da distância, não como enfeite.
  */
 function ConvergenceCanvas() {
