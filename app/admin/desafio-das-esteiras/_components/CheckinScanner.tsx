@@ -194,12 +194,20 @@ export function CheckinScanner({ session }: { session: OperatorSession }) {
             {session.nome} · escopo: {escopo}
           </p>
         </div>
-        <Link
-          href="/admin/desafio-das-esteiras"
-          className="dst-btn dst-btn--ghost !min-h-[44px] !px-4 !text-[0.7rem]"
-        >
-          Painel
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          <Link
+            href="/admin/desafio-das-esteiras"
+            className="dst-btn dst-btn--ghost !min-h-[44px] !px-4 !text-[0.7rem]"
+          >
+            Painel
+          </Link>
+          <Link
+            href="/admin/desafio-das-esteiras/inscritos"
+            className="dst-btn dst-btn--ghost !min-h-[44px] !px-4 !text-[0.7rem]"
+          >
+            Inscritos
+          </Link>
+        </div>
       </header>
 
       {/* Alternador de modo */}

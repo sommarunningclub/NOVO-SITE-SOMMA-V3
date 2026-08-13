@@ -107,7 +107,13 @@ export function Dashboard({ session }: { session: OperatorSession }) {
             {session.unitId && ` · escopo: ${getUnit(session.unitId)?.nome}`}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <Link
+            href="/admin/desafio-das-esteiras/inscritos"
+            className="dst-btn dst-btn--ghost !min-h-[44px] !px-4 !text-[0.7rem]"
+          >
+            Inscritos
+          </Link>
           <Link href="/admin/desafio-das-esteiras/checkin" className="dst-btn !min-h-[44px] !px-4 !text-[0.7rem]">
             Check-in
           </Link>
