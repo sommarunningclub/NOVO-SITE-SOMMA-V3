@@ -127,6 +127,11 @@ export function Pacers() {
             <p className={cx(s.h2, "max-w-[20ch]")} style={{ fontSize: "clamp(1.6rem,3vw,2.8rem)" }}>
               Existe um grupo <span style={{ color: "var(--somma)" }}>para você.</span>
             </p>
+            {/* é aqui que "comunidade democrática" deixa de ser adjetivo e vira operação */}
+            <p className={cx(s.body, "mt-5 max-w-[54ch]")}>
+              A Somma é uma comunidade democrática, e os grupos de pace são a prova disso: quem vai estrear nos 5 km e
+              quem persegue o sub-50 nos 10 km largam do mesmo lugar, com alguém responsável por cada ritmo.
+            </p>
             <p className={cx(s.mono, "mt-5 text-[0.625rem] uppercase tracking-[0.2em]")} style={{ color: "var(--dim-2)" }}>
               Ritmos indicativos · definição final com os treinadores
             </p>

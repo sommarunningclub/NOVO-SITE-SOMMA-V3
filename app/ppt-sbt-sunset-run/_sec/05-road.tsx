@@ -118,8 +118,8 @@ export function Road() {
                 </p>
               </div>
               <p className={s.body}>
-                Os treinões de sábado da Somma passam a ser a preparação oficial da corrida. Cada semana vira um
-                capítulo — e a Esplanada deixa de ser o começo para virar o destino.
+                Os treinões que a Somma já realiza todo sábado passam a ser a preparação oficial da corrida. Cada
+                semana vira um capítulo — e a Esplanada deixa de ser o começo para virar o destino.
               </p>
             </div>
           </div>

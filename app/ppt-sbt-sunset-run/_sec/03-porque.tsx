@@ -3,6 +3,13 @@
 import { gsap, useScope, EASE } from "../_motion";
 import { Headline, Chapter, Section, cx, s } from "../_ui";
 
+/** O outro lado da mesa: o que a Somma põe na parceria. */
+const SOMMA = [
+  { k: "O maior running club do Distrito Federal", d: "Base própria, construída em Brasília, treino a treino." },
+  { k: "Encontros todos os sábados", d: "Operação presencial que já roda — não precisa ser inventada para a campanha." },
+  { k: "Uma comunidade democrática", d: "Quem estreia nos 5 km e quem corre abaixo de 50 nos 10 km treinam no mesmo lugar." },
+];
+
 /** Números da edição 2025 — fonte: relatório de pós-venda SBT Sunset Run. */
 const STATS = [
   { v: 2000, fmt: "int", label: "atletas na edição 2025", note: "5 km e 10 km · Esplanada dos Ministérios" },
@@ -61,6 +68,34 @@ export function PorQue() {
         tl.to(card, { opacity: 0, yPercent: -12, duration: 0.34, ease: "power2.in" }, at + 0.66);
       }
     });
+
+    // o contador da base Somma responde aos números do SBT logo acima
+    const sommaNum = q<HTMLElement>(".js-somma-num")[0];
+    if (sommaNum) {
+      const o = { v: 0 };
+      gsap.to(o, {
+        v: 6000,
+        duration: 1.9,
+        ease: "power2.out",
+        onUpdate: () => {
+          sommaNum.textContent = `+${Math.round(o.v).toLocaleString("pt-BR")}`;
+        },
+        scrollTrigger: { trigger: sommaNum, start: "top 82%", once: true },
+      });
+    }
+
+    gsap.fromTo(
+      q(".js-somma-fact"),
+      { opacity: 0, x: -16 },
+      {
+        opacity: 1,
+        x: 0,
+        duration: 0.8,
+        stagger: 0.1,
+        ease: EASE.soft,
+        scrollTrigger: { trigger: q(".js-somma")[0], start: "top 74%", once: true },
+      },
+    );
 
     // conclusão: duas batidas separadas, a segunda entra depois da primeira sumir
     const closer = gsap.timeline({
@@ -141,6 +176,53 @@ export function PorQue() {
             >
               Fonte: relatório de pós-venda SBT Sunset Run 2025
             </p>
+          </div>
+        </div>
+
+        {/* ------------------------------------------------ a outra metade */}
+        <div className={cx(s.shell, "js-somma relative z-10 pt-24 md:pt-36")}>
+          <div className="mb-10 flex items-baseline gap-4 md:mb-14">
+            <span className={cx(s.mono, "text-[0.6875rem] uppercase tracking-[0.28em]")} style={{ color: "var(--somma)" }}>
+              E deste lado
+            </span>
+            <span className={cx(s.rule, "js-rule flex-1")} />
+          </div>
+
+          <div className="grid items-end gap-10 md:grid-cols-12 md:gap-12">
+            {/* o número que sustenta a proposta inteira */}
+            <div className="md:col-span-5">
+              <p className={cx(s.num, "js-somma-num")} style={{ fontSize: "clamp(3.75rem,11vw,10rem)" }}>
+                0
+              </p>
+              <div className="mt-6 flex flex-col gap-2 border-t pt-5" style={{ borderColor: "var(--hair)" }}>
+                <p className={cx(s.h3, "!text-[clamp(1.15rem,2vw,1.75rem)]")} style={{ fontVariationSettings: '"wdth" 100' }}>
+                  membros na comunidade Somma
+                </p>
+                <p className={cx(s.mono, "text-[0.6875rem] uppercase tracking-[0.2em]")} style={{ color: "var(--cyan)" }}>
+                  Corredores reais, em Brasília
+                </p>
+              </div>
+            </div>
+
+            <ul className="flex flex-col md:col-span-6 md:col-start-7">
+              {SOMMA.map((f, i) => (
+                <li
+                  key={f.k}
+                  className="js-somma-fact flex gap-5 border-b py-6 first:border-t"
+                  style={{ borderColor: "var(--hair)" }}
+                >
+                  <span className={cx(s.mono, "mt-1.5 text-[0.5625rem] tracking-[0.22em]")} style={{ color: "var(--somma)" }}>
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
+                  <div>
+                    <p className={cx(s.h3, "!text-[clamp(1.05rem,1.7vw,1.4rem)]")} style={{ fontVariationSettings: '"wdth" 100' }}>
+                      {f.k}
+                    </p>
+                    <p className={cx(s.body, "mt-2 !text-[0.875rem]")}>{f.d}</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
 

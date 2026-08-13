@@ -159,11 +159,17 @@ export function Hero() {
               >
                 SBT Sunset Run <span style={{ color: "var(--somma)" }}>×</span> Somma Club
               </span>
+              {/* quem está falando, antes de qualquer proposta */}
+              <span
+                className={cx(s.mono, "text-[0.625rem] uppercase tracking-[0.26em] text-white")}
+              >
+                O maior running club do DF
+              </span>
               <span
                 className={cx(s.mono, "text-[0.625rem] uppercase tracking-[0.26em]")}
                 style={{ color: "var(--dim-2)" }}
               >
-                Esplanada dos Ministérios · DF
+                +6.000 membros · todo sábado
               </span>
             </div>
           </div>
