@@ -70,6 +70,8 @@ function novaInscricao(overrides = {}) {
     birth_date: "1995-04-12",
     email: `teste+${Date.now()}@example.com`,
     phone: "61999998888",
+    sexo: "feminino",
+    participacao: "competidor",
     aceite_termos: true,
     utm_source: "smoke",
     utm_medium: "script",
@@ -121,6 +123,8 @@ async function main() {
     ["unidade inexistente", { unit_id: "asa-norte" }, "unit_id"],
     ["sem aceite dos termos", { aceite_termos: false }, "aceite_termos"],
     ["data de nascimento futura", { birth_date: "2030-01-01" }, "birth_date"],
+    ["categoria ausente", { sexo: undefined }, "sexo"],
+    ["participação ausente", { participacao: undefined }, "participacao"],
   ];
   for (const [nome, override, campo] of casos) {
     const res = await fetch(`${BASE}/api/desafio-esteiras/inscricao`, {

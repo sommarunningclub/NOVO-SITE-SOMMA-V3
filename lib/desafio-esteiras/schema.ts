@@ -46,10 +46,20 @@ export const utmSchema = z
   })
   .partial();
 
+export const sexoSchema = z.enum(["masculino", "feminino"], {
+  message: "Escolha a categoria em que vai disputar",
+});
+
+export const participacaoSchema = z.enum(["competidor", "espectador"], {
+  message: "Diga se vai competir ou assistir",
+});
+
 export const registrationSchema = z.object({
   unit_id: z.enum(UNIT_IDS as [string, ...string[]], {
     message: "Escolha uma unidade",
   }),
+  sexo: sexoSchema,
+  participacao: participacaoSchema,
   full_name: z
     .string()
     .trim()
@@ -80,6 +90,33 @@ export const step2Schema = registrationSchema.pick({
   birth_date: true,
   email: true,
   phone: true,
+  sexo: true,
+  participacao: true,
+});
+
+/**
+ * Acesso ao próprio cadastro.
+ *
+ * CPF sozinho não serve como prova de identidade — ele circula em nota fiscal,
+ * cadastro de loja e vazamento. Exigir a data de nascimento junto transforma
+ * "quem descobriu um CPF" em "quem conhece a pessoa", sem pedir senha nem
+ * e-mail de confirmação.
+ */
+export const acessoCadastroSchema = z.object({
+  cpf: cpfSchema,
+  birth_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Data de nascimento inválida"),
+});
+
+/** Campos que o participante pode alterar sozinho. CPF e nascimento são as chaves — não mudam. */
+export const edicaoCadastroSchema = z.object({
+  full_name: registrationSchema.shape.full_name,
+  email: registrationSchema.shape.email,
+  phone: phoneSchema,
+  unit_id: registrationSchema.shape.unit_id,
+  sexo: sexoSchema,
+  participacao: participacaoSchema,
+  /** `true` remove a foto atual; o upload de uma nova passa por rota própria. */
+  remover_foto: z.boolean().optional(),
 });
 
 export const checkinSchema = z.object({

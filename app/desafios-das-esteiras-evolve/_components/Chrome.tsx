@@ -10,6 +10,7 @@ const LINKS = [
   { href: "#desafio", label: "O Desafio" },
   { href: "#experiencia", label: "Experiência" },
   { href: "#unidades", label: "Unidades" },
+  { href: "#competidores", label: "Competidores" },
   { href: "#como-funciona", label: "Como funciona" },
   { href: "#faq", label: "FAQ" },
 ];

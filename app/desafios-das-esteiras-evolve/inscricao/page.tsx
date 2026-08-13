@@ -10,9 +10,17 @@ export default async function InscricaoPage() {
 
   const iniciais = {
     total: stats.total,
+    totalCompetidores: stats.totalCompetidores,
     unidades: stats.porUnidade.map((u) => {
       const unit = UNITS.find((x) => x.id === u.unitId)!;
-      return { id: u.unitId, inscritos: u.inscritos, status: unit.status, capacidade: unit.capacidade };
+      return {
+        id: u.unitId,
+        inscritos: u.inscritos,
+        competidores: u.competidores,
+        espectadores: u.espectadores,
+        status: unit.status,
+        capacidade: unit.capacidade,
+      };
     }),
     disponivel: stats.disponivel,
   };

@@ -305,6 +305,14 @@ export function UnitsNetwork({ iniciais }: { iniciais: StatsIniciais }) {
                   <span className="dst-label text-[color:rgba(242,240,236,0.45)]">inscritos</span>
                 </p>
 
+                {/* Quem compete e quem vai só assistir — o total acima soma os dois */}
+                <p className="dst-label mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[color:rgba(242,240,236,0.42)]">
+                  <span style={{ color: "var(--somma)" }}>
+                    {(dados?.competidores ?? 0).toLocaleString("pt-BR")} competem
+                  </span>
+                  <span>{(dados?.espectadores ?? 0).toLocaleString("pt-BR")} assistem</span>
+                </p>
+
                 {capacidade !== null && (
                   <div className="mt-3" aria-hidden>
                     <div className="h-[3px] w-full bg-[color:var(--line)]">

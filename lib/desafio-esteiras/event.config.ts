@@ -165,6 +165,44 @@ export const COLORS = {
   white: "#ffffff",
 } as const;
 
+/* ── Competição ──────────────────────────────────────────────────────────── */
+
+/**
+ * A categoria não é escolhida: ela vem do sexo informado na inscrição.
+ * Quem se inscreve como feminino disputa no feminino, e vice-versa.
+ */
+export type Sexo = "masculino" | "feminino";
+export type Participacao = "competidor" | "espectador";
+
+export const CATEGORIAS: { id: Sexo; nome: string; curto: string }[] = [
+  { id: "feminino", nome: "Categoria Feminino", curto: "Feminino" },
+  { id: "masculino", nome: "Categoria Masculino", curto: "Masculino" },
+];
+
+export function categoriaDoSexo(sexo: Sexo | null | undefined): string | null {
+  if (!sexo) return null;
+  return CATEGORIAS.find((c) => c.id === sexo)?.curto ?? null;
+}
+
+export const PARTICIPACAO_LABELS: Record<Participacao, { titulo: string; texto: string }> = {
+  competidor: {
+    titulo: "Vou competir",
+    texto: "Entro no Desafio das Esteiras e apareço na grade de competidores.",
+  },
+  espectador: {
+    titulo: "Só vou assistir",
+    texto: "Vou à unidade curtir a experiência, mas não disputo.",
+  },
+};
+
+/** Cor de fundo do avatar quando a pessoa não envia foto — uma por unidade. */
+export const UNIT_ACCENT: Record<string, string> = {
+  "vicente-pires": "#ff2c04",
+  luziania: "#e0261b",
+  alameda: "#b81f16",
+  samambaia: "#8c1810",
+};
+
 export const COPY = {
   headline: ["DESAFIO", "DAS ESTEIRAS"],
   sub: "4 UNIDADES. 1 DESAFIO.",

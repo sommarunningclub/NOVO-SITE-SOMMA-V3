@@ -11,6 +11,7 @@ import {
   inscricoesAbertas,
   unitStatusFor,
 } from "@/lib/desafio-esteiras/event.config";
+import { sendDesafioEsteirasTicketEmail } from "@/lib/emails/desafio-esteiras-ticket";
 
 export const dynamic = "force-dynamic";
 
@@ -134,6 +135,8 @@ export async function POST(request: NextRequest) {
     email: data.email,
     phone: data.phone,
     unit_id: unit.id,
+    sexo: data.sexo,
+    participacao: data.participacao,
     ticket_token,
     status: "confirmed" as const,
     origem: "lp-desafio-esteiras",
@@ -159,6 +162,16 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (!error && inserido) {
+      void sendDesafioEsteirasTicketEmail({
+        nome: registro.full_name,
+        email: data.email,
+        ticketCode: inserido.ticket_code,
+        ticketToken: inserido.ticket_token,
+        unit,
+      }).catch((err) => {
+        console.error("[desafio-esteiras] Falha ao enviar e-mail do ticket:", err);
+      });
+
       return NextResponse.json({
         ok: true,
         ticket_token: inserido.ticket_token,

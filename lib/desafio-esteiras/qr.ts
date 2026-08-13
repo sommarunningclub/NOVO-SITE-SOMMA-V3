@@ -23,3 +23,17 @@ export async function ticketQrSvg(token: string): Promise<string> {
     .replace(/\s(width|height)="[^"]*"/g, "")
     .replace("<svg ", '<svg width="100%" height="100%" preserveAspectRatio="xMidYMid meet" ');
 }
+
+/**
+ * PNG do QR para e-mail. Clientes de e-mail não renderizam SVG de forma
+ * confiável — o PNG entra inline (CID) e também como anexo.
+ */
+export async function ticketQrPng(token: string): Promise<Buffer> {
+  return QRCode.toBuffer(qrPayload(token), {
+    type: "png",
+    errorCorrectionLevel: "M",
+    margin: 2,
+    width: 560,
+    color: { dark: "#08080a", light: "#f2f0ec" },
+  });
+}

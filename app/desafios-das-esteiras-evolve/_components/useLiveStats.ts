@@ -6,18 +6,24 @@ import { UNITS, type UnitId, type UnitStatus } from "@/lib/desafio-esteiras/even
 export interface UnidadeStat {
   id: UnitId;
   inscritos: number;
+  competidores: number;
+  espectadores: number;
   status: UnitStatus;
   capacidade: number | null;
 }
 
 export interface LiveStats {
   total: number;
+  totalCompetidores: number;
   unidades: UnidadeStat[];
   disponivel: boolean;
   carregando: boolean;
 }
 
-export type StatsIniciais = Pick<LiveStats, "total" | "unidades" | "disponivel">;
+export type StatsIniciais = Pick<
+  LiveStats,
+  "total" | "totalCompetidores" | "unidades" | "disponivel"
+>;
 
 /**
  * Contadores de inscritos.
@@ -73,7 +79,14 @@ export function statsPorUnidade(stats: StatsIniciais): UnidadeStat[] {
   return UNITS.map((u) => {
     const achado = stats.unidades.find((s) => s.id === u.id);
     return (
-      achado ?? { id: u.id as UnitId, inscritos: 0, status: u.status, capacidade: u.capacidade }
+      achado ?? {
+        id: u.id as UnitId,
+        inscritos: 0,
+        competidores: 0,
+        espectadores: 0,
+        status: u.status,
+        capacidade: u.capacidade,
+      }
     );
   });
 }

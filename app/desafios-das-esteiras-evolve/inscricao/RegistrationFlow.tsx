@@ -7,22 +7,27 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import {
+  CATEGORIAS,
   EVENT,
   EVENT_PATH,
+  PARTICIPACAO_LABELS,
   UNITS,
   UNIT_LABELS,
   getUnit,
   inscricoesAbertas,
   type EventUnit,
+  type Participacao,
+  type Sexo,
 } from "@/lib/desafio-esteiras/event.config";
 import { formatCPF } from "@/lib/cpf";
 import { formatPhone, step2Schema } from "@/lib/desafio-esteiras/schema";
 import { readAttribution, track } from "@/lib/desafio-esteiras/analytics";
 import { gsap, prefersReducedMotion } from "../_motion";
 import { Logos } from "../_components/Logos";
+import { FotoPicker } from "../_components/FotoPicker";
 import { statsPorUnidade, useLiveStats, type StatsIniciais } from "../_components/useLiveStats";
 
-type Etapa = 1 | 2 | 3;
+type Etapa = 1 | 2 | 3 | 4;
 
 /** Espelha o schema do servidor, sem os campos que só a API preenche. */
 const formSchema = step2Schema.extend({
@@ -31,9 +36,10 @@ const formSchema = step2Schema.extend({
 type FormValues = z.input<typeof formSchema>;
 
 const ETAPAS: { n: Etapa; titulo: string }[] = [
-  { n: 1, titulo: "Escolha sua unidade" },
-  { n: 2, titulo: "Seus dados" },
-  { n: 3, titulo: "Confirme sua participação" },
+  { n: 1, titulo: "Sua unidade" },
+  { n: 2, titulo: "Sua participação" },
+  { n: 3, titulo: "Seus dados" },
+  { n: 4, titulo: "Confirmação" },
 ];
 
 export function RegistrationFlow({ iniciais }: { iniciais: StatsIniciais }) {
@@ -45,6 +51,7 @@ export function RegistrationFlow({ iniciais }: { iniciais: StatsIniciais }) {
   const unidadeDaUrl = useMemo(() => getUnit(params.get("unidade")), [params]);
   const [unidade, setUnidade] = useState<EventUnit | null>(unidadeDaUrl);
   const [etapa, setEtapa] = useState<Etapa>(unidadeDaUrl ? 2 : 1);
+  const [foto, setFoto] = useState<File | null>(null);
   const [enviando, setEnviando] = useState(false);
   const [erroApi, setErroApi] = useState<{ msg: string; token?: string } | null>(null);
   const painelRef = useRef<HTMLDivElement>(null);
@@ -60,19 +67,19 @@ export function RegistrationFlow({ iniciais }: { iniciais: StatsIniciais }) {
   } = useForm<FormValues>({
     resolver: zodResolver(formSchema) as never,
     mode: "onBlur",
-    defaultValues: { aceite_termos: false },
+    defaultValues: { aceite_termos: false, participacao: "competidor" },
   });
 
   const valores = watch();
+  const participacao = (valores.participacao ?? "competidor") as Participacao;
+  const competidor = participacao === "competidor";
 
   useEffect(() => {
     track("begin_registration", { origem: "pagina_inscricao", unidade: unidadeDaUrl?.id ?? null });
     if (unidadeDaUrl) track("select_unit", { unidade: unidadeDaUrl.id, origem: "deep_link" });
-    // uma vez por montagem
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Transição entre etapas: o painel desliza, sem trocar a página inteira.
   const animarEntrada = useCallback(() => {
     if (!painelRef.current || prefersReducedMotion()) return;
     gsap.fromTo(
@@ -95,9 +102,32 @@ export function RegistrationFlow({ iniciais }: { iniciais: StatsIniciais }) {
     setEtapa(2);
   }
 
+  async function avancarParticipacao() {
+    const ok = await trigger(["participacao", "sexo"]);
+    if (ok) setEtapa(3);
+  }
+
   async function avancarDados() {
     const ok = await trigger(["full_name", "cpf", "birth_date", "email", "phone"]);
-    if (ok) setEtapa(3);
+    if (ok) setEtapa(4);
+  }
+
+  /**
+   * A foto é enviada depois da inscrição: o upload precisa de um registro a que
+   * se vincular, e é o `ticket_token` recém-criado que autoriza. Se o upload
+   * falhar, a inscrição continua válida — a pessoa adiciona a foto depois pela
+   * tela "Alterar meus dados".
+   */
+  async function enviarFoto(ticketToken: string) {
+    if (!foto) return;
+    try {
+      const fd = new FormData();
+      fd.append("foto", foto);
+      fd.append("ticket_token", ticketToken);
+      await fetch("/api/desafio-esteiras/foto", { method: "POST", body: fd });
+    } catch {
+      /* silencioso de propósito: não travar a confirmação por causa da foto */
+    }
   }
 
   async function enviar(values: FormValues) {
@@ -130,11 +160,12 @@ export function RegistrationFlow({ iniciais }: { iniciais: StatsIniciais }) {
         return;
       }
 
-      track("complete_registration", { unidade: unidade.id });
+      track("complete_registration", { unidade: unidade.id, participacao });
+
       if (data.ticket_token) {
+        await enviarFoto(data.ticket_token);
         router.push(`${EVENT_PATH}/confirmado/${data.ticket_token}`);
       } else {
-        // honeypot acionado no servidor: resposta neutra, sem ticket
         router.push(EVENT_PATH);
       }
     } catch {
@@ -159,13 +190,8 @@ export function RegistrationFlow({ iniciais }: { iniciais: StatsIniciais }) {
 
   return (
     <div className="dst-wrap py-6 md:py-10">
-      {/* Cabeçalho do fluxo */}
       <div className="flex items-center justify-between gap-4 border-b border-[color:var(--line)] pb-5">
-        <Link
-          href={EVENT_PATH}
-          aria-label="Voltar para o evento"
-          className="flex min-h-[44px] items-center"
-        >
+        <Link href={EVENT_PATH} aria-label="Voltar para o evento" className="flex min-h-[44px] items-center">
           <Logos className="h-5" />
         </Link>
         <span className="dst-label text-[color:rgba(242,240,236,0.45)]">
@@ -173,25 +199,22 @@ export function RegistrationFlow({ iniciais }: { iniciais: StatsIniciais }) {
         </span>
       </div>
 
-      {/* Progresso das etapas */}
-      <ol className="mt-6 flex gap-2" aria-label="Etapas da inscrição">
+      <ol className="mt-6 flex gap-1.5" aria-label="Etapas da inscrição">
         {ETAPAS.map((e) => {
           const feita = etapa > e.n;
           const atual = etapa === e.n;
           return (
-            <li key={e.n} className="flex-1">
+            <li key={e.n} className="min-w-0 flex-1">
               <button
                 type="button"
-                disabled={e.n > etapa || (e.n === 2 && !unidade)}
+                disabled={e.n > etapa}
                 onClick={() => e.n < etapa && setEtapa(e.n)}
                 aria-current={atual ? "step" : undefined}
                 className="flex min-h-[44px] w-full flex-col justify-center text-left disabled:cursor-default"
               >
                 <span
                   className="block h-[3px] w-full transition-colors duration-500"
-                  style={{
-                    background: feita || atual ? "var(--energia)" : "var(--line)",
-                  }}
+                  style={{ background: feita || atual ? "var(--energia)" : "var(--line)" }}
                 />
                 <span
                   className="dst-label mt-2.5 block truncate"
@@ -208,7 +231,6 @@ export function RegistrationFlow({ iniciais }: { iniciais: StatsIniciais }) {
 
       <div ref={painelRef} className="mt-8 scroll-mt-6 md:mt-12">
         <form onSubmit={handleSubmit(enviar)} noValidate>
-          {/* honeypot: invisível para humanos, irresistível para bots */}
           <input
             ref={honeypot}
             type="text"
@@ -219,7 +241,7 @@ export function RegistrationFlow({ iniciais }: { iniciais: StatsIniciais }) {
             className="pointer-events-none absolute left-[-9999px] h-0 w-0 opacity-0"
           />
 
-          {/* ── ETAPA 1 ── */}
+          {/* ── ETAPA 1 — unidade ── */}
           {etapa === 1 && (
             <section aria-labelledby="etapa1">
               <h1 id="etapa1" className="etapa-anim dst-display text-[clamp(2rem,8vw,4rem)]">
@@ -278,11 +300,13 @@ export function RegistrationFlow({ iniciais }: { iniciais: StatsIniciais }) {
             </section>
           )}
 
-          {/* ── ETAPA 2 ── */}
+          {/* ── ETAPA 2 — participação, categoria e foto ── */}
           {etapa === 2 && unidade && (
             <section aria-labelledby="etapa2">
               <h1 id="etapa2" className="etapa-anim dst-display text-[clamp(2rem,8vw,4rem)]">
-                SEUS DADOS
+                COMO VOCÊ
+                <br />
+                VAI PARTICIPAR
               </h1>
               <p className="etapa-anim dst-label mt-4 flex flex-wrap items-center gap-2 text-[color:rgba(242,240,236,0.5)]">
                 Unidade escolhida:
@@ -295,6 +319,112 @@ export function RegistrationFlow({ iniciais }: { iniciais: StatsIniciais }) {
                   trocar
                 </button>
               </p>
+
+              <fieldset className="etapa-anim mt-8">
+                <legend className="dst-label mb-3 text-[color:rgba(242,240,236,0.45)]">
+                  Vai competir ou só assistir?
+                </legend>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {(Object.keys(PARTICIPACAO_LABELS) as Participacao[]).map((p) => {
+                    const ativo = participacao === p;
+                    return (
+                      <label
+                        key={p}
+                        className="dst-panel cursor-pointer p-5 transition-colors"
+                        style={{
+                          borderColor: ativo ? "var(--somma)" : "var(--line)",
+                          background: ativo ? "rgba(255,44,4,0.08)" : "var(--ink-2)",
+                        }}
+                      >
+                        <input
+                          type="radio"
+                          value={p}
+                          {...register("participacao")}
+                          className="sr-only"
+                        />
+                        <span className="dst-display block text-[1.15rem]">
+                          {PARTICIPACAO_LABELS[p].titulo}
+                        </span>
+                        <span className="mt-2 block text-[0.88rem] leading-relaxed text-[color:rgba(242,240,236,0.6)]">
+                          {PARTICIPACAO_LABELS[p].texto}
+                        </span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </fieldset>
+
+              <fieldset className="etapa-anim mt-8">
+                <legend className="dst-label mb-3 text-[color:rgba(242,240,236,0.45)]">
+                  {competidor ? "Categoria em que vai disputar" : "Categoria"}
+                </legend>
+                <div className="grid grid-cols-2 gap-3">
+                  {CATEGORIAS.map((c) => {
+                    const ativo = valores.sexo === c.id;
+                    return (
+                      <label
+                        key={c.id}
+                        className="dst-panel flex min-h-[64px] cursor-pointer items-center justify-center p-4 text-center transition-colors"
+                        style={{
+                          borderColor: ativo ? "var(--somma)" : "var(--line)",
+                          background: ativo ? "rgba(255,44,4,0.08)" : "var(--ink-2)",
+                        }}
+                      >
+                        <input type="radio" value={c.id} {...register("sexo")} className="sr-only" />
+                        <span className="dst-display text-[1.1rem]">{c.curto}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+                {competidor && (
+                  <p className="dst-label mt-3 leading-relaxed text-[color:rgba(242,240,236,0.4)]">
+                    A disputa é separada em feminino e masculino.
+                  </p>
+                )}
+                {errors.sexo && (
+                  <p role="alert" className="dst-label mt-3 text-[color:var(--evolve)]">
+                    {errors.sexo.message}
+                  </p>
+                )}
+              </fieldset>
+
+              {competidor && (
+                <div className="etapa-anim mt-8">
+                  <p className="dst-label mb-3 text-[color:rgba(242,240,236,0.45)]">
+                    Foto de perfil
+                  </p>
+                  <FotoPicker
+                    nome={valores.full_name ?? ""}
+                    unitId={unidade.id}
+                    onChange={setFoto}
+                  />
+                  <p className="dst-label mt-3 leading-relaxed text-[color:rgba(242,240,236,0.4)]">
+                    Ela aparece na grade de competidores da página do evento.
+                  </p>
+                </div>
+              )}
+
+              <div className="etapa-anim mt-9 flex flex-col gap-3 sm:flex-row">
+                <button type="button" onClick={avancarParticipacao} className="dst-btn flex-1">
+                  Continuar
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEtapa(1)}
+                  className="dst-btn dst-btn--ghost sm:w-auto"
+                >
+                  Voltar
+                </button>
+              </div>
+            </section>
+          )}
+
+          {/* ── ETAPA 3 — dados ── */}
+          {etapa === 3 && unidade && (
+            <section aria-labelledby="etapa3">
+              <h1 id="etapa3" className="etapa-anim dst-display text-[clamp(2rem,8vw,4rem)]">
+                SEUS DADOS
+              </h1>
 
               <div className="mt-8 grid gap-5 sm:grid-cols-2">
                 <Campo
@@ -351,7 +481,7 @@ export function RegistrationFlow({ iniciais }: { iniciais: StatsIniciais }) {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setEtapa(1)}
+                  onClick={() => setEtapa(2)}
                   className="dst-btn dst-btn--ghost sm:w-auto"
                 >
                   Voltar
@@ -360,10 +490,10 @@ export function RegistrationFlow({ iniciais }: { iniciais: StatsIniciais }) {
             </section>
           )}
 
-          {/* ── ETAPA 3 ── */}
-          {etapa === 3 && unidade && (
-            <section aria-labelledby="etapa3">
-              <h1 id="etapa3" className="etapa-anim dst-display text-[clamp(2rem,8vw,4rem)]">
+          {/* ── ETAPA 4 — confirmação ── */}
+          {etapa === 4 && unidade && (
+            <section aria-labelledby="etapa4">
+              <h1 id="etapa4" className="etapa-anim dst-display text-[clamp(2rem,8vw,4rem)]">
                 CONFIRME SUA
                 <br />
                 PARTICIPAÇÃO
@@ -372,20 +502,29 @@ export function RegistrationFlow({ iniciais }: { iniciais: StatsIniciais }) {
               <dl className="etapa-anim dst-panel mt-8 divide-y divide-[color:var(--line)]">
                 {[
                   { k: "Nome", v: valores.full_name },
+                  { k: "Participação", v: PARTICIPACAO_LABELS[participacao].titulo },
+                  {
+                    k: "Categoria",
+                    v: CATEGORIAS.find((c) => c.id === (valores.sexo as Sexo))?.curto ?? "—",
+                  },
+                  { k: "Foto", v: foto ? foto.name : "Sem foto (avatar padrão)" },
                   { k: "Unidade", v: unidade.nome },
                   { k: "Endereço", v: unidade.endereco },
                   { k: "Data", v: EVENT.dataExtenso },
                   { k: "Horário", v: EVENT.horaExtenso },
                   { k: "E-mail", v: valores.email },
                   { k: "Telefone", v: valores.phone },
-                ].map((linha) => (
-                  <div key={linha.k} className="flex flex-col gap-1 p-4 sm:flex-row sm:gap-6 sm:p-5">
-                    <dt className="dst-label w-32 shrink-0 pt-0.5 text-[color:rgba(242,240,236,0.4)]">
-                      {linha.k}
-                    </dt>
-                    <dd className="text-[0.98rem] leading-relaxed">{linha.v}</dd>
-                  </div>
-                ))}
+                ]
+                  // quem só vai assistir não tem foto na grade, então a linha some
+                  .filter((l) => l.k !== "Foto" || competidor)
+                  .map((linha) => (
+                    <div key={linha.k} className="flex flex-col gap-1 p-4 sm:flex-row sm:gap-6 sm:p-5">
+                      <dt className="dst-label w-32 shrink-0 pt-0.5 text-[color:rgba(242,240,236,0.4)]">
+                        {linha.k}
+                      </dt>
+                      <dd className="break-words text-[0.98rem] leading-relaxed">{linha.v}</dd>
+                    </div>
+                  ))}
               </dl>
 
               <label className="etapa-anim mt-7 flex cursor-pointer items-start gap-3.5">
@@ -396,9 +535,17 @@ export function RegistrationFlow({ iniciais }: { iniciais: StatsIniciais }) {
                   aria-invalid={errors.aceite_termos ? "true" : undefined}
                 />
                 <span className="text-[0.9rem] leading-relaxed text-[color:rgba(242,240,236,0.7)]">
-                  Confirmo que os dados acima são meus e verdadeiros, autorizo o uso deles pela
-                  Evolve e pelo SOMMA Club para a organização e comunicação deste evento, e declaro
-                  estar ciente de que devo respeitar as regras operacionais da unidade no dia.{" "}
+                  Confirmo que os dados acima são meus e verdadeiros e autorizo o uso deles pela
+                  Evolve e pelo SOMMA Club para a organização e comunicação deste evento.
+                  {competidor && (
+                    <>
+                      {" "}
+                      Como vou competir, autorizo que meu <strong>primeiro nome, categoria,
+                      unidade e foto de perfil</strong> apareçam publicamente na página do evento.
+                    </>
+                  )}{" "}
+                  Declaro estar ciente de que devo respeitar as regras operacionais da unidade no
+                  dia.{" "}
                   <Link
                     href="/politica-de-privacidade"
                     target="_blank"
@@ -430,6 +577,15 @@ export function RegistrationFlow({ iniciais }: { iniciais: StatsIniciais }) {
                       Ver meu ticket →
                     </Link>
                   )}
+                  {erroApi.msg.includes("já tem inscrição") && (
+                    <Link
+                      href={`${EVENT_PATH}/meu-cadastro`}
+                      className="dst-label mt-3 block underline underline-offset-4"
+                      style={{ color: "var(--somma)" }}
+                    >
+                      Alterar meus dados →
+                    </Link>
+                  )}
                 </div>
               )}
 
@@ -439,7 +595,7 @@ export function RegistrationFlow({ iniciais }: { iniciais: StatsIniciais }) {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setEtapa(2)}
+                  onClick={() => setEtapa(3)}
                   disabled={enviando}
                   className="dst-btn dst-btn--ghost sm:w-auto"
                 >
@@ -449,6 +605,16 @@ export function RegistrationFlow({ iniciais }: { iniciais: StatsIniciais }) {
             </section>
           )}
         </form>
+
+        <p className="dst-label mt-10 border-t border-[color:var(--line)] pt-5 text-[color:rgba(242,240,236,0.4)]">
+          Já se inscreveu?{" "}
+          <Link
+            href={`${EVENT_PATH}/meu-cadastro`}
+            className="underline underline-offset-4 hover:text-[color:var(--somma)]"
+          >
+            Alterar meus dados
+          </Link>
+        </p>
       </div>
     </div>
   );
