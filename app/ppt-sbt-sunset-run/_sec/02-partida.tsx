@@ -2,6 +2,7 @@
 
 import { gsap, useScope, EASE, scrub } from "../_motion";
 import { Headline, Chapter, Section, cx, s } from "../_ui";
+import { ConvergenceCanvas } from "../_convergence";
 
 const DIVULGACAO = ["post", "story", "cupom", "cortesia", "alcance"];
 const EXPERIENCIA = ["comunidade", "treino", "tecnologia", "conteúdo", "conversão", "corrida", "relacionamento"];
@@ -64,6 +65,10 @@ export function Partida() {
         {/* --------------------------------------------------------- a virada */}
         <div className="js-stage-wrap js-pin-track relative mt-20 h-[150vh] md:mt-24 md:h-[175vh]">
           <div className="js-pin-frame sticky top-0 flex h-[100svh] items-center justify-center overflow-hidden">
+            {/* Os pontos convergem no mesmo scroll em que a palavra troca: a
+                audiência dispersa vira comunidade enquanto se lê. */}
+            <ConvergenceCanvas trigger=".js-stage-wrap" />
+
             {/* halo que acende junto com a experiência */}
             <div
               aria-hidden
@@ -131,7 +136,7 @@ export function Partida() {
                 className={cx(s.mono, "js-b-item mt-12 text-center text-[0.625rem] uppercase tracking-[0.3em]")}
                 style={{ color: "var(--dim-2)" }}
               >
-                É isso que a Somma constrói
+                From audience to community
               </p>
             </div>
           </div>

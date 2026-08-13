@@ -7,7 +7,6 @@ import { s } from "./_ui";
 import { Hero } from "./_sec/01-hero";
 import { Partida } from "./_sec/02-partida";
 import { PorQue } from "./_sec/03-porque";
-import { Community } from "./_sec/04-community";
 import { Road } from "./_sec/05-road";
 import { Pass } from "./_sec/06-pass";
 import { Missions } from "./_sec/07-missions";
@@ -47,7 +46,6 @@ export function Deck() {
       <Hero />
       <Partida />
       <PorQue />
-      <Community />
       <Road />
       <Pass />
       <Missions />

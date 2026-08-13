@@ -9,7 +9,7 @@ const GROUPS: { dist: string; rows: Group[] }[] = [
   {
     dist: "5K",
     rows: [
-      { tier: "Comfort", pace: "7'30\" a 8'30\"", target: "≈ 40 min", who: "Seu primeiro 5K. Caminhar um pouco é permitido." },
+      { tier: "Comfort", pace: "7'30\" a 8'30\"", target: "≈ 40 min", who: "Seu primeiro 5K." },
       { tier: "Intermediate", pace: "6'00\" a 7'00\"", target: "≈ 32 min", who: "Já corre, quer terminar forte." },
       { tier: "Fast", pace: "sub 5'30\"", target: "sub 27 min", who: "Quem corre pelo relógio." },
     ],
@@ -17,9 +17,9 @@ const GROUPS: { dist: string; rows: Group[] }[] = [
   {
     dist: "10K",
     rows: [
-      { tier: "Comfort", pace: "7'00\" a 8'00\"", target: "≈ 75 min", who: "Quer simplesmente chegar sorrindo." },
-      { tier: "Intermediate", pace: "6'00\"", target: "sub 60 min", who: "Quer correr 10K abaixo de 60." },
-      { tier: "Fast", pace: "sub 5'00\"", target: "sub 50 min", who: "Ritmo de prova, do início ao fim." },
+      { tier: "Comfort", pace: "7'00\" a 8'00\"", target: "≈ 75 min", who: "Chegar sorrindo." },
+      { tier: "Intermediate", pace: "6'00\"", target: "sub 60 min", who: "10K abaixo de 60." },
+      { tier: "Fast", pace: "sub 5'00\"", target: "sub 50 min", who: "Ritmo de prova." },
     ],
   },
 ];
@@ -111,7 +111,7 @@ export function Pacers() {
                           por km · alvo {r.target}
                         </p>
 
-                        <p className={cx(s.body, "mt-6 border-t pt-5 !text-[0.875rem]")} style={{ borderColor: "var(--hair)" }}>
+                        <p className={cx(s.body, "mt-5 border-t pt-4 !text-[0.8125rem]")} style={{ borderColor: "var(--hair)" }}>
                           {r.who}
                         </p>
                       </div>

@@ -57,21 +57,6 @@ export function Access() {
                 O maior running club do Distrito Federal.
               </p>
 
-              {/* a credencial em números, dentro do ativo que ela qualifica */}
-              <div className="mt-6 flex flex-wrap gap-x-9 gap-y-4 border-t pt-5" style={{ borderColor: "rgba(255,255,255,.18)" }}>
-                {[
-                  ["+6.000", "membros"],
-                  ["Todo sábado", "encontro presencial"],
-                  ["Democrática", "todos os ritmos"],
-                ].map(([n, l]) => (
-                  <div key={l}>
-                    <p className={cx(s.num, "!text-[clamp(1.15rem,1.9vw,1.6rem)]")}>{n}</p>
-                    <p className={cx(s.mono, "mt-1 text-[0.5625rem] uppercase tracking-[0.18em]")} style={{ color: "var(--cyan)" }}>
-                      {l}
-                    </p>
-                  </div>
-                ))}
-              </div>
             </div>
           </article>
 
@@ -121,36 +106,6 @@ export function Access() {
             </article>
           </div>
 
-          {/* faixa: tecnologia e conteúdo */}
-          <article className={cx(s.card, "p-7 md:col-span-4 md:p-8")} data-rise>
-            <p className={cx(s.num, "!text-[2.4rem]")} style={{ color: "var(--somma)" }}>
-              01
-            </p>
-            <p className={cx(s.h3, "mt-4")}>Tecnologia própria</p>
-            <p className={cx(s.body, "mt-3 !text-[0.875rem]")}>
-              Sistema de check-in, perfis, missões e progressão. A base do Sunset Pass já existe e roda.
-            </p>
-          </article>
-
-          <article className={cx(s.card, "p-7 md:col-span-4 md:p-8")} data-rise>
-            <p className={cx(s.num, "!text-[2.4rem]")} style={{ color: "var(--somma)" }}>
-              02
-            </p>
-            <p className={cx(s.h3, "mt-4")}>Conteúdo nativo</p>
-            <p className={cx(s.body, "mt-3 !text-[0.875rem]")}>
-              Produção que nasce dentro do treino, com pessoas reais da comunidade, e não em estúdio.
-            </p>
-          </article>
-
-          <article className={cx(s.card, "p-7 md:col-span-4 md:p-8")} data-rise>
-            <p className={cx(s.num, "!text-[2.4rem]")} style={{ color: "var(--somma)" }}>
-              03
-            </p>
-            <p className={cx(s.h3, "mt-4")}>Experiência presencial</p>
-            <p className={cx(s.body, "mt-3 !text-[0.875rem]")}>
-              Operação de evento própria: ponto de encontro, aquecimento, pacers e cobertura no Race Day.
-            </p>
-          </article>
         </div>
       </div>
     </Section>

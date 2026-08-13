@@ -134,11 +134,7 @@ export function Investment() {
               style={{ background: "linear-gradient(90deg,rgba(255,255,255,0),var(--somma) 50%,rgba(255,255,255,0))" }}
             />
 
-            <p className={cx(s.lead, "mt-10 max-w-[46ch] !text-white")}>
-              Estratégia, comunidade, experiência, tecnologia, conteúdo e operação Somma.
-            </p>
-
-            <ul className="js-pillars mt-9 flex flex-wrap justify-center gap-x-6 gap-y-3 md:gap-x-10">
+            <ul className="js-pillars mt-10 flex flex-wrap justify-center gap-x-6 gap-y-3 md:gap-x-10">
               {PILLARS.map((p) => (
                 <li
                   key={p}
@@ -150,12 +146,6 @@ export function Investment() {
               ))}
             </ul>
 
-            <p
-              className={cx(s.mono, "mt-14 max-w-[52ch] text-[0.625rem] uppercase leading-[1.8] tracking-[0.14em]")}
-              style={{ color: "rgba(255,255,255,.3)" }}
-            >
-              Produções especiais e custos extraordinários são orçados separadamente.
-            </p>
           </div>
 
           {/* ------------------------------------------------ resumo em tabela */}

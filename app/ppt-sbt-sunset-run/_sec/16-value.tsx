@@ -132,7 +132,6 @@ export function ValueBothWays() {
                     <p className={cx(s.h3, "!text-[clamp(1.05rem,1.6vw,1.3rem)]")} style={{ fontVariationSettings: '"wdth" 100' }}>
                       {a.t}
                     </p>
-                    <p className={cx(s.body, "mt-2 !text-[0.875rem]")}>{a.d}</p>
                   </div>
                 </li>
               ))}

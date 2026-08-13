@@ -1,24 +1,21 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { gsap, ScrollTrigger, reduced } from "../_motion";
-import { Headline, Chapter, Section, cx, s } from "../_ui";
-
-const SHIFTS = [
-  ["Espectadores", "participantes"],
-  ["Participantes", "comunidade"],
-  ["Uma corrida", "uma jornada"],
-];
+import { ScrollTrigger, reduced } from "./_motion";
 
 /**
  * Nuvem de pontos que converge.
  *
  * Cada ponto começa espalhado (audiência: muita gente, nenhuma ligação) e é
- * puxado para um de cinco núcleos conforme a leitura avança. Quando se
- * aproximam, os vizinhos passam a se conectar. A comunidade aparece como
- * consequência da distância, não como enfeite.
+ * puxado para um núcleo conforme a leitura avança. Quando se aproximam, os
+ * vizinhos passam a se conectar: a comunidade aparece como consequência da
+ * distância, não como enfeite.
+ *
+ * Vive atrás da virada "divulgação vira experiência", que é onde o argumento
+ * acontece. `trigger` permite amarrar o progresso ao trilho daquela seção em
+ * vez do próprio canvas.
  */
-function ConvergenceCanvas() {
+export function ConvergenceCanvas({ trigger }: { trigger?: string }) {
   const canvas = useRef<HTMLCanvasElement>(null);
   const host = useRef<HTMLDivElement>(null);
 
@@ -147,9 +144,9 @@ function ConvergenceCanvas() {
     draw();
 
     const st = ScrollTrigger.create({
-      trigger: box,
-      start: "top 88%",
-      end: "bottom 32%",
+      trigger: (trigger && document.querySelector(trigger)) || box,
+      start: trigger ? "top top" : "top 88%",
+      end: trigger ? "bottom bottom" : "bottom 32%",
       scrub: true,
       onUpdate: (self) => {
         progress = self.progress;
@@ -166,44 +163,11 @@ function ConvergenceCanvas() {
       window.removeEventListener("resize", onResize);
       st.kill();
     };
-  }, []);
+  }, [trigger]);
 
   return (
     <div ref={host} className="absolute inset-0" aria-hidden>
       <canvas ref={canvas} className="h-full w-full" />
     </div>
-  );
-}
-
-export function Community() {
-  return (
-    <Section id="community" stage={1} className="pt-24 md:pt-32">
-      <div className={cx(s.shell, "relative z-10")}>
-        <Chapter n="04" label="O novo território" />
-      </div>
-
-      <div className="relative mt-6 min-h-[76svh] overflow-hidden md:min-h-[92svh]">
-        <ConvergenceCanvas />
-
-        <div className={cx(s.shell, "relative z-10 flex min-h-[76svh] flex-col justify-center py-16 md:min-h-[92svh]")}>
-          <Headline level="h1" className="max-w-[16ch]">
-            {"From audience\nto community"}
-          </Headline>
-
-          <ul className="mt-12 grid gap-px md:mt-20 md:grid-cols-3" data-rise data-rise-children>
-            {SHIFTS.map(([from, to]) => (
-              <li key={from} className="border-t pt-5 md:pr-8" style={{ borderColor: "var(--hair)" }}>
-                <p className={cx(s.mono, "text-[0.6875rem] uppercase tracking-[0.2em] line-through")} style={{ color: "var(--dim-2)" }}>
-                  {from}
-                </p>
-                <p className={cx(s.h3, "mt-2")} style={{ fontVariationSettings: '"wdth" 100' }}>
-                  {to}
-                </p>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
-    </Section>
   );
 }
