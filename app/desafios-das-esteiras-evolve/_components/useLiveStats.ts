@@ -1,7 +1,21 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { UNITS, type UnitId, type UnitStatus } from "@/lib/desafio-esteiras/event.config";
+import {
+  UNITS,
+  VAGAS_POR_CATEGORIA,
+  VAGAS_POR_UNIDADE,
+  type UnitId,
+  type UnitStatus,
+} from "@/lib/desafio-esteiras/event.config";
+
+/** Ocupação de uma categoria: a regra é 12 vagas em cada. */
+export interface VagasCategoria {
+  ocupadas: number;
+  total: number;
+  restantes: number;
+  status: "aberta" | "ultimas" | "esgotada";
+}
 
 export interface UnidadeStat {
   id: UnitId;
@@ -10,11 +24,17 @@ export interface UnidadeStat {
   espectadores: number;
   status: UnitStatus;
   capacidade: number | null;
+  categorias: { feminino: VagasCategoria; masculino: VagasCategoria };
+  vagasCompetidores: number;
+  competidoresRestantes: number;
 }
 
 export interface LiveStats {
   total: number;
   totalCompetidores: number;
+  vagasTotais: number;
+  vagasPorUnidade: number;
+  vagasPorCategoria: number;
   unidades: UnidadeStat[];
   disponivel: boolean;
   carregando: boolean;
@@ -22,7 +42,13 @@ export interface LiveStats {
 
 export type StatsIniciais = Pick<
   LiveStats,
-  "total" | "totalCompetidores" | "unidades" | "disponivel"
+  | "total"
+  | "totalCompetidores"
+  | "vagasTotais"
+  | "vagasPorUnidade"
+  | "vagasPorCategoria"
+  | "unidades"
+  | "disponivel"
 >;
 
 /**
@@ -86,6 +112,12 @@ export function statsPorUnidade(stats: StatsIniciais): UnidadeStat[] {
         espectadores: 0,
         status: u.status,
         capacidade: u.capacidade,
+        categorias: {
+          feminino: { ocupadas: 0, total: VAGAS_POR_CATEGORIA, restantes: VAGAS_POR_CATEGORIA, status: "aberta" },
+          masculino: { ocupadas: 0, total: VAGAS_POR_CATEGORIA, restantes: VAGAS_POR_CATEGORIA, status: "aberta" },
+        },
+        vagasCompetidores: VAGAS_POR_UNIDADE,
+        competidoresRestantes: VAGAS_POR_UNIDADE,
       }
     );
   });

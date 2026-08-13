@@ -1,4 +1,4 @@
-import { EVENT, getUnit } from "@/lib/desafio-esteiras/event.config";
+import { EVENT, categoriaDoSexo, getUnit } from "@/lib/desafio-esteiras/event.config";
 import type { PublicTicket } from "@/lib/desafio-esteiras/db";
 import { Logos } from "./Logos";
 
@@ -67,6 +67,29 @@ export function TicketCard({ ticket, qrSvg }: { ticket: PublicTicket; qrSvg: str
             <p className="mt-1.5 text-[0.78rem] leading-relaxed opacity-65">{unit.endereco}</p>
           )}
         </div>
+
+        {/* Categoria e bateria: a bateria só aparece quando a organização
+            atribui — não inventamos número antes disso. */}
+        {ticket.participacao === "competidor" && ticket.sexo && (
+          <div className="mt-5 flex flex-wrap items-end justify-between gap-3 border-t border-[color:rgba(8,8,10,0.14)] pt-4">
+            <div>
+              <p className="dst-label text-[0.5rem] opacity-50">Categoria</p>
+              <p className="dst-display mt-1.5 text-[1.15rem]">
+                {categoriaDoSexo(ticket.sexo)}
+              </p>
+            </div>
+            <div className="text-right">
+              <p className="dst-label text-[0.5rem] opacity-50">Bateria</p>
+              {ticket.heat_number ? (
+                <p className="dst-display mt-1.5 text-[1.15rem]">{ticket.heat_number}</p>
+              ) : (
+                <p className="mt-1.5 max-w-[22ch] text-[0.7rem] leading-snug opacity-60">
+                  Será informada pela organização
+                </p>
+              )}
+            </div>
+          </div>
+        )}
 
         <div className="mt-5">
           <p className="dst-label text-[0.5rem] opacity-50">Participante</p>

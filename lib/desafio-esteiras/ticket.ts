@@ -20,6 +20,11 @@ export function generateTicketCode(unit: EventUnit): string {
   return `DST-${unit.ticketPrefix}-${randomCode(6)}`;
 }
 
+/** O código impresso precisa bater com a unidade atual — senão a transferência reemite. */
+export function ticketPertenceAUnidade(ticketCode: string, unit: EventUnit): boolean {
+  return ticketCode.toUpperCase().startsWith(`DST-${unit.ticketPrefix}-`);
+}
+
 /**
  * Token do QR e da URL do ticket. 32 bytes → base64url (43 chars).
  * Não carrega dado pessoal: é só um identificador impossível de adivinhar.

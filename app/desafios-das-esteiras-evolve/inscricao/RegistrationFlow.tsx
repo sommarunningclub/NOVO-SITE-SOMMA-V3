@@ -11,16 +11,20 @@ import {
   EVENT,
   EVENT_PATH,
   PARTICIPACAO_LABELS,
+  SOMMA_BASE,
   UNITS,
   UNIT_LABELS,
+  VAGAS_POR_CATEGORIA,
   getUnit,
   inscricoesAbertas,
+  vagasStatus,
+  vagasTexto,
   type EventUnit,
   type Participacao,
   type Sexo,
 } from "@/lib/desafio-esteiras/event.config";
 import { formatCPF } from "@/lib/cpf";
-import { formatPhone, step2Schema } from "@/lib/desafio-esteiras/schema";
+import { formatBirthDate, formatPhone, step2Schema } from "@/lib/desafio-esteiras/schema";
 import { readAttribution, track } from "@/lib/desafio-esteiras/analytics";
 import { gsap, prefersReducedMotion } from "../_motion";
 import { Logos } from "../_components/Logos";
@@ -73,6 +77,8 @@ export function RegistrationFlow({ iniciais }: { iniciais: StatsIniciais }) {
   const valores = watch();
   const participacao = (valores.participacao ?? "competidor") as Participacao;
   const competidor = participacao === "competidor";
+  /** Vagas da unidade escolhida — é o que decide se a categoria ainda aceita gente. */
+  const unidadeStats = unidade ? unidades.find((u) => u.id === unidade.id) : null;
 
   useEffect(() => {
     track("begin_registration", { origem: "pagina_inscricao", unidade: unidadeDaUrl?.id ?? null });
@@ -277,7 +283,7 @@ export function RegistrationFlow({ iniciais }: { iniciais: StatsIniciais }) {
                           </span>
                           {u.sommaBase && (
                             <span className="dst-label mt-2.5 inline-block bg-[color:var(--somma)] px-2 py-1 text-[0.5rem] text-[color:var(--ink)]">
-                              SOMMA BASE
+                              {SOMMA_BASE.selo}
                             </span>
                           )}
                         </span>
@@ -361,17 +367,44 @@ export function RegistrationFlow({ iniciais }: { iniciais: StatsIniciais }) {
                 <div className="grid grid-cols-2 gap-3">
                   {CATEGORIAS.map((c) => {
                     const ativo = valores.sexo === c.id;
+                    const vagas = unidadeStats?.categorias?.[c.id];
+                    const ocupadas = vagas?.ocupadas ?? 0;
+                    // Só bloqueia quem vai competir: espectador não ocupa vaga.
+                    const esgotada = competidor && vagasStatus(ocupadas) === "esgotada";
                     return (
                       <label
                         key={c.id}
-                        className="dst-panel flex min-h-[64px] cursor-pointer items-center justify-center p-4 text-center transition-colors"
+                        className="dst-panel flex min-h-[84px] flex-col items-center justify-center gap-1.5 p-4 text-center transition-colors has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-45"
                         style={{
                           borderColor: ativo ? "var(--somma)" : "var(--line)",
                           background: ativo ? "rgba(255,44,4,0.08)" : "var(--ink-2)",
+                          cursor: esgotada ? "not-allowed" : "pointer",
                         }}
                       >
-                        <input type="radio" value={c.id} {...register("sexo")} className="sr-only" />
+                        <input
+                          type="radio"
+                          value={c.id}
+                          disabled={esgotada}
+                          {...register("sexo")}
+                          className="sr-only"
+                        />
                         <span className="dst-display text-[1.1rem]">{c.curto}</span>
+                        {competidor && (
+                          <span
+                            className="dst-label text-[0.5rem]"
+                            style={{
+                              color: esgotada
+                                ? "var(--evolve)"
+                                : vagasStatus(ocupadas) === "ultimas"
+                                  ? "var(--somma)"
+                                  : "rgba(242,240,236,0.45)",
+                            }}
+                          >
+                            {esgotada
+                              ? `${c.curto.toUpperCase()} ESGOTADO`
+                              : vagasTexto(ocupadas)}
+                          </span>
+                        )}
                       </label>
                     );
                   })}
@@ -451,7 +484,16 @@ export function RegistrationFlow({ iniciais }: { iniciais: StatsIniciais }) {
                   id="birth_date"
                   rotulo="Data de nascimento"
                   erro={errors.birth_date?.message}
-                  props={{ ...register("birth_date"), type: "date", max: "2014-12-31" }}
+                  props={{
+                    ...register("birth_date"),
+                    type: "text",
+                    inputMode: "numeric",
+                    autoComplete: "bday",
+                    maxLength: 10,
+                    value: formatBirthDate(String(valores.birth_date ?? "")),
+                    onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+                      setValue("birth_date", formatBirthDate(e.target.value), { shouldValidate: false }),
+                  }}
                 />
                 <Campo
                   id="email"

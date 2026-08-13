@@ -6,14 +6,23 @@ import { importLibrary, setOptions } from "@googlemaps/js-api-loader";
 import {
   EVENT,
   EVENT_PATH,
+  SOMMA_BASE,
   UNITS,
   UNIT_LABELS,
+  getUnit,
   inscricoesAbertas,
   type EventUnit,
 } from "@/lib/desafio-esteiras/event.config";
 import { track } from "@/lib/desafio-esteiras/analytics";
+import {
+  distanciaKm,
+  modoRota,
+  rotaGoogleUrl,
+  type LatLng,
+} from "@/lib/desafio-esteiras/geo";
 import { riseIn, useScope } from "../_motion";
 import { FitLines } from "./FitLines";
+import { NearYou } from "./NearYou";
 import { statsPorUnidade, useLiveStats, type StatsIniciais } from "./useLiveStats";
 
 /** Estilo escuro do mapa — o mapa precisa desaparecer atrás dos marcadores. */
@@ -53,9 +62,13 @@ function marcador(cor: string, ativo: boolean): google.maps.Symbol {
 export function UnitsMap({ iniciais }: { iniciais: StatsIniciais }) {
   const [selecionada, setSelecionada] = useState<EventUnit>(UNITS[0]);
   const [mapaOk, setMapaOk] = useState<boolean | null>(null);
+  const [origem, setOrigem] = useState<LatLng | null>(null);
   const mapDiv = useRef<HTMLDivElement>(null);
   const mapRef = useRef<google.maps.Map | null>(null);
   const marcadoresRef = useRef<Map<string, google.maps.Marker>>(new Map());
+  const userMarkerRef = useRef<google.maps.Marker | null>(null);
+  const origemRef = useRef<LatLng | null>(null);
+  origemRef.current = origem;
 
   const stats = useLiveStats(iniciais);
   const unidades = statsPorUnidade(stats);
@@ -102,7 +115,7 @@ export function UnitsMap({ iniciais }: { iniciais: StatsIniciais }) {
             icon: marcador(unit.sommaBase ? "#ff2c04" : "#e0261b", unit.id === UNITS[0].id),
             optimized: false,
           });
-          m.addListener("click", () => selecionar(unit, false));
+          m.addListener("click", () => selecionar(unit, { centralizar: false }));
           marcadoresRef.current.set(unit.id, m);
         });
         map.fitBounds(bounds, { top: 60, bottom: 60, left: 40, right: 40 });
@@ -118,9 +131,48 @@ export function UnitsMap({ iniciais }: { iniciais: StatsIniciais }) {
     };
   }, []);
 
-  function selecionar(unit: EventUnit, centralizar = true) {
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !origem || mapaOk !== true) return;
+
+    if (!userMarkerRef.current) {
+      userMarkerRef.current = new google.maps.Marker({
+        map,
+        position: origem,
+        title: "Você",
+        zIndex: 20,
+        icon: {
+          path: "M 0,-7 A 7,7 0 1,1 0,7 A 7,7 0 1,1 0,-7",
+          fillColor: "#f2f0ec",
+          fillOpacity: 1,
+          strokeColor: "#ff2c04",
+          strokeWeight: 3,
+          scale: 1,
+        },
+      });
+    } else {
+      userMarkerRef.current.setPosition(origem);
+    }
+
+    const bounds = new google.maps.LatLngBounds();
+    bounds.extend(origem);
+    bounds.extend({ lat: selecionada.latitude, lng: selecionada.longitude });
+    map.fitBounds(bounds, { top: 72, bottom: 72, left: 48, right: 48 });
+    const zoom = map.getZoom() ?? 13;
+    if (zoom > 14) map.setZoom(14);
+  }, [origem, selecionada, mapaOk]);
+
+  function selecionar(
+    unit: EventUnit,
+    opts: { centralizar?: boolean; origem?: string; km?: number } = {},
+  ) {
+    const centralizar = opts.centralizar ?? true;
     setSelecionada(unit);
-    track("select_unit", { unidade: unit.id, origem: "mapa" });
+    track("select_unit", {
+      unidade: unit.id,
+      origem: opts.origem ?? "mapa",
+      ...(typeof opts.km === "number" ? { km: Number(opts.km.toFixed(1)) } : {}),
+    });
 
     marcadoresRef.current.forEach((m, id) => {
       const u = UNITS.find((x) => x.id === id);
@@ -128,7 +180,7 @@ export function UnitsMap({ iniciais }: { iniciais: StatsIniciais }) {
       m.setZIndex(id === unit.id ? 10 : 1);
     });
 
-    if (centralizar && mapRef.current) {
+    if (centralizar && mapRef.current && !origemRef.current) {
       mapRef.current.panTo({ lat: unit.latitude, lng: unit.longitude });
       if ((mapRef.current.getZoom() ?? 9) < 12) mapRef.current.setZoom(13);
     }
@@ -136,6 +188,15 @@ export function UnitsMap({ iniciais }: { iniciais: StatsIniciais }) {
 
   const abertas = inscricoesAbertas();
   const esgotada = status === "esgotada" || status === "encerrada";
+  const kmOrigem = origem
+    ? distanciaKm(origem, { lat: selecionada.latitude, lng: selecionada.longitude })
+    : null;
+  const rotaHref = rotaGoogleUrl(
+    selecionada,
+    origem,
+    kmOrigem != null ? modoRota(kmOrigem) : "driving",
+  );
+  const ficha = selecionada.google;
 
   return (
     <section
@@ -149,6 +210,19 @@ export function UnitsMap({ iniciais }: { iniciais: StatsIniciais }) {
         <h2 id="mapa-titulo" className="map-anim">
           <FitLines linhas={["ENCONTRE", "SUA EVOLVE"]} max="8rem" min="2.2rem" />
         </h2>
+
+        <NearYou
+          onLocated={(pos, nearestId) => {
+            const unit = getUnit(nearestId);
+            if (!unit) return;
+            setOrigem(pos);
+            selecionar(unit, {
+              centralizar: false,
+              origem: "localizacao",
+              km: distanciaKm(pos, { lat: unit.latitude, lng: unit.longitude }),
+            });
+          }}
+        />
 
         <div className="map-anim mt-10 grid gap-4 md:mt-14 md:grid-cols-12 md:gap-6">
           {/* Seletor de unidade */}
@@ -199,7 +273,9 @@ export function UnitsMap({ iniciais }: { iniciais: StatsIniciais }) {
                 </div>
               )}
 
-              {mapaOk === false && <MapaEsquematico selecionada={selecionada} onSelect={selecionar} />}
+              {mapaOk === false && (
+                <MapaEsquematico selecionada={selecionada} origem={origem} onSelect={selecionar} />
+              )}
             </div>
           </div>
         </div>
@@ -208,13 +284,35 @@ export function UnitsMap({ iniciais }: { iniciais: StatsIniciais }) {
         <div className="map-anim dst-panel mt-4 grid gap-6 p-6 md:mt-6 md:grid-cols-12 md:p-8">
           <div className="md:col-span-7">
             <div className="flex flex-wrap items-center gap-3">
-              <h3 className="dst-display text-[clamp(1.5rem,5vw,2.4rem)]">{selecionada.nome}</h3>
+              <h3 className="dst-display text-[clamp(1.5rem,5vw,2.4rem)]">
+                {ficha?.nome ?? selecionada.nome}
+              </h3>
+              <span className="dst-label bg-[color:var(--paper)] px-2.5 py-1.5 text-[0.5rem] text-[color:var(--ink)]">
+                Grátis
+              </span>
               {selecionada.sommaBase && (
                 <span className="dst-label bg-[color:var(--somma)] px-2.5 py-1.5 text-[0.5rem] text-[color:var(--ink)]">
-                  SOMMA BASE
+                  {SOMMA_BASE.selo}
                 </span>
               )}
             </div>
+            {ficha && (
+              <p className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1">
+                <span className="dst-num text-xl font-bold">
+                  {ficha.rating.toLocaleString("pt-BR", {
+                    minimumFractionDigits: 1,
+                    maximumFractionDigits: 1,
+                  })}
+                </span>
+                <Estrelas valor={ficha.rating} />
+                <span className="dst-label text-[color:rgba(242,240,236,0.45)]">
+                  {ficha.avaliacoes.toLocaleString("pt-BR")} avaliações no Google
+                </span>
+              </p>
+            )}
+            {ficha?.categoria && (
+              <p className="dst-label mt-2 text-[color:rgba(242,240,236,0.4)]">{ficha.categoria}</p>
+            )}
             <p className="mt-3 max-w-[52ch] text-[0.95rem] leading-relaxed text-[color:rgba(242,240,236,0.68)]">
               {selecionada.endereco}
             </p>
@@ -222,8 +320,9 @@ export function UnitsMap({ iniciais }: { iniciais: StatsIniciais }) {
 
           <dl className="grid grid-cols-3 gap-4 md:col-span-5">
             <div>
-              <dt className="dst-label text-[color:rgba(242,240,236,0.4)]">Horário</dt>
+              <dt className="dst-label text-[color:rgba(242,240,236,0.4)]">Dia do desafio</dt>
               <dd className="dst-num mt-2 text-lg font-bold">{EVENT.horaLabel}</dd>
+              <dd className="dst-label mt-1 text-[color:rgba(242,240,236,0.4)]">{EVENT.dataCurta}</dd>
             </div>
             <div>
               <dt className="dst-label text-[color:rgba(242,240,236,0.4)]">Inscritos</dt>
@@ -252,13 +351,19 @@ export function UnitsMap({ iniciais }: { iniciais: StatsIniciais }) {
               </Link>
             )}
             <a
-              href={selecionada.googleMapsUrl}
+              href={rotaHref}
               target="_blank"
               rel="noopener noreferrer"
-              onClick={() => track("open_directions", { unidade: selecionada.id, origem: "mapa" })}
+              onClick={() =>
+                track("open_directions", {
+                  unidade: selecionada.id,
+                  origem: origem ? "mapa_com_gps" : "mapa",
+                  modo: kmOrigem != null ? modoRota(kmOrigem) : "driving",
+                })
+              }
               className="dst-btn dst-btn--ghost flex-1"
             >
-              Como chegar
+              Iniciar rota
             </a>
           </div>
         </div>
@@ -270,9 +375,11 @@ export function UnitsMap({ iniciais }: { iniciais: StatsIniciais }) {
 /** Fallback sem Google Maps: projeção linear das coordenadas reais das unidades. */
 function MapaEsquematico({
   selecionada,
+  origem,
   onSelect,
 }: {
   selecionada: EventUnit;
+  origem: LatLng | null;
   onSelect: (u: EventUnit) => void;
 }) {
   const lats = UNITS.map((u) => u.latitude);
@@ -281,10 +388,9 @@ function MapaEsquematico({
   const [minLng, maxLng] = [Math.min(...lngs), Math.max(...lngs)];
   const pad = 0.16;
 
-  const pos = (u: EventUnit) => ({
-    // latitude cresce para o norte → invertida no eixo Y da tela
-    top: `${(pad + ((maxLat - u.latitude) / (maxLat - minLat || 1)) * (1 - pad * 2)) * 100}%`,
-    left: `${(pad + ((u.longitude - minLng) / (maxLng - minLng || 1)) * (1 - pad * 2)) * 100}%`,
+  const proj = (lat: number, lng: number) => ({
+    top: `${clampPct((pad + ((maxLat - lat) / (maxLat - minLat || 1)) * (1 - pad * 2)) * 100)}%`,
+    left: `${clampPct((pad + ((lng - minLng) / (maxLng - minLng || 1)) * (1 - pad * 2)) * 100)}%`,
   });
 
   return (
@@ -302,6 +408,24 @@ function MapaEsquematico({
         Mapa esquemático · posições reais
       </p>
 
+      {origem && (
+        <span
+          className="absolute z-20 -translate-x-1/2 -translate-y-1/2"
+          style={proj(origem.lat, origem.lng)}
+        >
+          <span
+            className="mx-auto block rounded-full"
+            style={{
+              width: 12,
+              height: 12,
+              background: "var(--paper)",
+              boxShadow: "0 0 0 4px rgba(255,44,4,0.35)",
+            }}
+          />
+          <span className="dst-label mt-2 block whitespace-nowrap text-[color:var(--paper)]">Você</span>
+        </span>
+      )}
+
       {UNITS.map((unit) => {
         const ativo = unit.id === selecionada.id;
         return (
@@ -311,7 +435,7 @@ function MapaEsquematico({
             onClick={() => onSelect(unit)}
             aria-pressed={ativo}
             className="absolute z-10 -translate-x-1/2 -translate-y-1/2 p-3"
-            style={pos(unit)}
+            style={proj(unit.latitude, unit.longitude)}
           >
             <span
               className="mx-auto block rounded-full transition-all duration-300"
@@ -332,5 +456,24 @@ function MapaEsquematico({
         );
       })}
     </div>
+  );
+}
+
+function clampPct(n: number): number {
+  return Math.min(96, Math.max(4, n));
+}
+
+function Estrelas({ valor }: { valor: number }) {
+  const pct = Math.min(100, Math.max(0, (valor / 5) * 100));
+  return (
+    <span
+      className="relative inline-block h-[1em] w-[5.1em] align-middle text-[1.05rem] leading-none tracking-[0.08em]"
+      aria-hidden
+    >
+      <span className="absolute inset-0 text-[color:rgba(242,240,236,0.18)]">★★★★★</span>
+      <span className="absolute inset-0 overflow-hidden text-[#e8c547]" style={{ width: `${pct}%` }}>
+        ★★★★★
+      </span>
+    </span>
   );
 }

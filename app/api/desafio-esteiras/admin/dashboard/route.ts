@@ -8,6 +8,7 @@ import { getStatusGestao } from "@/lib/desafio-esteiras/gestao";
 export const dynamic = "force-dynamic";
 
 type Linha = {
+  id: string;
   unit_id: string;
   status: string;
   created_at: string;
@@ -38,7 +39,7 @@ export async function GET() {
   let query = supabase
     .from(TABLE)
     .select(
-      "unit_id, status, created_at, checked_in_at, utm_source, utm_medium, utm_campaign, referral, full_name, ticket_code"
+      "unit_id, status, created_at, checked_in_at, utm_source, utm_medium, utm_campaign, referral, full_name, ticket_code, id"
     )
     .order("created_at", { ascending: false });
 
@@ -133,6 +134,7 @@ export async function GET() {
     porDia: [...porDia.entries()].map(([dia, n]) => ({ dia, n })).reverse(),
     porHora: [...porHora.entries()].map(([hora, n]) => ({ hora, n })).reverse().slice(-24),
     ultimos: validas.slice(0, 15).map((l) => ({
+      id: l.id,
       full_name: l.full_name,
       ticket_code: l.ticket_code,
       unit_id: l.unit_id,

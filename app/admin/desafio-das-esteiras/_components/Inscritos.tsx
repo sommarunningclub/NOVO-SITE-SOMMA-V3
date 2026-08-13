@@ -9,40 +9,13 @@ import {
   UNITS,
   getUnit,
   type Participacao,
-  type Sexo,
   type VagasStatus,
 } from "@/lib/desafio-esteiras/event.config";
 import { formatPhone } from "@/lib/desafio-esteiras/schema";
 import type { OperatorSession } from "@/lib/desafio-esteiras/auth";
-
-interface Inscrito {
-  id: string;
-  created_at: string;
-  full_name: string;
-  cpf_mascarado: string;
-  birth_date: string;
-  idade: number | null;
-  faixa_etaria: string | null;
-  email: string;
-  phone: string;
-  unit_id: string;
-  sexo: Sexo | null;
-  participacao: Participacao;
-  foto_url: string | null;
-  tem_foto: boolean;
-  ticket_code: string;
-  ticket_token: string;
-  status: "confirmed" | "checked_in" | "cancelled";
-  checked_in_at: string | null;
-  origem: string | null;
-  utm_source: string | null;
-  utm_medium: string | null;
-  utm_campaign: string | null;
-  utm_content: string | null;
-  utm_term: string | null;
-  referral: string | null;
-  atualizado_em: string | null;
-}
+import { FichaCadastro } from "./FichaCadastro";
+import { NovoCadastro } from "./NovoCadastro";
+import { STATUS_COR, STATUS_LABEL, horaInscrito, type Inscrito } from "./inscrito";
 
 interface Resumo {
   total: number;
@@ -66,40 +39,22 @@ interface Resumo {
     checkins: number;
     feminino: number;
     masculino: number;
-    vagasCompetidores: number | null;
-    vagasRestantes: number | null;
-    vagasStatus: VagasStatus;
+    vagas: Record<
+      "feminino" | "masculino",
+      {
+        ocupadas: number;
+        total: number;
+        restantes: number;
+        status: VagasStatus;
+        baterias: { n: number; ocupadas: number }[];
+        semBateria: number;
+      }
+    >;
   }[];
   porOrigem: { fonte: string; n: number }[];
 }
 
-const STATUS_LABEL: Record<Inscrito["status"], string> = {
-  confirmed: "CONFIRMADO",
-  checked_in: "CHECK-IN",
-  cancelled: "CANCELADO",
-};
-const STATUS_COR: Record<Inscrito["status"], string> = {
-  confirmed: "rgba(242,240,236,0.6)",
-  checked_in: "var(--somma)",
-  cancelled: "var(--evolve)",
-};
-const VAGAS_LABEL: Record<VagasStatus, string> = {
-  aberta: "vagas abertas",
-  ultimas: "últimas vagas",
-  esgotada: "esgotada",
-  indefinida: "limite a definir",
-};
-
-const hora = (iso?: string | null) =>
-  iso
-    ? new Date(iso).toLocaleString("pt-BR", {
-        timeZone: "America/Sao_Paulo",
-        day: "2-digit",
-        month: "2-digit",
-        hour: "2-digit",
-        minute: "2-digit",
-      })
-    : "—";
+const hora = horaInscrito;
 
 export function Inscritos({ session }: { session: OperatorSession }) {
   const [lista, setLista] = useState<Inscrito[]>([]);
@@ -117,8 +72,8 @@ export function Inscritos({ session }: { session: OperatorSession }) {
   });
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
-  const [editando, setEditando] = useState<Inscrito | null>(null);
-  const [excluindo, setExcluindo] = useState<Inscrito | null>(null);
+  const [ficha, setFicha] = useState<{ inscrito: Inscrito; inicio?: "ficha" | "editar" | "transferir" | "excluir" } | null>(null);
+  const [novo, setNovo] = useState(false);
   const [aviso, setAviso] = useState<string | null>(null);
 
   const carregar = useCallback(async () => {
@@ -171,13 +126,16 @@ export function Inscritos({ session }: { session: OperatorSession }) {
     carregar();
   }
 
-  async function excluir() {
-    if (!excluindo) return;
-    const res = await fetch(`/api/desafio-esteiras/admin/inscritos?id=${excluindo.id}`, { method: "DELETE" });
+  async function definirBateria(i: Inscrito, n: number | null) {
+    setAviso(null);
+    const res = await fetch("/api/desafio-esteiras/admin/inscritos", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: i.id, heat_number: n }),
+    });
     const data = await res.json();
-    setExcluindo(null);
-    if (!res.ok) return setErro(data.error ?? "Não foi possível excluir.");
-    setAviso(`${data.nome} foi excluído definitivamente.`);
+    if (!res.ok) return setErro(data.error ?? "Não foi possível definir a bateria.");
+    setAviso(n ? `${i.full_name} → bateria ${n}.` : `${i.full_name} ficou sem bateria.`);
     carregar();
   }
 
@@ -186,7 +144,7 @@ export function Inscritos({ session }: { session: OperatorSession }) {
     const cab = [
       "nome", "cpf", "idade", "nascimento", "email", "telefone", "unidade", "categoria",
       "participacao", "status", "ticket", "foto", "inscrito_em", "checkin_em",
-      "utm_source", "utm_medium", "utm_campaign", "referral",
+      "utm_source", "utm_medium", "utm_campaign", "referral", "bateria",
     ];
     const esc = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
     const linhas = lista.map((i) =>
@@ -197,7 +155,7 @@ export function Inscritos({ session }: { session: OperatorSession }) {
         PARTICIPACAO_LABELS[i.participacao]?.titulo ?? i.participacao,
         STATUS_LABEL[i.status], i.ticket_code, i.tem_foto ? "sim" : "não",
         hora(i.created_at), hora(i.checked_in_at),
-        i.utm_source ?? "", i.utm_medium ?? "", i.utm_campaign ?? "", i.referral ?? "",
+        i.utm_source ?? "", i.utm_medium ?? "", i.utm_campaign ?? "", i.referral ?? "", i.heat_number ?? "",
       ].map(esc).join(";")
     );
     // BOM para o Excel abrir os acentos corretamente
@@ -224,6 +182,13 @@ export function Inscritos({ session }: { session: OperatorSession }) {
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => setNovo(true)}
+            className="dst-btn !min-h-[44px] !px-4 !text-[0.7rem]"
+          >
+            Novo cadastro
+          </button>
           <button
             type="button"
             onClick={exportarCsv}
@@ -345,33 +310,56 @@ export function Inscritos({ session }: { session: OperatorSession }) {
                   ))}
                 </dl>
 
-                <div className="mt-3 border-t border-[color:var(--line)] pt-3">
-                  <p
-                    className="dst-label"
-                    style={{
-                      color:
-                        u.vagasStatus === "esgotada"
-                          ? "var(--evolve)"
-                          : u.vagasStatus === "ultimas"
-                            ? "var(--somma)"
-                            : "rgba(242,240,236,0.4)",
-                    }}
-                  >
-                    {u.vagasCompetidores === null
-                      ? "Vagas de competidor: limite a definir"
-                      : `${u.vagasRestantes} de ${u.vagasCompetidores} vagas · ${VAGAS_LABEL[u.vagasStatus]}`}
-                  </p>
-                  {u.vagasCompetidores !== null && (
-                    <div className="mt-2 h-[3px] w-full bg-[color:var(--line)]" aria-hidden>
-                      <div
-                        className="h-full origin-left"
-                        style={{
-                          background: "var(--energia)",
-                          transform: `scaleX(${Math.min(1, u.competidores / u.vagasCompetidores)})`,
-                        }}
-                      />
-                    </div>
-                  )}
+                {/* Vagas e baterias por categoria — a regra da competição */}
+                <div className="mt-3 space-y-3 border-t border-[color:var(--line)] pt-3">
+                  {(["feminino", "masculino"] as const).map((cat) => {
+                    const v = u.vagas?.[cat];
+                    if (!v) return null;
+                    return (
+                      <div key={cat}>
+                        <p className="dst-label flex items-baseline justify-between gap-2">
+                          <span className="text-[color:rgba(242,240,236,0.5)]">
+                            {cat === "feminino" ? "Feminino" : "Masculino"}
+                          </span>
+                          <span
+                            className="dst-num"
+                            style={{
+                              color:
+                                v.status === "esgotada"
+                                  ? "var(--evolve)"
+                                  : v.status === "ultimas"
+                                    ? "var(--somma)"
+                                    : "var(--paper)",
+                            }}
+                          >
+                            {v.ocupadas} / {v.total}
+                          </span>
+                        </p>
+                        <div className="mt-1.5 h-[3px] w-full bg-[color:var(--line)]" aria-hidden>
+                          <div
+                            className="h-full origin-left"
+                            style={{
+                              background: "var(--energia)",
+                              transform: `scaleX(${Math.min(1, v.ocupadas / v.total)})`,
+                            }}
+                          />
+                        </div>
+                        <p className="dst-label mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[0.5rem] text-[color:rgba(242,240,236,0.4)]">
+                          {v.baterias.map((b) => (
+                            <span
+                              key={b.n}
+                              style={{ color: b.ocupadas >= 4 ? "var(--somma)" : undefined }}
+                            >
+                              B{b.n} {b.ocupadas}/4
+                            </span>
+                          ))}
+                          {v.semBateria > 0 && (
+                            <span style={{ color: "var(--evolve)" }}>{v.semBateria} sem bateria</span>
+                          )}
+                        </p>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             ))}
@@ -438,11 +426,18 @@ export function Inscritos({ session }: { session: OperatorSession }) {
                 )}
 
                 <div className="min-w-0">
-                  <p className="dst-display text-[1.1rem]">{i.full_name}</p>
+                  <button
+                    type="button"
+                    onClick={() => setFicha({ inscrito: i })}
+                    className="dst-display text-left text-[1.1rem] underline-offset-4 hover:underline"
+                  >
+                    {i.full_name}
+                  </button>
                   <p className="dst-mono mt-1.5 text-[0.78rem] opacity-65">
                     {getUnit(i.unit_id)?.curto ?? i.unit_id} · {i.ticket_code}
                     {i.sexo ? ` · ${CATEGORIAS.find((c) => c.id === i.sexo)?.curto}` : " · sem categoria"}
                     {i.idade !== null && ` · ${i.idade} anos`}
+                    {i.heat_number ? ` · bateria ${i.heat_number}` : ""}
                   </p>
                   <p className="dst-mono mt-1 text-[0.75rem] opacity-45">
                     {i.email} · {formatPhone(i.phone)} · {i.cpf_mascarado}
@@ -472,9 +467,17 @@ export function Inscritos({ session }: { session: OperatorSession }) {
             </div>
 
             <div className="mt-4 flex flex-wrap gap-2 border-t border-[color:var(--line)] pt-4">
-              <button type="button" onClick={() => setEditando(i)} className="dst-btn dst-btn--ghost !min-h-[40px] !px-4 !text-[0.65rem]">
+              <button type="button" onClick={() => setFicha({ inscrito: i })} className="dst-btn dst-btn--ghost !min-h-[40px] !px-4 !text-[0.65rem]">
+                Ver ficha
+              </button>
+              <button type="button" onClick={() => setFicha({ inscrito: i, inicio: "editar" })} className="dst-btn dst-btn--ghost !min-h-[40px] !px-4 !text-[0.65rem]">
                 Editar
               </button>
+              {session.role === "admin" && (
+                <button type="button" onClick={() => setFicha({ inscrito: i, inicio: "transferir" })} className="dst-btn dst-btn--ghost !min-h-[40px] !px-4 !text-[0.65rem]">
+                  Transferir
+                </button>
+              )}
               {i.status !== "cancelled" ? (
                 <button type="button" onClick={() => mudarStatus(i, "cancelled")} className="dst-btn dst-btn--ghost !min-h-[40px] !px-4 !text-[0.65rem]">
                   Cancelar inscrição
@@ -492,8 +495,28 @@ export function Inscritos({ session }: { session: OperatorSession }) {
               <a href={`/desafios-das-esteiras-evolve/confirmado/${i.ticket_token}`} target="_blank" rel="noopener noreferrer" className="dst-btn dst-btn--ghost !min-h-[40px] !px-4 !text-[0.65rem]">
                 Ver ticket
               </a>
+
+              {/* Bateria — o banco recusa a 5ª pessoa na mesma bateria */}
+              {i.participacao === "competidor" && i.sexo && i.status !== "cancelled" && (
+                <label className="flex items-center gap-2">
+                  <span className="dst-label text-[color:rgba(242,240,236,0.4)]">Bateria</span>
+                  <select
+                    value={i.heat_number ?? ""}
+                    onChange={(e) => definirBateria(i, e.target.value ? Number(e.target.value) : null)}
+                    aria-label={`Bateria de ${i.full_name}`}
+                    className="dst-field !min-h-[40px] !w-[74px] !border !border-[color:var(--line)] !px-2 !py-0 !text-[0.8rem]"
+                  >
+                    <option value="">—</option>
+                    {[1, 2, 3].map((n) => (
+                      <option key={n} value={n}>
+                        {n}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              )}
               {session.role === "admin" && (
-                <button type="button" onClick={() => setExcluindo(i)} className="dst-label ml-auto self-center underline underline-offset-4 hover:text-[color:var(--evolve)]">
+                <button type="button" onClick={() => setFicha({ inscrito: i, inicio: "excluir" })} className="dst-label ml-auto self-center underline underline-offset-4 hover:text-[color:var(--evolve)]">
                   excluir
                 </button>
               )}
@@ -508,19 +531,31 @@ export function Inscritos({ session }: { session: OperatorSession }) {
         )}
       </ul>
 
-      {editando && (
-        <ModalEdicao
-          inscrito={editando}
+      {ficha && (
+        <FichaCadastro
+          key={`${ficha.inscrito.id}-${ficha.inicio ?? "ficha"}`}
+          id={ficha.inscrito.id}
+          inicial={ficha.inscrito}
+          inicio={ficha.inicio}
           session={session}
-          onFechar={() => setEditando(null)}
-          onSalvo={() => {
-            setEditando(null);
-            setAviso("Cadastro atualizado.");
+          onFechar={() => setFicha(null)}
+          onMudou={(msg) => {
+            setAviso(msg);
             carregar();
           }}
         />
       )}
-      {excluindo && <ModalExclusao inscrito={excluindo} onCancelar={() => setExcluindo(null)} onConfirmar={excluir} />}
+      {novo && (
+        <NovoCadastro
+          session={session}
+          onFechar={() => setNovo(false)}
+          onCriado={(msg) => {
+            setNovo(false);
+            setAviso(msg);
+            carregar();
+          }}
+        />
+      )}
     </main>
   );
 }
@@ -552,188 +587,3 @@ function Select({
   );
 }
 
-/* ── Edição ──────────────────────────────────────────────────────────────── */
-
-function ModalEdicao({
-  inscrito,
-  session,
-  onFechar,
-  onSalvo,
-}: {
-  inscrito: Inscrito;
-  session: OperatorSession;
-  onFechar: () => void;
-  onSalvo: () => void;
-}) {
-  const [erro, setErro] = useState<string | null>(null);
-  const [salvando, setSalvando] = useState(false);
-  const [removerFoto, setRemoverFoto] = useState(false);
-
-  async function salvar(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    if (salvando) return;
-    setErro(null);
-    setSalvando(true);
-    const f = new FormData(e.currentTarget);
-    try {
-      const res = await fetch("/api/desafio-esteiras/admin/inscritos", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id: inscrito.id,
-          dados: {
-            full_name: String(f.get("full_name") ?? ""),
-            email: String(f.get("email") ?? ""),
-            phone: String(f.get("phone") ?? ""),
-            unit_id: String(f.get("unit_id") ?? ""),
-            sexo: String(f.get("sexo") ?? ""),
-            participacao: String(f.get("participacao") ?? ""),
-            remover_foto: removerFoto,
-          },
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) return setErro(data.error ?? "Não foi possível salvar.");
-      onSalvo();
-    } catch {
-      setErro("Falha de conexão.");
-    } finally {
-      setSalvando(false);
-    }
-  }
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-[rgba(8,8,10,0.9)] p-4 py-10" role="dialog" aria-modal="true" aria-labelledby="edicao-titulo">
-      <div className="dst-panel w-full max-w-[520px] p-6">
-        <div className="flex items-start justify-between gap-4">
-          <h2 id="edicao-titulo" className="dst-display text-[1.4rem]">EDITAR CADASTRO</h2>
-          <button type="button" onClick={onFechar} className="dst-label underline underline-offset-4">fechar</button>
-        </div>
-        <p className="dst-mono mt-2 text-[0.78rem] opacity-50">
-          {inscrito.ticket_code} · CPF {inscrito.cpf_mascarado} · nasc. {inscrito.birth_date}
-          {inscrito.idade !== null && ` (${inscrito.idade} anos)`} — não editáveis
-        </p>
-
-        <form onSubmit={salvar} className="mt-6">
-          <div className="dst-field-wrap">
-            <input id="ed-nome" name="full_name" defaultValue={inscrito.full_name} placeholder=" " className="dst-field" />
-            <label htmlFor="ed-nome" className="dst-field-label">Nome completo</label>
-          </div>
-          <div className="dst-field-wrap mt-4">
-            <input id="ed-email" name="email" type="email" defaultValue={inscrito.email} placeholder=" " className="dst-field" />
-            <label htmlFor="ed-email" className="dst-field-label">E-mail</label>
-          </div>
-          <div className="dst-field-wrap mt-4">
-            <input id="ed-tel" name="phone" defaultValue={formatPhone(inscrito.phone)} placeholder=" " className="dst-field" />
-            <label htmlFor="ed-tel" className="dst-field-label">Telefone</label>
-          </div>
-
-          <fieldset className="mt-6">
-            <legend className="dst-label mb-2.5 text-[color:rgba(242,240,236,0.45)]">Unidade</legend>
-            {session.role === "operador" && (
-              <p className="dst-label mb-2.5 text-[color:rgba(242,240,236,0.4)]">
-                Só o admin geral pode mover para outra unidade.
-              </p>
-            )}
-            <div className="grid grid-cols-2 gap-2">
-              {UNITS.map((u) => (
-                <label key={u.id} className="dst-panel flex min-h-[48px] cursor-pointer items-center justify-center p-2 text-center has-[:checked]:border-[color:var(--somma)] has-[:checked]:bg-[rgba(255,44,4,0.08)] has-[:disabled]:opacity-40">
-                  <input type="radio" name="unit_id" value={u.id} defaultChecked={inscrito.unit_id === u.id} disabled={session.role === "operador" && u.id !== session.unitId} className="sr-only" />
-                  <span className="dst-display text-[0.9rem]">{u.curto}</span>
-                </label>
-              ))}
-            </div>
-          </fieldset>
-
-          <fieldset className="mt-6">
-            <legend className="dst-label mb-2.5 text-[color:rgba(242,240,236,0.45)]">Participação</legend>
-            <div className="grid grid-cols-2 gap-2">
-              {(Object.keys(PARTICIPACAO_LABELS) as Participacao[]).map((p) => (
-                <label key={p} className="dst-panel flex min-h-[48px] cursor-pointer items-center justify-center p-2 text-center has-[:checked]:border-[color:var(--somma)] has-[:checked]:bg-[rgba(255,44,4,0.08)]">
-                  <input type="radio" name="participacao" value={p} defaultChecked={inscrito.participacao === p} className="sr-only" />
-                  <span className="dst-display text-[0.9rem]">{PARTICIPACAO_LABELS[p].titulo}</span>
-                </label>
-              ))}
-            </div>
-          </fieldset>
-
-          <fieldset className="mt-6">
-            <legend className="dst-label mb-2.5 text-[color:rgba(242,240,236,0.45)]">Categoria</legend>
-            <div className="grid grid-cols-2 gap-2">
-              {CATEGORIAS.map((c) => (
-                <label key={c.id} className="dst-panel flex min-h-[48px] cursor-pointer items-center justify-center p-2 has-[:checked]:border-[color:var(--somma)] has-[:checked]:bg-[rgba(255,44,4,0.08)]">
-                  <input type="radio" name="sexo" value={c.id} defaultChecked={inscrito.sexo === c.id} className="sr-only" />
-                  <span className="dst-display text-[0.9rem]">{c.curto}</span>
-                </label>
-              ))}
-            </div>
-          </fieldset>
-
-          {inscrito.foto_url && (
-            <label className="mt-6 flex cursor-pointer items-center gap-3">
-              <input type="checkbox" checked={removerFoto} onChange={(e) => setRemoverFoto(e.target.checked)} className="h-5 w-5 accent-[color:var(--somma)]" />
-              <span className="text-[0.9rem] text-[color:rgba(242,240,236,0.7)]">Remover a foto de perfil</span>
-            </label>
-          )}
-
-          {erro && <p role="alert" className="dst-label mt-5 text-[color:var(--evolve)]">{erro}</p>}
-
-          <div className="mt-7 flex gap-3">
-            <button type="submit" disabled={salvando} className="dst-btn flex-1 disabled:opacity-60">
-              {salvando ? "Salvando…" : "Salvar"}
-            </button>
-            <button type="button" onClick={onFechar} className="dst-btn dst-btn--ghost">Cancelar</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-}
-
-/* ── Exclusão ────────────────────────────────────────────────────────────── */
-
-/** Exclusão pede o código do ticket digitado: é irreversível e não pode sair por clique errado. */
-function ModalExclusao({
-  inscrito,
-  onCancelar,
-  onConfirmar,
-}: {
-  inscrito: Inscrito;
-  onCancelar: () => void;
-  onConfirmar: () => void;
-}) {
-  const [texto, setTexto] = useState("");
-  const confere = texto.trim().toUpperCase() === inscrito.ticket_code.toUpperCase();
-
-  return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-[rgba(8,8,10,0.9)] p-4" role="dialog" aria-modal="true" aria-labelledby="excluir-titulo">
-      <div className="dst-panel w-full max-w-[440px] p-6" style={{ borderColor: "var(--evolve)" }}>
-        <h2 id="excluir-titulo" className="dst-display text-[1.4rem]" style={{ color: "var(--evolve)" }}>
-          EXCLUIR DEFINITIVAMENTE
-        </h2>
-        <p className="mt-4 text-[0.92rem] leading-relaxed text-[color:rgba(242,240,236,0.7)]">
-          Isso apaga a inscrição de <strong>{inscrito.full_name}</strong>, o registro dela no painel
-          de eventos da gestão e a foto de perfil. Não dá para desfazer.
-        </p>
-        <p className="mt-3 text-[0.88rem] leading-relaxed text-[color:rgba(242,240,236,0.55)]">
-          Se a intenção é só tirar a pessoa do evento, use <strong>Cancelar inscrição</strong> — ela
-          sai das contagens e da grade, mas o histórico continua.
-        </p>
-
-        <div className="dst-field-wrap mt-6">
-          <input id="conf-ticket" value={texto} onChange={(e) => setTexto(e.target.value)} placeholder=" " autoComplete="off" className="dst-field" />
-          <label htmlFor="conf-ticket" className="dst-field-label">
-            Digite {inscrito.ticket_code} para confirmar
-          </label>
-        </div>
-
-        <div className="mt-6 flex gap-3">
-          <button type="button" disabled={!confere} onClick={onConfirmar} className="dst-btn flex-1 disabled:opacity-40" style={{ background: "var(--evolve)" }}>
-            Excluir
-          </button>
-          <button type="button" onClick={onCancelar} className="dst-btn dst-btn--ghost">Voltar</button>
-        </div>
-      </div>
-    </div>
-  );
-}

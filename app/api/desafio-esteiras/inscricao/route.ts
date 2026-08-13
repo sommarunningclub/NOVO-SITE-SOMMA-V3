@@ -2,11 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServiceSupabase } from "@/lib/supabase";
 import { registrationSchema } from "@/lib/desafio-esteiras/schema";
 import { generateTicketCode, generateTicketToken } from "@/lib/desafio-esteiras/ticket";
-import { TABLE } from "@/lib/desafio-esteiras/db";
+import { TABLE, getVagasCategoria } from "@/lib/desafio-esteiras/db";
 import { clientIp, rateLimit } from "@/lib/desafio-esteiras/rate-limit";
 import { getEventoId } from "@/lib/desafio-esteiras/gestao";
 import {
   EVENT,
+  VAGAS_POR_CATEGORIA,
   getUnit,
   inscricoesAbertas,
   unitStatusFor,
@@ -98,24 +99,21 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  // 4b. Vagas de competidor — as esteiras são finitas.
-  //     Só entra em vigor quando a organização preencher `vagasCompetidores`.
-  //     Quem chega depois de lotar ainda pode se inscrever como espectador, e a
-  //     mensagem diz isso em vez de simplesmente barrar.
-  if (data.participacao === "competidor" && unit.vagasCompetidores !== null) {
-    const { count } = await supabase
-      .from(TABLE)
-      .select("id", { count: "exact", head: true })
-      .eq("unit_id", unit.id)
-      .eq("participacao", "competidor")
-      .in("status", ["confirmed", "checked_in"]);
-
-    if ((count ?? 0) >= unit.vagasCompetidores) {
+  // 4b. Vaga na categoria — a regra da competição.
+  //
+  //     Cada unidade tem 12 vagas por categoria (4 esteiras × 3 baterias). Esta
+  //     checagem existe para dar uma mensagem clara à pessoa; a garantia contra
+  //     corrida é o trigger `dst_capacidade` no banco, tratado no INSERT abaixo.
+  if (data.participacao === "competidor") {
+    const vagas = await getVagasCategoria(unit.id, data.sexo);
+    if (vagas && vagas.restantes <= 0) {
+      const categoria = data.sexo === "feminino" ? "feminino" : "masculino";
       return NextResponse.json(
         {
-          error: `As vagas para competir na ${unit.nome} acabaram. Você ainda pode se inscrever para assistir, ou competir em outra unidade.`,
+          error: `As ${VAGAS_POR_CATEGORIA} vagas da categoria ${categoria} na ${unit.nome} acabaram. Você ainda pode competir em outra unidade, ou se inscrever para assistir.`,
           vagas_esgotadas: true,
           unidade: unit.id,
+          categoria: data.sexo,
         },
         { status: 409 }
       );
@@ -202,6 +200,22 @@ export async function POST(request: NextRequest) {
         ticket_code: inserido.ticket_code,
         unit_id: unit.id,
       });
+    }
+
+    // A trava de capacidade do banco venceu a corrida: alguém pegou a última
+    // vaga entre a nossa checagem e o INSERT. É o caminho correto — o banco é
+    // a única camada que enxerga todas as transações simultâneas.
+    if (error?.message?.includes("DST_CATEGORIA_ESGOTADA")) {
+      const categoria = data.sexo === "feminino" ? "feminino" : "masculino";
+      return NextResponse.json(
+        {
+          error: `A última vaga da categoria ${categoria} na ${unit.nome} acabou de ser preenchida. Tente outra unidade ou inscreva-se para assistir.`,
+          vagas_esgotadas: true,
+          unidade: unit.id,
+          categoria: data.sexo,
+        },
+        { status: 409 }
+      );
     }
 
     if (error?.code === "23505") {

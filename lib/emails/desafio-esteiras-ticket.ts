@@ -34,6 +34,8 @@ export interface DesafioEsteirasTicketEmailData {
   qrSrc: string;
   evolveLogoSrc?: string;
   sommaLogoSrc?: string;
+  /** Quando presente, o e-mail abre avisando que o ticket veio de outra pessoa. */
+  transferidoDe?: string | null;
 }
 
 function escapeHtml(value: string): string {
@@ -48,14 +50,24 @@ function firstName(nome: string): string {
   return nome.trim().split(/\s+/)[0] || nome;
 }
 
-/** Assunto curto o bastante para não cortar na lista do Gmail no celular. */
-export function desafioEsteirasTicketSubject(ticketCode: string): string {
-  return `Seu ticket · ${ticketCode}`;
+export function desafioEsteirasTicketSubject(transferido = false): string {
+  return transferido
+    ? "Um ticket do Desafio das Esteiras foi transferido para você"
+    : "Cadastro realizado - Desafio das Esteiras";
 }
 
 export function renderDesafioEsteirasTicketEmail(data: DesafioEsteirasTicketEmailData): string {
   const nome = escapeHtml(firstName(data.nome));
   const nomeCompleto = escapeHtml(data.nome.trim());
+  // Quando o ticket chega por transferência, a primeira coisa que a pessoa
+  // precisa entender é de onde ele veio — e que o ticket antigo perdeu a validade.
+  const avisoTransferencia = data.transferidoDe
+    ? `<tr><td style="padding:0 32px 20px"><div style="background:#1a0f0d;border:1px solid rgba(255,44,4,.5);padding:16px 18px;border-radius:2px">
+        <p style="margin:0;font-size:14px;line-height:1.5;color:#f2f0ec">
+          <strong style="color:#ff2c04">${escapeHtml(firstName(data.transferidoDe))} transferiu este ticket para você.</strong><br/>
+          A vaga, a unidade e a categoria continuam as mesmas. O ticket anterior deixou de valer — este é o único válido.
+        </p></div></td></tr>`
+    : "";
   const code = escapeHtml(data.ticketCode);
   const url = escapeHtml(data.ticketUrl);
   const unidade = escapeHtml(data.unitNome);
@@ -74,7 +86,7 @@ export function renderDesafioEsteirasTicketEmail(data: DesafioEsteirasTicketEmai
   <meta name="format-detection" content="telephone=no,address=no,email=no,date=no,url=no" />
   <meta name="color-scheme" content="light" />
   <meta name="supported-color-schemes" content="light" />
-  <title>Seu ticket · ${code}</title>
+  <title>Cadastro realizado - Desafio das Esteiras</title>
   <!--[if mso]>
   <noscript>
     <xml>
@@ -199,7 +211,9 @@ export function renderDesafioEsteirasTicketEmail(data: DesafioEsteirasTicketEmai
                 DESAFIO<br />DAS ESTEIRAS
               </h1>
               <p class="hello" style="margin:18px 0 0;font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:1.55;color:#3a3a3e;">
-                Olá, <strong style="color:#08080a;">${nome}</strong>. Sua inscrição está confirmada. Este é o seu ticket — mostre o QR Code na recepção da unidade.
+                ${data.transferidoDe
+                  ? `<strong style="color:#08080a;">${escapeHtml(firstName(data.transferidoDe))} transferiu este ticket para você.</strong> A vaga, a unidade e a categoria continuam as mesmas — o ticket anterior deixou de valer. Mostre o QR Code abaixo na recepção da unidade.`
+                  : `Olá, <strong style="color:#08080a;">${nome}</strong>. Sua inscrição está confirmada. Este é o seu ticket — mostre o QR Code na recepção da unidade.`}
               </p>
             </td>
           </tr>
@@ -320,7 +334,10 @@ export function renderDesafioEsteirasTicketEmail(data: DesafioEsteirasTicketEmai
 
 export function renderDesafioEsteirasTicketText(data: Omit<DesafioEsteirasTicketEmailData, "qrSrc">): string {
   return [
-    `Olá, ${firstName(data.nome)}.`,
+    data.transferidoDe
+      ? `${firstName(data.transferidoDe)} transferiu o ticket do Desafio das Esteiras para voce. O ticket anterior deixou de valer.`
+      : "",
+    `Ola, ${firstName(data.nome)}.`,
     "",
     `Sua inscrição no ${EVENT.nome} está confirmada.`,
     "",
@@ -342,6 +359,8 @@ export async function sendDesafioEsteirasTicketEmail(input: {
   ticketCode: string;
   ticketToken: string;
   unit: EventUnit;
+  /** Nome de quem passou o ticket adiante. Muda o assunto e o aviso do topo. */
+  transferidoDe?: string | null;
 }): Promise<{ ok: boolean; id?: string; error?: string }> {
   const resend = getResendClient();
   const from = getEmailFrom();
@@ -356,6 +375,7 @@ export async function sendDesafioEsteirasTicketEmail(input: {
   const evolvePng = emailAssetPng("evolve-logo.png");
   const sommaPng = emailAssetPng("somma-logo.png");
   const payload: DesafioEsteirasTicketEmailData = {
+    transferidoDe: input.transferidoDe ?? null,
     nome: input.nome,
     email: input.email,
     ticketCode: input.ticketCode,
@@ -370,7 +390,7 @@ export async function sendDesafioEsteirasTicketEmail(input: {
   const { data: result, error } = await resend.emails.send({
     from,
     to: input.email,
-    subject: desafioEsteirasTicketSubject(input.ticketCode),
+    subject: desafioEsteirasTicketSubject(Boolean(input.transferidoDe)),
     html: renderDesafioEsteirasTicketEmail(payload),
     text: renderDesafioEsteirasTicketText(payload),
     attachments: [

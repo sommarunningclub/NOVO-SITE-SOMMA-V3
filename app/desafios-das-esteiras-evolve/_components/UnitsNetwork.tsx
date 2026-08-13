@@ -3,10 +3,15 @@
 import Link from "next/link";
 import { useEffect, useRef } from "react";
 import {
+  CATEGORIAS,
   EVENT_PATH,
+  SOMMA_BASE,
   UNITS,
   UNIT_LABELS,
+  VAGAS_POR_CATEGORIA,
   inscricoesAbertas,
+  vagasStatus,
+  vagasTexto,
 } from "@/lib/desafio-esteiras/event.config";
 import { track } from "@/lib/desafio-esteiras/analytics";
 import { FitLines } from "./FitLines";
@@ -284,7 +289,7 @@ export function UnitsNetwork({ iniciais }: { iniciais: StatsIniciais }) {
                     className="dst-label dst-clip-tag absolute right-0 top-0 bg-[color:var(--somma)] px-3 py-1.5 text-[0.5rem] text-[color:var(--ink)]"
                     style={{ clipPath: "polygon(10px 0, 100% 0, 100% 100%, 0 100%)" }}
                   >
-                    SOMMA BASE
+                    {SOMMA_BASE.selo}
                   </span>
                 )}
 
@@ -313,13 +318,50 @@ export function UnitsNetwork({ iniciais }: { iniciais: StatsIniciais }) {
                   <span>{(dados?.espectadores ?? 0).toLocaleString("pt-BR")} assistem</span>
                 </p>
 
-                {/* As esteiras são finitas: quando a organização definir o número,
-                    isto vira contagem regressiva de vagas em vez de aviso. */}
-                <p className="dst-label mt-3 border-t border-[color:var(--line)] pt-3 leading-relaxed text-[color:rgba(242,240,236,0.5)]">
-                  {unit.vagasCompetidores === null
-                    ? "Vagas limitadas para competir"
-                    : `${Math.max(0, unit.vagasCompetidores - (dados?.competidores ?? 0))} vagas de competidor`}
-                </p>
+                {/* Vagas da competição: 12 por categoria em cada unidade. */}
+                <div className="mt-3 space-y-2 border-t border-[color:var(--line)] pt-3">
+                  {CATEGORIAS.map((c) => {
+                    const ocupadas = dados?.categorias?.[c.id]?.ocupadas ?? 0;
+                    const st = vagasStatus(ocupadas);
+                    return (
+                      <div key={c.id}>
+                        <p className="dst-label flex items-baseline justify-between gap-2 text-[color:rgba(242,240,236,0.5)]">
+                          <span>{c.curto}</span>
+                          <span
+                            className="dst-num"
+                            style={{
+                              color:
+                                st === "esgotada"
+                                  ? "rgba(242,240,236,0.4)"
+                                  : st === "ultimas"
+                                    ? "var(--somma)"
+                                    : "var(--paper)",
+                            }}
+                          >
+                            {ocupadas}/{VAGAS_POR_CATEGORIA}
+                          </span>
+                        </p>
+                        <div className="mt-1.5 h-[3px] w-full bg-[color:var(--line)]" aria-hidden>
+                          <div
+                            className="h-full origin-left transition-transform duration-700"
+                            style={{
+                              background: st === "esgotada" ? "rgba(242,240,236,0.25)" : "var(--energia)",
+                              transform: `scaleX(${Math.min(1, ocupadas / VAGAS_POR_CATEGORIA)})`,
+                            }}
+                          />
+                        </div>
+                        {st !== "aberta" && (
+                          <p
+                            className="dst-label mt-1.5 text-[0.5rem]"
+                            style={{ color: st === "esgotada" ? "var(--evolve)" : "var(--somma)" }}
+                          >
+                            {vagasTexto(ocupadas)}
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
 
                 {capacidade !== null && (
                   <div className="mt-3" aria-hidden>

@@ -1,29 +1,11 @@
 import { Suspense } from "react";
-import { getEventStats } from "@/lib/desafio-esteiras/db";
-import { UNITS } from "@/lib/desafio-esteiras/event.config";
+import { getStatsIniciais } from "@/lib/desafio-esteiras/db";
 import { RegistrationFlow } from "./RegistrationFlow";
 
 export const dynamic = "force-dynamic";
 
 export default async function InscricaoPage() {
-  const stats = await getEventStats();
-
-  const iniciais = {
-    total: stats.total,
-    totalCompetidores: stats.totalCompetidores,
-    unidades: stats.porUnidade.map((u) => {
-      const unit = UNITS.find((x) => x.id === u.unitId)!;
-      return {
-        id: u.unitId,
-        inscritos: u.inscritos,
-        competidores: u.competidores,
-        espectadores: u.espectadores,
-        status: unit.status,
-        capacidade: unit.capacidade,
-      };
-    }),
-    disponivel: stats.disponivel,
-  };
+  const iniciais = await getStatsIniciais();
 
   return (
     <main className="min-h-[100svh]">

@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { EVENT, getUnit } from "@/lib/desafio-esteiras/event.config";
 import type { OperatorSession } from "@/lib/desafio-esteiras/auth";
+import { FichaCadastro } from "./FichaCadastro";
+import { NovoCadastro } from "./NovoCadastro";
 
 interface Dados {
   escopo: string;
@@ -27,7 +29,7 @@ interface Dados {
   campanhas: { campanha: string; inscritos: number }[];
   porDia: { dia: string; n: number }[];
   porHora: { hora: string; n: number }[];
-  ultimos: { full_name: string; ticket_code: string; unit_id: string; status: string; created_at: string }[];
+  ultimos: { id: string; full_name: string; ticket_code: string; unit_id: string; status: string; created_at: string }[];
   gestao: {
     vinculado: boolean;
     checkinStatus: "aberto" | "bloqueado" | "encerrado" | null;
@@ -56,7 +58,10 @@ export function Dashboard({ session }: { session: OperatorSession }) {
   const router = useRouter();
   const [dados, setDados] = useState<Dados | null>(null);
   const [erro, setErro] = useState<string | null>(null);
+  const [aviso, setAviso] = useState<string | null>(null);
   const [atualizando, setAtualizando] = useState(false);
+  const [fichaId, setFichaId] = useState<string | null>(null);
+  const [novo, setNovo] = useState(false);
 
   const buscar = useCallback(async () => {
     setAtualizando(true);
@@ -108,6 +113,13 @@ export function Dashboard({ session }: { session: OperatorSession }) {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setNovo(true)}
+            className="dst-btn !min-h-[44px] !px-4 !text-[0.7rem]"
+          >
+            Novo cadastro
+          </button>
           <Link
             href="/admin/desafio-das-esteiras/inscritos"
             className="dst-btn dst-btn--ghost !min-h-[44px] !px-4 !text-[0.7rem]"
@@ -127,6 +139,11 @@ export function Dashboard({ session }: { session: OperatorSession }) {
         </div>
       </header>
 
+      {aviso && (
+        <p role="status" className="dst-label mt-5 text-[color:var(--somma)]">
+          {aviso}
+        </p>
+      )}
       {erro && (
         <p role="alert" className="dst-label mt-5 text-[color:var(--evolve)]">
           {erro}
@@ -320,7 +337,7 @@ export function Dashboard({ session }: { session: OperatorSession }) {
           {/* Últimos inscritos */}
           <section className="dst-panel mt-3 overflow-x-auto" aria-labelledby="ultimos">
             <h2 id="ultimos" className="dst-label p-5 pb-3 text-[color:rgba(242,240,236,0.4)]">
-              Últimos inscritos
+              Últimos inscritos · clique no nome para abrir a ficha
             </h2>
             <table className="w-full min-w-[560px] text-left">
               <thead>
@@ -334,8 +351,21 @@ export function Dashboard({ session }: { session: OperatorSession }) {
               </thead>
               <tbody>
                 {dados.ultimos.map((r) => (
-                  <tr key={r.ticket_code} className="border-b border-[color:var(--line)]">
-                    <td className="px-5 py-3 text-[0.9rem]">{r.full_name}</td>
+                  <tr
+                    key={r.id}
+                    className="cursor-pointer border-b border-[color:var(--line)] transition-colors hover:bg-[rgba(255,44,4,0.06)]"
+                    onClick={() => setFichaId(r.id)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        setFichaId(r.id);
+                      }
+                    }}
+                    tabIndex={0}
+                  >
+                    <td className="px-5 py-3 text-[0.9rem]">
+                      <span className="underline-offset-4 hover:underline">{r.full_name}</span>
+                    </td>
                     <td className="px-5 py-3 text-[0.85rem] opacity-70">
                       {getUnit(r.unit_id)?.curto ?? r.unit_id}
                     </td>
@@ -382,6 +412,29 @@ export function Dashboard({ session }: { session: OperatorSession }) {
             · atualiza a cada 20s
           </p>
         </>
+      )}
+
+      {fichaId && (
+        <FichaCadastro
+          id={fichaId}
+          session={session}
+          onFechar={() => setFichaId(null)}
+          onMudou={(msg) => {
+            setAviso(msg);
+            buscar();
+          }}
+        />
+      )}
+      {novo && (
+        <NovoCadastro
+          session={session}
+          onFechar={() => setNovo(false)}
+          onCriado={(msg) => {
+            setNovo(false);
+            setAviso(msg);
+            buscar();
+          }}
+        />
       )}
     </main>
   );

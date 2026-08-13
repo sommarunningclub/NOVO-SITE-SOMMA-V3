@@ -13,7 +13,7 @@ import {
   type Sexo,
 } from "@/lib/desafio-esteiras/event.config";
 import { formatCPF } from "@/lib/cpf";
-import { formatPhone } from "@/lib/desafio-esteiras/schema";
+import { formatBirthDate, formatPhone, toISODate } from "@/lib/desafio-esteiras/schema";
 import { Logos } from "../_components/Logos";
 import { FotoPicker } from "../_components/FotoPicker";
 
@@ -46,6 +46,9 @@ export function MeuCadastro() {
   const [ocupado, setOcupado] = useState(false);
   const [foto, setFoto] = useState<File | null>(null);
   const [removerFoto, setRemoverFoto] = useState(false);
+  const [transferindo, setTransferindo] = useState(false);
+  const [transferido, setTransferido] = useState<{ nome: string; email: string } | null>(null);
+  const transferRef = useRef<HTMLFormElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
   async function acessar(e: React.FormEvent) {
@@ -58,7 +61,7 @@ export function MeuCadastro() {
       const res = await fetch("/api/desafio-esteiras/meu-cadastro", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ cpf, birth_date: nascimento }),
+        body: JSON.stringify({ cpf, birth_date: toISODate(nascimento) }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -128,6 +131,46 @@ export function MeuCadastro() {
     }
   }
 
+  /**
+   * Passa o ticket para outra pessoa. A vaga, a unidade e o horário continuam
+   * os mesmos — muda o titular, e o link antigo deixa de valer.
+   */
+  async function transferir(e: React.FormEvent) {
+    e.preventDefault();
+    if (!token || transferindo) return;
+    setErro(null);
+    setTransferindo(true);
+
+    const f = new FormData(transferRef.current!);
+    try {
+      const res = await fetch("/api/desafio-esteiras/meu-cadastro/transferir", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          token,
+          novo: {
+            full_name: String(f.get("t_nome") ?? ""),
+            cpf: String(f.get("t_cpf") ?? ""),
+            birth_date: toISODate(String(f.get("t_nasc") ?? "")),
+            email: String(f.get("t_email") ?? ""),
+            phone: String(f.get("t_tel") ?? ""),
+            sexo: String(f.get("t_sexo") ?? ""),
+          },
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setErro(data.error ?? "Não foi possível transferir.");
+        return;
+      }
+      setTransferido({ nome: data.novo_titular, email: data.email });
+    } catch {
+      setErro("Falha de conexão. Tente novamente.");
+    } finally {
+      setTransferindo(false);
+    }
+  }
+
   return (
     <div className="dst-wrap py-6 md:py-10">
       <div className="flex items-center justify-between gap-4 border-b border-[color:var(--line)] pb-5">
@@ -172,10 +215,12 @@ export function MeuCadastro() {
             <div className="dst-field-wrap mt-5">
               <input
                 id="acesso-nasc"
-                type="date"
-                value={nascimento}
-                onChange={(e) => setNascimento(e.target.value)}
-                max="2014-12-31"
+                type="text"
+                inputMode="numeric"
+                autoComplete="bday"
+                value={formatBirthDate(nascimento)}
+                onChange={(e) => setNascimento(formatBirthDate(e.target.value))}
+                maxLength={10}
                 placeholder=" "
                 className="dst-field"
                 required
@@ -365,6 +410,107 @@ export function MeuCadastro() {
               </Link>
             </div>
           </form>
+
+          {/* ── Transferir o ticket ── */}
+          <section className="mt-14 border-t border-[color:var(--line)] pt-10" aria-labelledby="transf-titulo">
+            {transferido ? (
+              <div className="dst-panel p-6" style={{ borderColor: "rgba(255,44,4,0.5)" }}>
+                <h2 className="dst-display text-[1.4rem]" style={{ color: "var(--somma)" }}>
+                  TICKET TRANSFERIDO
+                </h2>
+                <p className="mt-4 text-[0.95rem] leading-relaxed text-[color:rgba(242,240,236,0.7)]">
+                  A vaga agora é de <strong>{transferido.nome}</strong>. Enviamos o novo ticket para{" "}
+                  <strong>{transferido.email}</strong>, com o QR Code válido.
+                </p>
+                <p className="mt-3 text-[0.88rem] leading-relaxed text-[color:rgba(242,240,236,0.55)]">
+                  O seu ticket anterior deixou de valer. Você não aparece mais na grade de
+                  competidores.
+                </p>
+                <Link href={EVENT_PATH} className="dst-btn mt-6">
+                  Voltar para o evento
+                </Link>
+              </div>
+            ) : (
+              <>
+                <h2 id="transf-titulo" className="dst-display text-[clamp(1.5rem,6vw,2.2rem)]">
+                  TRANSFERIR MEU TICKET
+                </h2>
+                <p className="mt-4 max-w-[58ch] text-[0.95rem] leading-relaxed text-[color:rgba(242,240,236,0.65)]">
+                  Não vai conseguir ir? Passe sua vaga para outra pessoa. A unidade, a categoria e o
+                  horário continuam os mesmos — muda só o titular. Informe os dados de quem vai no
+                  seu lugar e o novo ticket vai direto para o e-mail dela.
+                </p>
+                <p className="dst-label mt-4 leading-relaxed" style={{ color: "var(--evolve)" }}>
+                  Atenção: assim que confirmar, seu ticket atual deixa de valer.
+                </p>
+
+                <form ref={transferRef} onSubmit={transferir} className="mt-8 max-w-[560px]">
+                  <div className="dst-field-wrap">
+                    <input id="t-nome" name="t_nome" placeholder=" " className="dst-field" autoCapitalize="words" required />
+                    <label htmlFor="t-nome" className="dst-field-label">Nome completo de quem vai receber</label>
+                  </div>
+                  <div className="dst-field-wrap mt-5">
+                    <input
+                      id="t-cpf" name="t_cpf" inputMode="numeric" maxLength={14} placeholder=" " className="dst-field" required
+                      onChange={(e) => (e.target.value = formatCPF(e.target.value))}
+                    />
+                    <label htmlFor="t-cpf" className="dst-field-label">CPF</label>
+                  </div>
+                  <div className="dst-field-wrap mt-5">
+                    <input
+                      id="t-nasc" name="t_nasc" inputMode="numeric" maxLength={10} placeholder=" " className="dst-field" required
+                      onChange={(e) => (e.target.value = formatBirthDate(e.target.value))}
+                    />
+                    <label htmlFor="t-nasc" className="dst-field-label">Data de nascimento (dd/mm/aaaa)</label>
+                  </div>
+                  <div className="dst-field-wrap mt-5">
+                    <input id="t-email" name="t_email" type="email" placeholder=" " className="dst-field" required />
+                    <label htmlFor="t-email" className="dst-field-label">E-mail</label>
+                  </div>
+                  <div className="dst-field-wrap mt-5">
+                    <input
+                      id="t-tel" name="t_tel" inputMode="tel" maxLength={16} placeholder=" " className="dst-field" required
+                      onChange={(e) => (e.target.value = formatPhone(e.target.value))}
+                    />
+                    <label htmlFor="t-tel" className="dst-field-label">Telefone / WhatsApp</label>
+                  </div>
+
+                  <fieldset className="mt-7">
+                    <legend className="dst-label mb-3 text-[color:rgba(242,240,236,0.45)]">
+                      Categoria de quem vai receber
+                    </legend>
+                    <div className="grid grid-cols-2 gap-2">
+                      {CATEGORIAS.map((c) => (
+                        <label
+                          key={c.id}
+                          className="dst-panel flex min-h-[56px] cursor-pointer items-center justify-center p-3 has-[:checked]:border-[color:var(--somma)] has-[:checked]:bg-[rgba(255,44,4,0.08)]"
+                        >
+                          <input
+                            type="radio" name="t_sexo" value={c.id}
+                            defaultChecked={cadastro.sexo === c.id} className="sr-only" required
+                          />
+                          <span className="dst-display text-[0.95rem]">{c.curto}</span>
+                        </label>
+                      ))}
+                    </div>
+                    <p className="dst-label mt-3 leading-relaxed text-[color:rgba(242,240,236,0.4)]">
+                      Se a categoria for diferente da sua, a vaga muda de fila — e só é possível se
+                      ainda houver vaga nela.
+                    </p>
+                  </fieldset>
+
+                  <button
+                    type="submit"
+                    disabled={transferindo}
+                    className="dst-btn mt-8 w-full disabled:opacity-60"
+                    style={{ background: "var(--evolve)" }}
+                  >
+                    {transferindo ? "Transferindo…" : "Confirmar transferência"}
+                  </button>
+                </form>
+              </>
+            )}
+          </section>
         </section>
       )}
 

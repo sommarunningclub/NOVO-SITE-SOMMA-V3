@@ -25,6 +25,36 @@ export type EventStatus =
 
 export type UnitStatus = "aberta" | "ultimas_vagas" | "esgotada" | "encerrada";
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   REGRA OFICIAL DA COMPETIÇÃO
+   ───────────────────────────────────────────────────────────────────────────
+   Cada unidade disponibiliza 4 esteiras. Uma bateria ocupa as 4 ao mesmo
+   tempo, e cada categoria roda 3 baterias:
+
+       4 esteiras × 3 baterias = 12 vagas por categoria
+       12 feminino + 12 masculino = 24 competidores por unidade
+       24 × 4 unidades = 96 competidores no total
+
+   Todos os números da LP, das APIs, do admin e do banco derivam DESTAS
+   constantes — nenhum é escrito à mão em outro lugar. Mudar aqui muda o
+   sistema inteiro (mas lembre de rodar a migration: o banco também trava a
+   capacidade, e o número está no trigger).
+   ═══════════════════════════════════════════════════════════════════════════ */
+export const COMPETICAO = {
+  esteirasPorBateria: 4,
+  bateriasPorCategoria: 3,
+  get vagasPorCategoria() {
+    return this.esteirasPorBateria * this.bateriasPorCategoria; // 12
+  },
+} as const;
+
+export const VAGAS_POR_CATEGORIA = COMPETICAO.vagasPorCategoria; // 12
+export const BATERIAS = [1, 2, 3] as const;
+export type Bateria = (typeof BATERIAS)[number];
+
+/** 24 — as duas categorias somadas. */
+export const VAGAS_POR_UNIDADE = VAGAS_POR_CATEGORIA * 2;
+
 export interface EventUnit {
   id: string;
   slug: string;
@@ -38,20 +68,24 @@ export interface EventUnit {
   latitude: number;
   longitude: number;
   googleMapsUrl: string;
+  /**
+   * Ficha pública do Google Maps quando a organização enviou a listagem.
+   * Sem fonte, a LP não inventa nota nem horário de funcionamento da academia.
+   */
+  google?: {
+    nome: string;
+    rating: number;
+    avaliacoes: number;
+    categoria: string;
+  };
   /** PENDENTE — capacidade total (competidores + espectadores) por unidade.
    *  Com `null` a LP não mostra barra de lotação nem bloqueia inscrição. */
   capacidade: number | null;
   /**
-   * Vagas de COMPETIDOR na unidade — as esteiras são finitas.
-   *
-   * PENDENTE: preencher com o número real de cada unidade. Enquanto for `null`,
-   * a página comunica que as vagas são limitadas (é verdade: há um teto físico
-   * de esteiras) mas não bloqueia ninguém, porque não temos o número para
-   * aplicar. Assim que preenchido, a inscrição como competidor passa a ser
-   * recusada automaticamente quando a unidade lotar, e quem chegar depois
-   * consegue se inscrever como espectador.
+   * Esteiras que a unidade disponibiliza para a competição. É esse número que
+   * define o tamanho da bateria — quatro esteiras, quatro pessoas por vez.
    */
-  vagasCompetidores: number | null;
+  esteiras: number;
   status: UnitStatus;
   /** Vicente Pires concentra a equipe SOMMA Club presencialmente. */
   sommaBase: boolean;
@@ -73,8 +107,14 @@ export const UNITS: readonly EventUnit[] = [
     longitude: -48.0188,
     googleMapsUrl:
       "https://www.google.com/maps/search/?api=1&query=Evolve%20Vicente%20Pires%20Rua%203%20Ch%C3%A1cara%2082%20Setor%20Habitacional%20Vicente%20Pires%20Bras%C3%ADlia%20DF",
+    google: {
+      nome: "Academia Evolve - Vicente Pires",
+      rating: 4.4,
+      avaliacoes: 301,
+      categoria: "Academia no Distrito Federal",
+    },
     capacidade: null,
-    vagasCompetidores: null, // PENDENTE — informar o número de esteiras da unidade
+    esteiras: COMPETICAO.esteirasPorBateria,
     status: "aberta",
     sommaBase: true,
     ticketPrefix: "VP",
@@ -92,7 +132,7 @@ export const UNITS: readonly EventUnit[] = [
     googleMapsUrl:
       "https://www.google.com/maps/search/?api=1&query=Evolve%20Luzi%C3%A2nia%20Rua%20Marginal%20A%20Quadra%2018%20Luzi%C3%A2nia%20GO",
     capacidade: null,
-    vagasCompetidores: null, // PENDENTE — informar o número de esteiras da unidade
+    esteiras: COMPETICAO.esteirasPorBateria,
     status: "aberta",
     sommaBase: false,
     ticketPrefix: "LZ",
@@ -111,7 +151,7 @@ export const UNITS: readonly EventUnit[] = [
     googleMapsUrl:
       "https://www.google.com/maps/search/?api=1&query=Evolve%20Alameda%20Shopping%20Taguatinga%20Sul%20Bras%C3%ADlia%20DF",
     capacidade: null,
-    vagasCompetidores: null, // PENDENTE — informar o número de esteiras da unidade
+    esteiras: COMPETICAO.esteirasPorBateria,
     status: "aberta",
     sommaBase: false,
     ticketPrefix: "AL",
@@ -130,7 +170,7 @@ export const UNITS: readonly EventUnit[] = [
     googleMapsUrl:
       "https://www.google.com/maps/search/?api=1&query=Evolve%20Samambaia%20Quadra%20302%20Conjunto%209%20Edif%C3%ADcio%20Arena%20Urbano%20Samambaia%20Bras%C3%ADlia%20DF",
     capacidade: null,
-    vagasCompetidores: null, // PENDENTE — informar o número de esteiras da unidade
+    esteiras: COMPETICAO.esteirasPorBateria,
     status: "aberta",
     sommaBase: false,
     ticketPrefix: "SB",
@@ -163,9 +203,8 @@ export const EVENT = {
   horaLabel: "19H",
   horaExtenso: "19h",
   status: "inscricoes_abertas" as EventStatus,
-  /** PENDENTE — a organização ainda não confirmou se o evento é gratuito.
-   *  Com `null`, a LP não afirma nada sobre preço e o FAQ usa a resposta neutra. */
-  gratuito: null as boolean | null,
+  /** Confirmado pela organização: participação gratuita, mediante inscrição. */
+  gratuito: true as boolean | null,
   /** PENDENTE — regra de elegibilidade (aluno Evolve x público geral). */
   exigeSerAlunoEvolve: null as boolean | null,
 } as const;
@@ -199,28 +238,39 @@ export function categoriaDoSexo(sexo: Sexo | null | undefined): string | null {
   return CATEGORIAS.find((c) => c.id === sexo)?.curto ?? null;
 }
 
-/* ── Vagas de competidor ─────────────────────────────────────────────────── */
+/* ── Vagas ───────────────────────────────────────────────────────────────── */
 
-export type VagasStatus = "aberta" | "ultimas" | "esgotada" | "indefinida";
+export type VagasStatus = "aberta" | "ultimas" | "esgotada";
+
+/** Total geral da competição: 96. */
+export const VAGAS_TOTAIS = VAGAS_POR_UNIDADE * UNITS.length;
+/** 48 por categoria somando as quatro unidades. */
+export const VAGAS_TOTAIS_POR_CATEGORIA = VAGAS_POR_CATEGORIA * UNITS.length;
+
+export function vagasRestantes(ocupadas: number, total = VAGAS_POR_CATEGORIA): number {
+  return Math.max(0, total - ocupadas);
+}
 
 /**
- * Situação das vagas de competidor de uma unidade.
+ * Situação de uma categoria numa unidade.
  *
- * `indefinida` significa "há um limite, mas ainda não sabemos qual" — a página
- * continua comunicando que as vagas são limitadas (as esteiras são finitas),
- * sem inventar um número nem barrar ninguém.
+ * "últimas vagas" a partir de 3 restantes — com apenas 12 no total, avisar
+ * antes disso seria alarme falso, e avisar depois já não dá tempo de reagir.
  */
-export function vagasCompetidorStatus(unit: EventUnit, competidores: number): VagasStatus {
-  if (unit.vagasCompetidores === null) return "indefinida";
-  const restantes = unit.vagasCompetidores - competidores;
-  if (restantes <= 0) return "esgotada";
-  if (restantes <= Math.max(5, Math.round(unit.vagasCompetidores * 0.15))) return "ultimas";
+export function vagasStatus(ocupadas: number, total = VAGAS_POR_CATEGORIA): VagasStatus {
+  const restam = vagasRestantes(ocupadas, total);
+  if (restam <= 0) return "esgotada";
+  if (restam <= 3) return "ultimas";
   return "aberta";
 }
 
-export function vagasRestantes(unit: EventUnit, competidores: number): number | null {
-  if (unit.vagasCompetidores === null) return null;
-  return Math.max(0, unit.vagasCompetidores - competidores);
+/** Texto de escassez, sempre derivado do número real. Nunca escrever à mão. */
+export function vagasTexto(ocupadas: number, total = VAGAS_POR_CATEGORIA): string {
+  const restam = vagasRestantes(ocupadas, total);
+  if (restam === 0) return "ESGOTADO";
+  if (restam === 1) return "ÚLTIMA VAGA";
+  if (restam <= 3) return `ÚLTIMAS ${restam} VAGAS`;
+  return `${ocupadas} de ${total} vagas preenchidas`;
 }
 
 /** Idade em anos completos na data do evento — é o que vale para a disputa. */
@@ -270,6 +320,21 @@ export const UNIT_ACCENT: Record<string, string> = {
   samambaia: "#8c1810",
 };
 
+/**
+ * O selo da unidade onde o time SOMMA estará.
+ *
+ * "SOMMA BASE" sozinho era ambíguo — dava para ler como nome de produto. Os
+ * textos abaixo dizem a coisa: é o ponto oficial, com a equipe presente.
+ */
+export const SOMMA_BASE = {
+  selo: "SOMMA AQUI",
+  seloLongo: "BASE OFICIAL DO SOMMA",
+  titulo: "Ponto oficial do SOMMA Club",
+  explicacao:
+    "É nesta unidade que a equipe do SOMMA Club estará presencialmente no dia do evento. Nas outras três, a operação é da Evolve.",
+  curto: "Equipe SOMMA presente",
+} as const;
+
 export const COPY = {
   headline: ["DESAFIO", "DAS ESTEIRAS"],
   sub: "4 UNIDADES. 1 DESAFIO.",
@@ -277,7 +342,7 @@ export const COPY = {
   ctaPrimario: "GARANTIR MEU TICKET",
   ctaSecundario: "ESCOLHER UNIDADE",
   ctaSomma: "CORRER COM O SOMMA",
-  vagasAviso: "Vagas limitadas para competir em cada unidade",
+  vagasAviso: "Evento gratuito. Vagas limitadas para competir em cada unidade",
   vagasDetalhe:
     "As esteiras de cada unidade são contadas: quem quer competir precisa garantir a vaga antes de esgotar. Para assistir, a entrada segue liberada.",
 } as const;
@@ -291,12 +356,7 @@ export const COPY = {
 export const MANIFESTO = [
   "UMA NOITE.",
   "QUATRO UNIDADES.",
-  "CENTENAS DE PESSOAS",
-  "CORRENDO JUNTAS.",
-  "MÚSICA. ENERGIA.",
-  "DESAFIO. BRINDES.",
-  "ATIVAÇÕES.",
-  "COMUNIDADE.",
+  "UM DESAFIO.",
 ] as const;
 
 export const STEPS = [
@@ -360,8 +420,12 @@ export const FAQ: { p: string; r: string | null }[] = [
     r: "Não. O Desafio foi desenhado para acolher diferentes níveis — de quem está começando a quem treina todo dia.",
   },
   {
-    p: "As vagas para competir são limitadas?",
-    r: "Sim. O número de esteiras de cada unidade é finito, então as vagas de competidor são limitadas e acabam por ordem de inscrição. Para assistir e participar das ativações, a entrada continua aberta.",
+    p: "Quantas vagas existem para competir?",
+    r: `Cada unidade tem ${VAGAS_POR_CATEGORIA} vagas no feminino e ${VAGAS_POR_CATEGORIA} no masculino — ${VAGAS_POR_UNIDADE} competidores por unidade, ${VAGAS_TOTAIS} no total. São ${COMPETICAO.esteirasPorBateria} esteiras por unidade, e cada categoria roda ${COMPETICAO.bateriasPorCategoria} baterias de ${COMPETICAO.esteirasPorBateria} pessoas. As vagas acabam por ordem de inscrição; para assistir, a entrada continua aberta.`,
+  },
+  {
+    p: "Como funcionam as baterias?",
+    r: `São ${COMPETICAO.bateriasPorCategoria} baterias por categoria, com ${COMPETICAO.esteirasPorBateria} competidores correndo ao mesmo tempo — uma pessoa por esteira. A organização define em qual bateria você corre depois da inscrição, e isso aparece no seu ticket.`,
   },
   {
     p: "Posso escolher qualquer unidade?",

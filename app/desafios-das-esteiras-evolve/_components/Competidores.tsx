@@ -7,13 +7,18 @@ import {
   EVENT_PATH,
   UNITS,
   UNIT_ACCENT,
+  VAGAS_POR_CATEGORIA,
+  VAGAS_POR_UNIDADE,
+  VAGAS_TOTAIS,
+  VAGAS_TOTAIS_POR_CATEGORIA,
   inscricoesAbertas,
+  vagasStatus,
 } from "@/lib/desafio-esteiras/event.config";
 import { track } from "@/lib/desafio-esteiras/analytics";
 import type { Competidor } from "@/lib/desafio-esteiras/db";
 import { gsap, maskReveal, useScope } from "../_motion";
 import { FitLines } from "./FitLines";
-import { useLiveStats, type StatsIniciais } from "./useLiveStats";
+import { statsPorUnidade, useLiveStats, type StatsIniciais } from "./useLiveStats";
 
 type Filtro = "todas" | (typeof UNITS)[number]["id"];
 
@@ -86,6 +91,23 @@ export function Competidores({
     [visiveis]
   );
 
+  /* Os números do painel seguem o filtro selecionado, e vêm do banco:
+     "todas" → as 96 vagas da competição; uma unidade → as 24 dela. */
+  const unidadesStats = statsPorUnidade(stats);
+  const vagasNoFiltro = filtro === "todas" ? VAGAS_TOTAIS : VAGAS_POR_UNIDADE;
+  const totalCategoria =
+    filtro === "todas" ? VAGAS_TOTAIS_POR_CATEGORIA : VAGAS_POR_CATEGORIA;
+
+  const ocupadasCategoria = {
+    feminino: unidadesStats
+      .filter((u) => filtro === "todas" || u.id === filtro)
+      .reduce((s, u) => s + (u.categorias?.feminino.ocupadas ?? 0), 0),
+    masculino: unidadesStats
+      .filter((u) => filtro === "todas" || u.id === filtro)
+      .reduce((s, u) => s + (u.categorias?.masculino.ocupadas ?? 0), 0),
+  };
+  const ocupadasNoFiltro = ocupadasCategoria.feminino + ocupadasCategoria.masculino;
+
   const abertas = inscricoesAbertas();
 
   return (
@@ -106,20 +128,61 @@ export function Competidores({
             </h2>
           </div>
 
-          <div className="dst-panel min-w-[200px] p-5">
+          {/* O contador segue o filtro: "todas" mostra as 96 vagas da competição;
+              uma unidade mostra as 24 dela. */}
+          <div className="dst-panel min-w-[230px] p-5">
             <p className="dst-label mb-3 text-[color:rgba(242,240,236,0.45)]">Competidores</p>
-            <span
-              className="dst-num block text-[clamp(2.4rem,8vw,3.6rem)] font-bold leading-none"
-              style={{ color: "var(--somma)" }}
-            >
-              {lista.length.toLocaleString("pt-BR")}
-            </span>
+            <p className="flex items-baseline gap-2">
+              <span
+                className="dst-num text-[clamp(2.4rem,8vw,3.6rem)] font-bold leading-none"
+                style={{ color: "var(--somma)" }}
+              >
+                {ocupadasNoFiltro}
+              </span>
+              <span className="dst-num text-[1.4rem] font-bold leading-none text-[color:rgba(242,240,236,0.35)]">
+                /{vagasNoFiltro}
+              </span>
+            </p>
             <p className="dst-label mt-3 text-[color:rgba(242,240,236,0.4)]">
-              de {stats.total.toLocaleString("pt-BR")} inscritos
+              {filtro === "todas" ? "vagas na competição" : "vagas nesta unidade"}
             </p>
-            <p className="dst-label mt-3 border-t border-[color:var(--line)] pt-3 leading-relaxed" style={{ color: "var(--somma)" }}>
-              Vagas limitadas
-            </p>
+
+            <div className="mt-3 h-[3px] w-full bg-[color:var(--line)]" aria-hidden>
+              <div
+                className="h-full origin-left transition-transform duration-700"
+                style={{
+                  background: "var(--energia)",
+                  transform: `scaleX(${Math.min(1, ocupadasNoFiltro / vagasNoFiltro)})`,
+                }}
+              />
+            </div>
+
+            {/* Quebra por categoria — a regra é 12 em cada */}
+            <div className="mt-4 space-y-2 border-t border-[color:var(--line)] pt-3">
+              {CATEGORIAS.map((c) => {
+                const oc = ocupadasCategoria[c.id];
+                const tot = totalCategoria;
+                const st = vagasStatus(oc, tot);
+                return (
+                  <p key={c.id} className="dst-label flex items-baseline justify-between gap-3">
+                    <span className="text-[color:rgba(242,240,236,0.5)]">{c.curto}</span>
+                    <span
+                      className="dst-num"
+                      style={{
+                        color:
+                          st === "esgotada"
+                            ? "var(--evolve)"
+                            : st === "ultimas"
+                              ? "var(--somma)"
+                              : "var(--paper)",
+                      }}
+                    >
+                      {oc} / {tot}
+                    </span>
+                  </p>
+                );
+              })}
+            </div>
           </div>
         </div>
 

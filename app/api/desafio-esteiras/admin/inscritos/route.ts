@@ -1,22 +1,30 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServiceSupabase } from "@/lib/supabase";
 import { canActOnUnit, requireOperator } from "@/lib/desafio-esteiras/auth";
-import { BUCKET_FOTOS, TABLE, fotoUrl } from "@/lib/desafio-esteiras/db";
+import { BUCKET_FOTOS, TABLE, fotoUrl, getVagasCategoria } from "@/lib/desafio-esteiras/db";
 import {
+  EVENT,
   FAIXAS_ETARIAS,
   UNITS,
+  VAGAS_POR_CATEGORIA,
   faixaEtaria,
   getUnit,
   idadeNoEvento,
-  vagasCompetidorStatus,
   vagasRestantes,
+  vagasStatus,
 } from "@/lib/desafio-esteiras/event.config";
-import { edicaoCadastroSchema, onlyDigits } from "@/lib/desafio-esteiras/schema";
+import { edicaoCadastroSchema, adminInscricaoSchema, onlyDigits } from "@/lib/desafio-esteiras/schema";
+import { formatCPF } from "@/lib/cpf";
+import { generateTicketCode, generateTicketToken, ticketPertenceAUnidade } from "@/lib/desafio-esteiras/ticket";
+import { getEventoId } from "@/lib/desafio-esteiras/gestao";
+import { sendDesafioEsteirasTicketEmail } from "@/lib/emails/desafio-esteiras-ticket";
 
 export const dynamic = "force-dynamic";
 
+const MAX_CODE_TRIES = 5;
+
 const COLUNAS =
-  "id, created_at, full_name, cpf, birth_date, email, phone, unit_id, sexo, participacao, foto_path, ticket_code, ticket_token, status, checked_in_at, checked_in_by, origem, utm_source, utm_medium, utm_campaign, utm_content, utm_term, referral, atualizado_em, evento_id";
+  "id, created_at, full_name, cpf, birth_date, email, phone, unit_id, sexo, participacao, foto_path, ticket_code, ticket_token, status, checked_in_at, checked_in_by, origem, utm_source, utm_medium, utm_campaign, utm_content, utm_term, referral, atualizado_em, evento_id, heat_number";
 
 /** O CPF é a chave da inscrição e não é editável — mostramos só o suficiente para conferir. */
 function maskCpf(cpf: string): string {
@@ -58,6 +66,7 @@ interface Linha {
   referral: string | null;
   atualizado_em: string | null;
   evento_id: string | null;
+  heat_number: number | null;
 }
 
 function enriquecer(r: Linha) {
@@ -106,7 +115,18 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Não foi possível carregar." }, { status: 500 });
   }
 
-  const todos = ((data ?? []) as unknown as Linha[]).map(enriquecer);
+  const brutos = (data ?? []) as unknown as Linha[];
+  const todos = brutos.map(enriquecer);
+  const cpfPorId = new Map(brutos.map((r) => [r.id, r.cpf]));
+
+  const idFicha = sp.get("id");
+  if (idFicha) {
+    const row = todos.find((r) => r.id === idFicha);
+    if (!row) return NextResponse.json({ error: "Inscrição não encontrada." }, { status: 404 });
+    return NextResponse.json({
+      inscrito: { ...row, cpf: formatCPF(cpfPorId.get(row.id) ?? "") },
+    });
+  }
 
   /* Resumo — sempre sobre o escopo inteiro, não sobre o filtro atual, para o
      operador ter o retrato da unidade mesmo enquanto procura alguém. */
@@ -137,6 +157,9 @@ export async function GET(request: NextRequest) {
     porUnidade: unidadesVisiveis.map((u) => {
       const daUnidade = validos.filter((r) => r.unit_id === u.id);
       const competidores = daUnidade.filter((r) => r.participacao === "competidor").length;
+      const competindo = daUnidade.filter((r) => r.participacao === "competidor");
+      const femininoN = competindo.filter((r) => r.sexo === "feminino").length;
+      const masculinoN = competindo.filter((r) => r.sexo === "masculino").length;
       return {
         id: u.id,
         curto: u.curto,
@@ -144,11 +167,33 @@ export async function GET(request: NextRequest) {
         competidores,
         espectadores: daUnidade.length - competidores,
         checkins: daUnidade.filter((r) => r.status === "checked_in").length,
-        feminino: daUnidade.filter((r) => r.sexo === "feminino").length,
-        masculino: daUnidade.filter((r) => r.sexo === "masculino").length,
-        vagasCompetidores: u.vagasCompetidores,
-        vagasRestantes: vagasRestantes(u, competidores),
-        vagasStatus: vagasCompetidorStatus(u, competidores),
+        feminino: femininoN,
+        masculino: masculinoN,
+        // A regra é por categoria: 12 vagas em cada, não um teto único da unidade.
+        vagas: {
+          feminino: {
+            ocupadas: femininoN,
+            total: VAGAS_POR_CATEGORIA,
+            restantes: vagasRestantes(femininoN),
+            status: vagasStatus(femininoN),
+            baterias: [1, 2, 3].map((n) => ({
+              n,
+              ocupadas: daUnidade.filter((r) => r.sexo === "feminino" && r.heat_number === n).length,
+            })),
+            semBateria: daUnidade.filter((r) => r.sexo === "feminino" && !r.heat_number).length,
+          },
+          masculino: {
+            ocupadas: masculinoN,
+            total: VAGAS_POR_CATEGORIA,
+            restantes: vagasRestantes(masculinoN),
+            status: vagasStatus(masculinoN),
+            baterias: [1, 2, 3].map((n) => ({
+              n,
+              ocupadas: daUnidade.filter((r) => r.sexo === "masculino" && r.heat_number === n).length,
+            })),
+            semBateria: daUnidade.filter((r) => r.sexo === "masculino" && !r.heat_number).length,
+          },
+        },
       };
     }),
     porOrigem: Object.entries(
@@ -216,15 +261,49 @@ export async function GET(request: NextRequest) {
   });
 }
 
-/* ── Editar ──────────────────────────────────────────────────────────────── */
+/* ── Editar / transferir / reenviar ──────────────────────────────────────── */
 
 const statusValidos = ["confirmed", "checked_in", "cancelled"] as const;
+
+type LinhaEdicao = {
+  participacao: string;
+  unit_id: string;
+  status: string;
+  checked_in_at: string | null;
+  ticket_code: string;
+  ticket_token: string;
+  full_name: string;
+  email: string;
+};
+
+function respostaCapacidade(message: string) {
+  if (message.includes("DST_CATEGORIA_ESGOTADA")) {
+    return NextResponse.json(
+      { error: "Essa categoria já está com as 12 vagas preenchidas nesta unidade." },
+      { status: 409 },
+    );
+  }
+  if (message.includes("DST_BATERIA_CHEIA")) {
+    return NextResponse.json(
+      { error: "Essa bateria já tem 4 competidores — são 4 esteiras." },
+      { status: 409 },
+    );
+  }
+  return null;
+}
 
 export async function PATCH(request: NextRequest) {
   const auth = await requireOperator();
   if (!auth.ok) return auth.response;
 
-  let body: { id?: unknown; dados?: unknown; status?: unknown };
+  let body: {
+    id?: unknown;
+    dados?: unknown;
+    status?: unknown;
+    heat_number?: unknown;
+    transferir_para?: unknown;
+    reenviar_email?: unknown;
+  };
   try {
     body = (await request.json()) as typeof body;
   } catch {
@@ -239,20 +318,20 @@ export async function PATCH(request: NextRequest) {
 
   const { data: atual } = await supabase
     .from(TABLE)
-    .select("id, unit_id, status, checked_in_at")
+    .select("id, unit_id, status, checked_in_at, ticket_code, ticket_token, full_name, email, participacao")
     .eq("id", id)
     .maybeSingle();
 
   if (!atual) return NextResponse.json({ error: "Inscrição não encontrada." }, { status: 404 });
 
-  const linha = atual as { unit_id: string; status: string; checked_in_at: string | null };
+  const linha = atual as LinhaEdicao;
 
   if (!canActOnUnit(auth.session, linha.unit_id)) {
     return NextResponse.json(
       {
         error: `Esta inscrição é da ${getUnit(linha.unit_id)?.nome ?? linha.unit_id}. Você só pode editar a sua unidade.`,
       },
-      { status: 403 }
+      { status: 403 },
     );
   }
 
@@ -274,13 +353,30 @@ export async function PATCH(request: NextRequest) {
     }
   }
 
+  // Bateria: a organização distribui depois da inscrição. O limite de 4 por
+  // bateria é garantido pelo trigger `dst_capacidade` no banco.
+  if (body.heat_number !== undefined) {
+    const n = body.heat_number;
+    if (n !== null && ![1, 2, 3].includes(Number(n))) {
+      return NextResponse.json({ error: "Bateria inválida (use 1, 2, 3 ou vazio)." }, { status: 400 });
+    }
+    // Bateria é lugar em esteira: quem só vai assistir não ocupa nenhuma.
+    if (n !== null && linha.participacao !== "competidor") {
+      return NextResponse.json(
+        { error: "Só quem vai competir entra numa bateria." },
+        { status: 409 }
+      );
+    }
+    atualizacao.heat_number = n === null ? null : Number(n);
+  }
+
   if (body.dados !== undefined) {
     const parsed = edicaoCadastroSchema.safeParse(body.dados);
     if (!parsed.success) {
       const primeiro = parsed.error.issues[0];
       return NextResponse.json(
         { error: primeiro?.message ?? "Dados inválidos.", campo: primeiro?.path?.[0] ?? null },
-        { status: 400 }
+        { status: 400 },
       );
     }
     const d = parsed.data;
@@ -288,7 +384,7 @@ export async function PATCH(request: NextRequest) {
     if (!canActOnUnit(auth.session, d.unit_id)) {
       return NextResponse.json(
         { error: "Você não pode mover uma inscrição para outra unidade." },
-        { status: 403 }
+        { status: 403 },
       );
     }
 
@@ -311,13 +407,86 @@ export async function PATCH(request: NextRequest) {
     }
   }
 
-  const { error } = await supabase.from(TABLE).update(atualizacao).eq("id", id);
+  if (typeof body.transferir_para === "string") {
+    const dest = getUnit(body.transferir_para);
+    if (!dest) return NextResponse.json({ error: "Unidade inválida." }, { status: 400 });
+    if (!canActOnUnit(auth.session, dest.id)) {
+      return NextResponse.json({ error: "Você não pode transferir para outra unidade." }, { status: 403 });
+    }
+    if (dest.id === linha.unit_id) {
+      return NextResponse.json({ error: "O ticket já está nessa unidade." }, { status: 400 });
+    }
+    atualizacao.unit_id = dest.id;
+  }
+
+  const novaUnidadeId = (atualizacao.unit_id as string | undefined) ?? linha.unit_id;
+  const destUnit = getUnit(novaUnidadeId);
+  const mudouUnidade = novaUnidadeId !== linha.unit_id;
+
+  if (mudouUnidade) {
+    if (linha.status === "checked_in" && body.status === undefined) {
+      return NextResponse.json(
+        { error: "Desfaça o check-in antes de transferir o ticket para outra unidade." },
+        { status: 409 },
+      );
+    }
+    atualizacao.heat_number = null;
+  }
+
+  const precisaNovoCodigo = Boolean(destUnit && !ticketPertenceAUnidade(linha.ticket_code, destUnit));
+
+  let ticketCode = linha.ticket_code;
+  let error: { message: string; code?: string } | null = null;
+
+  if (precisaNovoCodigo && destUnit) {
+    for (let tentativa = 0; tentativa < MAX_CODE_TRIES; tentativa++) {
+      const codigo = generateTicketCode(destUnit);
+      const res = await supabase.from(TABLE).update({ ...atualizacao, ticket_code: codigo }).eq("id", id);
+      if (!res.error) {
+        ticketCode = codigo;
+        error = null;
+        break;
+      }
+      error = res.error;
+      if (res.error.code === "23505" && `${res.error.message} ${res.error.details ?? ""}`.includes("ticket_code")) {
+        continue;
+      }
+      break;
+    }
+  } else {
+    const res = await supabase.from(TABLE).update(atualizacao).eq("id", id);
+    error = res.error;
+  }
+
   if (error) {
+    const capacidade = respostaCapacidade(error.message);
+    if (capacidade) return capacidade;
     console.error("[desafio-esteiras] editar inscrição:", error.message);
     return NextResponse.json({ error: "Não foi possível salvar." }, { status: 500 });
   }
 
-  return NextResponse.json({ ok: true });
+  const nomeFinal = (atualizacao.full_name as string | undefined) ?? linha.full_name;
+  const emailFinal = (atualizacao.email as string | undefined) ?? linha.email;
+  const unidadeFinal = destUnit ?? getUnit(linha.unit_id);
+
+  if (body.reenviar_email === true && unidadeFinal) {
+    void sendDesafioEsteirasTicketEmail({
+      nome: nomeFinal,
+      email: emailFinal,
+      ticketCode,
+      ticketToken: linha.ticket_token,
+      unit: unidadeFinal,
+    }).catch((err) => {
+      console.error("[desafio-esteiras] Falha ao reenviar e-mail do ticket:", err);
+    });
+  }
+
+  return NextResponse.json({
+    ok: true,
+    ticket_code: ticketCode,
+    unit_id: novaUnidadeId,
+    transferido: mudouUnidade,
+  });
 }
 
 /* ── Excluir ─────────────────────────────────────────────────────────────── */
@@ -378,4 +547,144 @@ export async function DELETE(request: NextRequest) {
 
   console.warn(`[desafio-esteiras] inscrição excluída por ${auth.session.nome}: ${linha.full_name}`);
   return NextResponse.json({ ok: true, nome: linha.full_name });
+}
+
+/* ── Cadastrar pelo painel ───────────────────────────────────────────────── */
+
+export async function POST(request: NextRequest) {
+  const auth = await requireOperator();
+  if (!auth.ok) return auth.response;
+
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Requisição inválida." }, { status: 400 });
+  }
+
+  const bruto = (body ?? {}) as { enviar_email?: unknown };
+  const parsed = adminInscricaoSchema.safeParse(body);
+  if (!parsed.success) {
+    const first = parsed.error.issues[0];
+    return NextResponse.json(
+      { error: first?.message ?? "Dados inválidos.", campo: first?.path?.[0] ?? null },
+      { status: 400 },
+    );
+  }
+  const data = parsed.data;
+
+  if (!canActOnUnit(auth.session, data.unit_id)) {
+    return NextResponse.json({ error: "Você só pode cadastrar na sua unidade." }, { status: 403 });
+  }
+
+  const unit = getUnit(data.unit_id);
+  if (!unit) return NextResponse.json({ error: "Unidade inválida." }, { status: 400 });
+  if (unit.status === "esgotada" || unit.status === "encerrada") {
+    return NextResponse.json({ error: `As inscrições para a ${unit.nome} estão encerradas.` }, { status: 409 });
+  }
+
+  const supabase = getServiceSupabase();
+  if (!supabase) return NextResponse.json({ error: "Banco indisponível." }, { status: 503 });
+
+  if (data.participacao === "competidor") {
+    const vagas = await getVagasCategoria(unit.id, data.sexo);
+    if (vagas && vagas.restantes <= 0) {
+      const categoria = data.sexo === "feminino" ? "feminino" : "masculino";
+      return NextResponse.json(
+        {
+          error: `As ${VAGAS_POR_CATEGORIA} vagas da categoria ${categoria} na ${unit.nome} acabaram. Cadastre como espectador ou escolha outra unidade.`,
+        },
+        { status: 409 },
+      );
+    }
+  }
+
+  const { data: existente } = await supabase
+    .from(TABLE)
+    .select("ticket_token, unit_id, status, full_name")
+    .eq("cpf", data.cpf)
+    .maybeSingle();
+
+  if (existente) {
+    const unidadeExistente = getUnit(existente.unit_id);
+    return NextResponse.json(
+      {
+        error: `Este CPF já tem inscrição${unidadeExistente ? ` na ${unidadeExistente.nome}` : ""} (${existente.full_name}).`,
+        ja_inscrito: true,
+      },
+      { status: 409 },
+    );
+  }
+
+  const evento_id = await getEventoId();
+  const ticket_token = generateTicketToken();
+  const registro = {
+    ...(evento_id ? { evento_id } : {}),
+    full_name: data.full_name.replace(/\s+/g, " ").trim(),
+    cpf: data.cpf,
+    birth_date: data.birth_date,
+    email: data.email,
+    phone: data.phone,
+    unit_id: unit.id,
+    sexo: data.sexo,
+    participacao: data.participacao,
+    ticket_token,
+    status: "confirmed" as const,
+    origem: "admin",
+    metadata: {
+      evento: EVENT.nome,
+      evento_data: EVENT.inicioISO,
+      cadastrado_por: auth.session.nome,
+      role: auth.session.role,
+    },
+  };
+
+  const enviarEmail = bruto.enviar_email !== false;
+
+  for (let tentativa = 0; tentativa < MAX_CODE_TRIES; tentativa++) {
+    const ticket_code = generateTicketCode(unit);
+    const { data: inserido, error } = await supabase
+      .from(TABLE)
+      .insert({ ...registro, ticket_code })
+      .select("ticket_token, ticket_code")
+      .single();
+
+    if (!error && inserido) {
+      if (enviarEmail) {
+        void sendDesafioEsteirasTicketEmail({
+          nome: registro.full_name,
+          email: data.email,
+          ticketCode: inserido.ticket_code,
+          ticketToken: inserido.ticket_token,
+          unit,
+        }).catch((err) => {
+          console.error("[desafio-esteiras] Falha ao enviar e-mail do ticket (admin):", err);
+        });
+      }
+
+      return NextResponse.json({
+        ok: true,
+        ticket_token: inserido.ticket_token,
+        ticket_code: inserido.ticket_code,
+        unit_id: unit.id,
+      });
+    }
+
+    const capacidade = error?.message ? respostaCapacidade(error.message) : null;
+    if (capacidade) return capacidade;
+
+    if (error?.code === "23505") {
+      const detalhe = `${error.message} ${error.details ?? ""}`;
+      if (detalhe.includes("cpf")) {
+        return NextResponse.json({ error: "Este CPF já tem inscrição confirmada.", ja_inscrito: true }, { status: 409 });
+      }
+      if (detalhe.includes("ticket_code")) continue;
+      return NextResponse.json({ error: "Não foi possível concluir o cadastro." }, { status: 409 });
+    }
+
+    console.error("[desafio-esteiras] cadastro admin falhou:", error?.message, error?.code);
+    return NextResponse.json({ error: "Não foi possível concluir o cadastro." }, { status: 500 });
+  }
+
+  return NextResponse.json({ error: "Não foi possível gerar o ticket. Tente novamente." }, { status: 500 });
 }

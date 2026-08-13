@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getUnit } from "@/lib/desafio-esteiras/event.config";
 import type { OperatorSession } from "@/lib/desafio-esteiras/auth";
+import { decodeQrFromRgba, navegadorPodeAbrirCamera } from "@/lib/desafio-esteiras/qr-scan";
 
 interface Participante {
   full_name: string;
@@ -29,13 +30,42 @@ interface Achado extends Participante {
   ticket_token: string;
 }
 
-/** BarcodeDetector é nativo no Chrome/Android e no Safari 17+; não existe em todos. */
+/** Chrome/Android têm BarcodeDetector. Safari iOS não — o fallback é jsQR. */
 interface BarcodeDetectorLike {
   detect(source: CanvasImageSource): Promise<{ rawValue: string }[]>;
 }
 declare global {
   interface Window {
     BarcodeDetector?: new (opts?: { formats?: string[] }) => BarcodeDetectorLike;
+  }
+}
+
+function mensagemErroCamera(err: unknown): string {
+  const nome = err instanceof DOMException ? err.name : "";
+  if (nome === "NotAllowedError" || nome === "PermissionDeniedError") {
+    return "Permita o acesso à câmera no Safari: toque em aA na barra de endereço → Permissões do site → Câmera.";
+  }
+  if (nome === "NotFoundError" || nome === "OverconstrainedError") {
+    return "Nenhuma câmera disponível. Tire uma foto do QR ou use a leitura manual.";
+  }
+  if (nome === "NotReadableError") {
+    return "A câmera está em uso por outro aplicativo. Feche-o e tente de novo.";
+  }
+  return "Não foi possível abrir a câmera. Tire uma foto do QR ou use a leitura manual.";
+}
+
+async function abrirCameraTraseira(): Promise<MediaStream> {
+  try {
+    return await navigator.mediaDevices.getUserMedia({
+      audio: false,
+      video: {
+        facingMode: { ideal: "environment" },
+        width: { ideal: 1280 },
+        height: { ideal: 720 },
+      },
+    });
+  } catch {
+    return navigator.mediaDevices.getUserMedia({ audio: false, video: true });
   }
 }
 
@@ -65,17 +95,19 @@ export function CheckinScanner({ session }: { session: OperatorSession }) {
   const [resultado, setResultado] = useState<Resultado | null>(null);
   const [ocupado, setOcupado] = useState(false);
   const [cameraErro, setCameraErro] = useState<string | null>(null);
-  const [suporteCamera, setSuporteCamera] = useState(true);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const loopRef = useRef<number | null>(null);
   const ultimoLido = useRef<{ valor: string; em: number }>({ valor: "", em: 0 });
+  const validarRef = useRef<(valor: string) => Promise<void>>(async () => {});
+  const ocupadoRef = useRef(false);
 
   const escopo = session.unitId ? getUnit(session.unitId)?.nome : "todas as unidades";
 
   const validar = useCallback(async (valor: string) => {
-    if (!valor || ocupado) return;
+    if (!valor || ocupadoRef.current) return;
+    ocupadoRef.current = true;
     setOcupado(true);
     setAchados(null);
     try {
@@ -90,15 +122,18 @@ export function CheckinScanner({ session }: { session: OperatorSession }) {
     } catch {
       setResultado({ resultado: "nao_encontrado", error: "Falha de conexão." });
     } finally {
+      ocupadoRef.current = false;
       setOcupado(false);
     }
-  }, [ocupado]);
+  }, []);
+  validarRef.current = validar;
 
   async function procurar(e: React.FormEvent) {
     e.preventDefault();
     const termo = busca.trim();
-    if (termo.length < 3 || ocupado) return;
+    if (termo.length < 3 || ocupadoRef.current) return;
 
+    ocupadoRef.current = true;
     setOcupado(true);
     setResultado(null);
     try {
@@ -110,6 +145,7 @@ export function CheckinScanner({ session }: { session: OperatorSession }) {
     } catch {
       setAchados([]);
     } finally {
+      ocupadoRef.current = false;
       setOcupado(false);
     }
   }
@@ -120,6 +156,7 @@ export function CheckinScanner({ session }: { session: OperatorSession }) {
     loopRef.current = null;
     streamRef.current?.getTracks().forEach((t) => t.stop());
     streamRef.current = null;
+    if (videoRef.current) videoRef.current.srcObject = null;
   }, []);
 
   useEffect(() => {
@@ -128,59 +165,152 @@ export function CheckinScanner({ session }: { session: OperatorSession }) {
       return;
     }
 
-    if (!window.BarcodeDetector) {
-      setSuporteCamera(false);
-      setCameraErro(
-        "Este navegador não lê QR Code nativamente. Use a leitura manual ou abra em outro navegador."
-      );
-      return;
-    }
-
     let cancelado = false;
-    const detector = new window.BarcodeDetector({ formats: ["qr_code"] });
 
-    navigator.mediaDevices
-      .getUserMedia({ video: { facingMode: "environment" } })
-      .then((stream) => {
-        if (cancelado) {
-          stream.getTracks().forEach((t) => t.stop());
-          return;
+    (async () => {
+      if (!navegadorPodeAbrirCamera()) {
+        setCameraErro("Este navegador não abre a câmera. Tire uma foto do QR ou use a leitura manual.");
+        return;
+      }
+
+      let detector: BarcodeDetectorLike | null = null;
+      if (typeof window.BarcodeDetector === "function") {
+        try {
+          detector = new window.BarcodeDetector({ formats: ["qr_code"] });
+        } catch {
+          detector = null;
         }
-        streamRef.current = stream;
-        const video = videoRef.current;
-        if (!video) return;
-        video.srcObject = stream;
-        video.play().catch(() => {});
+      }
 
-        const ler = async () => {
-          if (cancelado || !videoRef.current || videoRef.current.readyState < 2) {
-            loopRef.current = requestAnimationFrame(ler);
-            return;
-          }
-          try {
-            const codigos = await detector.detect(videoRef.current);
-            const bruto = codigos[0]?.rawValue;
-            // debounce: o mesmo QR na frente da câmera dispara 60x por segundo
-            if (bruto && (bruto !== ultimoLido.current.valor || Date.now() - ultimoLido.current.em > 4000)) {
-              ultimoLido.current = { valor: bruto, em: Date.now() };
-              await validar(bruto);
+      let stream: MediaStream;
+      try {
+        stream = await abrirCameraTraseira();
+      } catch (err) {
+        if (!cancelado) setCameraErro(mensagemErroCamera(err));
+        return;
+      }
+
+      if (cancelado) {
+        stream.getTracks().forEach((t) => t.stop());
+        return;
+      }
+
+      streamRef.current = stream;
+
+      let tentativas = 0;
+      while (!videoRef.current && !cancelado && tentativas < 30) {
+        await new Promise((r) => requestAnimationFrame(r));
+        tentativas += 1;
+      }
+
+      const video = videoRef.current;
+      if (!video) {
+        stream.getTracks().forEach((t) => t.stop());
+        if (!cancelado) setCameraErro("Não foi possível iniciar a câmera. Recarregue a página e tente de novo.");
+        return;
+      }
+
+      video.setAttribute("playsinline", "true");
+      video.setAttribute("webkit-playsinline", "true");
+      video.muted = true;
+      video.playsInline = true;
+      video.srcObject = stream;
+      try {
+        await video.play();
+      } catch {
+        await new Promise((r) => setTimeout(r, 80));
+        if (!cancelado) await video.play().catch(() => {});
+      }
+
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d", { willReadFrequently: true });
+      if (!ctx) {
+        if (!cancelado) setCameraErro("Não foi possível iniciar a leitura do QR.");
+        return;
+      }
+
+      let ultimoTick = 0;
+      const ler = async (agora: number) => {
+        if (cancelado) return;
+
+        if (!ocupadoRef.current && videoRef.current && videoRef.current.readyState >= 2 && agora - ultimoTick >= 140) {
+          ultimoTick = agora;
+          const v = videoRef.current;
+          let bruto: string | null = null;
+
+          if (detector) {
+            try {
+              const codigos = await detector.detect(v);
+              bruto = codigos[0]?.rawValue?.trim() || null;
+            } catch {
+              detector = null;
             }
-          } catch {
-            // frame ruim: segue o loop
           }
-          if (!cancelado) loopRef.current = requestAnimationFrame(ler);
-        };
-        loopRef.current = requestAnimationFrame(ler);
-      })
-      .catch(() => {
-        if (!cancelado) setCameraErro("Não foi possível acessar a câmera. Verifique a permissão.");
-      });
+
+          if (!bruto) {
+            const maxW = 640;
+            const vw = v.videoWidth || 640;
+            const vh = v.videoHeight || 480;
+            const escala = Math.min(1, maxW / vw);
+            const w = Math.max(1, Math.round(vw * escala));
+            const h = Math.max(1, Math.round(vh * escala));
+            if (canvas.width !== w || canvas.height !== h) {
+              canvas.width = w;
+              canvas.height = h;
+            }
+            ctx.drawImage(v, 0, 0, w, h);
+            const img = ctx.getImageData(0, 0, w, h);
+            bruto = decodeQrFromRgba(img.data, w, h);
+          }
+
+          if (bruto && (bruto !== ultimoLido.current.valor || Date.now() - ultimoLido.current.em > 4000)) {
+            ultimoLido.current = { valor: bruto, em: Date.now() };
+            await validarRef.current(bruto);
+          }
+        }
+
+        if (!cancelado) loopRef.current = requestAnimationFrame(ler);
+      };
+
+      loopRef.current = requestAnimationFrame(ler);
+    })();
 
     return () => {
       cancelado = true;
       pararCamera();
     };
-  }, [modo, pararCamera, validar]);
+  }, [modo, pararCamera]);
+
+  async function lerFoto(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    setCameraErro(null);
+    try {
+      const bmp = await createImageBitmap(file);
+      const maxW = 1280;
+      const escala = Math.min(1, maxW / bmp.width);
+      const w = Math.max(1, Math.round(bmp.width * escala));
+      const h = Math.max(1, Math.round(bmp.height * escala));
+      const canvas = document.createElement("canvas");
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        bmp.close();
+        setCameraErro("Não foi possível ler essa imagem.");
+        return;
+      }
+      ctx.drawImage(bmp, 0, 0, w, h);
+      bmp.close();
+      const img = ctx.getImageData(0, 0, w, h);
+      const bruto = decodeQrFromRgba(img.data, w, h);
+      if (bruto) await validar(bruto);
+      else setCameraErro("Não encontrei um QR Code nessa foto. Chegue mais perto e use boa luz.");
+    } catch {
+      setCameraErro("Não foi possível ler essa imagem.");
+    }
+  }
 
   useEffect(() => () => pararCamera(), [pararCamera]);
 
@@ -234,26 +364,27 @@ export function CheckinScanner({ session }: { session: OperatorSession }) {
         ))}
       </div>
 
-      {/* Câmera */}
+      {/* Câmera — Safari iOS não tem BarcodeDetector; jsQR lê os frames da câmera. */}
       {modo === "camera" && (
-        <div className="dst-panel relative mt-4 aspect-[3/4] max-h-[62svh] overflow-hidden sm:aspect-video">
-          <video
-            ref={videoRef}
-            playsInline
-            muted
-            className="absolute inset-0 h-full w-full object-cover"
-            aria-label="Câmera para leitura do QR Code"
-          />
-          {/* mira */}
-          <span
-            aria-hidden
-            className="pointer-events-none absolute left-1/2 top-1/2 h-[58%] w-[58%] max-w-[280px] -translate-x-1/2 -translate-y-1/2 border-2"
-            style={{ borderColor: "var(--somma)", boxShadow: "0 0 0 9999px rgba(8,8,10,0.55)" }}
-          />
-          {cameraErro && (
-            <p className="absolute inset-x-4 bottom-4 bg-[color:var(--ink)] p-4 text-[0.85rem] leading-relaxed">
-              {cameraErro}
-              {!suporteCamera && (
+        <>
+          <div className="dst-panel relative mt-4 aspect-[3/4] max-h-[62svh] overflow-hidden sm:aspect-video">
+            <video
+              ref={videoRef}
+              autoPlay
+              playsInline
+              muted
+              className="absolute inset-0 h-full w-full object-cover"
+              aria-label="Câmera para leitura do QR Code"
+            />
+            {/* mira */}
+            <span
+              aria-hidden
+              className="pointer-events-none absolute left-1/2 top-1/2 h-[58%] w-[58%] max-w-[280px] -translate-x-1/2 -translate-y-1/2 border-2"
+              style={{ borderColor: "var(--somma)", boxShadow: "0 0 0 9999px rgba(8,8,10,0.55)" }}
+            />
+            {cameraErro && (
+              <p className="absolute inset-x-4 bottom-4 bg-[color:var(--ink)] p-4 text-[0.85rem] leading-relaxed">
+                {cameraErro}
                 <button
                   type="button"
                   onClick={() => setModo("manual")}
@@ -262,10 +393,20 @@ export function CheckinScanner({ session }: { session: OperatorSession }) {
                 >
                   Usar leitura manual →
                 </button>
-              )}
-            </p>
-          )}
-        </div>
+              </p>
+            )}
+          </div>
+          <label className="dst-label mt-4 flex min-h-[44px] cursor-pointer items-center justify-center gap-2 text-[color:var(--somma)] underline underline-offset-4">
+            <input
+              type="file"
+              accept="image/*"
+              capture="environment"
+              className="sr-only"
+              onChange={lerFoto}
+            />
+            Ou tire uma foto do QR
+          </label>
+        </>
       )}
 
       {/* Manual */}
