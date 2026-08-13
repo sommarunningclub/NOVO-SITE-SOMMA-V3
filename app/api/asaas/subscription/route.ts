@@ -26,6 +26,8 @@ export async function POST(request: NextRequest) {
       // Plano mensal: recorrência
       type, // "recurring" | "installment" | "pix"
       value,
+      // Cupom de primeira mensalidade: valor cheio que volta a valer do 2º mês em diante
+      valueAfterFirstCycle,
       // Plano parcelado
       installmentCount,
       installmentValue,
@@ -68,7 +70,39 @@ export async function POST(request: NextRequest) {
       }
 
       console.log("[Asaas] Assinatura criada:", data.id)
-      return NextResponse.json({ subscription: data, message: "Assinatura ativada com sucesso" })
+
+      // Cupom de primeira mensalidade (ex.: ANALU): a assinatura nasce com o valor
+      // com desconto — a 1ª cobrança já foi gerada e capturada no cartão acima — e
+      // logo em seguida volta ao valor cheio, valendo do 2º ciclo em diante.
+      // updatePendingPayments=false para não reprecificar cobrança já emitida.
+      let fullValueRestored = true
+      if (typeof valueAfterFirstCycle === "number" && valueAfterFirstCycle > value) {
+        const restoreRes = await fetch(`${ASAAS_API_URL}/subscriptions/${data.id}`, {
+          method: "PUT",
+          headers,
+          body: JSON.stringify({ value: valueAfterFirstCycle, updatePendingPayments: false }),
+        })
+
+        if (!restoreRes.ok) {
+          fullValueRestored = false
+          // Não derruba o checkout: o cliente já pagou. Mas a assinatura ficou com o
+          // valor promocional travado e precisa ser corrigida no painel do Asaas.
+          console.error(
+            "[Asaas] ATENÇÃO: assinatura",
+            data.id,
+            `ficou em R$ ${value} — corrigir para R$ ${valueAfterFirstCycle} no painel.`,
+            await restoreRes.text()
+          )
+        } else {
+          console.log("[Asaas] Valor cheio restaurado na assinatura:", data.id, valueAfterFirstCycle)
+        }
+      }
+
+      return NextResponse.json({
+        subscription: data,
+        fullValueRestored,
+        message: "Assinatura ativada com sucesso",
+      })
     }
 
     // ─── SEMESTRAL / ANUAL: Cobrança parcelada via /payments ────────────

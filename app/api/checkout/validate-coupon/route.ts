@@ -6,7 +6,14 @@ import { getServiceSupabase } from "@/lib/supabase"
 // app/api/checkout/validate-coupon/route.ts da GESTÃO (status ACTIVE,
 // expiration_date, usage_limit/usage_count). Mantemos os cupons hardcoded
 // abaixo APENAS como fallback para os códigos ativos ainda não migrados ao DB.
-type NormalizedCoupon = { type: "PERCENTAGE" | "FIXED"; value: number; description: string }
+// `firstMonthOnly` só existe nos cupons hardcoded: a tabela da GESTÃO não tem a
+// coluna, então cupom vindo do DB continua valendo em todas as mensalidades.
+type NormalizedCoupon = {
+  type: "PERCENTAGE" | "FIXED"
+  value: number
+  description: string
+  firstMonthOnly?: boolean
+}
 
 async function lookupCouponDB(code: string): Promise<NormalizedCoupon | { error: string } | null> {
   const supabase = getServiceSupabase()
@@ -26,7 +33,12 @@ async function lookupCouponDB(code: string): Promise<NormalizedCoupon | { error:
 }
 
 // Cupons cadastrados - edite aqui para adicionar/remover cupons
-const COUPONS: Record<string, { type: "PERCENTAGE" | "FIXED"; value: number; description: string; active: boolean; professor?: string; planType?: string }> = {
+const COUPONS: Record<string, { type: "PERCENTAGE" | "FIXED"; value: number; description: string; active: boolean; professor?: string; planType?: string; firstMonthOnly?: boolean }> = {
+  // Campanha ANALU — 20% só na primeira mensalidade do plano Mensal, com qualquer
+  // professor. Sem `professor` = liberado para todos; `planType: "recurring"` deixa
+  // de fora Semestral e Anual, que são cobrança parcelada.
+  "ANALU": { type: "PERCENTAGE", value: 20, description: "20% no 1º mês", active: true, planType: "recurring", firstMonthOnly: true },
+
   // Cupons Originais
   "SOMMA5": { type: "PERCENTAGE", value: 5, description: "5% de desconto", active: false },
   "SOMMA10": { type: "PERCENTAGE", value: 10, description: "10% de desconto", active: false },
@@ -145,7 +157,7 @@ export async function GET(request: Request) {
       if (hc.planType && hc.planType !== planType) {
         return NextResponse.json({ valid: false, error: "Cupom inválido" }, { status: 400 })
       }
-      coupon = { type: hc.type, value: hc.value, description: hc.description }
+      coupon = { type: hc.type, value: hc.value, description: hc.description, firstMonthOnly: hc.firstMonthOnly }
     }
 
     // Valor mínimo exigido pelo Asaas para cartão de crédito
@@ -182,6 +194,7 @@ export async function GET(request: Request) {
         type: coupon.type,
         value: coupon.value,
         description: coupon.description,
+        firstMonthOnly: coupon.firstMonthOnly === true,
       },
       calculation: {
         originalValue: value,
