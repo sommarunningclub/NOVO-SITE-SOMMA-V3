@@ -182,9 +182,9 @@ export function Hero() {
               )}
             </div>
 
-            <p className="hero-fade dst-label mt-4 flex items-center gap-2 text-[color:rgba(242,240,236,0.5)]">
-              <span className="block h-1 w-1 animate-pulse rounded-full bg-[color:var(--somma)]" />
-              {COPY.vagasAviso}
+            <p className="hero-fade dst-label mt-4 flex items-start gap-2 leading-relaxed text-[color:rgba(242,240,236,0.55)]">
+              <span className="mt-[0.35em] block h-1 w-1 shrink-0 animate-pulse rounded-full bg-[color:var(--somma)]" />
+              <span style={{ color: "var(--somma)" }}>{COPY.vagasAviso}</span>
             </p>
 
             <div className="hero-fade mt-7 max-w-[460px]">

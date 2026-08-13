@@ -98,6 +98,30 @@ export async function POST(request: NextRequest) {
     }
   }
 
+  // 4b. Vagas de competidor — as esteiras são finitas.
+  //     Só entra em vigor quando a organização preencher `vagasCompetidores`.
+  //     Quem chega depois de lotar ainda pode se inscrever como espectador, e a
+  //     mensagem diz isso em vez de simplesmente barrar.
+  if (data.participacao === "competidor" && unit.vagasCompetidores !== null) {
+    const { count } = await supabase
+      .from(TABLE)
+      .select("id", { count: "exact", head: true })
+      .eq("unit_id", unit.id)
+      .eq("participacao", "competidor")
+      .in("status", ["confirmed", "checked_in"]);
+
+    if ((count ?? 0) >= unit.vagasCompetidores) {
+      return NextResponse.json(
+        {
+          error: `As vagas para competir na ${unit.nome} acabaram. Você ainda pode se inscrever para assistir, ou competir em outra unidade.`,
+          vagas_esgotadas: true,
+          unidade: unit.id,
+        },
+        { status: 409 }
+      );
+    }
+  }
+
   // 5. Duplicidade por CPF — checagem amigável antes do INSERT.
   //    O índice UNIQUE no banco é quem realmente garante (corrida entre requests).
   const { data: existente } = await supabase

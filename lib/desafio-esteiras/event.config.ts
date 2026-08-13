@@ -38,9 +38,20 @@ export interface EventUnit {
   latitude: number;
   longitude: number;
   googleMapsUrl: string;
-  /** PENDENTE — capacidade por unidade não definida pela organização.
+  /** PENDENTE — capacidade total (competidores + espectadores) por unidade.
    *  Com `null` a LP não mostra barra de lotação nem bloqueia inscrição. */
   capacidade: number | null;
+  /**
+   * Vagas de COMPETIDOR na unidade — as esteiras são finitas.
+   *
+   * PENDENTE: preencher com o número real de cada unidade. Enquanto for `null`,
+   * a página comunica que as vagas são limitadas (é verdade: há um teto físico
+   * de esteiras) mas não bloqueia ninguém, porque não temos o número para
+   * aplicar. Assim que preenchido, a inscrição como competidor passa a ser
+   * recusada automaticamente quando a unidade lotar, e quem chegar depois
+   * consegue se inscrever como espectador.
+   */
+  vagasCompetidores: number | null;
   status: UnitStatus;
   /** Vicente Pires concentra a equipe SOMMA Club presencialmente. */
   sommaBase: boolean;
@@ -63,6 +74,7 @@ export const UNITS: readonly EventUnit[] = [
     googleMapsUrl:
       "https://www.google.com/maps/search/?api=1&query=Evolve%20Vicente%20Pires%20Rua%203%20Ch%C3%A1cara%2082%20Setor%20Habitacional%20Vicente%20Pires%20Bras%C3%ADlia%20DF",
     capacidade: null,
+    vagasCompetidores: null, // PENDENTE — informar o número de esteiras da unidade
     status: "aberta",
     sommaBase: true,
     ticketPrefix: "VP",
@@ -80,6 +92,7 @@ export const UNITS: readonly EventUnit[] = [
     googleMapsUrl:
       "https://www.google.com/maps/search/?api=1&query=Evolve%20Luzi%C3%A2nia%20Rua%20Marginal%20A%20Quadra%2018%20Luzi%C3%A2nia%20GO",
     capacidade: null,
+    vagasCompetidores: null, // PENDENTE — informar o número de esteiras da unidade
     status: "aberta",
     sommaBase: false,
     ticketPrefix: "LZ",
@@ -98,6 +111,7 @@ export const UNITS: readonly EventUnit[] = [
     googleMapsUrl:
       "https://www.google.com/maps/search/?api=1&query=Evolve%20Alameda%20Shopping%20Taguatinga%20Sul%20Bras%C3%ADlia%20DF",
     capacidade: null,
+    vagasCompetidores: null, // PENDENTE — informar o número de esteiras da unidade
     status: "aberta",
     sommaBase: false,
     ticketPrefix: "AL",
@@ -116,6 +130,7 @@ export const UNITS: readonly EventUnit[] = [
     googleMapsUrl:
       "https://www.google.com/maps/search/?api=1&query=Evolve%20Samambaia%20Quadra%20302%20Conjunto%209%20Edif%C3%ADcio%20Arena%20Urbano%20Samambaia%20Bras%C3%ADlia%20DF",
     capacidade: null,
+    vagasCompetidores: null, // PENDENTE — informar o número de esteiras da unidade
     status: "aberta",
     sommaBase: false,
     ticketPrefix: "SB",
@@ -184,10 +199,62 @@ export function categoriaDoSexo(sexo: Sexo | null | undefined): string | null {
   return CATEGORIAS.find((c) => c.id === sexo)?.curto ?? null;
 }
 
+/* ── Vagas de competidor ─────────────────────────────────────────────────── */
+
+export type VagasStatus = "aberta" | "ultimas" | "esgotada" | "indefinida";
+
+/**
+ * Situação das vagas de competidor de uma unidade.
+ *
+ * `indefinida` significa "há um limite, mas ainda não sabemos qual" — a página
+ * continua comunicando que as vagas são limitadas (as esteiras são finitas),
+ * sem inventar um número nem barrar ninguém.
+ */
+export function vagasCompetidorStatus(unit: EventUnit, competidores: number): VagasStatus {
+  if (unit.vagasCompetidores === null) return "indefinida";
+  const restantes = unit.vagasCompetidores - competidores;
+  if (restantes <= 0) return "esgotada";
+  if (restantes <= Math.max(5, Math.round(unit.vagasCompetidores * 0.15))) return "ultimas";
+  return "aberta";
+}
+
+export function vagasRestantes(unit: EventUnit, competidores: number): number | null {
+  if (unit.vagasCompetidores === null) return null;
+  return Math.max(0, unit.vagasCompetidores - competidores);
+}
+
+/** Idade em anos completos na data do evento — é o que vale para a disputa. */
+export function idadeNoEvento(nascimento: string | null | undefined): number | null {
+  if (!nascimento) return null;
+  const nasc = new Date(`${nascimento}T12:00:00Z`);
+  if (Number.isNaN(nasc.getTime())) return null;
+  const evento = new Date(EVENT.inicioISO);
+  let anos = evento.getFullYear() - nasc.getFullYear();
+  const m = evento.getMonth() - nasc.getMonth();
+  if (m < 0 || (m === 0 && evento.getDate() < nasc.getDate())) anos--;
+  return anos >= 0 && anos < 120 ? anos : null;
+}
+
+/** Faixas para segmentar o público no painel. Não são categorias da disputa. */
+export const FAIXAS_ETARIAS = [
+  { id: "ate-17", nome: "até 17", min: 0, max: 17 },
+  { id: "18-24", nome: "18–24", min: 18, max: 24 },
+  { id: "25-34", nome: "25–34", min: 25, max: 34 },
+  { id: "35-44", nome: "35–44", min: 35, max: 44 },
+  { id: "45-54", nome: "45–54", min: 45, max: 54 },
+  { id: "55-mais", nome: "55+", min: 55, max: 200 },
+] as const;
+
+export function faixaEtaria(idade: number | null): (typeof FAIXAS_ETARIAS)[number]["id"] | null {
+  if (idade === null) return null;
+  return FAIXAS_ETARIAS.find((f) => idade >= f.min && idade <= f.max)?.id ?? null;
+}
+
 export const PARTICIPACAO_LABELS: Record<Participacao, { titulo: string; texto: string }> = {
   competidor: {
     titulo: "Vou competir",
-    texto: "Entro no Desafio das Esteiras e apareço na grade de competidores.",
+    texto:
+      "Entro no Desafio das Esteiras e apareço na grade de competidores. Vagas limitadas — o número de esteiras de cada unidade é finito.",
   },
   espectador: {
     titulo: "Só vou assistir",
@@ -210,7 +277,9 @@ export const COPY = {
   ctaPrimario: "GARANTIR MEU TICKET",
   ctaSecundario: "ESCOLHER UNIDADE",
   ctaSomma: "CORRER COM O SOMMA",
-  vagasAviso: "Vagas limitadas por unidade",
+  vagasAviso: "Vagas limitadas para competir em cada unidade",
+  vagasDetalhe:
+    "As esteiras de cada unidade são contadas: quem quer competir precisa garantir a vaga antes de esgotar. Para assistir, a entrada segue liberada.",
 } as const;
 
 /**
@@ -289,6 +358,10 @@ export const FAQ: { p: string; r: string | null }[] = [
   {
     p: "Preciso correr profissionalmente?",
     r: "Não. O Desafio foi desenhado para acolher diferentes níveis — de quem está começando a quem treina todo dia.",
+  },
+  {
+    p: "As vagas para competir são limitadas?",
+    r: "Sim. O número de esteiras de cada unidade é finito, então as vagas de competidor são limitadas e acabam por ordem de inscrição. Para assistir e participar das ativações, a entrada continua aberta.",
   },
   {
     p: "Posso escolher qualquer unidade?",

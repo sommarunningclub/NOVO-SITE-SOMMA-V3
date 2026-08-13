@@ -313,6 +313,14 @@ export function UnitsNetwork({ iniciais }: { iniciais: StatsIniciais }) {
                   <span>{(dados?.espectadores ?? 0).toLocaleString("pt-BR")} assistem</span>
                 </p>
 
+                {/* As esteiras são finitas: quando a organização definir o número,
+                    isto vira contagem regressiva de vagas em vez de aviso. */}
+                <p className="dst-label mt-3 border-t border-[color:var(--line)] pt-3 leading-relaxed text-[color:rgba(242,240,236,0.5)]">
+                  {unit.vagasCompetidores === null
+                    ? "Vagas limitadas para competir"
+                    : `${Math.max(0, unit.vagasCompetidores - (dados?.competidores ?? 0))} vagas de competidor`}
+                </p>
+
                 {capacidade !== null && (
                   <div className="mt-3" aria-hidden>
                     <div className="h-[3px] w-full bg-[color:var(--line)]">

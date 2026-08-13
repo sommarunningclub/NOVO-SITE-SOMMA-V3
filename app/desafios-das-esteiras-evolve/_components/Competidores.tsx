@@ -117,6 +117,9 @@ export function Competidores({
             <p className="dst-label mt-3 text-[color:rgba(242,240,236,0.4)]">
               de {stats.total.toLocaleString("pt-BR")} inscritos
             </p>
+            <p className="dst-label mt-3 border-t border-[color:var(--line)] pt-3 leading-relaxed" style={{ color: "var(--somma)" }}>
+              Vagas limitadas
+            </p>
           </div>
         </div>
 

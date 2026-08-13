@@ -79,6 +79,9 @@ export function FinalCta() {
             <p className="dst-display cta-anim mt-10 text-[clamp(1.2rem,4.5vw,2rem)]">
               ESCOLHA SUA UNIDADE.
             </p>
+            <p className="cta-anim mx-auto mt-4 max-w-[52ch] text-[0.95rem] leading-relaxed text-[color:rgba(242,240,236,0.6)]">
+              {COPY.vagasDetalhe}
+            </p>
 
             <div className="cta-anim mx-auto mt-6 max-w-[560px]">
               <Link
