@@ -1,5 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { CLEAR_COOKIE, authConfigured, resolveRole, sessionCookie } from "@/lib/desafio-esteiras/auth";
+import {
+  CLEAR_COOKIE,
+  authConfigured,
+  resolveRole,
+  resolveUnitLogin,
+  sessionCookie,
+} from "@/lib/desafio-esteiras/auth";
 import { clientIp, rateLimit } from "@/lib/desafio-esteiras/rate-limit";
 
 export const dynamic = "force-dynamic";
@@ -27,14 +33,19 @@ export async function POST(request: NextRequest) {
   }
 
   let senha = "";
+  let unidade: string | null = null;
   try {
-    const body = (await request.json()) as { senha?: unknown };
+    const body = (await request.json()) as { senha?: unknown; unidade?: unknown };
     senha = typeof body.senha === "string" ? body.senha : "";
+    unidade = typeof body.unidade === "string" ? body.unidade : null;
   } catch {
     senha = "";
   }
 
-  const session = resolveRole(senha);
+  /* Com `unidade`, o login veio da página daquela Evolve: quem diz a unidade é
+     a URL, e a senha só autentica. Sem ela, é o login geral, em que a própria
+     senha define o papel. */
+  const session = unidade ? resolveUnitLogin(unidade, senha) : resolveRole(senha);
 
   const resta = ATRASO_MS - (Date.now() - inicio);
   if (resta > 0) await new Promise((r) => setTimeout(r, resta));

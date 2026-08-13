@@ -93,7 +93,8 @@ export async function POST(request: NextRequest) {
   }
 
   const agora = new Date().toISOString();
-  const quem = auth.session.role === "admin" ? "admin" : `operador:${auth.session.unitId}`;
+  const quem =
+    auth.session.role === "admin" ? "admin" : `${auth.session.role}:${auth.session.unitId}`;
 
   const { data: atualizado, error } = await supabase
     .from(TABLE)

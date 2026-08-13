@@ -13,7 +13,7 @@ import {
 } from "@/lib/desafio-esteiras/event.config";
 import { formatPhone } from "@/lib/desafio-esteiras/schema";
 import type { OperatorSession } from "@/lib/desafio-esteiras/auth";
-import { FichaCadastro } from "./FichaCadastro";
+import { FichaCadastro, ModalExclusao } from "./FichaCadastro";
 import { NovoCadastro } from "./NovoCadastro";
 import { STATUS_COR, STATUS_LABEL, horaInscrito, type Inscrito } from "./inscrito";
 
@@ -75,6 +75,10 @@ export function Inscritos({ session }: { session: OperatorSession }) {
   const [ficha, setFicha] = useState<{ inscrito: Inscrito; inicio?: "ficha" | "editar" | "transferir" | "excluir" } | null>(null);
   const [novo, setNovo] = useState(false);
   const [aviso, setAviso] = useState<string | null>(null);
+  const [selecionados, setSelecionados] = useState<Set<string>>(new Set());
+  const [lote, setLote] = useState<"mover" | "excluir" | null>(null);
+  const [loteOcupado, setLoteOcupado] = useState(false);
+  const ehAdmin = session.role === "admin";
 
   const carregar = useCallback(async () => {
     setCarregando(true);
@@ -93,6 +97,10 @@ export function Inscritos({ session }: { session: OperatorSession }) {
       setLista(data.inscritos ?? []);
       setResumo(data.resumo ?? null);
       setFiltrados(data.filtrados ?? 0);
+      setSelecionados((atual) => {
+        const ids = new Set((data.inscritos as Inscrito[] | undefined)?.map((i) => i.id) ?? []);
+        return new Set([...atual].filter((id) => ids.has(id)));
+      });
     } catch {
       setErro("Falha de conexão.");
     } finally {
@@ -112,6 +120,52 @@ export function Inscritos({ session }: { session: OperatorSession }) {
     () => Object.entries(f).some(([k, v]) => v && k !== "ordem"),
     [f]
   );
+
+  const escolhidos = useMemo(
+    () => lista.filter((i) => selecionados.has(i.id)),
+    [lista, selecionados],
+  );
+  const todosMarcados = lista.length > 0 && escolhidos.length === lista.length;
+
+  function alternar(id: string) {
+    setSelecionados((atual) => {
+      const prox = new Set(atual);
+      if (prox.has(id)) prox.delete(id);
+      else prox.add(id);
+      return prox;
+    });
+  }
+
+  function marcarTodos() {
+    setSelecionados(todosMarcados ? new Set() : new Set(lista.map((i) => i.id)));
+  }
+
+  async function excluirLote() {
+    if (!escolhidos.length || loteOcupado) return;
+    setErro(null);
+    setLoteOcupado(true);
+    try {
+      const res = await fetch("/api/desafio-esteiras/admin/inscritos", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: escolhidos.slice(0, 80).map((i) => i.id) }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setErro(data.error ?? "Não foi possível excluir.");
+        return;
+      }
+      const n = typeof data.excluídos === "number" ? data.excluídos : escolhidos.length;
+      setAviso(n === 1 ? `${data.nome} excluído.` : `${n} cadastros excluídos.`);
+      setSelecionados(new Set());
+      setLote(null);
+      carregar();
+    } catch {
+      setErro("Falha de conexão.");
+    } finally {
+      setLoteOcupado(false);
+    }
+  }
 
   async function mudarStatus(i: Inscrito, novo: Inscrito["status"]) {
     setAviso(null);
@@ -393,6 +447,19 @@ export function Inscritos({ session }: { session: OperatorSession }) {
             {carregando ? "Carregando…" : `${filtrados} cadastro${filtrados === 1 ? "" : "s"}`}
             {lista.length < filtrados && ` · mostrando ${lista.length}`}
           </p>
+          {ehAdmin && lista.length > 0 && (
+            <label className="flex cursor-pointer items-center gap-2">
+              <input
+                type="checkbox"
+                checked={todosMarcados}
+                onChange={marcarTodos}
+                className="h-4 w-4 accent-[color:var(--somma)]"
+              />
+              <span className="dst-label text-[color:rgba(242,240,236,0.55)]">
+                {todosMarcados ? "desmarcar todos" : "marcar todos da tela"}
+              </span>
+            </label>
+          )}
           {temFiltro && (
             <button
               type="button"
@@ -409,11 +476,26 @@ export function Inscritos({ session }: { session: OperatorSession }) {
       {erro && <p role="alert" className="dst-label mt-5 text-[color:var(--evolve)]">{erro}</p>}
 
       {/* ── Lista ── */}
-      <ul className="mt-4 space-y-3">
+      <ul className={`mt-4 space-y-3 ${escolhidos.length > 0 && ehAdmin ? "pb-24" : ""}`}>
         {lista.map((i) => (
-          <li key={i.id} className="dst-panel p-5">
+          <li
+            key={i.id}
+            className="dst-panel p-5"
+            style={selecionados.has(i.id) ? { borderColor: "var(--somma)" } : undefined}
+          >
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div className="flex min-w-0 items-start gap-4">
+                {ehAdmin && (
+                  <label className="mt-1 grid h-12 w-6 shrink-0 place-items-center">
+                    <input
+                      type="checkbox"
+                      checked={selecionados.has(i.id)}
+                      onChange={() => alternar(i.id)}
+                      aria-label={`Selecionar ${i.full_name}`}
+                      className="h-5 w-5 accent-[color:var(--somma)]"
+                    />
+                  </label>
+                )}
                 {i.foto_url ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={i.foto_url} alt="" className="h-12 w-12 shrink-0 rounded-full object-cover" loading="lazy" />
@@ -531,6 +613,78 @@ export function Inscritos({ session }: { session: OperatorSession }) {
         )}
       </ul>
 
+      {ehAdmin && escolhidos.length > 0 && !lote && (
+        <div className="sticky bottom-4 z-20 mt-6">
+          <div className="dst-panel flex flex-wrap items-center gap-3 p-4 shadow-[0_12px_40px_rgba(0,0,0,0.45)]">
+            <p className="dst-label mr-auto text-[color:var(--somma)]">
+              {escolhidos.length} selecionado{escolhidos.length === 1 ? "" : "s"}
+              {escolhidos.length > 80 && " · máx. 80 por vez"}
+            </p>
+            <button
+              type="button"
+              onClick={() => setLote("mover")}
+              className="dst-btn !min-h-[44px] !px-4 !text-[0.7rem]"
+            >
+              Mover de unidade
+            </button>
+            <button
+              type="button"
+              onClick={() => setLote("excluir")}
+              className="dst-btn dst-btn--ghost !min-h-[44px] !px-4 !text-[0.7rem]"
+              style={{ color: "var(--evolve)" }}
+            >
+              Excluir
+            </button>
+            <button
+              type="button"
+              onClick={() => setSelecionados(new Set())}
+              className="dst-label underline underline-offset-4"
+            >
+              limpar
+            </button>
+          </div>
+        </div>
+      )}
+
+      {lote === "mover" && (
+        <LoteMover
+          escolhidos={escolhidos.slice(0, 80)}
+          onCancelar={() => setLote(null)}
+          onOk={(msg) => {
+            setAviso(msg);
+            setSelecionados(new Set());
+            setLote(null);
+            carregar();
+          }}
+        />
+      )}
+
+      {lote === "excluir" && (
+        <div
+          className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-[rgba(8,8,10,0.9)] p-4 py-10"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="lote-excluir-titulo"
+        >
+          <div className="dst-panel w-full max-w-[520px] p-6">
+            <div className="flex items-start justify-between gap-4">
+              <h2 id="lote-excluir-titulo" className="dst-display text-[1.4rem]">
+                {escolhidos.length === 1 ? escolhidos[0].full_name : `${escolhidos.length} CADASTROS`}
+              </h2>
+              <button type="button" onClick={() => setLote(null)} className="dst-label underline underline-offset-4">
+                fechar
+              </button>
+            </div>
+            <ModalExclusao
+              nomes={escolhidos.map((i) => i.full_name)}
+              ocupado={loteOcupado}
+              onCancelar={() => setLote(null)}
+              onConfirmar={() => void excluirLote()}
+            />
+          </div>
+        </div>
+      )}
+
       {ficha && (
         <FichaCadastro
           key={`${ficha.inscrito.id}-${ficha.inicio ?? "ficha"}`}
@@ -557,6 +711,139 @@ export function Inscritos({ session }: { session: OperatorSession }) {
         />
       )}
     </main>
+  );
+}
+
+function LoteMover({
+  escolhidos,
+  onCancelar,
+  onOk,
+}: {
+  escolhidos: Inscrito[];
+  onCancelar: () => void;
+  onOk: (msg: string) => void;
+}) {
+  const [destino, setDestino] = useState("");
+  const [reenviar, setReenviar] = useState(true);
+  const [erro, setErro] = useState<string | null>(null);
+  const [salvando, setSalvando] = useState(false);
+
+  const origens = [...new Set(escolhidos.map((i) => i.unit_id))];
+  const destinos = origens.length === 1 ? UNITS.filter((u) => u.id !== origens[0]) : UNITS;
+
+  async function confirmar(e: React.FormEvent) {
+    e.preventDefault();
+    if (!destino || salvando) return;
+    setErro(null);
+    setSalvando(true);
+    try {
+      const res = await fetch("/api/desafio-esteiras/admin/inscritos", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ids: escolhidos.map((i) => i.id),
+          transferir_para: destino,
+          reenviar_email: reenviar,
+        }),
+      });
+      const data = await res.json() as {
+        error?: string;
+        movidos?: number;
+        pulados?: { nome: string; motivo: string }[];
+      };
+      if (!res.ok) return setErro(data.error ?? "Não foi possível mover.");
+      const nomeDest = getUnit(destino)?.curto ?? destino;
+      const pulados = data.pulados ?? [];
+      const movidos = data.movidos ?? 0;
+      const puladoTxt = pulados.length
+        ? ` ${pulados.length} pulado${pulados.length === 1 ? "" : "s"} (${pulados.slice(0, 3).map((p) => `${p.nome}: ${p.motivo}`).join("; ")}${pulados.length > 3 ? "…" : ""}).`
+        : "";
+      onOk(
+        movidos
+          ? `${movidos} ticket${movidos === 1 ? "" : "s"} para ${nomeDest}.${reenviar ? " E-mail reenviado." : ""}${puladoTxt}`
+          : `Ninguém foi movido.${puladoTxt}`,
+      );
+    } catch {
+      setErro("Falha de conexão.");
+    } finally {
+      setSalvando(false);
+    }
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-[rgba(8,8,10,0.9)] p-4 py-10"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="lote-mover-titulo"
+    >
+      <form onSubmit={confirmar} className="dst-panel w-full max-w-[520px] p-6">
+        <div className="flex items-start justify-between gap-4">
+          <h2 id="lote-mover-titulo" className="dst-display text-[1.4rem]">
+            MOVER {escolhidos.length} {escolhidos.length === 1 ? "CADASTRO" : "CADASTROS"}
+          </h2>
+          <button type="button" onClick={onCancelar} className="dst-label underline underline-offset-4">
+            fechar
+          </button>
+        </div>
+        <p className="mt-4 text-[0.92rem] leading-relaxed text-[color:rgba(242,240,236,0.7)]">
+          Cada ticket ganha o prefixo da unidade nova. Bateria zera. Quem já fez check-in fica onde está.
+        </p>
+        <ul className="mt-3 max-h-32 space-y-1 overflow-y-auto text-[0.85rem] text-[color:rgba(242,240,236,0.5)]">
+          {escolhidos.slice(0, 10).map((i) => (
+            <li key={i.id}>
+              {i.full_name} · {getUnit(i.unit_id)?.curto}
+            </li>
+          ))}
+          {escolhidos.length > 10 && <li>+ {escolhidos.length - 10} outros</li>}
+        </ul>
+        <fieldset className="mt-5">
+          <legend className="dst-label mb-2.5 text-[color:rgba(242,240,236,0.45)]">Nova unidade</legend>
+          <div className="grid grid-cols-2 gap-2">
+            {destinos.map((u) => (
+              <label
+                key={u.id}
+                className="dst-panel flex min-h-[48px] cursor-pointer items-center justify-center p-2 text-center has-[:checked]:border-[color:var(--somma)] has-[:checked]:bg-[rgba(255,44,4,0.08)]"
+              >
+                <input
+                  type="radio"
+                  name="destino-lote"
+                  value={u.id}
+                  checked={destino === u.id}
+                  onChange={() => setDestino(u.id)}
+                  className="sr-only"
+                />
+                <span className="dst-display text-[0.9rem]">{u.curto}</span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
+        <label className="mt-5 flex cursor-pointer items-center gap-3">
+          <input
+            type="checkbox"
+            checked={reenviar}
+            onChange={(e) => setReenviar(e.target.checked)}
+            className="h-5 w-5 accent-[color:var(--somma)]"
+          />
+          <span className="text-[0.9rem] text-[color:rgba(242,240,236,0.7)]">
+            Reenviar o e-mail do ticket para cada um
+          </span>
+        </label>
+        {erro && (
+          <p role="alert" className="dst-label mt-5 text-[color:var(--evolve)]">
+            {erro}
+          </p>
+        )}
+        <div className="mt-7 flex gap-3">
+          <button type="submit" disabled={!destino || salvando} className="dst-btn flex-1 disabled:opacity-40">
+            {salvando ? "Movendo…" : "Mover"}
+          </button>
+          <button type="button" onClick={onCancelar} className="dst-btn dst-btn--ghost">
+            Não
+          </button>
+        </div>
+      </form>
+    </div>
   );
 }
 

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getServiceSupabase } from "@/lib/supabase";
-import { requireOperator } from "@/lib/desafio-esteiras/auth";
+import { escopoDaSessao, requireOperator } from "@/lib/desafio-esteiras/auth";
 import { TABLE } from "@/lib/desafio-esteiras/db";
 import { UNITS } from "@/lib/desafio-esteiras/event.config";
 import { getStatusGestao } from "@/lib/desafio-esteiras/gestao";
@@ -43,9 +43,8 @@ export async function GET() {
     )
     .order("created_at", { ascending: false });
 
-  if (auth.session.role === "operador" && auth.session.unitId) {
-    query = query.eq("unit_id", auth.session.unitId);
-  }
+  const escopo = escopoDaSessao(auth.session);
+  if (escopo) query = query.eq("unit_id", escopo);
 
   const { data, error } = await query;
   if (error) {
@@ -56,10 +55,7 @@ export async function GET() {
   const linhas = (data ?? []) as Linha[];
   const validas = linhas.filter((l) => l.status !== "cancelled");
 
-  const unidadesVisiveis =
-    auth.session.role === "operador" && auth.session.unitId
-      ? UNITS.filter((u) => u.id === auth.session.unitId)
-      : UNITS;
+  const unidadesVisiveis = escopo ? UNITS.filter((u) => u.id === escopo) : UNITS;
 
   const porUnidade = unidadesVisiveis.map((u) => {
     const daUnidade = validas.filter((l) => l.unit_id === u.id);
@@ -116,7 +112,7 @@ export async function GET() {
 
   return NextResponse.json({
     gestao,
-    escopo: auth.session.role === "operador" ? auth.session.unitId : "todas",
+    escopo: escopo ?? "todas",
     role: auth.session.role,
     nome: auth.session.nome,
     total: validas.length,

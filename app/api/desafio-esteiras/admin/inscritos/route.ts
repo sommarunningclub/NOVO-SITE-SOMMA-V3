@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServiceSupabase } from "@/lib/supabase";
-import { canActOnUnit, requireOperator } from "@/lib/desafio-esteiras/auth";
+import {
+  canActOnUnit,
+  escopoDaSessao,
+  podeEditarCadastro,
+  requireOperator,
+} from "@/lib/desafio-esteiras/auth";
 import { BUCKET_FOTOS, TABLE, fotoUrl, getVagasCategoria } from "@/lib/desafio-esteiras/db";
 import {
   EVENT,
@@ -101,7 +106,7 @@ export async function GET(request: NextRequest) {
 
   const sp = request.nextUrl.searchParams;
   const q = (sp.get("q") ?? "").trim();
-  const escopoOperador = auth.session.role === "operador" ? auth.session.unitId : null;
+  const escopoOperador = escopoDaSessao(auth.session);
 
   // Puxamos o conjunto que o operador pode ver e filtramos em memória: são
   // centenas de linhas, e assim os totais do resumo continuam batendo com os
@@ -285,7 +290,7 @@ function respostaCapacidade(message: string) {
   }
   if (message.includes("DST_BATERIA_CHEIA")) {
     return NextResponse.json(
-      { error: "Essa bateria já tem 4 competidores — são 4 esteiras." },
+      { error: "Essa bateria já tem 4 competidores. São 4 esteiras." },
       { status: 409 },
     );
   }
@@ -298,6 +303,7 @@ export async function PATCH(request: NextRequest) {
 
   let body: {
     id?: unknown;
+    ids?: unknown;
     dados?: unknown;
     status?: unknown;
     heat_number?: unknown;
@@ -308,6 +314,134 @@ export async function PATCH(request: NextRequest) {
     body = (await request.json()) as typeof body;
   } catch {
     return NextResponse.json({ error: "Requisição inválida." }, { status: 400 });
+  }
+
+  /* O acesso de unidade marca presença e nada mais. Bloqueamos aqui, antes de
+     qualquer escrita, em vez de espalhar a checagem por cada ramo abaixo: um
+     ramo novo passaria despercebido, este ponto não. */
+  if (!podeEditarCadastro(auth.session)) {
+    const querMaisQueCheckin =
+      body.dados !== undefined ||
+      body.heat_number !== undefined ||
+      body.transferir_para !== undefined ||
+      body.reenviar_email !== undefined ||
+      Array.isArray(body.ids);
+    if (querMaisQueCheckin) {
+      return NextResponse.json(
+        { error: "Este acesso pode validar o ticket, mas não alterar o cadastro." },
+        { status: 403 },
+      );
+    }
+    // Sobra o status: e mesmo aí, só presença. Cancelar continua fora.
+    const novoStatus = body.status === undefined ? null : String(body.status);
+    if (novoStatus !== null && novoStatus !== "checked_in" && novoStatus !== "confirmed") {
+      return NextResponse.json(
+        { error: "Este acesso só marca presença. Para cancelar, fale com a organização." },
+        { status: 403 },
+      );
+    }
+  }
+
+  const idsLote = Array.isArray(body.ids)
+    ? (body.ids as unknown[]).filter((x): x is string => typeof x === "string" && x.length > 10).slice(0, 80)
+    : [];
+
+  if (idsLote.length > 0 && typeof body.transferir_para === "string") {
+    if (auth.session.role !== "admin") {
+      return NextResponse.json({ error: "Só o admin geral transfere em lote." }, { status: 403 });
+    }
+    const dest = getUnit(body.transferir_para);
+    if (!dest) return NextResponse.json({ error: "Unidade inválida." }, { status: 400 });
+    if (!canActOnUnit(auth.session, dest.id)) {
+      return NextResponse.json({ error: "Você não pode transferir para outra unidade." }, { status: 403 });
+    }
+
+    const supabaseLote = getServiceSupabase();
+    if (!supabaseLote) return NextResponse.json({ error: "Banco indisponível." }, { status: 503 });
+
+    const { data: linhas } = await supabaseLote
+      .from(TABLE)
+      .select("id, unit_id, status, checked_in_at, ticket_code, ticket_token, full_name, email")
+      .in("id", idsLote);
+
+    const movidos: string[] = [];
+    const pulados: { nome: string; motivo: string }[] = [];
+    const reenviar = body.reenviar_email === true;
+
+    for (const bruto of (linhas ?? []) as (LinhaEdicao & { id: string })[]) {
+      if (!canActOnUnit(auth.session, bruto.unit_id)) {
+        pulados.push({ nome: bruto.full_name, motivo: "fora do seu escopo" });
+        continue;
+      }
+      if (bruto.unit_id === dest.id) {
+        pulados.push({ nome: bruto.full_name, motivo: "já está nessa unidade" });
+        continue;
+      }
+      if (bruto.status === "checked_in") {
+        pulados.push({ nome: bruto.full_name, motivo: "já fez check-in" });
+        continue;
+      }
+
+      const atualizacao: Record<string, unknown> = {
+        atualizado_em: new Date().toISOString(),
+        unit_id: dest.id,
+        heat_number: null,
+      };
+      let ticketCode = bruto.ticket_code;
+      let falhou: { message: string; code?: string } | null = null;
+
+      if (!ticketPertenceAUnidade(bruto.ticket_code, dest)) {
+        for (let tentativa = 0; tentativa < MAX_CODE_TRIES; tentativa++) {
+          const codigo = generateTicketCode(dest);
+          const res = await supabaseLote.from(TABLE).update({ ...atualizacao, ticket_code: codigo }).eq("id", bruto.id);
+          if (!res.error) {
+            ticketCode = codigo;
+            falhou = null;
+            break;
+          }
+          falhou = res.error;
+          if (res.error.code === "23505" && `${res.error.message} ${res.error.details ?? ""}`.includes("ticket_code")) {
+            continue;
+          }
+          break;
+        }
+      } else {
+        const res = await supabaseLote.from(TABLE).update(atualizacao).eq("id", bruto.id);
+        falhou = res.error;
+      }
+
+      if (falhou) {
+        pulados.push({
+          nome: bruto.full_name,
+          motivo: falhou.message.includes("DST_CATEGORIA_ESGOTADA")
+            ? "categoria esgotada no destino"
+            : falhou.message.includes("DST_BATERIA_CHEIA")
+              ? "bateria cheia"
+              : "não foi possível mover",
+        });
+        continue;
+      }
+
+      movidos.push(bruto.full_name);
+      if (reenviar) {
+        void sendDesafioEsteirasTicketEmail({
+          nome: bruto.full_name,
+          email: bruto.email,
+          ticketCode,
+          ticketToken: bruto.ticket_token,
+          unit: dest,
+        }).catch((err) => {
+          console.error("[desafio-esteiras] e-mail lote:", err);
+        });
+      }
+    }
+
+    return NextResponse.json({
+      ok: true,
+      movidos: movidos.length,
+      pulados,
+      unidade: dest.id,
+    });
   }
 
   const id = typeof body.id === "string" ? body.id : null;
@@ -345,7 +479,8 @@ export async function PATCH(request: NextRequest) {
     atualizacao.status = novo;
     if (novo === "checked_in" && !linha.checked_in_at) {
       atualizacao.checked_in_at = new Date().toISOString();
-      atualizacao.checked_in_by = auth.session.role === "admin" ? "admin" : `operador:${auth.session.unitId}`;
+      atualizacao.checked_in_by =
+        auth.session.role === "admin" ? "admin" : `${auth.session.role}:${auth.session.unitId}`;
     }
     if (novo !== "checked_in") {
       atualizacao.checked_in_at = null;
@@ -506,26 +641,54 @@ export async function DELETE(request: NextRequest) {
   if (auth.session.role !== "admin") {
     return NextResponse.json(
       { error: "Só o admin geral pode excluir. Use 'Cancelar' para tirar a pessoa do evento." },
-      { status: 403 }
+      { status: 403 },
     );
   }
 
-  const id = request.nextUrl.searchParams.get("id");
-  if (!id) return NextResponse.json({ error: "Inscrição não informada." }, { status: 400 });
+  const ids = new Set<string>();
+  const q = request.nextUrl.searchParams.get("id");
+  if (q) ids.add(q);
+  try {
+    const body = (await request.json()) as { ids?: unknown; id?: unknown };
+    if (typeof body.id === "string") ids.add(body.id);
+    if (Array.isArray(body.ids)) {
+      for (const x of body.ids) {
+        if (typeof x === "string" && x.length > 10) ids.add(x);
+      }
+    }
+  } catch {
+    /* DELETE ?id= sem body continua válido */
+  }
+
+  const listaIds = [...ids].slice(0, 80);
+  if (!listaIds.length) return NextResponse.json({ error: "Inscrição não informada." }, { status: 400 });
 
   const supabase = getServiceSupabase();
   if (!supabase) return NextResponse.json({ error: "Banco indisponível." }, { status: 503 });
 
-  const { data: alvo } = await supabase
+  const { data: alvos } = await supabase
     .from(TABLE)
     .select("id, cpf, evento_id, foto_path, full_name")
-    .eq("id", id)
-    .maybeSingle();
+    .in("id", listaIds);
 
-  if (!alvo) return NextResponse.json({ error: "Inscrição não encontrada." }, { status: 404 });
-  const linha = alvo as { cpf: string; evento_id: string | null; foto_path: string | null; full_name: string };
+  const linhas = (alvos ?? []) as {
+    id: string;
+    cpf: string;
+    evento_id: string | null;
+    foto_path: string | null;
+    full_name: string;
+  }[];
 
-  if (linha.evento_id) {
+  if (!linhas.length) return NextResponse.json({ error: "Inscrição não encontrada." }, { status: 404 });
+
+  const fotos = linhas.map((l) => l.foto_path).filter((p): p is string => Boolean(p));
+  if (fotos.length) {
+    const { error } = await supabase.storage.from(BUCKET_FOTOS).remove(fotos);
+    if (error) console.warn("[desafio-esteiras] fotos não removidas:", error.message);
+  }
+
+  for (const linha of linhas) {
+    if (!linha.evento_id) continue;
     const { error } = await supabase
       .from("checkins")
       .delete()
@@ -534,19 +697,15 @@ export async function DELETE(request: NextRequest) {
     if (error) console.warn("[desafio-esteiras] espelho não removido:", error.message);
   }
 
-  if (linha.foto_path) {
-    const { error } = await supabase.storage.from(BUCKET_FOTOS).remove([linha.foto_path]);
-    if (error) console.warn("[desafio-esteiras] foto não removida:", error.message);
-  }
-
-  const { error } = await supabase.from(TABLE).delete().eq("id", id);
+  const { error } = await supabase.from(TABLE).delete().in("id", linhas.map((l) => l.id));
   if (error) {
     console.error("[desafio-esteiras] excluir inscrição:", error.message);
     return NextResponse.json({ error: "Não foi possível excluir." }, { status: 500 });
   }
 
-  console.warn(`[desafio-esteiras] inscrição excluída por ${auth.session.nome}: ${linha.full_name}`);
-  return NextResponse.json({ ok: true, nome: linha.full_name });
+  const nomes = linhas.map((l) => l.full_name);
+  console.warn(`[desafio-esteiras] ${nomes.length} inscrição(ões) excluída(s) por ${auth.session.nome}: ${nomes.join(", ")}`);
+  return NextResponse.json({ ok: true, nome: nomes[0], nomes, excluídos: nomes.length });
 }
 
 /* ── Cadastrar pelo painel ───────────────────────────────────────────────── */
@@ -554,6 +713,13 @@ export async function DELETE(request: NextRequest) {
 export async function POST(request: NextRequest) {
   const auth = await requireOperator();
   if (!auth.ok) return auth.response;
+
+  if (!podeEditarCadastro(auth.session)) {
+    return NextResponse.json(
+      { error: "Este acesso acompanha e valida ticket, mas não cadastra." },
+      { status: 403 },
+    );
+  }
 
   let body: unknown;
   try {

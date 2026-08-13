@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServiceSupabase } from "@/lib/supabase";
-import { requireOperator } from "@/lib/desafio-esteiras/auth";
+import { escopoDaSessao, requireOperator } from "@/lib/desafio-esteiras/auth";
 import { TABLE, type Registration } from "@/lib/desafio-esteiras/db";
 import { extractToken, normalizeTicketCode } from "@/lib/desafio-esteiras/ticket";
 import { onlyDigits } from "@/lib/desafio-esteiras/schema";
@@ -44,8 +44,9 @@ export async function GET(request: NextRequest) {
 
   const escopo = () => {
     const base = supabase.from(TABLE).select(COLUNAS);
-    return auth.session.role === "operador" && auth.session.unitId
-      ? base.eq("unit_id", auth.session.unitId)
+    const escopo = escopoDaSessao(auth.session);
+    return escopo
+      ? base.eq("unit_id", escopo)
       : base;
   };
 
@@ -99,6 +100,6 @@ export async function GET(request: NextRequest) {
       checked_in_at: r.checked_in_at,
       checked_in_by: r.checked_in_by,
     })),
-    escopo: auth.session.role === "operador" ? auth.session.unitId : "todas",
+    escopo: escopoDaSessao(auth.session) ?? "todas",
   });
 }

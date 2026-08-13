@@ -168,7 +168,7 @@ export function FichaCadastro({
         )}
         {inscrito && aba === "excluir" && (
           <ModalExclusao
-            inscrito={inscrito}
+            nomes={[inscrito.full_name]}
             onCancelar={() => setAba("ficha")}
             onConfirmar={excluir}
           />
@@ -652,57 +652,61 @@ export function ModalEdicao({
 }
 
 export function ModalExclusao({
-  inscrito,
+  nomes,
   onCancelar,
   onConfirmar,
+  ocupado = false,
 }: {
-  inscrito: Inscrito;
+  nomes: string[];
   onCancelar: () => void;
   onConfirmar: () => void;
+  ocupado?: boolean;
 }) {
-  const [texto, setTexto] = useState("");
-  const confere = texto.trim().toUpperCase() === inscrito.ticket_code.toUpperCase();
+  const varios = nomes.length > 1;
+  const quem = varios
+    ? `${nomes.length} cadastros`
+    : nomes[0] ?? "este cadastro";
 
   return (
     <div className="mt-6">
       <h3 className="dst-display text-[1.3rem]" style={{ color: "var(--evolve)" }}>
-        EXCLUIR DEFINITIVAMENTE
+        EXCLUIR?
       </h3>
-      <p className="mt-4 text-[0.92rem] leading-relaxed text-[color:rgba(242,240,236,0.7)]">
-        Isso apaga a inscrição de <strong>{inscrito.full_name}</strong>, o registro dela no painel
-        de eventos da gestão e a foto de perfil. Não dá para desfazer.
+      <p className="mt-4 text-[0.95rem] leading-relaxed text-[color:rgba(242,240,236,0.75)]">
+        {varios ? (
+          <>
+            Apagar <strong>{nomes.length} inscrições</strong> de vez? Não dá para desfazer.
+          </>
+        ) : (
+          <>
+            Apagar a inscrição de <strong>{quem}</strong>? Não dá para desfazer.
+          </>
+        )}
       </p>
-      <p className="mt-3 text-[0.88rem] leading-relaxed text-[color:rgba(242,240,236,0.55)]">
-        Se a intenção é só tirar a pessoa do evento, use <strong>Cancelar</strong> — ela sai das
-        contagens, mas o histórico continua.
+      {varios && (
+        <ul className="mt-3 max-h-40 space-y-1 overflow-y-auto text-[0.88rem] text-[color:rgba(242,240,236,0.55)]">
+          {nomes.slice(0, 12).map((n, i) => (
+            <li key={`${n}-${i}`}>{n}</li>
+          ))}
+          {nomes.length > 12 && <li>+ {nomes.length - 12} outros</li>}
+        </ul>
+      )}
+      <p className="mt-3 text-[0.88rem] leading-relaxed text-[color:rgba(242,240,236,0.5)]">
+        Se a intenção é só tirar do evento, use <strong>Cancelar</strong> — o histórico continua.
       </p>
-
-      <div className="dst-field-wrap mt-6">
-        <input
-          id="conf-ticket"
-          value={texto}
-          onChange={(e) => setTexto(e.target.value)}
-          placeholder=" "
-          autoComplete="off"
-          className="dst-field"
-        />
-        <label htmlFor="conf-ticket" className="dst-field-label">
-          Digite {inscrito.ticket_code} para confirmar
-        </label>
-      </div>
 
       <div className="mt-6 flex gap-3">
         <button
           type="button"
-          disabled={!confere}
           onClick={onConfirmar}
+          disabled={ocupado}
           className="dst-btn flex-1 disabled:opacity-40"
           style={{ background: "var(--evolve)" }}
         >
-          Excluir
+          {ocupado ? "Excluindo…" : "Sim, excluir"}
         </button>
-        <button type="button" onClick={onCancelar} className="dst-btn dst-btn--ghost">
-          Voltar
+        <button type="button" onClick={onCancelar} disabled={ocupado} className="dst-btn dst-btn--ghost flex-1 disabled:opacity-40">
+          Não
         </button>
       </div>
     </div>
