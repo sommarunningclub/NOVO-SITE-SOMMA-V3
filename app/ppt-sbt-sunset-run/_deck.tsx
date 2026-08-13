@@ -17,7 +17,6 @@ import { RaceDay } from "./_sec/10-raceday";
 import { Pacers } from "./_sec/11-pacers";
 import { Journey } from "./_sec/12-journey";
 import { Access } from "./_sec/13-access";
-import { Deliverables } from "./_sec/14-deliverables";
 import { Investment } from "./_sec/15-investment";
 import { ValueBothWays } from "./_sec/16-value";
 import { Close } from "./_sec/17-close";
@@ -58,7 +57,6 @@ export function Deck() {
       <Pacers />
       <Journey />
       <Access />
-      <Deliverables />
       <Investment />
       <ValueBothWays />
       <Close />

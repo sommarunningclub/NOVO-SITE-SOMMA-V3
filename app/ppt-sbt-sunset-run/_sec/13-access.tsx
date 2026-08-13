@@ -22,7 +22,7 @@ export function Access() {
           </div>
           <div className="flex items-end md:col-span-3 md:col-start-10" data-rise>
             <p className={s.body}>
-              Não é uma audiência alugada. É uma base que já treina junto todo sábado e responde quando a Somma chama.
+              Não é audiência alugada. É base própria, que responde quando a Somma chama.
             </p>
           </div>
         </div>
@@ -54,8 +54,7 @@ export function Access() {
                 proprietária
               </p>
               <p className={cx(s.body, "mt-3 max-w-[42ch] !text-[0.875rem]")}>
-                O maior running club do Distrito Federal. Base própria, relacionamento direto e presença física toda
-                semana em Brasília.
+                O maior running club do Distrito Federal.
               </p>
 
               {/* a credencial em números, dentro do ativo que ela qualifica */}

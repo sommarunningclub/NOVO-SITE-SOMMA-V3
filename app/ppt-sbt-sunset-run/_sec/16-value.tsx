@@ -4,12 +4,12 @@ import { gsap, useScope, EASE, scrub } from "../_motion";
 import { Headline, Chapter, Section, cx, s } from "../_ui";
 
 const ASKS = [
-  { t: "Inventory de inscrições", d: "Um lote destinado às ações da Somma ao longo da jornada." },
-  { t: "Códigos e condições exclusivas", d: "Vantagem real para quem vem pela comunidade." },
-  { t: "Inscrições para desafios", d: "Prêmio das missões e dos desafios da Sunset 5." },
-  { t: "Inscrições para insiders", d: "Quem produz conteúdo precisa estar na prova." },
-  { t: "Premiações da comunidade", d: "Reconhecimento para quem completou a jornada." },
-  { t: "Presença Somma no kit", d: "Possibilidade a ser avaliada com a organização." },
+  { t: "Inventory de inscrições", d: "Lote para as ações da Somma." },
+  { t: "Códigos e condições exclusivas", d: "Vantagem para quem vem da comunidade." },
+  { t: "Inscrições para desafios", d: "Prêmio das missões da Sunset 5." },
+  { t: "Inscrições para insiders", d: "Quem produz conteúdo precisa estar lá." },
+  { t: "Premiações da comunidade", d: "Para quem completou a jornada." },
+  { t: "Presença Somma no kit", d: "A avaliar com a organização." },
 ];
 
 /**
@@ -49,7 +49,7 @@ export function ValueBothWays() {
     <Section id="value" stage={5} className="pt-24 md:pt-32">
       <div ref={ref}>
         <div className={cx(s.shell, "relative z-10")}>
-          <Chapter n="16" label="Contrapartida estratégica" />
+          <Chapter n="15" label="Contrapartida estratégica" />
 
           <div className="grid gap-8 md:grid-cols-12">
             <div className="md:col-span-8">
@@ -57,8 +57,7 @@ export function ValueBothWays() {
             </div>
             <div className="flex items-end md:col-span-3 md:col-start-10" data-rise>
               <p className={s.body}>
-                Não queremos somente cortesias. Queremos uma troca em que as duas bases crescem, antes e depois da
-                corrida.
+                Não queremos cortesias. Queremos as duas bases crescendo.
               </p>
             </div>
           </div>
@@ -163,8 +162,7 @@ export function ValueBothWays() {
               </p>
               <p className={cx(s.h3, "mt-3")}>Treine com a Somma para sua próxima prova</p>
               <p className={cx(s.body, "mt-3 max-w-[52ch] !text-[0.875rem]")}>
-                Um cartão com QR dentro do kit transforma os 2.000 corredores da Sunset Run em entrada para a
-                comunidade, e dá ao SBT um pós-evento que hoje não existe.
+                2.000 corredores viram entrada para a comunidade. E o SBT ganha um pós-evento.
               </p>
             </div>
           </div>

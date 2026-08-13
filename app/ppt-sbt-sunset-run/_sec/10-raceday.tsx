@@ -5,12 +5,12 @@ import { gsap, useScope, EASE, scrub } from "../_motion";
 import { Headline, Chapter, Section, cx, s } from "../_ui";
 
 const CREW = [
-  { t: "Ponto de encontro Somma", d: "Um endereço único na arena, comunicado desde a Week 01." },
-  { t: "Concentração e aquecimento", d: "Ativação conduzida pelos treinadores antes da largada." },
-  { t: "Foto oficial da comunidade", d: "O registro que vira conteúdo no mesmo dia." },
-  { t: "Pacers por ritmo", d: "Grupos de 5 km e 10 km com balão e identificação." },
-  { t: "Bandeiras e identidade", d: "Um bloco visual Somma reconhecível dentro da arena." },
-  { t: "Cobertura da jornada", d: "O fecho da série de conteúdo, gravado na Esplanada." },
+  "Ponto de encontro Somma",
+  "Concentração e aquecimento",
+  "Foto oficial da comunidade",
+  "Pacers por ritmo",
+  "Bandeiras e identidade",
+  "Cobertura da jornada",
 ];
 
 /**
@@ -49,7 +49,7 @@ export function RaceDay() {
     <Section id="raceday" stage={4}>
       <div ref={ref}>
         {/* ------------------------------------------------------ abertura */}
-        <div className="js-rd-wrap js-pin-track relative h-[240vh] md:h-[280vh]">
+        <div className="js-rd-wrap js-pin-track relative h-[150vh] md:h-[175vh]">
           <div className="js-pin-frame sticky top-0 h-[100svh] overflow-hidden">
             <div className="js-rd-photo absolute inset-0">
               <Image
@@ -99,22 +99,28 @@ export function RaceDay() {
             </div>
             <div className="flex items-end md:col-span-5 md:col-start-8" data-rise>
               <p className={s.body}>
-                A ideia não é ocupar a organização da prova, e sim criar um ponto de gravidade dentro dela: um lugar
-                onde a comunidade se encontra, aquece, se fotografa e larga junta.
+                Um ponto de gravidade dentro da prova, onde a comunidade se encontra e larga junta.
               </p>
             </div>
           </div>
 
           <ul className="mt-14 grid gap-px md:mt-20 md:grid-cols-3" data-rise data-rise-children>
-            {CREW.map((c, i) => (
-              <li key={c.t} className="border-t py-6 md:pr-8" style={{ borderColor: "var(--hair)" }}>
-                <span className={cx(s.mono, "text-[0.5625rem] tracking-[0.22em]")} style={{ color: "var(--somma)" }}>
-                  {String(i + 1).padStart(2, "0")}
+            {CREW.map((c) => (
+              <li
+                key={c}
+                className="flex items-center gap-4 border-t py-5 md:pr-8"
+                style={{ borderColor: "var(--hair)" }}
+              >
+                <span
+                  aria-hidden
+                  className="grid h-6 w-6 shrink-0 place-items-center rounded-full text-[0.7rem]"
+                  style={{ border: "1px solid rgba(255,44,4,.5)", color: "var(--somma)" }}
+                >
+                  ✓
                 </span>
-                <p className={cx(s.h3, "mt-3 !text-[clamp(1.05rem,1.6vw,1.3rem)]")} style={{ fontVariationSettings: '"wdth" 100' }}>
-                  {c.t}
-                </p>
-                <p className={cx(s.body, "mt-2 !text-[0.875rem]")}>{c.d}</p>
+                <span className={cx(s.h3, "!text-[clamp(1rem,1.5vw,1.2rem)]")} style={{ fontVariationSettings: '"wdth" 100' }}>
+                  {c}
+                </span>
               </li>
             ))}
           </ul>

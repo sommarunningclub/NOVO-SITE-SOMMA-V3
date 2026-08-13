@@ -4,11 +4,11 @@ import { gsap, useScope, EASE, scrub } from "../_motion";
 import { Headline, Chapter, Section, cx, s } from "../_ui";
 
 const MISSIONS = [
-  { n: "01", t: "Participar de um treino Somma", d: "Presença em qualquer treinão da semana." },
-  { n: "02", t: "Completar 5 km", d: "Na rua, na esteira ou no treinão. Vale o esforço." },
-  { n: "03", t: "Levar alguém para correr", d: "A missão que faz a comunidade crescer sozinha." },
-  { n: "04", t: "Participar de um Training Series", d: "Um dos quatro sábados oficiais SBT × Somma." },
-  { n: "05", t: "Confirmar presença na Sunset Run", d: "A missão que converte preparação em inscrição." },
+  { n: "01", t: "Participar de um treino Somma", d: "Qualquer treinão da semana." },
+  { n: "02", t: "Completar 5 km", d: "Na rua, na esteira ou no treinão." },
+  { n: "03", t: "Levar alguém para correr", d: "A comunidade cresce sozinha." },
+  { n: "04", t: "Participar de um Training Series", d: "Um dos quatro sábados SBT × Somma." },
+  { n: "05", t: "Confirmar presença na Sunset Run", d: "Preparação vira inscrição." },
 ];
 
 /**
@@ -57,14 +57,13 @@ export function Missions() {
             </div>
             <div className="flex items-end md:col-span-4 md:col-start-9" data-rise>
               <p className={s.body}>
-                Cinco desafios simples que qualquer corredor cumpre em quatro semanas. A última missão é a inscrição:
-                a gamificação e a conversão são a mesma coisa.
+                A missão 05 é a inscrição. Gamificação e conversão viram a mesma coisa.
               </p>
             </div>
           </div>
         </div>
 
-        <div className="js-mis-wrap js-pin-track relative mt-14 md:mt-20 md:h-[340vh]">
+        <div className="js-mis-wrap js-pin-track relative mt-12 md:mt-16 md:h-[220vh]">
           <div className="js-pin-frame md:sticky md:top-0 md:flex md:h-[100svh] md:items-center md:overflow-hidden">
             <div className={cx(s.shell, "grid w-full items-center gap-14 md:grid-cols-12 md:gap-12")}>
               {/* --------------------------------------------- missões */}

@@ -42,7 +42,7 @@ export function Close() {
   return (
     <Section id="close" stage={5}>
       <div ref={ref}>
-        <div className="js-close-wrap js-pin-track relative h-[280vh]">
+        <div className="js-close-wrap js-pin-track relative h-[190vh]">
           <div
             className="js-pin-frame sticky top-0 flex h-[100svh] flex-col overflow-hidden"
             style={{ background: "linear-gradient(184deg,#04081a 0%,#061031 40%,#0a2a72 76%,#123c95 100%)" }}

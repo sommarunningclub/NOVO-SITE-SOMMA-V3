@@ -5,7 +5,7 @@ import { Chapter, Section, cx, s } from "../_ui";
 
 const PILLARS = ["Estratégia", "Comunidade", "Experiência", "Tecnologia", "Conteúdo", "Operação"];
 
-/** Resumo do escopo por frente. A seção 14 detalha; aqui é o que se lê de relance. */
+/** Escopo por frente. Fonte única: o que não estiver aqui não está no acordo. */
 const ESCOPO: { frente: string; entrega: string; status: string }[] = [
   {
     frente: "Estratégia e plataforma",
@@ -110,7 +110,7 @@ export function Investment() {
         />
 
         <div className={cx(s.shell, "relative z-10")}>
-          <Chapter n="15" label="Investimento" />
+          <Chapter n="14" label="Entregáveis e investimento" />
 
           <div className="flex flex-col items-center py-10 text-center md:py-20">
             <p className={cx(s.eyebrow, "mb-8")} style={{ color: "var(--cyan)" }}>
@@ -202,9 +202,13 @@ export function Investment() {
                         </td>
                         <td data-label="Status">
                           <span
-                            className={cx(s.mono, "whitespace-nowrap text-[0.625rem] uppercase tracking-[0.16em]")}
+                            className={cx(s.mono, "inline-flex items-center gap-2 whitespace-nowrap text-[0.625rem] uppercase tracking-[0.16em]")}
                             style={{ color: fora ? "var(--somma)" : "var(--cyan)" }}
                           >
+                            {/* o sinal responde antes da palavra */}
+                            <span aria-hidden className="text-[0.8rem] leading-none">
+                              {fora ? "+" : "✓"}
+                            </span>
                             {r.status}
                           </span>
                         </td>

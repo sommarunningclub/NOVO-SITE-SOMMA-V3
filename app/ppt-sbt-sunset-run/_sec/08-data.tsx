@@ -76,8 +76,7 @@ export function DataSection() {
             </div>
             <div className="flex items-end md:col-span-4 md:col-start-9" data-rise>
               <p className={s.body}>
-                Cada etapa da jornada acontece dentro de um sistema. Isso significa que ela pode ser medida, e que o
-                SBT recebe um retrato de comportamento, não uma estimativa de alcance.
+                Tudo acontece dentro de um sistema. Logo, tudo pode ser medido.
               </p>
             </div>
           </div>

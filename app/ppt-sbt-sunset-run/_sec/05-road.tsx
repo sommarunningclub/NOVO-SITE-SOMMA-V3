@@ -118,15 +118,14 @@ export function Road() {
                 </p>
               </div>
               <p className={s.body}>
-                Os treinões que a Somma já realiza todo sábado passam a ser a preparação oficial da corrida. Cada
-                semana vira um capítulo, e a Esplanada deixa de ser o começo para virar o destino.
+                Os treinões que já acontecem todo sábado viram a preparação oficial da corrida.
               </p>
             </div>
           </div>
         </div>
 
         {/* ------------------------------------------------- trilho horizontal */}
-        <div className="js-track-wrap js-pin-track relative mt-14 md:mt-24 md:h-[420vh]">
+        <div className="js-track-wrap js-pin-track relative mt-12 md:mt-20 md:h-[300vh]">
           <div className="js-pin-frame md:sticky md:top-0 md:flex md:h-[100svh] md:flex-col md:justify-center md:overflow-hidden">
             {/* cabeçalho do trilho, fixo enquanto as semanas passam */}
             <div className={cx(s.shell, "hidden items-end justify-between pb-10 md:flex")}>

@@ -59,8 +59,7 @@ export function ContentEngine() {
             </div>
             <div className="flex items-end md:col-span-4 md:col-start-9" data-rise>
               <p className={s.body}>
-                Quatro semanas de treinos geram histórias reais: gente que nunca correu 5 km, grupos que se formam,
-                estreias. Não é produção publicitária: é registro de uma coisa que aconteceu.
+                Não é produção publicitária. É registro de uma coisa que aconteceu.
               </p>
             </div>
           </div>

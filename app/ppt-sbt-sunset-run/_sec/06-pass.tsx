@@ -4,12 +4,12 @@ import { gsap, useScope, EASE, scrub } from "../_motion";
 import { Headline, Chapter, Section, cx, s } from "../_ui";
 
 const STEPS = [
-  { t: "Entra na jornada", d: "Um toque no link da Somma ou do SBT abre o Pass. Sem app para baixar." },
-  { t: "Faz check-in nos treinões", d: "Cada sábado presente é registrado no perfil do atleta." },
-  { t: "Completa missões", d: "Cinco desafios simples destravam a progressão da Sunset 5." },
-  { t: "Acumula quilômetros", d: "O volume da preparação vira número visível, e motivo para voltar." },
-  { t: "Recebe badges", d: "Conquistas digitais que o corredor mostra no story antes da prova." },
-  { t: "Chega conectado", d: "No Race Day ele não conhece a marca. Ele já pertence a ela." },
+  { t: "Entra na jornada", d: "Um toque no link. Sem app para baixar." },
+  { t: "Faz check-in nos treinões", d: "Presença registrada no perfil." },
+  { t: "Completa missões", d: "Cinco desafios destravam a Sunset 5." },
+  { t: "Acumula quilômetros", d: "O volume vira número visível." },
+  { t: "Recebe badges", d: "Conquistas que ele mostra no story." },
+  { t: "Chega conectado", d: "No Race Day, ele já pertence." },
 ];
 
 const BADGES = ["First Run", "5K Complete", "Sunset Crew", "Pace Lab", "Ready"];
@@ -95,7 +95,7 @@ export function Pass() {
         </div>
 
         {/* ----------------------------------------------------- produto */}
-        <div className="js-pass-wrap js-pin-track relative mt-16 md:mt-24 md:h-[380vh]">
+        <div className="js-pass-wrap js-pin-track relative mt-12 md:mt-20 md:h-[250vh]">
           <div className="js-pin-frame md:sticky md:top-0 md:flex md:h-[100svh] md:items-center md:overflow-hidden">
             <div className={cx(s.shell, "grid w-full items-center gap-14 md:grid-cols-12 md:gap-10")}>
               {/* ------------------------------------------ passos */}

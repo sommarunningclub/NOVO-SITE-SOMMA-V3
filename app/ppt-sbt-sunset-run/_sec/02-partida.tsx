@@ -53,19 +53,16 @@ export function Partida() {
             <div className="md:col-span-7">
               <Headline level="h2">{"Divulgação não é\no que queremos\nconstruir."}</Headline>
             </div>
-            <div className="flex flex-col justify-end gap-6 md:col-span-4 md:col-start-9" data-rise data-rise-children>
+            <div className="flex items-end md:col-span-4 md:col-start-9" data-rise>
               <p className={s.lead}>
-                O SBT procurou a Somma para ajudar a divulgar a Sunset&nbsp;Run. Nossa proposta vai além.
-              </p>
-              <p className={s.body}>
-                A Somma não quer simplesmente impactar corredores. Queremos colocá-los dentro da experiência.
+                O SBT nos chamou para divulgar. Queremos colocar gente dentro.
               </p>
             </div>
           </div>
         </div>
 
         {/* --------------------------------------------------------- a virada */}
-        <div className="js-stage-wrap js-pin-track relative mt-20 h-[260vh] md:mt-32 md:h-[300vh]">
+        <div className="js-stage-wrap js-pin-track relative mt-20 h-[150vh] md:mt-24 md:h-[175vh]">
           <div className="js-pin-frame sticky top-0 flex h-[100svh] items-center justify-center overflow-hidden">
             {/* halo que acende junto com a experiência */}
             <div
@@ -97,9 +94,10 @@ export function Partida() {
                 {DIVULGACAO.map((i) => (
                   <li
                     key={i}
-                    className={cx(s.mono, "js-a-item text-[0.75rem] uppercase tracking-[0.24em]")}
+                    className={cx(s.mono, "js-a-item flex items-center gap-2 text-[0.75rem] uppercase tracking-[0.24em]")}
                     style={{ color: "var(--dim-2)" }}
                   >
+                    <span aria-hidden style={{ color: "rgba(255,255,255,.3)" }}>✕</span>
                     {i}
                   </li>
                 ))}
@@ -121,9 +119,10 @@ export function Partida() {
                 {EXPERIENCIA.map((i, n) => (
                   <li
                     key={i}
-                    className={cx(s.mono, "js-b-item text-[0.75rem] uppercase tracking-[0.24em] md:text-[0.8125rem]")}
+                    className={cx(s.mono, "js-b-item flex items-center gap-2 text-[0.75rem] uppercase tracking-[0.24em] md:text-[0.8125rem]")}
                     style={{ color: n % 3 === 1 ? "var(--cyan)" : "var(--paper)" }}
                   >
+                    <span aria-hidden style={{ color: "var(--somma)" }}>✓</span>
                     {i}
                   </li>
                 ))}

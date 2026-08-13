@@ -66,8 +66,7 @@ export function Pacers() {
             </div>
             <div className="flex items-end md:col-span-4 md:col-start-9" data-rise>
               <p className={s.body}>
-                Treinadores e insiders da Somma como pacers oficiais da comunidade. Cada grupo tem um ritmo, um balão e
-                alguém responsável por não deixar ninguém para trás.
+                Treinadores e insiders como pacers. Cada grupo tem ritmo, balão e responsável.
               </p>
             </div>
           </div>
@@ -128,9 +127,8 @@ export function Pacers() {
               Existe um grupo <span style={{ color: "var(--somma)" }}>para você.</span>
             </p>
             {/* é aqui que "comunidade democrática" deixa de ser adjetivo e vira operação */}
-            <p className={cx(s.body, "mt-5 max-w-[54ch]")}>
-              A Somma é uma comunidade democrática, e os grupos de pace são a prova disso: quem vai estrear nos 5 km e
-              quem persegue o sub-50 nos 10 km largam do mesmo lugar, com alguém responsável por cada ritmo.
+            <p className={cx(s.body, "mt-5 max-w-[46ch]")}>
+              Comunidade democrática na prática: do primeiro 5K ao sub-50, cada ritmo com um responsável.
             </p>
             <p className={cx(s.mono, "mt-5 text-[0.625rem] uppercase tracking-[0.2em]")} style={{ color: "var(--dim-2)" }}>
               Ritmos indicativos · definição final com os treinadores

@@ -1,259 +1,206 @@
 "use client";
 
-import { gsap, useScope, EASE, scrub } from "../_motion";
+import { gsap, useScope, EASE } from "../_motion";
 import { Headline, Chapter, Section, cx, s } from "../_ui";
 
-/** O outro lado da mesa: o que a Somma põe na parceria. */
-const SOMMA = [
-  { k: "O maior running club do Distrito Federal", d: "Base própria, construída em Brasília, treino a treino." },
-  { k: "Encontros todos os sábados", d: "Operação presencial que já roda. Não precisa ser inventada para a campanha." },
-  { k: "Uma comunidade democrática", d: "Quem estreia nos 5 km e quem corre abaixo de 50 nos 10 km treinam no mesmo lugar." },
+/** Edição 2025. Fonte: relatório de pós-venda SBT Sunset Run. */
+const SBT = [
+  { n: 2000, fmt: "int", label: "atletas", note: "5 km e 10 km" },
+  { n: 2, fmt: "mm", label: "telespectadores", note: "TV aberta" },
+  { n: 142, fmt: "mil", label: "views em Feed", note: "redes SBT" },
+  { n: 144, fmt: "mil", label: "views em Stories", note: "redes SBT" },
 ];
 
-/** Números da edição 2025. Fonte: relatório de pós-venda SBT Sunset Run. */
-const STATS = [
-  { v: 2000, fmt: "int", label: "atletas na edição 2025", note: "5 km e 10 km · Esplanada dos Ministérios" },
-  { v: 2, fmt: "mm", label: "telespectadores alcançados", note: "Cobertura em TV aberta no período" },
-  { v: 142, fmt: "mil", label: "visualizações em Feed", note: "Conteúdo da corrida nas redes do SBT" },
-  { v: 144, fmt: "mil", label: "visualizações em Stories", note: "Cobertura multiplataforma do evento" },
-];
+/** O outro lado da mesa. */
+const SOMMA = ["O maior running club do Distrito Federal", "Encontros todos os sábados", "Uma comunidade democrática"];
 
 /**
  * Por que a parceria faz sentido.
  *
- * Os números da edição passada entram um por vez numa moldura fixa, contando
- * durante a própria rolagem. O ponto não é a tabela: é chegar na conclusão de
- * que mídia o SBT já tem de sobra.
+ * Os quatro números do SBT entram juntos, numa linha só: o argumento não é cada
+ * um deles, é o conjunto provando que mídia já existe de sobra. Do outro lado, a
+ * base da Somma. A conclusão vem riscada, sem precisar de texto para explicar.
  */
 export function PorQue() {
   const ref = useScope<HTMLDivElement>(({ root }) => {
     const q = gsap.utils.selector(root);
-    const cards = q<HTMLElement>(".js-stat");
 
-    const tl = gsap.timeline({
-      scrollTrigger: { trigger: q(".js-stats-wrap")[0], start: "top top", end: "bottom bottom", scrub: scrub(0.45) },
+    // contadores disparam juntos quando a linha entra
+    q<HTMLElement>(".js-num").forEach((el) => {
+      const to = Number(el.dataset.n);
+      const kind = el.dataset.fmt;
+      const fmt = (v: number) =>
+        kind === "mm"
+          ? `+${v.toFixed(1).replace(".", ",")} MM`
+          : kind === "mil"
+            ? `${Math.round(v)} MIL`
+            : Math.round(v).toLocaleString("pt-BR");
+      const o = { v: 0 };
+      el.textContent = fmt(0);
+      gsap.to(o, {
+        v: to,
+        duration: 1.5,
+        ease: "power2.out",
+        onUpdate: () => {
+          el.textContent = fmt(o.v);
+        },
+        scrollTrigger: { trigger: el, start: "top 88%", once: true },
+      });
     });
 
-    cards.forEach((card, i) => {
-      const at = i * 1;
-      const numEl = card.querySelector<HTMLElement>(".js-stat-num");
-      const target = Number(card.dataset.value);
-      const kind = card.dataset.fmt;
+    gsap.fromTo(
+      q(".js-stat"),
+      { opacity: 0, y: 20 },
+      {
+        opacity: 1,
+        y: 0,
+        duration: 0.7,
+        stagger: 0.08,
+        ease: EASE.soft,
+        scrollTrigger: { trigger: q(".js-stats")[0], start: "top 84%", once: true },
+      },
+    );
 
-      const format = (n: number) => {
-        if (kind === "mm") return `+${n.toFixed(1).replace(".", ",")} MM`;
-        if (kind === "mil") return `${Math.round(n)} MIL`;
-        return Math.round(n).toLocaleString("pt-BR");
-      };
-
-      if (i > 0) {
-        tl.fromTo(card, { opacity: 0, yPercent: 12 }, { opacity: 1, yPercent: 0, duration: 0.34, ease: EASE.out }, at);
-      }
-      if (numEl) {
-        const counter = { v: 0 };
-        tl.to(
-          counter,
-          {
-            v: target,
-            duration: 0.55,
-            ease: "power2.out",
-            onUpdate: () => {
-              numEl.textContent = format(counter.v);
-            },
-          },
-          at,
-        );
-      }
-      if (i < cards.length - 1) {
-        tl.to(card, { opacity: 0, yPercent: -12, duration: 0.34, ease: "power2.in" }, at + 0.66);
-      }
-    });
-
-    // o contador da base Somma responde aos números do SBT logo acima
-    const sommaNum = q<HTMLElement>(".js-somma-num")[0];
-    if (sommaNum) {
+    // a base Somma responde aos números do SBT
+    const somma = q<HTMLElement>(".js-somma-num")[0];
+    if (somma) {
       const o = { v: 0 };
       gsap.to(o, {
         v: 6000,
-        duration: 1.9,
+        duration: 1.7,
         ease: "power2.out",
         onUpdate: () => {
-          sommaNum.textContent = `+${Math.round(o.v).toLocaleString("pt-BR")}`;
+          somma.textContent = `+${Math.round(o.v).toLocaleString("pt-BR")}`;
         },
-        scrollTrigger: { trigger: sommaNum, start: "top 82%", once: true },
+        scrollTrigger: { trigger: somma, start: "top 85%", once: true },
       });
     }
 
     gsap.fromTo(
-      q(".js-somma-fact"),
-      { opacity: 0, x: -16 },
+      q(".js-fact"),
+      { opacity: 0, x: -14 },
       {
         opacity: 1,
         x: 0,
-        duration: 0.8,
-        stagger: 0.1,
+        duration: 0.6,
+        stagger: 0.09,
         ease: EASE.soft,
-        scrollTrigger: { trigger: q(".js-somma")[0], start: "top 74%", once: true },
+        scrollTrigger: { trigger: q(".js-somma")[0], start: "top 80%", once: true },
       },
     );
 
-    // conclusão: duas batidas separadas, a segunda entra depois da primeira sumir
-    const closer = gsap.timeline({
-      scrollTrigger: { trigger: q(".js-closer-wrap")[0], start: "top top", end: "bottom bottom", scrub: scrub(0.5) },
-    });
-    closer
-      .to(q(".js-closer-a"), { opacity: 0, yPercent: -18, filter: "blur(8px)", duration: 0.4 }, 0.42)
-      .fromTo(
-        q(".js-closer-b"),
-        { opacity: 0, yPercent: 22 },
-        { opacity: 1, yPercent: 0, duration: 0.5, ease: EASE.out },
-        0.52,
-      )
-      .fromTo(q(".js-closer-line"), { scaleX: 0 }, { scaleX: 1, duration: 0.4, ease: "power2.inOut" }, 0.72);
+    // o risco corta a frase que deixou de valer
+    gsap.fromTo(
+      q(".js-strike-out"),
+      { scaleX: 0 },
+      {
+        scaleX: 1,
+        duration: 0.7,
+        ease: "power2.inOut",
+        scrollTrigger: { trigger: q(".js-verdict")[0], start: "top 72%", once: true },
+      },
+    );
   });
 
   return (
     <Section id="porque" stage={0} className="pt-24 md:pt-32">
-      <div ref={ref}>
-        <div className={cx(s.shell, "relative z-10")}>
-          <Chapter n="03" label="Por que isso faz sentido" />
-          <div className="grid gap-10 md:grid-cols-12">
-            <div className="md:col-span-8">
-              <Headline level="h2">{"O SBT já tem mídia.\nA Somma tem\ncomunidade."}</Headline>
-            </div>
-            <div className="flex items-end md:col-span-3 md:col-start-10" data-rise>
-              <p className={s.body}>
-                A Sunset Run já provou que enche a Esplanada e ocupa a grade. O que ainda não existe é o que acontece
-                nas semanas anteriores.
-              </p>
-            </div>
-          </div>
-        </div>
+      <div ref={ref} className={cx(s.shell, "relative z-10")}>
+        <Chapter n="03" label="Por que isso faz sentido" />
 
-        {/* ------------------------------------------------------ números */}
-        <div className="js-stats-wrap js-pin-track relative mt-16 h-[400vh] md:mt-28">
-          <div className="js-pin-frame sticky top-0 flex h-[100svh] items-center overflow-hidden">
-            <div className={cx(s.shell, "relative w-full")}>
-              {STATS.map((st, i) => (
-                <div
-                  key={st.label}
-                  data-value={st.v}
-                  data-fmt={st.fmt}
-                  className={cx("js-stat", i > 0 && cx(s.swap, s.mHide))}
-                >
-                  <span className={cx(s.bib, "mb-6 block")}>
-                    {String(i + 1).padStart(2, "0")} / {String(STATS.length).padStart(2, "0")}
-                  </span>
-                  <p
-                    className={cx(s.num, "js-stat-num")}
-                    style={{ fontSize: "clamp(3.75rem,12vw,12rem)", fontVariationSettings: '"wdth" 112' }}
-                  >
-                    0
-                  </p>
-                  <div className="mt-7 flex flex-col gap-2 border-t pt-6" style={{ borderColor: "var(--hair)" }}>
-                    <p
-                      className={cx(s.h3, "!text-[clamp(1.15rem,2.4vw,2rem)]")}
-                      style={{ fontVariationSettings: '"wdth" 100' }}
-                    >
-                      {st.label}
-                    </p>
-                    <p className={cx(s.mono, "text-[0.6875rem] uppercase tracking-[0.2em]")} style={{ color: "var(--dim-2)" }}>
-                      {st.note}
-                    </p>
-                  </div>
-                </div>
-              ))}
+        <Headline level="h2" className="max-w-[18ch]">
+          {"O SBT já tem mídia.\nA Somma tem comunidade."}
+        </Headline>
 
-            </div>
-
-            {/* fora do fluxo dos cards: eles trocam de lugar, a fonte não */}
-            <p
-              className={cx(
-                s.mono,
-                "absolute bottom-8 left-[var(--gut)] text-[0.5625rem] uppercase tracking-[0.22em]",
-              )}
-              style={{ color: "rgba(255,255,255,.22)" }}
-            >
-              Fonte: relatório de pós-venda SBT Sunset Run 2025
-            </p>
-          </div>
-        </div>
-
-        {/* ------------------------------------------------ a outra metade */}
-        <div className={cx(s.shell, "js-somma relative z-10 pt-24 md:pt-36")}>
-          <div className="mb-10 flex items-baseline gap-4 md:mb-14">
-            <span className={cx(s.mono, "text-[0.6875rem] uppercase tracking-[0.28em]")} style={{ color: "var(--somma)" }}>
-              E deste lado
+        {/* ------------------------------------------------ o que o SBT tem */}
+        <div className="js-stats mt-16 md:mt-24">
+          <div className="mb-8 flex items-baseline gap-4">
+            <span className={cx(s.mono, "text-[0.625rem] uppercase tracking-[0.28em]")} style={{ color: "var(--cyan)" }}>
+              SBT Sunset Run · 2025
             </span>
             <span className={cx(s.rule, "js-rule flex-1")} />
           </div>
 
-          <div className="grid items-end gap-10 md:grid-cols-12 md:gap-12">
-            {/* o número que sustenta a proposta inteira */}
-            <div className="md:col-span-5">
-              <p className={cx(s.num, "js-somma-num")} style={{ fontSize: "clamp(3.75rem,11vw,10rem)" }}>
-                0
-              </p>
-              <div className="mt-6 flex flex-col gap-2 border-t pt-5" style={{ borderColor: "var(--hair)" }}>
-                <p className={cx(s.h3, "!text-[clamp(1.15rem,2vw,1.75rem)]")} style={{ fontVariationSettings: '"wdth" 100' }}>
-                  membros na comunidade Somma
+          <div className="grid grid-cols-2 gap-x-6 gap-y-10 md:grid-cols-4 md:gap-8">
+            {SBT.map((st) => (
+              <div key={st.label} className="js-stat">
+                <p
+                  className={cx(s.num, "js-num")}
+                  data-n={st.n}
+                  data-fmt={st.fmt}
+                  style={{ fontSize: "clamp(2.1rem,5vw,4.5rem)" }}
+                >
+                  0
                 </p>
-                <p className={cx(s.mono, "text-[0.6875rem] uppercase tracking-[0.2em]")} style={{ color: "var(--cyan)" }}>
-                  Corredores reais, em Brasília
+                <p className={cx(s.mono, "mt-3 text-[0.6875rem] uppercase tracking-[0.16em] text-white")}>{st.label}</p>
+                <p className={cx(s.mono, "mt-1 text-[0.5625rem] uppercase tracking-[0.2em]")} style={{ color: "var(--dim-2)" }}>
+                  {st.note}
                 </p>
               </div>
+            ))}
+          </div>
+
+          <p className={cx(s.mono, "mt-8 text-[0.5625rem] uppercase tracking-[0.2em]")} style={{ color: "rgba(255,255,255,.24)" }}>
+            Fonte: pós-venda SBT Sunset Run 2025
+          </p>
+        </div>
+
+        {/* ------------------------------------------------ o que a Somma tem */}
+        <div className="js-somma mt-20 md:mt-28">
+          <div className="mb-8 flex items-baseline gap-4">
+            <span className={cx(s.mono, "text-[0.625rem] uppercase tracking-[0.28em]")} style={{ color: "var(--somma)" }}>
+              Somma Club · hoje
+            </span>
+            <span className={cx(s.rule, "js-rule flex-1")} />
+          </div>
+
+          <div className="grid items-center gap-8 md:grid-cols-12 md:gap-10">
+            <div className="md:col-span-4">
+              <p className={cx(s.num, "js-somma-num")} style={{ fontSize: "clamp(3rem,8vw,7rem)" }}>
+                0
+              </p>
+              <p className={cx(s.mono, "mt-3 text-[0.6875rem] uppercase tracking-[0.16em] text-white")}>
+                membros em Brasília
+              </p>
             </div>
 
-            <ul className="flex flex-col md:col-span-6 md:col-start-7">
-              {SOMMA.map((f, i) => (
-                <li
-                  key={f.k}
-                  className="js-somma-fact flex gap-5 border-b py-6 first:border-t"
-                  style={{ borderColor: "var(--hair)" }}
-                >
-                  <span className={cx(s.mono, "mt-1.5 text-[0.5625rem] tracking-[0.22em]")} style={{ color: "var(--somma)" }}>
-                    {String(i + 1).padStart(2, "0")}
+            <ul className="flex flex-col gap-3.5 md:col-span-7 md:col-start-6">
+              {SOMMA.map((f) => (
+                <li key={f} className="js-fact flex items-center gap-4">
+                  <span
+                    aria-hidden
+                    className="grid h-6 w-6 shrink-0 place-items-center rounded-full text-[0.7rem]"
+                    style={{ border: "1px solid rgba(255,44,4,.5)", color: "var(--somma)" }}
+                  >
+                    ✓
                   </span>
-                  <div>
-                    <p className={cx(s.h3, "!text-[clamp(1.05rem,1.7vw,1.4rem)]")} style={{ fontVariationSettings: '"wdth" 100' }}>
-                      {f.k}
-                    </p>
-                    <p className={cx(s.body, "mt-2 !text-[0.875rem]")}>{f.d}</p>
-                  </div>
+                  <span className={cx(s.h3, "!text-[clamp(1rem,1.6vw,1.3rem)]")} style={{ fontVariationSettings: '"wdth" 100' }}>
+                    {f}
+                  </span>
                 </li>
               ))}
             </ul>
           </div>
         </div>
 
-        {/* ------------------------------------------------------ conclusão */}
-        <div className="js-closer-wrap js-pin-track relative h-[200vh]">
-          <div className="js-pin-frame sticky top-0 flex h-[100svh] items-center overflow-hidden">
-            <div className={cx(s.shell, "relative w-full")}>
-              <div className="js-closer-a">
-                <p className={cx(s.eyebrow, "mb-7")}>A leitura</p>
-                <h3 className={s.h2} style={{ color: "var(--dim)" }}>
-                  A oportunidade não está
-                  <br />
-                  em adicionar mais mídia.
-                </h3>
-              </div>
-
-              <div className={cx("js-closer-b", s.swap, s.mHide)}>
-                <p className={cx(s.eyebrow, "mb-7")} style={{ color: "var(--somma)" }}>
-                  Está aqui
-                </p>
-                <h3 className={s.h2}>
-                  Está em construir
-                  <br />a <span style={{ color: "var(--somma)" }}>jornada do corredor.</span>
-                </h3>
-                <div
-                  className="js-closer-line mt-10 h-px w-full origin-left"
-                  style={{ background: "linear-gradient(90deg,var(--somma),rgba(255,255,255,0))" }}
-                />
-              </div>
-            </div>
+        {/* ------------------------------------------------ o veredito */}
+        <div className="js-verdict mt-20 border-t pt-12 md:mt-28 md:pt-16" style={{ borderColor: "var(--hair)" }}>
+          <div className="relative inline-block">
+            <p className={s.h2} style={{ color: "var(--dim-2)", fontSize: "clamp(1.4rem,3vw,2.6rem)" }}>
+              Mais mídia
+            </p>
+            {/* o risco diz o que um parágrafo diria */}
+            <span
+              aria-hidden
+              // 44% e não 50%: a caixa de linha reserva espaço para descendentes
+              // que a palavra em caixa alta não usa, então o meio real sobe
+              className="js-strike-out absolute left-[-2%] top-[44%] h-[3px] w-[104%] origin-left"
+              style={{ background: "var(--somma)" }}
+            />
           </div>
+
+          <p className={cx(s.h2, "mt-5")} style={{ fontSize: "clamp(1.75rem,4.4vw,4rem)" }}>
+            A jornada do <span style={{ color: "var(--somma)" }}>corredor.</span>
+          </p>
         </div>
       </div>
     </Section>

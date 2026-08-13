@@ -4,12 +4,12 @@ import { gsap, useScope, EASE, scrub } from "../_motion";
 import { Headline, Chapter, Section, cx, s } from "../_ui";
 
 const STEPS = [
-  { k: "Discover", d: "Comunicação Somma", n: "A base descobre a Sunset Run por quem ela já segue." },
-  { k: "Join", d: "Sunset Pass", n: "Um toque e o corredor está dentro da jornada." },
-  { k: "Train", d: "Training Series", n: "Quatro sábados que preparam para a distância." },
-  { k: "Engage", d: "Missões e conteúdo", n: "A Sunset 5 mantém a comunidade ativa entre os treinos." },
-  { k: "Run", d: "Somma Sunset Crew", n: "O bloco da comunidade dentro da prova." },
-  { k: "Continue", d: "Conteúdo + CRM", n: "A relação não acaba na linha de chegada." },
+  { k: "Discover", d: "Comunicação Somma" },
+  { k: "Join", d: "Sunset Pass" },
+  { k: "Train", d: "Training Series" },
+  { k: "Engage", d: "Missões e conteúdo" },
+  { k: "Run", d: "Somma Sunset Crew" },
+  { k: "Continue", d: "Conteúdo + CRM" },
 ];
 
 /**
@@ -87,8 +87,7 @@ export function Journey() {
             </div>
             <div className="flex items-end md:col-span-4 md:col-start-9" data-rise>
               <p className={s.body}>
-                Do primeiro contato ao pós-prova. Cada etapa tem um responsável, uma ferramenta e um indicador. Não é
-                um conceito, é uma operação.
+                Cada etapa com sua ferramenta. Não é conceito, é operação.
               </p>
             </div>
           </div>
@@ -120,7 +119,6 @@ export function Journey() {
                     <p className={cx(s.mono, "mt-2 text-[0.625rem] uppercase tracking-[0.14em]")} style={{ color: "var(--cyan)" }}>
                       {st.d}
                     </p>
-                    <p className={cx(s.body, "mt-3 !text-[0.8125rem] !leading-[1.5]")}>{st.n}</p>
                   </li>
                 ))}
               </ol>
@@ -152,7 +150,6 @@ export function Journey() {
                       <p className={cx(s.mono, "mt-1.5 text-[0.625rem] uppercase tracking-[0.14em]")} style={{ color: "var(--cyan)" }}>
                         {st.d}
                       </p>
-                      <p className={cx(s.body, "mt-2.5 !text-[0.875rem]")}>{st.n}</p>
                     </div>
                   </li>
                 ))}
