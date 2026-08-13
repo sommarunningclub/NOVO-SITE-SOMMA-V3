@@ -1,0 +1,494 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   DESAFIO DAS ESTEIRAS — sistema visual do evento
+   Conceito: TELEMETRIA. A página se comporta como o display de uma esteira —
+   dados em mono, linhas de pista, números que sobem, ritmo entre preto e papel.
+   Tudo prefixado com `dst-` para não vazar para o resto do site.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.dst {
+  --evolve: #e0261b;
+  --somma: #ff2c04;
+  --ink: #08080a;
+  --ink-2: #101014;
+  --ink-3: #17171c;
+  --paper: #f2f0ec;
+  --ash: #d9d6d0;
+  --white: #ffffff;
+  --line: rgba(255, 255, 255, 0.12);
+  --line-dark: rgba(8, 8, 10, 0.14);
+
+  /* rampa de energia: só aparece em traços/linhas, nunca como fundo chapado */
+  --energia: linear-gradient(90deg, var(--evolve) 0%, var(--somma) 100%);
+
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--font-dst-sans), ui-sans-serif, system-ui, sans-serif;
+  font-synthesis-weight: none;
+  overflow-x: clip;
+}
+
+.dst *,
+.dst *::before,
+.dst *::after {
+  box-sizing: border-box;
+  border-color: var(--line);
+}
+
+.dst ::selection {
+  background: var(--somma);
+  color: var(--ink);
+}
+
+/* ── Tipografia ───────────────────────────────────────────────────────────── */
+
+/* Headline editorial: Archivo no eixo expandido. É a assinatura da campanha. */
+.dst-display {
+  font-family: var(--font-dst-sans), sans-serif;
+  font-variation-settings: "wdth" 118;
+  font-weight: 800;
+  line-height: 0.82;
+  letter-spacing: -0.035em;
+  text-transform: uppercase;
+  text-wrap: balance;
+}
+
+.dst-display-condensed {
+  font-variation-settings: "wdth" 82;
+  letter-spacing: -0.01em;
+}
+
+.dst-mono {
+  font-family: var(--font-dst-mono), ui-monospace, monospace;
+  font-feature-settings: "tnum" 1;
+  letter-spacing: -0.02em;
+}
+
+/* Rótulo técnico: o texto pequeno que dá o tom de painel de instrumento. */
+.dst-label {
+  font-family: var(--font-dst-mono), ui-monospace, monospace;
+  font-size: clamp(0.6rem, 1.6vw, 0.72rem);
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+.dst-num {
+  font-family: var(--font-dst-mono), ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1, "zero" 1;
+}
+
+/* ── Layout ───────────────────────────────────────────────────────────────── */
+
+.dst-wrap {
+  --gutter: clamp(1.125rem, 4vw, 4rem);
+  /* Largura útil de texto dentro do wrap. `.dst-fit` usa isto para se dimensionar. */
+  --avail: calc(min(1440px, 100vw) - 2 * var(--gutter));
+  width: 100%;
+  max-width: 1440px;
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+/*
+  Tipografia que preenche a linha.
+
+  Uma headline de 12 caracteres e outra de 24 não podem usar o mesmo `vw`: uma
+  sobra, a outra estoura. Cada linha declara seu comprimento em `--len` e o
+  tamanho sai de uma divisão — o texto ocupa a largura disponível e nunca
+  transborda, em qualquer viewport, sem media query e sem medir nada em JS.
+
+  0.90em é o avanço médio por caractere: medimos 0.876 no pior caso real desta
+  página ("ENCONTRE", cheio de letras largas) e guardamos ~3% de folga para
+  acentos e para a fonte de fallback enquanto a web font carrega. `--fit-max`
+  segura o crescimento em telas largas.
+
+  `nowrap` é parte do contrato: cada linha declarada é uma linha renderizada, e
+  o tamanho já garante que ela cabe. Sem isso, uma quebra automática mudaria o
+  comprimento real e o cálculo deixaria de valer.
+*/
+.dst-fit {
+  font-size: clamp(
+    var(--fit-min, 1.05rem),
+    calc(var(--avail, 90vw) / (var(--len, 10) * 0.90)),
+    var(--fit-max, 9.5rem)
+  );
+  white-space: nowrap;
+}
+
+/*
+  Headline dentro de coluna: no mobile ocupa a largura toda, no desktop apenas
+  a fração da grade em que vive. Aplique no elemento que envolve o `.dst-fit`.
+*/
+@media (min-width: 768px) {
+  .dst-col-4 {
+    --avail: calc((min(1440px, 100vw) - 2 * var(--gutter)) * 0.3);
+  }
+  .dst-col-6 {
+    --avail: calc((min(1440px, 100vw) - 2 * var(--gutter)) * 0.47);
+  }
+  .dst-col-7 {
+    --avail: calc((min(1440px, 100vw) - 2 * var(--gutter)) * 0.55);
+  }
+}
+
+.dst-section {
+  position: relative;
+  padding-block: clamp(4.5rem, 11vw, 9.5rem);
+}
+
+/* Inversão de ritmo: blocos claros quebram a sequência escura. */
+.dst-paper {
+  background: var(--paper);
+  color: var(--ink);
+}
+.dst-paper *,
+.dst-paper *::before,
+.dst-paper *::after {
+  border-color: var(--line-dark);
+}
+
+/* ── Linhas de pista ──────────────────────────────────────────────────────── */
+
+/* Faixas horizontais finas — a "pista" que atravessa a página inteira. */
+.dst-lanes {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 87px,
+    var(--line) 87px,
+    var(--line) 88px
+  );
+  opacity: 0.55;
+  mask-image: linear-gradient(to bottom, transparent, #000 18%, #000 82%, transparent);
+}
+
+/* Régua vertical de marcação, tipo escala de painel. */
+.dst-ticks {
+  position: absolute;
+  inset-block: 0;
+  width: 1px;
+  background: var(--line);
+  pointer-events: none;
+}
+.dst-ticks::before {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  left: -3px;
+  width: 7px;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    var(--line) 0,
+    var(--line) 1px,
+    transparent 1px,
+    transparent 24px
+  );
+}
+
+/* ── Grão e atmosfera ─────────────────────────────────────────────────────── */
+
+.dst-grain::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 3;
+  opacity: 0.05;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Halo de neon vermelho — ecoa o letreiro EVOLVE das fotos. */
+.dst-glow {
+  position: absolute;
+  border-radius: 999px;
+  filter: blur(90px);
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+/* ── Botões ───────────────────────────────────────────────────────────────── */
+
+.dst-btn {
+  --btn-bg: var(--evolve);
+  --btn-fg: var(--white);
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  min-height: 56px;
+  padding: 1rem 1.75rem;
+  background: var(--btn-bg);
+  color: var(--btn-fg);
+  border: 1px solid transparent;
+  font-family: var(--font-dst-sans), sans-serif;
+  font-weight: 800;
+  font-size: clamp(0.82rem, 2vw, 0.95rem);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+  overflow: hidden;
+  isolation: isolate;
+  transition:
+    transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
+    color 0.3s ease,
+    border-color 0.3s ease;
+}
+
+/* Microinteração: a energia SOMMA varre o botão da esquerda para a direita. */
+.dst-btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--somma);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.42s cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+@media (hover: hover) {
+  .dst-btn:hover::before {
+    transform: scaleX(1);
+  }
+  .dst-btn:hover {
+    transform: translateY(-2px);
+  }
+}
+
+.dst-btn:active {
+  transform: translateY(0) scale(0.985);
+}
+
+.dst-btn--ghost {
+  --btn-bg: transparent;
+  --btn-fg: var(--paper);
+  border-color: rgba(242, 240, 236, 0.35);
+}
+.dst-btn--ghost:hover {
+  --btn-fg: var(--white);
+  border-color: transparent;
+}
+
+.dst-btn--paper {
+  --btn-bg: var(--ink);
+  --btn-fg: var(--paper);
+}
+
+.dst-btn--somma {
+  --btn-bg: var(--somma);
+}
+.dst-btn--somma::before {
+  background: var(--evolve);
+}
+
+.dst-btn--xl {
+  min-height: 76px;
+  padding: 1.4rem 2.5rem;
+  font-size: clamp(1rem, 2.6vw, 1.35rem);
+}
+
+.dst-btn:focus-visible,
+.dst a:focus-visible,
+.dst button:focus-visible,
+.dst input:focus-visible,
+.dst select:focus-visible,
+.dst [tabindex]:focus-visible {
+  outline: 2px solid var(--somma);
+  outline-offset: 3px;
+}
+
+/* CTA pulsante do hero — chama sem gritar. */
+@keyframes dst-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 44, 4, 0.5);
+  }
+  60% {
+    box-shadow: 0 0 0 18px rgba(255, 44, 4, 0);
+  }
+}
+.dst-pulse {
+  animation: dst-pulse 2.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+/* ── Ticker ───────────────────────────────────────────────────────────────── */
+
+.dst-ticker {
+  display: flex;
+  overflow: hidden;
+  user-select: none;
+  border-block: 1px solid currentColor;
+}
+.dst-ticker__track {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 2.5rem;
+  padding-block: 0.85rem;
+  padding-right: 2.5rem;
+  white-space: nowrap;
+  animation: dst-marquee 28s linear infinite;
+}
+.dst-ticker--reverse .dst-ticker__track {
+  animation-direction: reverse;
+}
+@keyframes dst-marquee {
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+/* ── Display de esteira ───────────────────────────────────────────────────── */
+
+/* O "painel" — fundo quase preto, borda fina, números em mono, scanline sutil. */
+.dst-panel {
+  position: relative;
+  background: var(--ink-2);
+  border: 1px solid var(--line);
+  overflow: hidden;
+}
+.dst-panel::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.035) 0,
+    rgba(255, 255, 255, 0.035) 1px,
+    transparent 1px,
+    transparent 4px
+  );
+}
+
+/* ── Reveal de texto por máscara ──────────────────────────────────────────── */
+
+/* Cada linha vira uma janela; o GSAP sobe o conteúdo de dentro dela. */
+.dst-mask {
+  display: block;
+  overflow: hidden;
+}
+.dst-mask > * {
+  display: block;
+  will-change: transform;
+}
+
+/*
+  Nada é escondido por CSS de propósito.
+  O estado inicial das revelações é aplicado pelo próprio GSAP, via `fromTo`
+  dentro de `useLayoutEffect` — ou seja, antes do paint. Se o JS falhar, quebrar
+  ou for bloqueado, o texto simplesmente aparece: a página nunca depende de uma
+  animação para ser legível.
+*/
+
+@media (prefers-reduced-motion: reduce) {
+  .dst *,
+  .dst *::before,
+  .dst *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .dst .dst-mask > *,
+  .dst .dst-rise {
+    transform: none !important;
+    opacity: 1 !important;
+  }
+}
+
+/* ── Formulário ───────────────────────────────────────────────────────────── */
+
+.dst-field {
+  width: 100%;
+  min-height: 60px;
+  padding: 1.4rem 1rem 0.6rem;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  color: var(--paper);
+  font-family: var(--font-dst-sans), sans-serif;
+  font-size: 1.05rem; /* ≥16px: evita o zoom automático do iOS */
+  transition: border-color 0.25s ease;
+}
+.dst-field::placeholder {
+  color: transparent;
+}
+.dst-field:focus {
+  outline: none;
+  border-bottom-color: var(--somma);
+}
+.dst-field:-webkit-autofill {
+  -webkit-text-fill-color: var(--paper);
+  transition: background-color 9999s;
+}
+
+.dst-field-wrap {
+  position: relative;
+}
+.dst-field-label {
+  position: absolute;
+  top: 1.15rem;
+  left: 1rem;
+  /* uma linha só: se a label quebrasse, ela invadiria o texto digitado */
+  max-width: calc(100% - 2rem);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-family: var(--font-dst-mono), monospace;
+  font-size: 0.9rem;
+  letter-spacing: 0.05em;
+  color: rgba(242, 240, 236, 0.5);
+  pointer-events: none;
+  transform-origin: left top;
+  transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1), color 0.2s ease;
+}
+.dst-field:focus + .dst-field-label,
+.dst-field:not(:placeholder-shown) + .dst-field-label {
+  transform: translateY(-0.85rem) scale(0.68);
+  color: var(--somma);
+}
+
+.dst-field[aria-invalid="true"] {
+  border-bottom-color: var(--evolve);
+}
+
+/* ── Utilidades ───────────────────────────────────────────────────────────── */
+
+.dst-hairline {
+  height: 1px;
+  background: var(--line);
+}
+
+.dst-energia-line {
+  height: 2px;
+  background: var(--energia);
+}
+
+.dst-clip-tag {
+  clip-path: polygon(0 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
+}
+
+/* Recorte de ticket: os dois entalhes laterais da picotagem. */
+.dst-notch {
+  position: absolute;
+  top: 50%;
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  background: var(--ink);
+  transform: translateY(-50%);
+}
+
+@media (max-width: 640px) {
+  .dst-lanes {
+    background-size: 100% 64px;
+  }
+}

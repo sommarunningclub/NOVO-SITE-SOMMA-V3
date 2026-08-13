@@ -33,3 +33,8 @@ next-env.d.ts
 # Decks gerados (npx tsx scripts/build-michelob-pptx.ts) — binários pesados,
 # reconstruíveis a partir do script e dos assets em public/michelob
 /output
+
+# Originais das fotos da Evolve (62 MB) — as versões otimizadas versionadas
+# vivem em public/desafio-esteiras-evolve/img/. Nada no código aponta para cá;
+# os originais ficam fora do repo para não pesar no build e no deploy.
+public/desafio-esteiras-evolve/imganes-evolve/
