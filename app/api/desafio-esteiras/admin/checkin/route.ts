@@ -5,6 +5,7 @@ import { TABLE, type Registration } from "@/lib/desafio-esteiras/db";
 import { extractToken, normalizeTicketCode } from "@/lib/desafio-esteiras/ticket";
 import { getUnit } from "@/lib/desafio-esteiras/event.config";
 import { checkinSchema } from "@/lib/desafio-esteiras/schema";
+import { checkinLiberado, motivoCheckinBloqueado } from "@/lib/desafio-esteiras/gestao";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +16,7 @@ const COLUNAS =
  * Valida o ticket no dia do evento.
  *
  * Regras:
+ * - o check-in precisa estar aberto no painel da gestão;
  * - operador só valida ticket da própria unidade;
  * - segundo check-in é recusado com o horário da primeira validação;
  * - o UPDATE é condicionado a `status = 'confirmed'`, então dois leitores
@@ -34,6 +36,19 @@ export async function POST(request: NextRequest) {
   const parsed = checkinSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json({ error: "Informe o QR Code ou o código do ticket." }, { status: 400 });
+  }
+
+  // A chave do check-in é da gestão e vale para todo mundo, admin inclusive.
+  const chave = await checkinLiberado();
+  if (!chave.liberado) {
+    return NextResponse.json(
+      {
+        resultado: "bloqueado",
+        checkinStatus: chave.status,
+        error: motivoCheckinBloqueado(chave.status),
+      },
+      { status: 409 },
+    );
   }
 
   const supabase = getServiceSupabase();

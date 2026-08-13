@@ -65,6 +65,40 @@ export async function getEventoId(): Promise<string | null> {
   return (await getEventoGestao())?.id ?? null;
 }
 
+/**
+ * O check-in do Desafio segue a chave da gestão.
+ *
+ * Quem abre e fecha o check-in é o painel da gestão, no card do evento. Aqui a
+ * gente só obedece: enquanto estiver `bloqueado` ou `encerrado`, ninguém valida
+ * ticket — nem a unidade, nem o operador, nem o admin. Existe um interruptor
+ * só, e ele fica num lugar só.
+ *
+ * Duas decisões que valem explicar:
+ *
+ * - Leitura fresca (`forcar`), sem cache. Destravar na gestão precisa valer no
+ *   segundo seguinte, com a fila na porta; são 96 validações no evento
+ *   inteiro, então a consulta extra não custa nada.
+ *
+ * - Sem vínculo com a gestão, libera. Se a integração não foi aplicada ou o
+ *   banco não respondeu, o certo é a portaria continuar andando: travar a fila
+ *   por causa de uma falha de rede seria pior do que deixar entrar.
+ */
+export async function checkinLiberado(): Promise<
+  { liberado: true } | { liberado: false; status: "bloqueado" | "encerrado" }
+> {
+  const evento = await getEventoGestao(true);
+  if (!evento) return { liberado: true };
+  if (evento.checkin_status === "aberto") return { liberado: true };
+  return { liberado: false, status: evento.checkin_status };
+}
+
+/** A recusa que a portaria lê, dizendo onde destravar. */
+export function motivoCheckinBloqueado(status: "bloqueado" | "encerrado"): string {
+  return status === "encerrado"
+    ? "O check-in deste evento foi encerrado no painel da gestão."
+    : "O check-in ainda não foi liberado. A organização abre no painel da gestão, no card do evento.";
+}
+
 /** Só para o painel: mostra ao operador o que a gestão está dizendo do evento. */
 export async function getStatusGestao(): Promise<{
   vinculado: boolean;

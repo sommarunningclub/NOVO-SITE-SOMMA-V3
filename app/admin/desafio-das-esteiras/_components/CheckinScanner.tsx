@@ -16,7 +16,14 @@ interface Participante {
 }
 
 interface Resultado {
-  resultado: "validado" | "ja_utilizado" | "nao_encontrado" | "unidade_incorreta" | "cancelado";
+  resultado:
+    | "validado"
+    | "ja_utilizado"
+    | "nao_encontrado"
+    | "unidade_incorreta"
+    | "cancelado"
+    // a gestão fechou a chave do check-in; nenhum ticket é aceito até reabrir
+    | "bloqueado";
   error?: string;
   checked_in_at?: string | null;
   checked_in_by?: string | null;
@@ -528,7 +535,9 @@ function ResultadoValidacao({
         ? "OUTRA UNIDADE"
         : resultado.resultado === "cancelado"
           ? "TICKET CANCELADO"
-          : "TICKET NÃO ENCONTRADO";
+          : resultado.resultado === "bloqueado"
+            ? "CHECK-IN FECHADO"
+            : "TICKET NÃO ENCONTRADO";
 
   return (
     <section

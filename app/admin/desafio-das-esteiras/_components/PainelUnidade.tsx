@@ -48,6 +48,12 @@ interface Resposta {
   };
   escopo: string;
   role: string;
+  /** A chave do check-in vive no painel da gestão; aqui a gente só obedece. */
+  checkin: {
+    liberado: boolean;
+    status: "aberto" | "bloqueado" | "encerrado";
+    motivo: string | null;
+  };
 }
 
 /* ── Painel ──────────────────────────────────────────────────────────────── */
@@ -201,6 +207,9 @@ export function PainelUnidade({
   const totalPrevisto = daUnidade?.total ?? 0;
   const jaChegaram = daUnidade?.checkins ?? 0;
   const percentual = totalPrevisto ? Math.round((jaChegaram / totalPrevisto) * 100) : 0;
+  // Antes da primeira resposta assumimos aberto: o botão desabilitado por
+  // desconhecimento assustaria mais do que o erro real, que a API devolve.
+  const checkinAberto = dados?.checkin.liberado ?? true;
 
   return (
     <main className="dst-wrap py-10 sm:py-14">
@@ -234,6 +243,24 @@ export function PainelUnidade({
           </button>
         </div>
       </header>
+
+      {/* A chave está fechada: avisamos antes, em vez de deixar a recepção
+          descobrir levando erro no primeiro nome da fila. */}
+      {dados && !dados.checkin.liberado && (
+        <div
+          role="status"
+          className="mt-8 border p-5"
+          style={{ borderColor: "var(--evolve)", background: "rgba(224,38,27,0.1)" }}
+        >
+          <p className="dst-label mb-2.5 text-[color:var(--evolve)]">
+            {dados.checkin.status === "encerrado" ? "Check-in encerrado" : "Check-in ainda fechado"}
+          </p>
+          <p className="text-[0.92rem] leading-relaxed text-[color:rgba(242,240,236,0.75)]">
+            {dados.checkin.motivo} Enquanto isso, a lista abaixo continua atualizando
+            normalmente.
+          </p>
+        </div>
+      )}
 
       {erro && (
         <p role="alert" className="dst-label mt-6 text-[color:var(--evolve)]">
@@ -356,10 +383,17 @@ export function PainelUnidade({
                   <button
                     type="button"
                     onClick={() => void marcarPresenca(i)}
-                    disabled={marcando === i.id}
-                    className="dst-btn dst-btn--ghost min-w-[128px] disabled:opacity-50"
+                    // Desfazer continua livre com a chave fechada: reverter um
+                    // engano não é check-in.
+                    disabled={marcando === i.id || (!checkinAberto && i.status !== "checked_in")}
+                    title={
+                      !checkinAberto && i.status !== "checked_in"
+                        ? (dados?.checkin.motivo ?? undefined)
+                        : undefined
+                    }
+                    className="dst-btn dst-btn--ghost min-w-[128px] disabled:opacity-40"
                     style={
-                      i.status === "checked_in"
+                      i.status === "checked_in" || !checkinAberto
                         ? undefined
                         : { borderColor: "var(--somma)", color: "var(--somma)" }
                     }

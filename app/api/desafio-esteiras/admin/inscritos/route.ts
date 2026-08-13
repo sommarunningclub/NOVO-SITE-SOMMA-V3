@@ -21,7 +21,7 @@ import {
 import { edicaoCadastroSchema, adminInscricaoSchema, onlyDigits } from "@/lib/desafio-esteiras/schema";
 import { formatCPF } from "@/lib/cpf";
 import { generateTicketCode, generateTicketToken, ticketPertenceAUnidade } from "@/lib/desafio-esteiras/ticket";
-import { getEventoId } from "@/lib/desafio-esteiras/gestao";
+import { checkinLiberado, getEventoId, motivoCheckinBloqueado } from "@/lib/desafio-esteiras/gestao";
 import { sendDesafioEsteirasTicketEmail } from "@/lib/emails/desafio-esteiras-ticket";
 
 export const dynamic = "force-dynamic";
@@ -256,6 +256,8 @@ export async function GET(request: NextRequest) {
     return b.created_at.localeCompare(a.created_at);
   });
 
+  const chave = await checkinLiberado();
+
   return NextResponse.json({
     inscritos: lista.slice(0, 500),
     truncado: lista.length > 500,
@@ -263,6 +265,9 @@ export async function GET(request: NextRequest) {
     resumo,
     escopo: escopoOperador ?? "todas",
     role: auth.session.role,
+    checkin: chave.liberado
+      ? { liberado: true as const, status: "aberto" as const, motivo: null }
+      : { liberado: false as const, status: chave.status, motivo: motivoCheckinBloqueado(chave.status) },
   });
 }
 
@@ -476,6 +481,19 @@ export async function PATCH(request: NextRequest) {
     if (!statusValidos.includes(novo as (typeof statusValidos)[number])) {
       return NextResponse.json({ error: "Status inválido." }, { status: 400 });
     }
+
+    // Marcar presença aqui é o mesmo ato do leitor de QR, então obedece à mesma
+    // chave da gestão. Cancelar e reverter continuam livres: não são check-in.
+    if (novo === "checked_in") {
+      const chave = await checkinLiberado();
+      if (!chave.liberado) {
+        return NextResponse.json(
+          { error: motivoCheckinBloqueado(chave.status), checkinStatus: chave.status },
+          { status: 409 },
+        );
+      }
+    }
+
     atualizacao.status = novo;
     if (novo === "checked_in" && !linha.checked_in_at) {
       atualizacao.checked_in_at = new Date().toISOString();
@@ -524,7 +542,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     Object.assign(atualizacao, {
-      full_name: d.full_name.replace(/\s+/g, " ").trim(),
+      full_name: d.full_name,
       email: d.email,
       phone: d.phone,
       unit_id: d.unit_id,
@@ -786,7 +804,7 @@ export async function POST(request: NextRequest) {
   const ticket_token = generateTicketToken();
   const registro = {
     ...(evento_id ? { evento_id } : {}),
-    full_name: data.full_name.replace(/\s+/g, " ").trim(),
+    full_name: data.full_name,
     cpf: data.cpf,
     birth_date: data.birth_date,
     email: data.email,
