@@ -111,7 +111,7 @@ export async function POST(request: NextRequest) {
   }
   if (!inscricoesAbertas()) {
     return NextResponse.json(
-      { error: "As inscrições foram encerradas — não é mais possível transferir." },
+      { error: "As inscrições foram encerradas. Não é mais possível transferir." },
       { status: 409 }
     );
   }

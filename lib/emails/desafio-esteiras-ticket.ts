@@ -65,7 +65,7 @@ export function renderDesafioEsteirasTicketEmail(data: DesafioEsteirasTicketEmai
     ? `<tr><td style="padding:0 32px 20px"><div style="background:#1a0f0d;border:1px solid rgba(255,44,4,.5);padding:16px 18px;border-radius:2px">
         <p style="margin:0;font-size:14px;line-height:1.5;color:#f2f0ec">
           <strong style="color:#ff2c04">${escapeHtml(firstName(data.transferidoDe))} transferiu este ticket para você.</strong><br/>
-          A vaga, a unidade e a categoria continuam as mesmas. O ticket anterior deixou de valer — este é o único válido.
+          A vaga, a unidade e a categoria continuam as mesmas. O ticket anterior deixou de valer. Este é o único válido.
         </p></div></td></tr>`
     : "";
   const code = escapeHtml(data.ticketCode);
@@ -212,8 +212,8 @@ export function renderDesafioEsteirasTicketEmail(data: DesafioEsteirasTicketEmai
               </h1>
               <p class="hello" style="margin:18px 0 0;font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:1.55;color:#3a3a3e;">
                 ${data.transferidoDe
-                  ? `<strong style="color:#08080a;">${escapeHtml(firstName(data.transferidoDe))} transferiu este ticket para você.</strong> A vaga, a unidade e a categoria continuam as mesmas — o ticket anterior deixou de valer. Mostre o QR Code abaixo na recepção da unidade.`
-                  : `Olá, <strong style="color:#08080a;">${nome}</strong>. Sua inscrição está confirmada. Este é o seu ticket — mostre o QR Code na recepção da unidade.`}
+                  ? `<strong style="color:#08080a;">${escapeHtml(firstName(data.transferidoDe))} transferiu este ticket para você.</strong> A vaga, a unidade e a categoria continuam as mesmas. O ticket anterior deixou de valer. Mostre o QR Code abaixo na recepção da unidade.`
+                  : `Olá, <strong style="color:#08080a;">${nome}</strong>. Sua inscrição está confirmada. Este é o seu ticket. Mostre o QR Code na recepção da unidade.`}
               </p>
             </td>
           </tr>

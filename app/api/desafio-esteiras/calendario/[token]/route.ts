@@ -40,7 +40,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ tok
     `DTSTAMP:${icsDate(new Date().toISOString())}`,
     `DTSTART:${icsDate(EVENT.inicioISO)}`,
     `DTEND:${icsDate(EVENT.fimISO)}`,
-    `SUMMARY:${escape(`${EVENT.nome} — ${unit?.nome ?? "Evolve"}`)}`,
+    `SUMMARY:${escape(`${EVENT.nome} na ${unit?.nome ?? "Evolve"}`)}`,
     `DESCRIPTION:${escape(
       `Seu ticket: ${ticket.ticket_code}\nApresente o QR Code na entrada.\n${url}`
     )}`,

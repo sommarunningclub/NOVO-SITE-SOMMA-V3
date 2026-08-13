@@ -547,7 +547,7 @@ export function RegistrationFlow({ iniciais }: { iniciais: StatsIniciais }) {
                   { k: "Participação", v: PARTICIPACAO_LABELS[participacao].titulo },
                   {
                     k: "Categoria",
-                    v: CATEGORIAS.find((c) => c.id === (valores.sexo as Sexo))?.curto ?? "—",
+                    v: CATEGORIAS.find((c) => c.id === (valores.sexo as Sexo))?.curto ?? "Não informada",
                   },
                   { k: "Foto", v: foto ? foto.name : "Sem foto (avatar padrão)" },
                   { k: "Unidade", v: unidade.nome },

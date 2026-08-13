@@ -312,7 +312,7 @@ export function MeuCadastro() {
               <legend className="dst-label mb-3 text-[color:rgba(242,240,236,0.45)]">Unidade</legend>
               {!inscricoesAbertas() && (
                 <p className="dst-label mb-3 text-[color:var(--evolve)]">
-                  As inscrições encerraram — a unidade não pode mais ser trocada.
+                  As inscrições encerraram. A unidade não pode mais ser trocada.
                 </p>
               )}
               <div className="grid grid-cols-2 gap-2">
@@ -437,7 +437,7 @@ export function MeuCadastro() {
                 </h2>
                 <p className="mt-4 max-w-[58ch] text-[0.95rem] leading-relaxed text-[color:rgba(242,240,236,0.65)]">
                   Não vai conseguir ir? Passe sua vaga para outra pessoa. A unidade, a categoria e o
-                  horário continuam os mesmos — muda só o titular. Informe os dados de quem vai no
+                  horário continuam os mesmos. Muda só o titular. Informe os dados de quem vai no
                   seu lugar e o novo ticket vai direto para o e-mail dela.
                 </p>
                 <p className="dst-label mt-4 leading-relaxed" style={{ color: "var(--evolve)" }}>
@@ -494,8 +494,8 @@ export function MeuCadastro() {
                       ))}
                     </div>
                     <p className="dst-label mt-3 leading-relaxed text-[color:rgba(242,240,236,0.4)]">
-                      Se a categoria for diferente da sua, a vaga muda de fila — e só é possível se
-                      ainda houver vaga nela.
+                      Se a categoria for diferente da sua, a vaga muda de fila e só rola se ainda houver
+                      vaga nela.
                     </p>
                   </fieldset>
 

@@ -108,7 +108,7 @@ export default async function ConfirmadoPage({
               {[
                 { k: "Participante", v: ticket.full_name },
                 { k: "Unidade", v: unit?.nome ?? ticket.unit_id },
-                { k: "Endereço", v: unit?.endereco ?? "—" },
+                { k: "Endereço", v: unit?.endereco ?? "Não informado" },
                 { k: "Data", v: EVENT.dataExtenso },
                 { k: "Horário", v: EVENT.horaExtenso },
                 { k: "Código do ticket", v: ticket.ticket_code },
@@ -125,8 +125,8 @@ export default async function ConfirmadoPage({
             <div className="dst-panel mt-8 p-5">
               <p className="dst-label mb-2.5 text-[color:var(--somma)]">Guarde este link</p>
               <p className="text-[0.88rem] leading-relaxed text-[color:rgba(242,240,236,0.65)]">
-                Esta página é o seu ticket. Salve o link nos favoritos ou tire um print — você pode
-                acessá-lo de novo a qualquer momento até o dia do evento.
+                Esta página é o seu ticket. Salve o link nos favoritos ou tire um print. Você acessa
+                de novo a qualquer momento até o dia do evento.
               </p>
             </div>
 

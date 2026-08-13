@@ -102,7 +102,7 @@ export const UNITS: readonly EventUnit[] = [
     cidade: "Brasília",
     uf: "DF",
     endereco:
-      "Rua 3, Chácara 82, Lote 01, Loja 01 — Setor Habitacional Vicente Pires, Brasília/DF",
+      "Rua 3, Chácara 82, Lote 01, Loja 01, Setor Habitacional Vicente Pires, Brasília/DF",
     latitude: -15.8129,
     longitude: -48.0188,
     googleMapsUrl:
@@ -126,7 +126,7 @@ export const UNITS: readonly EventUnit[] = [
     curto: "Luziânia",
     cidade: "Luziânia",
     uf: "GO",
-    endereco: "Rua Marginal A, Quadra 18, Lote 03, Loja 301, 1º andar — Luziânia/GO",
+    endereco: "Rua Marginal A, Quadra 18, Lote 03, Loja 301, 1º andar, Luziânia/GO",
     latitude: -16.2529,
     longitude: -47.9479,
     googleMapsUrl:
@@ -145,7 +145,7 @@ export const UNITS: readonly EventUnit[] = [
     cidade: "Taguatinga",
     uf: "DF",
     endereco:
-      "Alameda Shopping — St. B Sul, CSB 2, Lotes 1 a 4, Piso Moda 12A e Sobreloja, Taguatinga Sul, Brasília/DF",
+      "Alameda Shopping, St. B Sul, CSB 2, Lotes 1 a 4, Piso Moda 12A e Sobreloja, Taguatinga Sul, Brasília/DF",
     latitude: -15.835,
     longitude: -48.0592,
     googleMapsUrl:
@@ -164,7 +164,7 @@ export const UNITS: readonly EventUnit[] = [
     cidade: "Brasília",
     uf: "DF",
     endereco:
-      "Quadra 302, Conjunto 9 — Edifício Arena Urbano, Samambaia Sul, Brasília/DF",
+      "Quadra 302, Conjunto 9, Edifício Arena Urbano, Samambaia Sul, Brasília/DF",
     latitude: -15.8785,
     longitude: -48.0898,
     googleMapsUrl:
@@ -288,10 +288,10 @@ export function idadeNoEvento(nascimento: string | null | undefined): number | n
 /** Faixas para segmentar o público no painel. Não são categorias da disputa. */
 export const FAIXAS_ETARIAS = [
   { id: "ate-17", nome: "até 17", min: 0, max: 17 },
-  { id: "18-24", nome: "18–24", min: 18, max: 24 },
-  { id: "25-34", nome: "25–34", min: 25, max: 34 },
-  { id: "35-44", nome: "35–44", min: 35, max: 44 },
-  { id: "45-54", nome: "45–54", min: 45, max: 54 },
+  { id: "18-24", nome: "18 a 24", min: 18, max: 24 },
+  { id: "25-34", nome: "25 a 34", min: 25, max: 34 },
+  { id: "35-44", nome: "35 a 44", min: 35, max: 44 },
+  { id: "45-54", nome: "45 a 54", min: 45, max: 54 },
   { id: "55-mais", nome: "55+", min: 55, max: 200 },
 ] as const;
 
@@ -304,7 +304,7 @@ export const PARTICIPACAO_LABELS: Record<Participacao, { titulo: string; texto: 
   competidor: {
     titulo: "Vou competir",
     texto:
-      "Entro no Desafio das Esteiras e apareço na grade de competidores. Vagas limitadas — o número de esteiras de cada unidade é finito.",
+      "Entro no Desafio das Esteiras e apareço na grade de competidores. Vaga limitada: cada unidade tem quatro esteiras e ponto.",
   },
   espectador: {
     titulo: "Só vou assistir",
@@ -417,15 +417,15 @@ export const FAQ: { p: string; r: string | null }[] = [
   },
   {
     p: "Preciso correr profissionalmente?",
-    r: "Não. O Desafio foi desenhado para acolher diferentes níveis — de quem está começando a quem treina todo dia.",
+    r: "Não. O Desafio foi desenhado para acolher todos os níveis, de quem está começando a quem treina todo dia.",
   },
   {
     p: "Quantas vagas existem para competir?",
-    r: `Cada unidade tem ${VAGAS_POR_CATEGORIA} vagas no feminino e ${VAGAS_POR_CATEGORIA} no masculino — ${VAGAS_POR_UNIDADE} competidores por unidade, ${VAGAS_TOTAIS} no total. São ${COMPETICAO.esteirasPorBateria} esteiras por unidade, e cada categoria roda ${COMPETICAO.bateriasPorCategoria} baterias de ${COMPETICAO.esteirasPorBateria} pessoas. As vagas acabam por ordem de inscrição; para assistir, a entrada continua aberta.`,
+    r: `Cada unidade tem ${VAGAS_POR_CATEGORIA} vagas no feminino e ${VAGAS_POR_CATEGORIA} no masculino. São ${VAGAS_POR_UNIDADE} competidores por unidade e ${VAGAS_TOTAIS} no total. São ${COMPETICAO.esteirasPorBateria} esteiras por unidade, e cada categoria roda ${COMPETICAO.bateriasPorCategoria} baterias de ${COMPETICAO.esteirasPorBateria} pessoas. As vagas acabam por ordem de inscrição; para assistir, a entrada continua aberta.`,
   },
   {
     p: "Como funcionam as baterias?",
-    r: `São ${COMPETICAO.bateriasPorCategoria} baterias por categoria, com ${COMPETICAO.esteirasPorBateria} competidores correndo ao mesmo tempo — uma pessoa por esteira. A organização define em qual bateria você corre depois da inscrição, e isso aparece no seu ticket.`,
+    r: `São ${COMPETICAO.bateriasPorCategoria} baterias por categoria, com ${COMPETICAO.esteirasPorBateria} competidores correndo ao mesmo tempo, uma pessoa por esteira. A organização define em qual bateria você corre depois da inscrição, e isso aparece no seu ticket.`,
   },
   {
     p: "Posso escolher qualquer unidade?",

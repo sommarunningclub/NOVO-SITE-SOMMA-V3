@@ -151,12 +151,12 @@ function titulo(geo: GeoSnap): string {
 function corpo(geo: GeoSnap): string {
   if (geo.status === "ok") {
     if (geo.km < 0.25) {
-      return `Relaxa — a ${geo.nearest.nome} é logo aí. Corre, se exibe, leva alguém. O Desafio das Esteiras é gratuito. Sem ingresso.`;
+      return `Relaxa, a ${geo.nearest.nome} é logo aí. Corre, se exibe, leva alguém. O Desafio das Esteiras é gratuito. Sem ingresso.`;
     }
     if (foraDaRegiao(geo.km)) {
-      return `O pin caiu longe do Planalto, mas a Evolve mais perto ainda é a ${geo.nearest.nome}. O Desafio das Esteiras é em Brasília e Luziânia, dia ${EVENT.dataExtenso}, e é gratuito. Escolhe uma, leva alguém e aparece — vai ser irado.`;
+      return `O pin caiu longe do Planalto, mas a Evolve mais perto ainda é a ${geo.nearest.nome}. O Desafio das Esteiras é em Brasília e Luziânia, dia ${EVENT.dataExtenso}, e é gratuito. Escolhe uma, leva alguém e aparece. Vai ser irado.`;
     }
-    return `A esteira mais perto de você é a ${geo.nearest.nome}. Dá pra ir correr, se exibir e ainda levar alguém de carona no ego. Vai ser irado se você for. E o Desafio das Esteiras é gratuito — zero ingresso, só chegar.`;
+    return `A esteira mais perto de você é a ${geo.nearest.nome}. Dá pra ir correr, se exibir e ainda levar alguém de carona no ego. Vai ser irado se você for. E o Desafio das Esteiras é gratuito. Zero ingresso, só chegar.`;
   }
   if (geo.status === "denied") {
     return "Sem localização a gente não adivinha o bairro. Escolhe no mapa, leva um amigo, o evento é de graça em qualquer unidade.";
@@ -165,7 +165,7 @@ function corpo(geo: GeoSnap): string {
     return "Esse navegador não entrega coordenadas. Escolhe a unidade no mapa. Qualquer uma aceita convidado e o Desafio é gratuito.";
   }
   if (geo.status === "error") {
-    return "O GPS não fechou a conta. Tenta de novo ou escolhe no mapa. O evento continua gratuito — leva alguém mesmo assim.";
+    return "O GPS não fechou a conta. Tenta de novo ou escolhe no mapa. O evento continua gratuito. Leva alguém mesmo assim.";
   }
   return "Libera a localização. A gente aponta a Evolve mais perto pra você chegar, correr e se exibir. Leva alguém. O Desafio das Esteiras é gratuito. Sem ingresso. Sem desculpa.";
 }

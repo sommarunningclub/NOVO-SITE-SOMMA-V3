@@ -76,7 +76,7 @@ export function Chrome() {
           {/* py generoso: a logo é baixa, mas o alvo de toque precisa ter 44px */}
           <Link
             href={EVENT_PATH}
-            aria-label="Desafio das Esteiras — Evolve + SOMMA Club"
+            aria-label="Desafio das Esteiras · Evolve + SOMMA Club"
             className="flex min-h-[44px] shrink-0 items-center"
           >
             <Logos className="h-5 md:h-6" />

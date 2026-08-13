@@ -142,7 +142,7 @@ export async function PATCH(request: NextRequest) {
   const trocouUnidade = (atual as { unit_id: string }).unit_id !== dados.unit_id;
   if (trocouUnidade && !inscricoesAbertas()) {
     return NextResponse.json(
-      { error: "As inscrições foram encerradas — não é mais possível trocar de unidade." },
+      { error: "As inscrições foram encerradas. Não é mais possível trocar de unidade." },
       { status: 409 }
     );
   }

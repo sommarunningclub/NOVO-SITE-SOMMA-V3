@@ -42,7 +42,7 @@ export function TicketActions({ token, unitId, ticketCode }: Props) {
   const texto = [
     "EU TÔ DENTRO.",
     "",
-    `${EVENT.nome.toUpperCase()} — ${EVENT.dataLabel}`,
+    `${EVENT.nome.toUpperCase()} · ${EVENT.dataLabel}`,
     "EVOLVE + SOMMA CLUB",
     `Minha unidade: ${(unit?.curto ?? "").toUpperCase()}`,
   ].join("\n");

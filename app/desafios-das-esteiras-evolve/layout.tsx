@@ -73,7 +73,7 @@ const jsonLd = {
   "@context": "https://schema.org",
   "@graph": UNITS.map((unit) => ({
     "@type": "SportsEvent",
-    name: `${EVENT.nome} — ${unit.nome}`,
+    name: `${EVENT.nome} na ${unit.nome}`,
     description: DESCRIPTION,
     startDate: EVENT.inicioISO,
     endDate: EVENT.fimISO,

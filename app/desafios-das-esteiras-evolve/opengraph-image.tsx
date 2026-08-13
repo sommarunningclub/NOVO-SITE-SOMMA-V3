@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 import { EVENT, UNITS } from "@/lib/desafio-esteiras/event.config";
 
-export const alt = "Desafio das Esteiras — Evolve + SOMMA Club · 19.08 · 19h";
+export const alt = "Desafio das Esteiras · Evolve + SOMMA Club · 19.08 · 19h";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 

@@ -223,7 +223,7 @@ export function Competidores({
               {cat.atletas.length === 0 ? (
                 <p className="dst-label text-[color:rgba(242,240,236,0.4)]">
                   {filtro === "todas"
-                    ? "Ninguém inscrito nesta categoria ainda — pode ser você."
+                    ? "Ninguém inscrito nesta categoria ainda. Pode ser você."
                     : "Nenhum competidor desta categoria nesta unidade ainda."}
                 </p>
               ) : (

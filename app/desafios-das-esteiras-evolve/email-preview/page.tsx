@@ -45,7 +45,7 @@ export default async function EmailPreviewPage() {
         </h1>
         <p className="mt-5 max-w-[62ch] text-[0.95rem] leading-relaxed text-[color:rgba(242,240,236,0.65)]">
           Credencial do {EVENT.nome} que cada inscrito recebe. Celular à esquerda, inbox à
-          direita. Dados de exemplo — {SAMPLE_NAME}, {SAMPLE_UNIT.curto}, {SAMPLE_CODE}. O envio
+          direita. Dados de exemplo: {SAMPLE_NAME}, {SAMPLE_UNIT.curto}, {SAMPLE_CODE}. O envio
           só entra no cadastro depois da sua aprovação.
         </p>
         <p className="dst-label mt-3 text-[color:rgba(242,240,236,0.35)]">
