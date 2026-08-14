@@ -12,7 +12,7 @@ import {
   registrationSchema,
   sexoSchema,
 } from "@/lib/desafio-esteiras/schema";
-import { VAGAS_POR_CATEGORIA, getUnit, inscricoesAbertas } from "@/lib/desafio-esteiras/event.config";
+import { getUnit, inscricoesAbertas } from "@/lib/desafio-esteiras/event.config";
 import { sendDesafioEsteirasTicketEmail } from "@/lib/emails/desafio-esteiras-ticket";
 
 export const dynamic = "force-dynamic";
@@ -40,8 +40,8 @@ const transferenciaSchema = z.object({
  *  - o ticket_code é reemitido quando o prefixo da unidade não bate;
  *  - a foto do titular anterior é apagada — ela é de outra pessoa.
  *
- * Se o novo titular for de outra categoria, a vaga muda de fila: o trigger
- * `dst_capacidade` recusa se a categoria de destino já estiver cheia.
+ * Se o novo titular for de outra categoria, a inscrição só muda de fila: não
+ * há teto de competidores, então nada pode recusar a troca por lotação.
  */
 export async function POST(request: NextRequest) {
   const ip = clientIp(request);
@@ -139,28 +139,6 @@ export async function POST(request: NextRequest) {
   const unit = getUnit(linha.unit_id);
   if (!unit) return NextResponse.json({ error: "Unidade inválida." }, { status: 400 });
 
-  // Mudou de categoria? A vaga sai de uma fila e entra em outra — confere antes
-  // de tentar, para a mensagem ser clara (o trigger é a garantia final).
-  const mudouCategoria = linha.participacao === "competidor" && linha.sexo !== novo.sexo;
-  if (mudouCategoria) {
-    const { count } = await supabase
-      .from(TABLE)
-      .select("id", { count: "exact", head: true })
-      .eq("unit_id", linha.unit_id)
-      .eq("sexo", novo.sexo)
-      .eq("participacao", "competidor")
-      .neq("status", "cancelled");
-
-    if ((count ?? 0) >= VAGAS_POR_CATEGORIA) {
-      return NextResponse.json(
-        {
-          error: `A categoria ${novo.sexo} da ${unit.nome} está com as ${VAGAS_POR_CATEGORIA} vagas preenchidas. Não é possível transferir para alguém dessa categoria.`,
-        },
-        { status: 409 }
-      );
-    }
-  }
-
   const anterior = linha.full_name;
   const novoToken = generateTicketToken();
   const novoCode = generateTicketCode(unit);
@@ -168,7 +146,7 @@ export async function POST(request: NextRequest) {
   const { data: atualizado, error } = await supabase
     .from(TABLE)
     .update({
-      full_name: novo.full_name.replace(/\s+/g, " ").trim(),
+      full_name: novo.full_name,
       cpf: novo.cpf,
       birth_date: novo.birth_date,
       email: novo.email,
@@ -186,12 +164,6 @@ export async function POST(request: NextRequest) {
     .maybeSingle();
 
   if (error) {
-    if (error.message.includes("DST_CATEGORIA_ESGOTADA")) {
-      return NextResponse.json(
-        { error: "A categoria de destino acabou de lotar. A transferência não foi feita." },
-        { status: 409 }
-      );
-    }
     if (error.code === "23505") {
       return NextResponse.json(
         { error: "Essa pessoa já tem uma inscrição no Desafio das Esteiras." },

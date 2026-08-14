@@ -80,7 +80,7 @@ export function NearYou({
               {geo.status === "pending" ? "Caçando você…" : "Me acha"}
             </button>
           )}
-          {ok && abertas && ok.nearest.status !== "esgotada" && ok.nearest.status !== "encerrada" && (
+          {ok && abertas && ok.nearest.status !== "encerrada" && (
             <Link
               href={`${EVENT_PATH}/inscricao?unidade=${ok.nearest.slug}`}
               onClick={() =>

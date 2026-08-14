@@ -187,7 +187,7 @@ export function UnitsMap({ iniciais }: { iniciais: StatsIniciais }) {
   }
 
   const abertas = inscricoesAbertas();
-  const esgotada = status === "esgotada" || status === "encerrada";
+  const fechada = status === "encerrada";
   const kmOrigem = origem
     ? distanciaKm(origem, { lat: selecionada.latitude, lng: selecionada.longitude })
     : null;
@@ -332,14 +332,14 @@ export function UnitsMap({ iniciais }: { iniciais: StatsIniciais }) {
             </div>
             <div>
               <dt className="dst-label text-[color:rgba(242,240,236,0.4)]">Vagas</dt>
-              <dd className="dst-label mt-2.5" style={{ color: esgotada ? "rgba(242,240,236,0.5)" : "var(--somma)" }}>
+              <dd className="dst-label mt-2.5" style={{ color: fechada ? "rgba(242,240,236,0.5)" : "var(--somma)" }}>
                 {UNIT_LABELS[status]}
               </dd>
             </div>
           </dl>
 
           <div className="flex flex-col gap-3 sm:flex-row md:col-span-12">
-            {abertas && !esgotada && (
+            {abertas && !fechada && (
               <Link
                 href={`${EVENT_PATH}/inscricao?unidade=${selecionada.slug}`}
                 onClick={() =>

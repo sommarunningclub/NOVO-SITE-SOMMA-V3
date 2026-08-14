@@ -1,4 +1,4 @@
-import type { Participacao, Sexo, VagasStatus } from "@/lib/desafio-esteiras/event.config";
+import type { Participacao, Sexo } from "@/lib/desafio-esteiras/event.config";
 
 export interface Inscrito {
   id: string;
@@ -55,4 +55,3 @@ export function horaInscrito(iso?: string | null): string {
     : "—";
 }
 
-export type { VagasStatus };

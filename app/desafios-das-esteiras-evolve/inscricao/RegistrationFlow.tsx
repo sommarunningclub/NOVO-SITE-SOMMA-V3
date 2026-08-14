@@ -14,16 +14,14 @@ import {
   SOMMA_BASE,
   UNITS,
   UNIT_LABELS,
-  VAGAS_POR_CATEGORIA,
   getUnit,
   inscricoesAbertas,
-  vagasStatus,
-  vagasTexto,
   type EventUnit,
   type Participacao,
   type Sexo,
 } from "@/lib/desafio-esteiras/event.config";
 import { formatCPF } from "@/lib/cpf";
+import { nomeDigitando } from "@/lib/desafio-esteiras/nome";
 import { formatBirthDate, formatPhone, step2Schema } from "@/lib/desafio-esteiras/schema";
 import { readAttribution, track } from "@/lib/desafio-esteiras/analytics";
 import { gsap, prefersReducedMotion } from "../_motion";
@@ -264,7 +262,7 @@ export function RegistrationFlow({ iniciais }: { iniciais: StatsIniciais }) {
                 {UNITS.map((u) => {
                   const d = unidades.find((x) => x.id === u.id);
                   const st = d?.status ?? u.status;
-                  const bloqueada = st === "esgotada" || st === "encerrada";
+                  const bloqueada = st === "encerrada";
                   return (
                     <li key={u.id} className="etapa-anim">
                       <button
@@ -367,42 +365,23 @@ export function RegistrationFlow({ iniciais }: { iniciais: StatsIniciais }) {
                 <div className="grid grid-cols-2 gap-3">
                   {CATEGORIAS.map((c) => {
                     const ativo = valores.sexo === c.id;
-                    const vagas = unidadeStats?.categorias?.[c.id];
-                    const ocupadas = vagas?.ocupadas ?? 0;
-                    // Só bloqueia quem vai competir: espectador não ocupa vaga.
-                    const esgotada = competidor && vagasStatus(ocupadas) === "esgotada";
+                    // Nenhuma categoria bloqueia: a inscrição é aberta. O
+                    // número aqui é só para a pessoa ver a companhia que terá.
+                    const nela = unidadeStats?.categorias?.[c.id]?.inscritos ?? 0;
                     return (
                       <label
                         key={c.id}
-                        className="dst-panel flex min-h-[84px] flex-col items-center justify-center gap-1.5 p-4 text-center transition-colors has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-45"
+                        className="dst-panel flex min-h-[84px] cursor-pointer flex-col items-center justify-center gap-1.5 p-4 text-center transition-colors"
                         style={{
                           borderColor: ativo ? "var(--somma)" : "var(--line)",
                           background: ativo ? "rgba(255,44,4,0.08)" : "var(--ink-2)",
-                          cursor: esgotada ? "not-allowed" : "pointer",
                         }}
                       >
-                        <input
-                          type="radio"
-                          value={c.id}
-                          disabled={esgotada}
-                          {...register("sexo")}
-                          className="sr-only"
-                        />
+                        <input type="radio" value={c.id} {...register("sexo")} className="sr-only" />
                         <span className="dst-display text-[1.1rem]">{c.curto}</span>
                         {competidor && (
-                          <span
-                            className="dst-label text-[0.5rem]"
-                            style={{
-                              color: esgotada
-                                ? "var(--evolve)"
-                                : vagasStatus(ocupadas) === "ultimas"
-                                  ? "var(--somma)"
-                                  : "rgba(242,240,236,0.45)",
-                            }}
-                          >
-                            {esgotada
-                              ? `${c.curto.toUpperCase()} ESGOTADO`
-                              : vagasTexto(ocupadas)}
+                          <span className="dst-label text-[0.5rem] text-[color:rgba(242,240,236,0.45)]">
+                            {nela === 0 ? "SEJA O PRIMEIRO" : `${nela} INSCRITO${nela === 1 ? "" : "S"}`}
                           </span>
                         )}
                       </label>
@@ -462,10 +441,18 @@ export function RegistrationFlow({ iniciais }: { iniciais: StatsIniciais }) {
               <div className="mt-8 grid gap-5 sm:grid-cols-2">
                 <Campo
                   id="full_name"
-                  rotulo="Nome completo"
+                  rotulo="Nome e sobrenome"
                   erro={errors.full_name?.message}
                   className="sm:col-span-2"
-                  props={{ ...register("full_name"), autoComplete: "name", autoCapitalize: "words" }}
+                  props={{
+                    ...register("full_name"),
+                    autoComplete: "name",
+                    autoCapitalize: "characters",
+                    spellCheck: false,
+                    value: valores.full_name ?? "",
+                    onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+                      setValue("full_name", nomeDigitando(e.target.value), { shouldValidate: false }),
+                  }}
                 />
                 <Campo
                   id="cpf"
@@ -476,8 +463,10 @@ export function RegistrationFlow({ iniciais }: { iniciais: StatsIniciais }) {
                     inputMode: "numeric",
                     maxLength: 14,
                     value: valores.cpf ?? "",
-                    onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
-                      setValue("cpf", formatCPF(e.target.value), { shouldValidate: false }),
+                    onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
+                      const v = formatCPF(e.target.value);
+                      setValue("cpf", v, { shouldValidate: v.replace(/\D/g, "").length === 11 });
+                    },
                   }}
                 />
                 <Campo
@@ -511,8 +500,10 @@ export function RegistrationFlow({ iniciais }: { iniciais: StatsIniciais }) {
                     autoComplete: "tel",
                     maxLength: 16,
                     value: valores.phone ?? "",
-                    onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
-                      setValue("phone", formatPhone(e.target.value), { shouldValidate: false }),
+                    onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
+                      const v = formatPhone(e.target.value);
+                      setValue("phone", v, { shouldValidate: v.replace(/\D/g, "").length >= 11 });
+                    },
                   }}
                 />
               </div>

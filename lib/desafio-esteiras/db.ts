@@ -1,12 +1,9 @@
 import "server-only";
 import { getServiceSupabase } from "@/lib/supabase";
 import {
+  COMPETICAO,
   UNITS,
-  VAGAS_POR_CATEGORIA,
-  VAGAS_POR_UNIDADE,
-  VAGAS_TOTAIS,
-  vagasRestantes,
-  vagasStatus,
+  bateriasNecessarias,
   type Participacao,
   type Sexo,
   type UnitId,
@@ -80,7 +77,7 @@ export interface UnitCount {
   inscritos: number;
   competidores: number;
   espectadores: number;
-  /** Ocupação das 12 vagas de cada categoria — a regra da competição. */
+  /** Competidores em cada categoria. Sem teto: é adesão, não ocupação. */
   feminino: number;
   masculino: number;
 }
@@ -141,7 +138,7 @@ export async function getEventStats(): Promise<EventStats> {
     const compete = row.participacao !== "espectador";
     if (!compete) continue;
     atual.competidores += 1;
-    // Só quem compete ocupa vaga de categoria — é essa conta que a regra limita.
+    // Só quem compete entra na conta por categoria.
     if (row.sexo === "feminino") atual.feminino += 1;
     if (row.sexo === "masculino") atual.masculino += 1;
   }
@@ -169,45 +166,30 @@ export async function getEventStats(): Promise<EventStats> {
 /**
  * Contadores no formato que os componentes da LP consomem.
  *
- * Existe para as páginas não repetirem o mapeamento — e para que a regra das
- * vagas (12 por categoria) entre uma vez só, aqui.
+ * Existe para as páginas não repetirem o mapeamento. Sem teto de inscrição,
+ * o que sai daqui é adesão (quantos entraram, quantas baterias isso forma),
+ * não saldo de vagas.
  */
 export async function getStatsIniciais() {
   const stats = await getEventStats();
   return {
     total: stats.total,
     totalCompetidores: stats.totalCompetidores,
-    vagasTotais: VAGAS_TOTAIS,
-    vagasPorUnidade: VAGAS_POR_UNIDADE,
-    vagasPorCategoria: VAGAS_POR_CATEGORIA,
+    esteirasPorBateria: COMPETICAO.esteirasPorBateria,
     disponivel: stats.disponivel,
     unidades: stats.porUnidade.map((u) => {
       const unit = UNITS.find((x) => x.id === u.unitId)!;
-      const esgotada =
-        vagasStatus(u.feminino) === "esgotada" && vagasStatus(u.masculino) === "esgotada";
       return {
         id: u.unitId,
         inscritos: u.inscritos,
         competidores: u.competidores,
         espectadores: u.espectadores,
-        status: esgotada ? ("esgotada" as const) : unit.status,
+        status: unit.status,
         capacidade: unit.capacidade,
         categorias: {
-          feminino: {
-            ocupadas: u.feminino,
-            total: VAGAS_POR_CATEGORIA,
-            restantes: vagasRestantes(u.feminino),
-            status: vagasStatus(u.feminino),
-          },
-          masculino: {
-            ocupadas: u.masculino,
-            total: VAGAS_POR_CATEGORIA,
-            restantes: vagasRestantes(u.masculino),
-            status: vagasStatus(u.masculino),
-          },
+          feminino: { inscritos: u.feminino, baterias: bateriasNecessarias(u.feminino) },
+          masculino: { inscritos: u.masculino, baterias: bateriasNecessarias(u.masculino) },
         },
-        vagasCompetidores: VAGAS_POR_UNIDADE,
-        competidoresRestantes: Math.max(0, VAGAS_POR_UNIDADE - u.feminino - u.masculino),
       };
     }),
   };
@@ -269,16 +251,16 @@ export async function getCompetidores(): Promise<{ lista: Competidor[]; disponiv
 }
 
 /**
- * Vagas restantes de uma categoria numa unidade, lidas na hora.
+ * Quantos competidores já entraram numa categoria da unidade.
  *
- * A API chama isto antes de gravar para dar um erro claro à pessoa. A garantia
- * de verdade contra corrida é o trigger `dst_capacidade` no banco — este número
- * pode estar desatualizado por milissegundos, o do banco não.
+ * Não existe mais teto: este número serve para mostrar adesão na página e
+ * para a organização dimensionar a grade de baterias, não para barrar
+ * ninguém.
  */
-export async function getVagasCategoria(
+export async function getCompetidoresCategoria(
   unitId: string,
   sexo: Sexo
-): Promise<{ ocupadas: number; restantes: number } | null> {
+): Promise<{ inscritos: number; baterias: number } | null> {
   const supabase = getServiceSupabase();
   if (!supabase) return null;
 
@@ -291,12 +273,12 @@ export async function getVagasCategoria(
     .neq("status", "cancelled");
 
   if (error) {
-    console.error("[desafio-esteiras] getVagasCategoria:", error.message);
+    console.error("[desafio-esteiras] getCompetidoresCategoria:", error.message);
     return null;
   }
 
-  const ocupadas = count ?? 0;
-  return { ocupadas, restantes: Math.max(0, VAGAS_POR_CATEGORIA - ocupadas) };
+  const inscritos = count ?? 0;
+  return { inscritos, baterias: bateriasNecessarias(inscritos) };
 }
 
 export async function getTicketByToken(token: string): Promise<PublicTicket | null> {

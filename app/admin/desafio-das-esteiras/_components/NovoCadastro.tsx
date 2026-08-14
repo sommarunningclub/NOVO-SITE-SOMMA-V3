@@ -8,6 +8,7 @@ import {
   type Participacao,
 } from "@/lib/desafio-esteiras/event.config";
 import { formatCPF } from "@/lib/cpf";
+import { nomeDigitando } from "@/lib/desafio-esteiras/nome";
 import { formatBirthDate, formatPhone } from "@/lib/desafio-esteiras/schema";
 import type { OperatorSession } from "@/lib/desafio-esteiras/auth";
 
@@ -150,9 +151,21 @@ export function NovoCadastro({
           </fieldset>
 
           <div className="dst-field-wrap mt-6">
-            <input id="nv-nome" name="full_name" required placeholder=" " className="dst-field" autoComplete="name" />
+            <input
+              id="nv-nome"
+              name="full_name"
+              required
+              placeholder=" "
+              className="dst-field"
+              autoComplete="name"
+              autoCapitalize="characters"
+              spellCheck={false}
+              onInput={(e) => {
+                e.currentTarget.value = nomeDigitando(e.currentTarget.value);
+              }}
+            />
             <label htmlFor="nv-nome" className="dst-field-label">
-              Nome completo
+              Nome e sobrenome
             </label>
           </div>
           <div className="dst-field-wrap mt-4">

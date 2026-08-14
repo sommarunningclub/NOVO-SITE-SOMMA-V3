@@ -8,6 +8,7 @@ import {
   getUnit,
   type Participacao,
 } from "@/lib/desafio-esteiras/event.config";
+import { nomeDigitando } from "@/lib/desafio-esteiras/nome";
 import { formatPhone } from "@/lib/desafio-esteiras/schema";
 import type { OperatorSession } from "@/lib/desafio-esteiras/auth";
 import {
@@ -513,9 +514,20 @@ export function ModalEdicao({
 
       <form onSubmit={salvar} className="mt-6">
         <div className="dst-field-wrap">
-          <input id="ed-nome" name="full_name" defaultValue={inscrito.full_name} placeholder=" " className="dst-field" />
+          <input
+            id="ed-nome"
+            name="full_name"
+            defaultValue={inscrito.full_name}
+            placeholder=" "
+            className="dst-field"
+            autoCapitalize="characters"
+            spellCheck={false}
+            onInput={(e) => {
+              e.currentTarget.value = nomeDigitando(e.currentTarget.value);
+            }}
+          />
           <label htmlFor="ed-nome" className="dst-field-label">
-            Nome completo
+            Nome e sobrenome
           </label>
         </div>
         <div className="dst-field-wrap mt-4">
@@ -532,7 +544,18 @@ export function ModalEdicao({
           </label>
         </div>
         <div className="dst-field-wrap mt-4">
-          <input id="ed-tel" name="phone" defaultValue={formatPhone(inscrito.phone)} placeholder=" " className="dst-field" />
+          <input
+            id="ed-tel"
+            name="phone"
+            defaultValue={formatPhone(inscrito.phone)}
+            placeholder=" "
+            className="dst-field"
+            inputMode="tel"
+            maxLength={16}
+            onInput={(e) => {
+              e.currentTarget.value = formatPhone(e.currentTarget.value);
+            }}
+          />
           <label htmlFor="ed-tel" className="dst-field-label">
             Telefone
           </label>

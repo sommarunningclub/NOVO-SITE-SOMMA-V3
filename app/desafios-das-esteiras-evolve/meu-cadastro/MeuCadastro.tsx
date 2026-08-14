@@ -13,6 +13,7 @@ import {
   type Sexo,
 } from "@/lib/desafio-esteiras/event.config";
 import { formatCPF } from "@/lib/cpf";
+import { nomeDigitando } from "@/lib/desafio-esteiras/nome";
 import { formatBirthDate, formatPhone, toISODate } from "@/lib/desafio-esteiras/schema";
 import { Logos } from "../_components/Logos";
 import { FotoPicker } from "../_components/FotoPicker";
@@ -271,10 +272,14 @@ export function MeuCadastro() {
                 defaultValue={cadastro.full_name}
                 placeholder=" "
                 className="dst-field"
-                autoCapitalize="words"
+                autoCapitalize="characters"
+                spellCheck={false}
+                onInput={(e) => {
+                  e.currentTarget.value = nomeDigitando(e.currentTarget.value);
+                }}
               />
               <label htmlFor="e-nome" className="dst-field-label">
-                Nome completo
+                Nome e sobrenome
               </label>
             </div>
 
@@ -446,8 +451,19 @@ export function MeuCadastro() {
 
                 <form ref={transferRef} onSubmit={transferir} className="mt-8 max-w-[560px]">
                   <div className="dst-field-wrap">
-                    <input id="t-nome" name="t_nome" placeholder=" " className="dst-field" autoCapitalize="words" required />
-                    <label htmlFor="t-nome" className="dst-field-label">Nome completo de quem vai receber</label>
+                    <input
+                      id="t-nome"
+                      name="t_nome"
+                      placeholder=" "
+                      className="dst-field"
+                      autoCapitalize="characters"
+                      spellCheck={false}
+                      required
+                      onInput={(e) => {
+                        e.currentTarget.value = nomeDigitando(e.currentTarget.value);
+                      }}
+                    />
+                    <label htmlFor="t-nome" className="dst-field-label">Nome e sobrenome de quem vai receber</label>
                   </div>
                   <div className="dst-field-wrap mt-5">
                     <input

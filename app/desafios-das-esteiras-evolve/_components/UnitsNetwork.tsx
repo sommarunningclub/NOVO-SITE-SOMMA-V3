@@ -8,10 +8,7 @@ import {
   SOMMA_BASE,
   UNITS,
   UNIT_LABELS,
-  VAGAS_POR_CATEGORIA,
   inscricoesAbertas,
-  vagasStatus,
-  vagasTexto,
 } from "@/lib/desafio-esteiras/event.config";
 import { track } from "@/lib/desafio-esteiras/analytics";
 import { FitLines } from "./FitLines";
@@ -275,7 +272,7 @@ export function UnitsNetwork({ iniciais }: { iniciais: StatsIniciais }) {
             const dados = unidades.find((u) => u.id === unit.id);
             const inscritos = dados?.inscritos ?? 0;
             const status = dados?.status ?? unit.status;
-            const esgotada = status === "esgotada" || status === "encerrada";
+            const fechada = status === "encerrada";
             const capacidade = dados?.capacidade ?? unit.capacidade;
 
             return (
@@ -318,46 +315,24 @@ export function UnitsNetwork({ iniciais }: { iniciais: StatsIniciais }) {
                   <span>{(dados?.espectadores ?? 0).toLocaleString("pt-BR")} assistem</span>
                 </p>
 
-                {/* Vagas da competição: 12 por categoria em cada unidade. */}
+                {/* Adesão por categoria. Sem teto, o que vale mostrar é
+                    quanta gente já entrou e o tamanho da grade que isso pede. */}
                 <div className="mt-3 space-y-2 border-t border-[color:var(--line)] pt-3">
                   {CATEGORIAS.map((c) => {
-                    const ocupadas = dados?.categorias?.[c.id]?.ocupadas ?? 0;
-                    const st = vagasStatus(ocupadas);
+                    const cat = dados?.categorias?.[c.id];
+                    const nela = cat?.inscritos ?? 0;
+                    const baterias = cat?.baterias ?? 0;
                     return (
                       <div key={c.id}>
                         <p className="dst-label flex items-baseline justify-between gap-2 text-[color:rgba(242,240,236,0.5)]">
                           <span>{c.curto}</span>
-                          <span
-                            className="dst-num"
-                            style={{
-                              color:
-                                st === "esgotada"
-                                  ? "rgba(242,240,236,0.4)"
-                                  : st === "ultimas"
-                                    ? "var(--somma)"
-                                    : "var(--paper)",
-                            }}
-                          >
-                            {ocupadas}/{VAGAS_POR_CATEGORIA}
-                          </span>
+                          <span className="dst-num text-[color:var(--paper)]">{nela}</span>
                         </p>
-                        <div className="mt-1.5 h-[3px] w-full bg-[color:var(--line)]" aria-hidden>
-                          <div
-                            className="h-full origin-left transition-transform duration-700"
-                            style={{
-                              background: st === "esgotada" ? "rgba(242,240,236,0.25)" : "var(--energia)",
-                              transform: `scaleX(${Math.min(1, ocupadas / VAGAS_POR_CATEGORIA)})`,
-                            }}
-                          />
-                        </div>
-                        {st !== "aberta" && (
-                          <p
-                            className="dst-label mt-1.5 text-[0.5rem]"
-                            style={{ color: st === "esgotada" ? "var(--evolve)" : "var(--somma)" }}
-                          >
-                            {vagasTexto(ocupadas)}
-                          </p>
-                        )}
+                        <p className="dst-label mt-1 text-[0.5rem] text-[color:rgba(242,240,236,0.35)]">
+                          {baterias === 0
+                            ? "nenhuma bateria ainda"
+                            : `${baterias} bateria${baterias === 1 ? "" : "s"}`}
+                        </p>
                       </div>
                     );
                   })}
@@ -379,7 +354,7 @@ export function UnitsNetwork({ iniciais }: { iniciais: StatsIniciais }) {
 
                 <p
                   className="dst-label mt-4 flex items-center gap-2"
-                  style={{ color: esgotada ? "rgba(242,240,236,0.4)" : "var(--somma)" }}
+                  style={{ color: fechada ? "rgba(242,240,236,0.4)" : "var(--somma)" }}
                 >
                   <span
                     className="block h-1.5 w-1.5 rounded-full"
@@ -388,7 +363,7 @@ export function UnitsNetwork({ iniciais }: { iniciais: StatsIniciais }) {
                   {UNIT_LABELS[status]}
                 </p>
 
-                {abertas && !esgotada && (
+                {abertas && !fechada && (
                   <Link
                     href={`${EVENT_PATH}/inscricao?unidade=${unit.slug}`}
                     onClick={() => {

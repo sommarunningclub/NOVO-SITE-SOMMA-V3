@@ -9,7 +9,6 @@ import {
   UNITS,
   getUnit,
   type Participacao,
-  type VagasStatus,
 } from "@/lib/desafio-esteiras/event.config";
 import { formatPhone } from "@/lib/desafio-esteiras/schema";
 import type { OperatorSession } from "@/lib/desafio-esteiras/auth";
@@ -39,14 +38,11 @@ interface Resumo {
     checkins: number;
     feminino: number;
     masculino: number;
-    vagas: Record<
+    grade: Record<
       "feminino" | "masculino",
       {
-        ocupadas: number;
-        total: number;
-        restantes: number;
-        status: VagasStatus;
-        baterias: { n: number; ocupadas: number }[];
+        inscritos: number;
+        baterias: { n: number; ocupadas: number; capacidade: number }[];
         semBateria: number;
       }
     >;
@@ -364,51 +360,160 @@ export function Inscritos({ session }: { session: OperatorSession }) {
                   ))}
                 </dl>
 
-                {/* Vagas e baterias por categoria — a regra da competição */}
+                {/* A grade de cada categoria. Sem teto, o que importa é
+                    quantos entraram e como as baterias estão sendo montadas. */}
                 <div className="mt-3 space-y-3 border-t border-[color:var(--line)] pt-3">
                   {(["feminino", "masculino"] as const).map((cat) => {
-                    const v = u.vagas?.[cat];
-                    if (!v) return null;
+                    const g = u.grade?.[cat];
+                    if (!g) return null;
                     return (
                       <div key={cat}>
                         <p className="dst-label flex items-baseline justify-between gap-2">
                           <span className="text-[color:rgba(242,240,236,0.5)]">
                             {cat === "feminino" ? "Feminino" : "Masculino"}
                           </span>
-                          <span
-                            className="dst-num"
-                            style={{
-                              color:
-                                v.status === "esgotada"
-                                  ? "var(--evolve)"
-                                  : v.status === "ultimas"
-                                    ? "var(--somma)"
-                                    : "var(--paper)",
-                            }}
-                          >
-                            {v.ocupadas} / {v.total}
+                          <span className="dst-num text-[color:var(--paper)]">
+                            {g.inscritos}
+                            <span className="text-[color:rgba(242,240,236,0.35)]">
+                              {" "}
+                              · {g.baterias.length} bat
+                            </span>
                           </span>
                         </p>
-                        <div className="mt-1.5 h-[3px] w-full bg-[color:var(--line)]" aria-hidden>
-                          <div
-                            className="h-full origin-left"
-                            style={{
-                              background: "var(--energia)",
-                              transform: `scaleX(${Math.min(1, v.ocupadas / v.total)})`,
-                            }}
-                          />
-                        </div>
                         <p className="dst-label mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[0.5rem] text-[color:rgba(242,240,236,0.4)]">
-                          {v.baterias.map((b) => (
+                          {g.baterias.map((b) => (
                             <span
                               key={b.n}
-                              style={{ color: b.ocupadas >= 4 ? "var(--somma)" : undefined }}
+                              style={{ color: b.ocupadas >= b.capacidade ? "var(--somma)" : undefined }}
                             >
-                              B{b.n} {b.ocupadas}/4
+                              B{b.n} {b.ocupadas}/{b.capacidade}
                             </span>
                           ))}
-                          {v.semBateria > 0 && (
-                            <span style={{ color: "var(--evolve)" }}>{v.semBateria} sem bateria</span>
+                          {g.semBateria > 0 && (
+                            <span style={{ color: "var(--evolve)" }}>{g.semBateria} sem bateria</span>
+                          )}
+                        </p>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </section>
+
+          <div className="mt-2 grid gap-2 lg:grid-cols-3">
+            {/* Categoria */}
+            <section className="dst-panel p-5" aria-label="Por categoria">
+              <p className="dst-label mb-3 text-[color:rgba(242,240,236,0.4)]">Por categoria</p>
+              <ul className="space-y-2.5">
+                {[
+                  { n: "Feminino", v: resumo.porSexo.feminino },
+                  { n: "Masculino", v: resumo.porSexo.masculino },
+                  { n: "Sem categoria", v: resumo.semCategoria },
+                ].map((c) => (
+                  <li key={c.n} className="flex items-center justify-between gap-3">
+                    <span className="text-[0.88rem]">{c.n}</span>
+                    <span className="dst-num text-[1rem] font-bold">{c.v}</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+
+            {/* Idade */}
+            <section className="dst-panel p-5" aria-label="Por idade">
+              <p className="dst-label mb-3 text-[color:rgba(242,240,236,0.4)]">
+                Idade {resumo.idadeMedia !== null && `· média ${resumo.idadeMedia} anos`}
+                {resumo.idadeMin !== null && ` · ${resumo.idadeMin}–${resumo.idadeMax}`}
+              </p>
+              <ul className="space-y-2">
+                {resumo.porFaixa.map((fa) => {
+                  const max = Math.max(1, ...resumo.porFaixa.map((x) => x.n));
+                  return (
+                    <li key={fa.id} className="flex items-center gap-3">
+                      <span className="dst-mono w-14 shrink-0 text-[0.75rem] opacity-60">{fa.nome}</span>
+                      <span className="h-2.5 flex-1 bg-[color:var(--line)]" aria-hidden>
+                        <span
+                          className="block h-full"
+                          style={{ background: "var(--energia)", width: `${(fa.n / max) * 100}%` }}
+                        />
+                      </span>
+                      <span className="dst-num w-7 shrink-0 text-right text-[0.85rem] font-bold">{fa.n}</span>
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
+
+            {/* Origem */}
+            <section className="dst-panel p-5" aria-label="Por origem">
+              <p className="dst-label mb-3 text-[color:rgba(242,240,236,0.4)]">Origem</p>
+              <ul className="space-y-2.5">
+                {resumo.porOrigem.slice(0, 6).map((o) => (
+                  <li key={o.fonte} className="flex items-center justify-between gap-3">
+                    <span className="dst-mono truncate text-[0.82rem]">{o.fonte}</span>
+                    <span className="dst-num shrink-0 text-[1rem] font-bold">{o.n}</span>
+                  </li>
+                ))}
+                {!resumo.porOrigem.length && (
+                  <li className="dst-label text-[color:rgba(242,240,236,0.35)]">Sem dados</li>
+                )}
+              </ul>
+            </section>
+          </div>
+
+          {/* Unidades + vagas de competidor */}
+          <section className="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-4" aria-label="Por unidade">
+            {resumo.porUnidade.map((u) => (
+              <div key={u.id} className="dst-panel p-5">
+                <p className="dst-display text-[1.05rem]">{u.curto}</p>
+                <p className="dst-num mt-2 text-[1.8rem] font-bold leading-none">{u.total}</p>
+                <p className="dst-label mt-1.5 text-[color:rgba(242,240,236,0.4)]">inscritos</p>
+
+                <dl className="mt-4 space-y-1.5 border-t border-[color:var(--line)] pt-3">
+                  {[
+                    ["Competem", u.competidores],
+                    ["Assistem", u.espectadores],
+                    ["Feminino", u.feminino],
+                    ["Masculino", u.masculino],
+                    ["Check-ins", u.checkins],
+                  ].map(([k, v]) => (
+                    <div key={String(k)} className="flex justify-between gap-2">
+                      <dt className="dst-label text-[color:rgba(242,240,236,0.4)]">{k}</dt>
+                      <dd className="dst-num text-[0.85rem] font-bold">{v}</dd>
+                    </div>
+                  ))}
+                </dl>
+
+                {/* A grade de cada categoria, igual ao bloco acima. */}
+                <div className="mt-3 space-y-3 border-t border-[color:var(--line)] pt-3">
+                  {(["feminino", "masculino"] as const).map((cat) => {
+                    const g = u.grade?.[cat];
+                    if (!g) return null;
+                    return (
+                      <div key={cat}>
+                        <p className="dst-label flex items-baseline justify-between gap-2">
+                          <span className="text-[color:rgba(242,240,236,0.5)]">
+                            {cat === "feminino" ? "Feminino" : "Masculino"}
+                          </span>
+                          <span className="dst-num text-[color:var(--paper)]">
+                            {g.inscritos}
+                            <span className="text-[color:rgba(242,240,236,0.35)]">
+                              {" "}
+                              · {g.baterias.length} bat
+                            </span>
+                          </span>
+                        </p>
+                        <p className="dst-label mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[0.5rem] text-[color:rgba(242,240,236,0.4)]">
+                          {g.baterias.map((b) => (
+                            <span
+                              key={b.n}
+                              style={{ color: b.ocupadas >= b.capacidade ? "var(--somma)" : undefined }}
+                            >
+                              B{b.n} {b.ocupadas}/{b.capacidade}
+                            </span>
+                          ))}
+                          {g.semBateria > 0 && (
+                            <span style={{ color: "var(--evolve)" }}>{g.semBateria} sem bateria</span>
                           )}
                         </p>
                       </div>

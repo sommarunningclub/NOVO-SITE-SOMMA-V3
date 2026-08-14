@@ -1,12 +1,5 @@
 import { getEmailFrom, getResendClient } from "@/lib/resend";
-import {
-  EVENT,
-  EVENT_PATH,
-  SITE_URL,
-  UNITS,
-  VAGAS_POR_CATEGORIA,
-  VAGAS_TOTAIS,
-} from "@/lib/desafio-esteiras/event.config";
+import { COMPETICAO, EVENT, EVENT_PATH, SITE_URL, UNITS } from "@/lib/desafio-esteiras/event.config";
 import { EMAIL_EVOLVE_LOGO_URL, EMAIL_SOMMA_LOGO_URL } from "./desafio-esteiras-ticket";
 
 /**
@@ -50,7 +43,7 @@ function firstName(nome: string): string {
 
 export const CONVITE_SUBJECTS = [
   "19/08: quatro unidades correndo ao mesmo tempo",
-  `Desafio das Esteiras: ${VAGAS_TOTAIS} vagas para competir`,
+  "Desafio das Esteiras: sua vaga está garantida",
   "Você contra a esteira. Sua unidade contra todas.",
 ] as const;
 
@@ -60,7 +53,7 @@ export function desafioEsteirasConviteSubject(variante = 0): string {
 
 /** Aparece na lista da caixa de entrada, ao lado do assunto. */
 export function desafioEsteirasConvitePreheader(): string {
-  return `${EVENT.dataExtenso}, ${EVENT.horaExtenso}. Evolve e SOMMA Club. Inscrição gratuita e vaga limitada para competir.`;
+  return `${EVENT.dataExtenso}, ${EVENT.horaExtenso}. Evolve e SOMMA Club. Inscrição gratuita para competir ou assistir.`;
 }
 
 export function renderDesafioEsteirasConviteEmail(data: DesafioEsteirasConviteData = {}): string {
@@ -198,8 +191,8 @@ export function renderDesafioEsteirasConviteEmail(data: DesafioEsteirasConviteDa
                   ${dado("Data", EVENT.dataLabel)}
                   ${dado("Início", EVENT.horaLabel)}
                   <td width="33.33%" align="center" style="padding:16px 6px;">
-                    <p style="margin:0;font-family:'Courier New',Courier,monospace;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:#8a8884;">Vagas</p>
-                    <p class="dado-n" style="margin:8px 0 0;font-family:'Arial Black',Arial,Helvetica,sans-serif;font-size:26px;line-height:1;color:#e0261b;font-weight:900;">${VAGAS_TOTAIS}</p>
+                    <p style="margin:0;font-family:'Courier New',Courier,monospace;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:#8a8884;">Unidades</p>
+                    <p class="dado-n" style="margin:8px 0 0;font-family:'Arial Black',Arial,Helvetica,sans-serif;font-size:26px;line-height:1;color:#e0261b;font-weight:900;">0${UNITS.length}</p>
                   </td>
                 </tr>
               </table>
@@ -212,8 +205,9 @@ export function renderDesafioEsteirasConviteEmail(data: DesafioEsteirasConviteDa
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff;border-left:3px solid #ff2c04;">
                 <tr>
                   <td style="padding:16px 18px;font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.55;color:#3a3a3e;">
-                    São <strong style="color:#08080a;">${VAGAS_POR_CATEGORIA} vagas no feminino e ${VAGAS_POR_CATEGORIA} no masculino</strong>
-                    em cada unidade, distribuídas em 3 baterias de 4 esteiras. Quando a sua categoria lota, acabou.
+                    <strong style="color:#08080a;">A inscrição é aberta:</strong> quem quiser competir, compete.
+                    São ${COMPETICAO.esteirasPorBateria} esteiras por unidade, e a gente monta quantas baterias
+                    forem precisas para caber todo mundo.
                     <br /><br />
                     Não precisa ser atleta. Dá para competir ou só chegar, assistir e curtir a noite.
                   </td>

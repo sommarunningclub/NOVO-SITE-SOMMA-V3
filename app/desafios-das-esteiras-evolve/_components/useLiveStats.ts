@@ -2,19 +2,16 @@
 
 import { useEffect, useState } from "react";
 import {
+  COMPETICAO,
   UNITS,
-  VAGAS_POR_CATEGORIA,
-  VAGAS_POR_UNIDADE,
   type UnitId,
   type UnitStatus,
 } from "@/lib/desafio-esteiras/event.config";
 
-/** Ocupação de uma categoria: a regra é 12 vagas em cada. */
-export interface VagasCategoria {
-  ocupadas: number;
-  total: number;
-  restantes: number;
-  status: "aberta" | "ultimas" | "esgotada";
+/** Adesão de uma categoria: quantos entraram e que grade isso já pede. */
+export interface CategoriaStat {
+  inscritos: number;
+  baterias: number;
 }
 
 export interface UnidadeStat {
@@ -24,17 +21,13 @@ export interface UnidadeStat {
   espectadores: number;
   status: UnitStatus;
   capacidade: number | null;
-  categorias: { feminino: VagasCategoria; masculino: VagasCategoria };
-  vagasCompetidores: number;
-  competidoresRestantes: number;
+  categorias: { feminino: CategoriaStat; masculino: CategoriaStat };
 }
 
 export interface LiveStats {
   total: number;
   totalCompetidores: number;
-  vagasTotais: number;
-  vagasPorUnidade: number;
-  vagasPorCategoria: number;
+  esteirasPorBateria: number;
   unidades: UnidadeStat[];
   disponivel: boolean;
   carregando: boolean;
@@ -42,13 +35,7 @@ export interface LiveStats {
 
 export type StatsIniciais = Pick<
   LiveStats,
-  | "total"
-  | "totalCompetidores"
-  | "vagasTotais"
-  | "vagasPorUnidade"
-  | "vagasPorCategoria"
-  | "unidades"
-  | "disponivel"
+  "total" | "totalCompetidores" | "esteirasPorBateria" | "unidades" | "disponivel"
 >;
 
 /**
@@ -100,6 +87,15 @@ export function useLiveStats(iniciais: StatsIniciais, intervaloMs = 30_000): Liv
   return { ...stats, carregando };
 }
 
+/** Valor de partida quando a página renderiza antes de qualquer contagem. */
+export const STATS_VAZIO: StatsIniciais = {
+  total: 0,
+  totalCompetidores: 0,
+  esteirasPorBateria: COMPETICAO.esteirasPorBateria,
+  unidades: [],
+  disponivel: false,
+};
+
 /** Sempre devolve as 4 unidades na ordem do config, mesmo se a API falhar. */
 export function statsPorUnidade(stats: StatsIniciais): UnidadeStat[] {
   return UNITS.map((u) => {
@@ -113,11 +109,9 @@ export function statsPorUnidade(stats: StatsIniciais): UnidadeStat[] {
         status: u.status,
         capacidade: u.capacidade,
         categorias: {
-          feminino: { ocupadas: 0, total: VAGAS_POR_CATEGORIA, restantes: VAGAS_POR_CATEGORIA, status: "aberta" },
-          masculino: { ocupadas: 0, total: VAGAS_POR_CATEGORIA, restantes: VAGAS_POR_CATEGORIA, status: "aberta" },
+          feminino: { inscritos: 0, baterias: 0 },
+          masculino: { inscritos: 0, baterias: 0 },
         },
-        vagasCompetidores: VAGAS_POR_UNIDADE,
-        competidoresRestantes: VAGAS_POR_UNIDADE,
       }
     );
   });

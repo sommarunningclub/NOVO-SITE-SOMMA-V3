@@ -4,23 +4,14 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { OperatorSession } from "@/lib/desafio-esteiras/auth";
-import {
-  BATERIAS,
-  EVENT,
-  VAGAS_POR_CATEGORIA,
-  VAGAS_POR_UNIDADE,
-  getUnit,
-} from "@/lib/desafio-esteiras/event.config";
+import { COMPETICAO, EVENT, getUnit } from "@/lib/desafio-esteiras/event.config";
 import { STATUS_COR, STATUS_LABEL, horaInscrito, type Inscrito } from "./inscrito";
 
 /* ── Formato do que a API devolve ────────────────────────────────────────── */
 
-interface VagasCategoria {
-  ocupadas: number;
-  total: number;
-  restantes: number;
-  status: "aberta" | "ultimas" | "esgotada";
-  baterias: { n: number; ocupadas: number }[];
+interface GradeCategoria {
+  inscritos: number;
+  baterias: { n: number; ocupadas: number; capacidade: number }[];
   semBateria: number;
 }
 
@@ -31,7 +22,7 @@ interface ResumoUnidade {
   competidores: number;
   espectadores: number;
   checkins: number;
-  vagas: { feminino: VagasCategoria; masculino: VagasCategoria };
+  grade: { feminino: GradeCategoria; masculino: GradeCategoria };
 }
 
 interface Resposta {
@@ -276,7 +267,7 @@ export function PainelUnidade({
       {/* ── Números da noite ───────────────────────────────────────────── */}
       <section className="mt-9 grid grid-cols-2 gap-3 sm:grid-cols-4">
         <Numero rotulo="Inscritos" valor={totalPrevisto} />
-        <Numero rotulo="Competidores" valor={daUnidade?.competidores ?? 0} nota={`de ${VAGAS_POR_UNIDADE}`} />
+        <Numero rotulo="Competidores" valor={daUnidade?.competidores ?? 0} />
         <Numero rotulo="Só assistindo" valor={daUnidade?.espectadores ?? 0} />
         <Numero rotulo="Já chegaram" valor={jaChegaram} destaque nota={`${percentual}%`} />
       </section>
@@ -294,18 +285,17 @@ export function PainelUnidade({
         </p>
       </div>
 
-      {/* ── Vagas por categoria ────────────────────────────────────────── */}
+      {/* ── A grade da unidade ─────────────────────────────────────────── */}
       {daUnidade && (
         <section className="mt-9">
-          <h2 className="dst-label text-[color:rgba(242,240,236,0.45)]">Vagas para competir</h2>
+          <h2 className="dst-label text-[color:rgba(242,240,236,0.45)]">Grade de competidores</h2>
           <div className="mt-3 grid gap-3 sm:grid-cols-2">
-            <CardVagas titulo="Feminino" vagas={daUnidade.vagas.feminino} />
-            <CardVagas titulo="Masculino" vagas={daUnidade.vagas.masculino} />
+            <CardGrade titulo="Feminino" grade={daUnidade.grade.feminino} />
+            <CardGrade titulo="Masculino" grade={daUnidade.grade.masculino} />
           </div>
           <p className="dst-label mt-3 leading-relaxed text-[color:rgba(242,240,236,0.3)]">
-            São {VAGAS_POR_CATEGORIA} vagas em cada categoria, distribuídas em{" "}
-            {BATERIAS.length} baterias de 4 esteiras. A organização define quem corre em qual
-            bateria.
+            A inscrição é aberta: cada bateria leva {COMPETICAO.esteirasPorBateria} competidores, e
+            a organização monta quantas forem precisas.
           </p>
         </section>
       )}
@@ -463,50 +453,55 @@ function Numero({
   );
 }
 
-function CardVagas({ titulo, vagas }: { titulo: string; vagas: VagasCategoria }) {
-  const cor =
-    vagas.status === "esgotada"
-      ? "var(--evolve)"
-      : vagas.status === "ultimas"
-        ? "var(--somma)"
-        : "rgba(242,240,236,0.55)";
-
+function CardGrade({ titulo, grade }: { titulo: string; grade: GradeCategoria }) {
   return (
     <div className="border border-[color:var(--line)] bg-[color:var(--ink-2)] p-4">
       <div className="flex items-baseline justify-between gap-3">
         <p className="dst-display text-[1.15rem]">{titulo.toUpperCase()}</p>
         <p className="dst-mono text-[1.1rem]">
-          {vagas.ocupadas}
-          <span className="text-[color:rgba(242,240,236,0.35)]">/{vagas.total}</span>
+          {grade.inscritos}
+          <span className="text-[color:rgba(242,240,236,0.35)]"> inscritos</span>
         </p>
       </div>
 
-      {/* uma marca por vaga: a categoria cheia se lê sem contar número */}
-      <div className="mt-3 grid grid-cols-12 gap-1">
-        {Array.from({ length: vagas.total }, (_, n) => (
-          <i
-            key={n}
-            className="block h-6 border"
-            style={{
-              borderColor: n < vagas.ocupadas ? "rgba(255,44,4,0.7)" : "var(--line)",
-              background: n < vagas.ocupadas ? "rgba(255,44,4,0.3)" : "transparent",
-            }}
-          />
-        ))}
-      </div>
+      {grade.baterias.length === 0 ? (
+        <p className="dst-label mt-3 text-[color:rgba(242,240,236,0.35)]">
+          Nenhuma bateria formada ainda
+        </p>
+      ) : (
+        <>
+          {/* uma barra por bateria, cheia conforme as esteiras vão sendo ocupadas */}
+          <div className="mt-3 space-y-1.5">
+            {grade.baterias.map((b) => (
+              <div key={b.n} className="flex items-center gap-2.5">
+                <span className="dst-mono w-7 shrink-0 text-[0.7rem] text-[color:rgba(242,240,236,0.4)]">
+                  B{b.n}
+                </span>
+                <span className="flex flex-1 gap-1">
+                  {Array.from({ length: b.capacidade }, (_, i) => (
+                    <i
+                      key={i}
+                      className="block h-5 flex-1 border"
+                      style={{
+                        borderColor: i < b.ocupadas ? "rgba(255,44,4,0.7)" : "var(--line)",
+                        background: i < b.ocupadas ? "rgba(255,44,4,0.3)" : "transparent",
+                      }}
+                    />
+                  ))}
+                </span>
+                <span className="dst-mono w-8 shrink-0 text-right text-[0.7rem] text-[color:rgba(242,240,236,0.4)]">
+                  {b.ocupadas}/{b.capacidade}
+                </span>
+              </div>
+            ))}
+          </div>
 
-      <p className="dst-label mt-3" style={{ color: cor }}>
-        {vagas.restantes === 0
-          ? "Esgotada"
-          : vagas.restantes === 1
-            ? "Última vaga"
-            : `${vagas.restantes} vagas livres`}
-      </p>
-
-      <p className="dst-mono mt-2 text-[0.72rem] text-[color:rgba(242,240,236,0.35)]">
-        {vagas.baterias.map((b) => `B${b.n}: ${b.ocupadas}`).join(" · ")}
-        {vagas.semBateria > 0 ? ` · sem bateria: ${vagas.semBateria}` : ""}
-      </p>
+          <p className="dst-label mt-3 text-[color:rgba(242,240,236,0.4)]">
+            {grade.baterias.length} bateria{grade.baterias.length === 1 ? "" : "s"}
+            {grade.semBateria > 0 ? ` · ${grade.semBateria} sem bateria` : ""}
+          </p>
+        </>
+      )}
     </div>
   );
 }

@@ -17,43 +17,55 @@ export const SITE_URL = "https://sommaclub.com.br";
 export type EventStatus =
   | "em_breve" // página no ar, inscrições ainda não abertas
   | "inscricoes_abertas"
-  | "ultimas_vagas" // forçado manualmente (o cálculo por capacidade é automático)
-  | "esgotado" // todas as unidades sem vaga
   | "inscricoes_encerradas" // fechamos antes do evento
   | "acontecendo"
   | "encerrado";
 
-export type UnitStatus = "aberta" | "ultimas_vagas" | "esgotada" | "encerrada";
+export type UnitStatus = "aberta" | "encerrada";
 
 /* ═══════════════════════════════════════════════════════════════════════════
    REGRA OFICIAL DA COMPETIÇÃO
    ───────────────────────────────────────────────────────────────────────────
-   Cada unidade disponibiliza 4 esteiras. Uma bateria ocupa as 4 ao mesmo
-   tempo, e cada categoria roda 3 baterias:
+   A inscrição para competir é ABERTA: não existe teto de competidores, nem
+   por categoria, nem por unidade, nem no total. Quem quiser correr, corre.
 
-       4 esteiras × 3 baterias = 12 vagas por categoria
-       12 feminino + 12 masculino = 24 competidores por unidade
-       24 × 4 unidades = 96 competidores no total
+   A esteira continua sendo o limite físico do momento, não da inscrição:
+   são 4 esteiras por unidade, então uma bateria leva 4 pessoas por vez. O
+   número de baterias deixa de ser fixo e passa a sair da conta do dia — a
+   organização monta quantas forem necessárias para caber quem apareceu.
 
-   Todos os números da LP, das APIs, do admin e do banco derivam DESTAS
-   constantes — nenhum é escrito à mão em outro lugar. Mudar aqui muda o
-   sistema inteiro (mas lembre de rodar a migration: o banco também trava a
-   capacidade, e o número está no trigger).
+       inscritos na categoria ÷ 4 esteiras = baterias necessárias
+
+   Por isso a bateria não é mais promessa de página: ela é grade de operação,
+   distribuída depois da inscrição e mostrada no ticket e no admin.
    ═══════════════════════════════════════════════════════════════════════════ */
 export const COMPETICAO = {
   esteirasPorBateria: 4,
-  bateriasPorCategoria: 3,
-  get vagasPorCategoria() {
-    return this.esteirasPorBateria * this.bateriasPorCategoria; // 12
-  },
+  /**
+   * Sem teto de inscrição. Está explícito como constante (em vez de
+   * simplesmente ausente) para que quem ler o código saiba que é decisão, e
+   * para o dia em que a organização quiser fechar um número: basta trocar
+   * aqui e reativar a trava do banco.
+   */
+  vagasLimitadas: false,
 } as const;
 
-export const VAGAS_POR_CATEGORIA = COMPETICAO.vagasPorCategoria; // 12
-export const BATERIAS = [1, 2, 3] as const;
-export type Bateria = (typeof BATERIAS)[number];
+/** Quantas baterias a categoria precisa para caber `inscritos` competidores. */
+export function bateriasNecessarias(inscritos: number): number {
+  if (inscritos <= 0) return 0;
+  return Math.ceil(inscritos / COMPETICAO.esteirasPorBateria);
+}
 
-/** 24 — as duas categorias somadas. */
-export const VAGAS_POR_UNIDADE = VAGAS_POR_CATEGORIA * 2;
+/**
+ * Bateria é um inteiro positivo, sem lista fixa: a grade cresce com a
+ * procura. O banco valida o mesmo intervalo.
+ */
+export const BATERIA_MAX = 60;
+export type Bateria = number;
+
+export function bateriaValida(n: unknown): n is Bateria {
+  return typeof n === "number" && Number.isInteger(n) && n >= 1 && n <= BATERIA_MAX;
+}
 
 export interface EventUnit {
   id: string;
@@ -238,39 +250,25 @@ export function categoriaDoSexo(sexo: Sexo | null | undefined): string | null {
   return CATEGORIAS.find((c) => c.id === sexo)?.curto ?? null;
 }
 
-/* ── Vagas ───────────────────────────────────────────────────────────────── */
-
-export type VagasStatus = "aberta" | "ultimas" | "esgotada";
-
-/** Total geral da competição: 96. */
-export const VAGAS_TOTAIS = VAGAS_POR_UNIDADE * UNITS.length;
-/** 48 por categoria somando as quatro unidades. */
-export const VAGAS_TOTAIS_POR_CATEGORIA = VAGAS_POR_CATEGORIA * UNITS.length;
-
-export function vagasRestantes(ocupadas: number, total = VAGAS_POR_CATEGORIA): number {
-  return Math.max(0, total - ocupadas);
-}
+/* ── Inscritos para competir ─────────────────────────────────────────────── */
 
 /**
- * Situação de uma categoria numa unidade.
- *
- * "últimas vagas" a partir de 3 restantes — com apenas 12 no total, avisar
- * antes disso seria alarme falso, e avisar depois já não dá tempo de reagir.
+ * Antes existia um estado de vaga (aberta, últimas, esgotada) porque havia um
+ * teto. Sem teto, a categoria só tem uma leitura: quantos já entraram. O que
+ * a página mostra agora é adesão, não escassez.
  */
-export function vagasStatus(ocupadas: number, total = VAGAS_POR_CATEGORIA): VagasStatus {
-  const restam = vagasRestantes(ocupadas, total);
-  if (restam <= 0) return "esgotada";
-  if (restam <= 3) return "ultimas";
-  return "aberta";
+export function competidoresTexto(inscritos: number): string {
+  if (inscritos === 0) return "SEJA O PRIMEIRO";
+  if (inscritos === 1) return "1 COMPETIDOR INSCRITO";
+  return `${inscritos} COMPETIDORES INSCRITOS`;
 }
 
-/** Texto de escassez, sempre derivado do número real. Nunca escrever à mão. */
-export function vagasTexto(ocupadas: number, total = VAGAS_POR_CATEGORIA): string {
-  const restam = vagasRestantes(ocupadas, total);
-  if (restam === 0) return "ESGOTADO";
-  if (restam === 1) return "ÚLTIMA VAGA";
-  if (restam <= 3) return `ÚLTIMAS ${restam} VAGAS`;
-  return `${ocupadas} de ${total} vagas preenchidas`;
+/** Como a grade daquela categoria fica com o número atual de inscritos. */
+export function gradeTexto(inscritos: number): string {
+  const baterias = bateriasNecessarias(inscritos);
+  if (baterias === 0) return "Nenhuma bateria formada ainda";
+  if (baterias === 1) return "1 bateria formada";
+  return `${baterias} baterias formadas`;
 }
 
 /** Idade em anos completos na data do evento — é o que vale para a disputa. */
@@ -304,7 +302,7 @@ export const PARTICIPACAO_LABELS: Record<Participacao, { titulo: string; texto: 
   competidor: {
     titulo: "Vou competir",
     texto:
-      "Entro no Desafio das Esteiras e apareço na grade de competidores. Vaga limitada: cada unidade tem quatro esteiras e ponto.",
+      "Entro no Desafio das Esteiras e apareço na grade de competidores da minha unidade.",
   },
   espectador: {
     titulo: "Só vou assistir",
@@ -342,9 +340,9 @@ export const COPY = {
   ctaPrimario: "GARANTIR MEU TICKET",
   ctaSecundario: "ESCOLHER UNIDADE",
   ctaSomma: "CORRER COM O SOMMA",
-  vagasAviso: "Evento gratuito. Vagas limitadas para competir em cada unidade",
+  vagasAviso: "Evento gratuito. Inscrição aberta para competir em qualquer unidade",
   vagasDetalhe:
-    "As esteiras de cada unidade são contadas: quem quer competir precisa garantir a vaga antes de esgotar. Para assistir, a entrada segue liberada.",
+    "Inscrição aberta para competir e para assistir. São 4 esteiras por unidade, e a organização monta quantas baterias forem precisas para caber todo mundo.",
 } as const;
 
 /**
@@ -420,12 +418,12 @@ export const FAQ: { p: string; r: string | null }[] = [
     r: "Não. O Desafio foi desenhado para acolher todos os níveis, de quem está começando a quem treina todo dia.",
   },
   {
-    p: "Quantas vagas existem para competir?",
-    r: `Cada unidade tem ${VAGAS_POR_CATEGORIA} vagas no feminino e ${VAGAS_POR_CATEGORIA} no masculino. São ${VAGAS_POR_UNIDADE} competidores por unidade e ${VAGAS_TOTAIS} no total. São ${COMPETICAO.esteirasPorBateria} esteiras por unidade, e cada categoria roda ${COMPETICAO.bateriasPorCategoria} baterias de ${COMPETICAO.esteirasPorBateria} pessoas. As vagas acabam por ordem de inscrição; para assistir, a entrada continua aberta.`,
+    p: "Tem limite de vagas para competir?",
+    r: `Não. A inscrição para competir está aberta e não tem teto: quem quiser correr, corre. O que é finito são as esteiras, ${COMPETICAO.esteirasPorBateria} por unidade, então a organização monta quantas baterias forem necessárias para caber todo mundo. Para assistir, a entrada também segue liberada.`,
   },
   {
     p: "Como funcionam as baterias?",
-    r: `São ${COMPETICAO.bateriasPorCategoria} baterias por categoria, com ${COMPETICAO.esteirasPorBateria} competidores correndo ao mesmo tempo, uma pessoa por esteira. A organização define em qual bateria você corre depois da inscrição, e isso aparece no seu ticket.`,
+    r: `Cada bateria leva ${COMPETICAO.esteirasPorBateria} competidores correndo ao mesmo tempo, uma pessoa por esteira. Quantas baterias vão rolar depende de quanta gente se inscrever: a organização monta a grade depois das inscrições e a sua bateria aparece no ticket.`,
   },
   {
     p: "Posso escolher qualquer unidade?",
@@ -458,32 +456,29 @@ export const PARTNERS = {
 /* ── Estado derivado ─────────────────────────────────────────────────────── */
 
 export function inscricoesAbertas(status: EventStatus = EVENT.status): boolean {
-  return status === "inscricoes_abertas" || status === "ultimas_vagas";
+  return status === "inscricoes_abertas";
 }
 
-/** Estado de uma unidade considerando capacidade configurada + inscritos reais. */
-export function unitStatusFor(unit: EventUnit, inscritos: number): UnitStatus {
-  if (unit.status !== "aberta") return unit.status;
-  if (unit.capacidade === null) return "aberta";
-  const restantes = unit.capacidade - inscritos;
-  if (restantes <= 0) return "esgotada";
-  if (restantes <= Math.max(10, Math.round(unit.capacidade * 0.1))) return "ultimas_vagas";
-  return "aberta";
+/**
+ * Estado de uma unidade.
+ *
+ * Sem teto de competidores, a unidade só fecha por decisão da organização
+ * (`unit.status`), nunca por lotação. O parâmetro de inscritos saiu junto com
+ * a conta que ele alimentava.
+ */
+export function unitStatusFor(unit: EventUnit): UnitStatus {
+  return unit.status;
 }
 
 export const EVENT_LABELS: Record<EventStatus, string> = {
   em_breve: "INSCRIÇÕES EM BREVE",
   inscricoes_abertas: "INSCRIÇÕES ABERTAS",
-  ultimas_vagas: "ÚLTIMAS VAGAS",
-  esgotado: "ESGOTADO",
   inscricoes_encerradas: "INSCRIÇÕES ENCERRADAS",
   acontecendo: "ACONTECENDO AGORA",
   encerrado: "EVENTO ENCERRADO",
 };
 
 export const UNIT_LABELS: Record<UnitStatus, string> = {
-  aberta: "VAGAS ABERTAS",
-  ultimas_vagas: "ÚLTIMAS VAGAS",
-  esgotada: "ESGOTADA",
+  aberta: "INSCRIÇÕES ABERTAS",
   encerrada: "ENCERRADA",
 };

@@ -2,16 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServiceSupabase } from "@/lib/supabase";
 import { registrationSchema } from "@/lib/desafio-esteiras/schema";
 import { generateTicketCode, generateTicketToken } from "@/lib/desafio-esteiras/ticket";
-import { TABLE, getVagasCategoria } from "@/lib/desafio-esteiras/db";
+import { TABLE } from "@/lib/desafio-esteiras/db";
 import { clientIp, rateLimit } from "@/lib/desafio-esteiras/rate-limit";
 import { getEventoId } from "@/lib/desafio-esteiras/gestao";
-import {
-  EVENT,
-  VAGAS_POR_CATEGORIA,
-  getUnit,
-  inscricoesAbertas,
-  unitStatusFor,
-} from "@/lib/desafio-esteiras/event.config";
+import { EVENT, getUnit, inscricoesAbertas } from "@/lib/desafio-esteiras/event.config";
 import { sendDesafioEsteirasTicketEmail } from "@/lib/emails/desafio-esteiras-ticket";
 
 export const dynamic = "force-dynamic";
@@ -68,7 +62,7 @@ export async function POST(request: NextRequest) {
   if (!unit) {
     return NextResponse.json({ error: "Unidade inválida." }, { status: 400 });
   }
-  if (unit.status === "esgotada" || unit.status === "encerrada") {
+  if (unit.status === "encerrada") {
     return NextResponse.json(
       { error: `As inscrições para a ${unit.nome} estão encerradas.` },
       { status: 409 }
@@ -83,42 +77,9 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // 4. Capacidade da unidade — só bloqueia quando a organização definiu um limite.
-  if (unit.capacidade !== null) {
-    const { count } = await supabase
-      .from(TABLE)
-      .select("id", { count: "exact", head: true })
-      .eq("unit_id", unit.id)
-      .in("status", ["confirmed", "checked_in"]);
-
-    if (unitStatusFor(unit, count ?? 0) === "esgotada") {
-      return NextResponse.json(
-        { error: `A ${unit.nome} está com as vagas esgotadas. Escolha outra unidade.` },
-        { status: 409 }
-      );
-    }
-  }
-
-  // 4b. Vaga na categoria — a regra da competição.
-  //
-  //     Cada unidade tem 12 vagas por categoria (4 esteiras × 3 baterias). Esta
-  //     checagem existe para dar uma mensagem clara à pessoa; a garantia contra
-  //     corrida é o trigger `dst_capacidade` no banco, tratado no INSERT abaixo.
-  if (data.participacao === "competidor") {
-    const vagas = await getVagasCategoria(unit.id, data.sexo);
-    if (vagas && vagas.restantes <= 0) {
-      const categoria = data.sexo === "feminino" ? "feminino" : "masculino";
-      return NextResponse.json(
-        {
-          error: `As ${VAGAS_POR_CATEGORIA} vagas da categoria ${categoria} na ${unit.nome} acabaram. Você ainda pode competir em outra unidade, ou se inscrever para assistir.`,
-          vagas_esgotadas: true,
-          unidade: unit.id,
-          categoria: data.sexo,
-        },
-        { status: 409 }
-      );
-    }
-  }
+  /* Não há checagem de capacidade aqui, e é de propósito: a inscrição para
+     competir é aberta. O que era teto virou dimensionamento, e quem dimensiona
+     é a organização depois, montando as baterias necessárias. */
 
   // 5. Duplicidade por CPF — checagem amigável antes do INSERT.
   //    O índice UNIQUE no banco é quem realmente garante (corrida entre requests).
@@ -151,7 +112,7 @@ export async function POST(request: NextRequest) {
   const ticket_token = generateTicketToken();
   const registro = {
     ...(evento_id ? { evento_id } : {}),
-    full_name: data.full_name.replace(/\s+/g, " ").trim(),
+    full_name: data.full_name,
     cpf: data.cpf,
     birth_date: data.birth_date,
     email: data.email,
@@ -202,19 +163,21 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // A trava de capacidade do banco venceu a corrida: alguém pegou a última
-    // vaga entre a nossa checagem e o INSERT. É o caminho correto — o banco é
-    // a única camada que enxerga todas as transações simultâneas.
+    /* Rede de segurança para a janela entre este deploy e a migration
+       `desafio-esteiras-inscricao-aberta.sql`: enquanto o trigger antigo
+       estiver no banco, ele ainda recusa a partir da 13ª da categoria. Sem
+       isto a pessoa levaria um 500 sem explicação. Some quando a migration
+       rodar, porque o erro deixa de existir. */
     if (error?.message?.includes("DST_CATEGORIA_ESGOTADA")) {
-      const categoria = data.sexo === "feminino" ? "feminino" : "masculino";
+      console.error(
+        "[desafio-esteiras] trava antiga de capacidade ainda ativa: rode scripts/desafio-esteiras-inscricao-aberta.sql"
+      );
       return NextResponse.json(
         {
-          error: `A última vaga da categoria ${categoria} na ${unit.nome} acabou de ser preenchida. Tente outra unidade ou inscreva-se para assistir.`,
-          vagas_esgotadas: true,
-          unidade: unit.id,
-          categoria: data.sexo,
+          error:
+            "Não conseguimos concluir sua inscrição agora. Tente de novo em alguns minutos ou fale com a organização.",
         },
-        { status: 409 }
+        { status: 503 }
       );
     }
 

@@ -112,14 +112,26 @@ const base = { unit_id: "vicente-pires", full_name: "  Maria   Souza  ", cpf: "5
 const p = registrationSchema.safeParse(base);
 t("aceita dados válidos", p.success, p.success ? "" : JSON.stringify(p.error.issues[0]));
 if (p.success) {
+  t("nome em maiúsculas sem espaços extras", p.data.full_name === "MARIA SOUZA", p.data.full_name);
   t("CPF normalizado para 11 dígitos", p.data.cpf === "52998224725", p.data.cpf);
   t("e-mail minúsculo e sem espaços", p.data.email === "maria@example.com", p.data.email);
   t("telefone sem +55 e sem máscara", p.data.phone === "61999887766", p.data.phone);
   t("nascimento ISO preservado", p.data.birth_date === "1995-04-12", p.data.birth_date);
 }
+t("aceita nome com partícula", registrationSchema.safeParse({ ...base, full_name: "Ana de Souza" }).success);
+t("grava Ana de Souza em maiúsculas", registrationSchema.safeParse({ ...base, full_name: "Ana de Souza" }).success
+  && registrationSchema.safeParse({ ...base, full_name: "Ana de Souza" }).data?.full_name === "ANA DE SOUZA");
+t("recusa só o primeiro nome", !registrationSchema.safeParse({ ...base, full_name: "Maria" }).success);
+t("recusa inicial + sobrenome", !registrationSchema.safeParse({ ...base, full_name: "A Silva" }).success);
+t("recusa nome com número", !registrationSchema.safeParse({ ...base, full_name: "Maria Souza 2" }).success);
+t("recusa CPF com dígito verificador errado", !registrationSchema.safeParse({ ...base, cpf: "52998224726" }).success);
+t("recusa telefone com DDD inexistente", !registrationSchema.safeParse({ ...base, phone: "23999887766" }).success);
+t("recusa telefone fixo no lugar do celular", !registrationSchema.safeParse({ ...base, phone: "(61) 3333-4444" }).success);
+t("recusa celular sem o 9", !registrationSchema.safeParse({ ...base, phone: "6188887766" }).success);
+t("recusa celular com 9 + dígito fora da faixa", !registrationSchema.safeParse({ ...base, phone: "61919887766" }).success);
+t("recusa celular de dígitos repetidos", !registrationSchema.safeParse({ ...base, phone: "61999999999" }).success);
 const br = registrationSchema.safeParse({ ...base, birth_date: "12/04/1995" });
 t("aceita dd/mm/aaaa e grava ISO", br.success && br.data.birth_date === "1995-04-12", br.success ? br.data.birth_date : JSON.stringify(br.error?.issues[0]));
-t("recusa CPF com dígito errado", !registrationSchema.safeParse({ ...base, cpf: "52998224726" }).success);
 t("recusa CPF de dígitos repetidos", !registrationSchema.safeParse({ ...base, cpf: "11111111111" }).success);
 t("recusa menor de 12 anos", !registrationSchema.safeParse({ ...base, birth_date: "2020-01-01" }).success);
 t("recusa unidade fora da lista", !registrationSchema.safeParse({ ...base, unit_id: "asa-sul" }).success);

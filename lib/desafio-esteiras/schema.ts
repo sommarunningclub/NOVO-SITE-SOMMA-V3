@@ -1,6 +1,8 @@
 import { z } from "zod";
 import { isValidCPF } from "@/lib/cpf";
+import { checarCelularBR, normalizarTelefoneBR, TELEFONE_MSG } from "@/lib/telefone";
 import { UNIT_IDS } from "./event.config";
+import { isNomeCompleto, normalizarNome } from "./nome";
 
 export const onlyDigits = (v: string) => String(v ?? "").replace(/\D/g, "");
 
@@ -8,19 +10,21 @@ export const onlyDigits = (v: string) => String(v ?? "").replace(/\D/g, "");
 export const cpfSchema = z
   .string()
   .transform(onlyDigits)
-  .refine((v) => v.length === 11, { message: "CPF precisa ter 11 dígitos" })
-  .refine(isValidCPF, { message: "CPF inválido" });
+  .refine((v) => v.length === 11, { message: "CPF incompleto — precisa ter 11 dígitos" })
+  .refine(isValidCPF, { message: "CPF inválido — confira os dígitos" });
 
-/** Telefone BR normalizado: 10 ou 11 dígitos (DDD + número), sem +55. */
+/**
+ * Celular BR: DDD da Anatel + nono dígito + faixa 6–9.
+ * O campo é WhatsApp — fixo e número inventado não passam.
+ */
 export const phoneSchema = z
   .string()
-  .transform((v) => {
-    let d = onlyDigits(v);
-    if (d.startsWith("55") && d.length > 11) d = d.slice(2);
-    return d;
-  })
-  .refine((v) => v.length === 10 || v.length === 11, {
-    message: "Telefone precisa ter DDD + número",
+  .transform(normalizarTelefoneBR)
+  .superRefine((v, ctx) => {
+    const r = checarCelularBR(v);
+    if (!r.ok) {
+      ctx.addIssue({ code: "custom", message: TELEFONE_MSG[r.motivo] });
+    }
   });
 
 const HOJE_MIN_IDADE = 12; // guarda-corpo: menores de 12 não conseguem se inscrever sozinhos
@@ -84,10 +88,8 @@ export const registrationSchema = z.object({
   participacao: participacaoSchema,
   full_name: z
     .string()
-    .trim()
-    .min(5, "Informe seu nome completo")
-    .max(120)
-    .refine((v) => v.split(/\s+/).filter(Boolean).length >= 2, "Informe nome e sobrenome"),
+    .transform(normalizarNome)
+    .refine(isNomeCompleto, "Informe nome e sobrenome"),
   cpf: cpfSchema,
   birth_date: birthDateSchema,
   email: z.string().trim().toLowerCase().email("E-mail inválido").max(160),

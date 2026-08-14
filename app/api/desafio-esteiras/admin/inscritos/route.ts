@@ -6,17 +6,18 @@ import {
   podeEditarCadastro,
   requireOperator,
 } from "@/lib/desafio-esteiras/auth";
-import { BUCKET_FOTOS, TABLE, fotoUrl, getVagasCategoria } from "@/lib/desafio-esteiras/db";
+import { BUCKET_FOTOS, TABLE, fotoUrl } from "@/lib/desafio-esteiras/db";
 import {
+  BATERIA_MAX,
+  COMPETICAO,
   EVENT,
   FAIXAS_ETARIAS,
   UNITS,
-  VAGAS_POR_CATEGORIA,
+  bateriaValida,
+  bateriasNecessarias,
   faixaEtaria,
   getUnit,
   idadeNoEvento,
-  vagasRestantes,
-  vagasStatus,
 } from "@/lib/desafio-esteiras/event.config";
 import { edicaoCadastroSchema, adminInscricaoSchema, onlyDigits } from "@/lib/desafio-esteiras/schema";
 import { formatCPF } from "@/lib/cpf";
@@ -84,6 +85,29 @@ function enriquecer(r: Linha) {
     tem_foto: Boolean(r.foto_path),
     idade,
     faixa_etaria: faixaEtaria(idade),
+  };
+}
+
+/**
+ * Como está a grade de uma categoria: quantos entraram, quantas baterias isso
+ * pede e quantos ainda não foram distribuídos. A lista de baterias tem o
+ * tamanho da procura, e nunca menos que as já usadas — se alguém foi para a
+ * bateria 7, ela aparece mesmo que a conta pedisse 5.
+ */
+function gradeDaCategoria(linhas: ReturnType<typeof enriquecer>[], sexo: "feminino" | "masculino") {
+  const daCategoria = linhas.filter((r) => r.sexo === sexo && r.participacao === "competidor");
+  const inscritos = daCategoria.length;
+  const maiorUsada = daCategoria.reduce((m, r) => Math.max(m, r.heat_number ?? 0), 0);
+  const quantas = Math.max(bateriasNecessarias(inscritos), maiorUsada);
+
+  return {
+    inscritos,
+    baterias: Array.from({ length: quantas }, (_, i) => ({
+      n: i + 1,
+      ocupadas: daCategoria.filter((r) => r.heat_number === i + 1).length,
+      capacidade: COMPETICAO.esteirasPorBateria,
+    })),
+    semBateria: daCategoria.filter((r) => !r.heat_number).length,
   };
 }
 
@@ -174,30 +198,12 @@ export async function GET(request: NextRequest) {
         checkins: daUnidade.filter((r) => r.status === "checked_in").length,
         feminino: femininoN,
         masculino: masculinoN,
-        // A regra é por categoria: 12 vagas em cada, não um teto único da unidade.
-        vagas: {
-          feminino: {
-            ocupadas: femininoN,
-            total: VAGAS_POR_CATEGORIA,
-            restantes: vagasRestantes(femininoN),
-            status: vagasStatus(femininoN),
-            baterias: [1, 2, 3].map((n) => ({
-              n,
-              ocupadas: daUnidade.filter((r) => r.sexo === "feminino" && r.heat_number === n).length,
-            })),
-            semBateria: daUnidade.filter((r) => r.sexo === "feminino" && !r.heat_number).length,
-          },
-          masculino: {
-            ocupadas: masculinoN,
-            total: VAGAS_POR_CATEGORIA,
-            restantes: vagasRestantes(masculinoN),
-            status: vagasStatus(masculinoN),
-            baterias: [1, 2, 3].map((n) => ({
-              n,
-              ocupadas: daUnidade.filter((r) => r.sexo === "masculino" && r.heat_number === n).length,
-            })),
-            semBateria: daUnidade.filter((r) => r.sexo === "masculino" && !r.heat_number).length,
-          },
+        /* Sem teto: o que interessa por categoria é quanta gente entrou e
+           como a grade fica. As baterias vêm da conta (4 por esteira), não de
+           uma lista fixa, então crescem junto com as inscrições. */
+        grade: {
+          feminino: gradeDaCategoria(daUnidade, "feminino"),
+          masculino: gradeDaCategoria(daUnidade, "masculino"),
         },
       };
     }),
@@ -510,8 +516,11 @@ export async function PATCH(request: NextRequest) {
   // bateria é garantido pelo trigger `dst_capacidade` no banco.
   if (body.heat_number !== undefined) {
     const n = body.heat_number;
-    if (n !== null && ![1, 2, 3].includes(Number(n))) {
-      return NextResponse.json({ error: "Bateria inválida (use 1, 2, 3 ou vazio)." }, { status: 400 });
+    if (n !== null && !bateriaValida(Number(n))) {
+      return NextResponse.json(
+        { error: `Bateria inválida (use um número de 1 a ${BATERIA_MAX}, ou deixe vazio).` },
+        { status: 400 },
+      );
     }
     // Bateria é lugar em esteira: quem só vai assistir não ocupa nenhuma.
     if (n !== null && linha.participacao !== "competidor") {
@@ -763,25 +772,12 @@ export async function POST(request: NextRequest) {
 
   const unit = getUnit(data.unit_id);
   if (!unit) return NextResponse.json({ error: "Unidade inválida." }, { status: 400 });
-  if (unit.status === "esgotada" || unit.status === "encerrada") {
+  if (unit.status === "encerrada") {
     return NextResponse.json({ error: `As inscrições para a ${unit.nome} estão encerradas.` }, { status: 409 });
   }
 
   const supabase = getServiceSupabase();
   if (!supabase) return NextResponse.json({ error: "Banco indisponível." }, { status: 503 });
-
-  if (data.participacao === "competidor") {
-    const vagas = await getVagasCategoria(unit.id, data.sexo);
-    if (vagas && vagas.restantes <= 0) {
-      const categoria = data.sexo === "feminino" ? "feminino" : "masculino";
-      return NextResponse.json(
-        {
-          error: `As ${VAGAS_POR_CATEGORIA} vagas da categoria ${categoria} na ${unit.nome} acabaram. Cadastre como espectador ou escolha outra unidade.`,
-        },
-        { status: 409 },
-      );
-    }
-  }
 
   const { data: existente } = await supabase
     .from(TABLE)

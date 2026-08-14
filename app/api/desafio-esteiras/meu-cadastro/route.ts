@@ -124,7 +124,7 @@ export async function PATCH(request: NextRequest) {
 
   const unidade = getUnit(dados.unit_id);
   if (!unidade) return NextResponse.json({ error: "Unidade inválida." }, { status: 400 });
-  if (unidade.status === "esgotada" || unidade.status === "encerrada") {
+  if (unidade.status === "encerrada") {
     return NextResponse.json(
       { error: `A ${unidade.nome} não está recebendo mais inscrições.` },
       { status: 409 }
@@ -153,7 +153,7 @@ export async function PATCH(request: NextRequest) {
   const { error } = await supabase
     .from(TABLE)
     .update({
-      full_name: dados.full_name.replace(/\s+/g, " ").trim(),
+      full_name: dados.full_name,
       email: dados.email,
       phone: dados.phone,
       unit_id: dados.unit_id,
