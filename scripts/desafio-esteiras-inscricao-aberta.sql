@@ -38,6 +38,11 @@ COMMENT ON COLUMN evolve_treadmill_event_registrations.heat_number IS
 -- 2. Parâmetros
 --    `dst_vagas_por_categoria` deixa de existir: não há vaga por categoria.
 --    `dst_por_bateria` fica, porque a esteira continua sendo o limite real.
+--
+--    A view sai ANTES da função: `dst_vagas` usa `dst_vagas_por_categoria()`
+--    nas colunas `total` e `restantes`, e o Postgres recusa dropar uma função
+--    com dependente. A ordem aqui não é estilo, é requisito.
+DROP VIEW IF EXISTS dst_vagas;
 DROP FUNCTION IF EXISTS dst_vagas_por_categoria();
 
 CREATE OR REPLACE FUNCTION dst_por_bateria() RETURNS integer
@@ -109,8 +114,7 @@ CREATE TRIGGER dst_capacidade
   FOR EACH ROW EXECUTE FUNCTION dst_travar_capacidade();
 
 -- 4. A visão deixa de contar vaga e passa a contar adesão
-DROP VIEW IF EXISTS dst_vagas;
-
+--    (a `dst_vagas` já saiu no passo 2, junto da função de que dependia)
 CREATE OR REPLACE VIEW dst_grade AS
 SELECT
   u.unit_id,
