@@ -7,14 +7,14 @@ export const metadata: Metadata = {
   description: "Finalize seu pedido para o plano mensal com o professor Alexandre Alves",
 }
 
-// Checkout dedicado do professor Alexandre Alves — plano Mensal fixo em R$ 300 (à vista).
-// Espelha o link da assessoria (assessoria.sommaclub.com.br/checkout/mensal/alexandre).
+// Checkout dedicado do professor Alexandre Alves — plano Mensal fixo em R$ 330 (à vista).
+// Link oficial: sommaclub.com.br/checkout/mensal/alexandre
 export default async function CheckoutAlexandrePage() {
   const plan = {
     name: "Mensal",
     period: "mensal",
-    price: 300,
-    total: 300,
+    price: 330,
+    total: 330,
     installments: 1,
     type: "recurring" as const,
   }
