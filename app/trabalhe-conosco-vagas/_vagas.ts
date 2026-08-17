@@ -71,7 +71,7 @@ export const VAGAS: Vaga[] = [
       "Uma comunidade inteira torcendo pela sua evolução.",
     ],
     publicadaEm: "2026-08-10",
-    ativa: true,
+    ativa: false,
   },
 ];
 
