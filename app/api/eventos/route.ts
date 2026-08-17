@@ -20,7 +20,7 @@ export async function GET() {
     // Próximos eventos (futuros ou abertos/bloqueados, excluindo encerrados e ocultos)
     const { data: upcoming, error: upErr } = await supabase
       .from('eventos')
-      .select('id, titulo, data_evento, horario_inicio, local, local_url, tipo, checkin_status, pelotoes, descricao')
+      .select('id, titulo, data_evento, horario_inicio, local, local_url, lp_url, tipo, checkin_status, pelotoes, descricao')
       .or(`data_evento.gt.${today},checkin_status.eq.aberto,checkin_status.eq.bloqueado`)
       .neq('checkin_status', 'encerrado')
       .eq('oculto_no_checkin_publico', false)

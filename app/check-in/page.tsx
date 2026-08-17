@@ -21,6 +21,8 @@ type Evento = {
   descricao: string | null
   local: string
   localUrl: string | null
+  /** LP própria do evento. Preenchida, o card leva para lá em vez de abrir o wizard. */
+  lpUrl: string | null
   tipo: 'corrida' | 'personalizado'
   encerrado: boolean
   bloqueado: boolean
@@ -39,6 +41,25 @@ function formatarData(dataStr: string): string {
 function formatarHorario(horario: string): string {
   const [h, m] = horario.split(':')
   return `A partir das ${h}h${m === '00' ? '00' : m}`
+}
+
+/**
+ * Normaliza a LP do evento e recusa o que não for http(s).
+ *
+ * O valor vem do banco (preenchido no admin) e acaba num `location.href` — sem
+ * essa checagem, um `javascript:` gravado ali viraria execução de script. Aceita
+ * caminho relativo ("/desafios-das-esteiras-evolve") além de URL completa.
+ * Retorna null quando não dá para usar, e aí o card volta ao check-in normal.
+ */
+function lpSegura(url: string | null): string | null {
+  if (!url || !url.trim()) return null
+  const base = typeof window === 'undefined' ? 'https://sommaclub.com.br' : window.location.origin
+  try {
+    const u = new URL(url.trim(), base)
+    return u.protocol === 'http:' || u.protocol === 'https:' ? u.href : null
+  } catch {
+    return null
+  }
 }
 
 export default function CheckInPage() {
@@ -78,6 +99,7 @@ export default function CheckInPage() {
             descricao: e.descricao || null,
             local: e.local || 'Parque da Cidade — Brasília, DF',
             localUrl: e.local_url || null,
+            lpUrl: e.lp_url || null,
             tipo: e.tipo || 'corrida',
             encerrado: e.checkin_status === 'encerrado',
             bloqueado: e.checkin_status === 'bloqueado',
@@ -97,6 +119,8 @@ export default function CheckInPage() {
               descricao: null,
               local: e.local || 'Parque da Cidade — Brasília, DF',
               localUrl: null,
+              // Histórico é só leitura, não leva a lugar nenhum.
+              lpUrl: null,
               tipo: 'corrida',
               encerrado: e.checkin_status === 'encerrado',
               bloqueado: e.checkin_status === 'bloqueado',
@@ -277,12 +301,18 @@ export default function CheckInPage() {
               </p>
               {eventosProximos.map(evento => {
                 const isCatcherRun = evento.id === 'f139b049-52c8-4028-9ddb-90cfa72af378'
+                // Evento com LP própria não passa pelo wizard: o destino é a LP,
+                // e por isso o status de check-in (inclusive "bloqueado") não vale
+                // para ele — quem controla inscrição ali é a própria página.
+                const lp = lpSegura(evento.lpUrl)
                 return (
                 <div
                   key={evento.id}
                   onClick={() => {
                     if (isCatcherRun) {
                       return
+                    } else if (lp) {
+                      window.location.href = lp
                     } else if (!evento.bloqueado) {
                       setEventoSelecionado(evento)
                     }
@@ -290,18 +320,25 @@ export default function CheckInPage() {
                   className={`w-full text-left rounded-xl border-2 bg-zinc-900 overflow-hidden transition-all duration-200 ${
                     isCatcherRun
                       ? 'border-zinc-700 cursor-not-allowed opacity-70'
+                      : lp
+                      ? 'border-primary hover:bg-zinc-800 cursor-pointer group'
                       : evento.bloqueado
                       ? 'border-zinc-700 cursor-not-allowed opacity-70'
                       : 'border-primary hover:bg-zinc-800 cursor-pointer group'
                   }`}
                 >
-                  <div className={`px-4 sm:px-6 py-2 flex items-center justify-between ${isCatcherRun ? 'bg-zinc-700' : evento.bloqueado ? 'bg-zinc-700' : 'bg-primary'}`}>
+                  <div className={`px-4 sm:px-6 py-2 flex items-center justify-between ${isCatcherRun ? 'bg-zinc-700' : lp ? 'bg-primary' : evento.bloqueado ? 'bg-zinc-700' : 'bg-primary'}`}>
                     {isCatcherRun ? (
                       <>
                         <span className="text-zinc-300 text-xs font-semibold uppercase tracking-widest flex items-center gap-1.5">
                           <Lock className="w-3 h-3" /> Inscrições encerradas
                         </span>
                         <Lock className="w-3.5 h-3.5 text-zinc-400" />
+                      </>
+                    ) : lp ? (
+                      <>
+                        <span className="text-white text-xs font-semibold uppercase tracking-widest">Página do evento</span>
+                        <ChevronRight className="w-3.5 h-3.5 text-white" />
                       </>
                     ) : evento.bloqueado ? (
                       <>
@@ -341,15 +378,15 @@ export default function CheckInPage() {
                     )}
                     <div className="space-y-2">
                       <div className="flex items-center gap-2 text-xs sm:text-sm text-zinc-400">
-                        <Calendar className={`w-3.5 h-3.5 flex-shrink-0 ${evento.bloqueado ? 'text-zinc-500' : 'text-primary'}`} />
+                        <Calendar className={`w-3.5 h-3.5 flex-shrink-0 ${evento.bloqueado && !lp ? 'text-zinc-500' : 'text-primary'}`} />
                         {evento.dataFormatada}
                       </div>
                       <div className="flex items-center gap-2 text-xs sm:text-sm text-zinc-400">
-                        <Clock className={`w-3.5 h-3.5 flex-shrink-0 ${evento.bloqueado ? 'text-zinc-500' : 'text-primary'}`} />
+                        <Clock className={`w-3.5 h-3.5 flex-shrink-0 ${evento.bloqueado && !lp ? 'text-zinc-500' : 'text-primary'}`} />
                         {formatarHorario(evento.horarioInicio)}
                       </div>
                       <div className="flex items-center gap-2 text-xs sm:text-sm text-zinc-400">
-                        <MapPin className={`w-3.5 h-3.5 flex-shrink-0 ${evento.bloqueado ? 'text-zinc-500' : 'text-primary'}`} />
+                        <MapPin className={`w-3.5 h-3.5 flex-shrink-0 ${evento.bloqueado && !lp ? 'text-zinc-500' : 'text-primary'}`} />
                         {evento.localUrl ? (
                           <a
                             href={evento.localUrl}
@@ -368,6 +405,10 @@ export default function CheckInPage() {
                     {isCatcherRun ? (
                       <div className="mt-4 flex items-center justify-end gap-1.5 text-zinc-500 text-xs font-semibold">
                         <Lock className="w-3 h-3" /> Inscrições encerradas
+                      </div>
+                    ) : lp ? (
+                      <div className="mt-4 flex items-center justify-end gap-1 text-primary text-xs font-semibold group-hover:gap-2 transition-all">
+                        Ver o evento <ChevronRight className="w-3.5 h-3.5" />
                       </div>
                     ) : evento.bloqueado ? (
                       <div className="mt-4 flex items-center justify-end gap-1.5 text-zinc-500 text-xs font-semibold">
