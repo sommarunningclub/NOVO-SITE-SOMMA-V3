@@ -36,11 +36,14 @@ import { join } from "node:path";
  * fundo claro — em cima de um fundo ink ele desapareceria. `C.ink` continua
  * existindo como cor de TEXTO (títulos, números), não mais como fundo.
  *
- * `LINK_VENDAS_PENDENTE`: o briefing trouxe "[INSERIR LINK DE VENDAS]" como
- * placeholder literal. Fica assim de propósito — reaproveitar um link antigo
- * seria arriscado, porque a oferta mudou (cupom, esquenta oficial, sorteio) e
- * pode apontar para uma página desatualizada. Nenhum disparo deve sair com
- * este valor.
+ * `LINK_VENDAS_PENDENTE` (histórico): o briefing trouxe "[INSERIR LINK DE
+ * VENDAS]" como placeholder literal, e `dispararEtapa`/`dispararCampanha`
+ * recusavam rodar enquanto `EVENTO.linkIngresso` fosse esse valor. O link real
+ * chegou depois e confirmado por quem pediu a campanha: a mesma URL do
+ * briefing original, com `cupom=SOMMA` (parâmetro fixo da Sportickets,
+ * deliberadamente diferente do `SOMA10` que a pessoa aplica no checkout). A
+ * constante continua exportada como rede de segurança para a PRÓXIMA campanha
+ * que nascer sem link ainda definido.
  */
 
 const C = {
@@ -56,7 +59,12 @@ const C = {
 const SANS = "Arial,Helvetica,sans-serif";
 const BLACK = "'Arial Black',Arial,Helvetica,sans-serif";
 
-export const LINK_VENDAS_PENDENTE = "https://LINK-DE-VENDAS-PENDENTE.exemplo";
+// Tipo `string` explícito, não literal: com `EVENTO` em `as const`,
+// `linkIngresso` vira o tipo do valor exato configurado. Se este constante
+// ficasse como literal também, comparar os dois (a guarda contra disparar com
+// o placeholder) viraria comparação de dois literais sem overlap — sempre
+// `false` para o TypeScript, mesmo antes de alguém trocar o link de volta.
+export const LINK_VENDAS_PENDENTE: string = "https://LINK-DE-VENDAS-PENDENTE.exemplo";
 
 export const EMAIL_SWR_LOGO_URL = "https://sommaclub.com.br/SWR-LOGO.png";
 export const EMAIL_SOMMA_COLLAB_LOGO_URL =
@@ -84,7 +92,10 @@ export const EVENTO = {
   distancia: "4 KM",
   recepcao: "16h",
   largada: "17h",
-  linkIngresso: LINK_VENDAS_PENDENTE,
+  // `cupom=SOMMA` (sem o 10) é parâmetro fixo/de rastreio da Sportickets,
+  // confirmado deliberadamente distinto do SOMA10 que a pessoa aplica no
+  // checkout — não "corrigir" pra bater com EVENTO.cupom abaixo.
+  linkIngresso: "https://www.sportickets.com.br/pt/event/sunset-wine-run?cupom=SOMMA",
   cupom: "SOMA10",
   desconto: "10%",
   /** Fim da janela do cupom: data fixa do briefing, não relativa ao envio. */
