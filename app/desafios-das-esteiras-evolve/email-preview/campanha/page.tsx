@@ -25,9 +25,10 @@ const NOME_EXEMPLO = "Marina";
 
 /** Data de disparo prevista de cada variante, espelhando o script de teste. */
 const AGENDA: Record<VarianteCampanha, string> = {
-  convite: "2026-08-16T10:00:00-03:00",
-  vagas: "2026-08-17T09:00:00-03:00",
-  "ultima-chamada": "2026-08-18T09:00:00-03:00",
+  convite: "2026-08-17T21:30:00-03:00",
+  vagas: "2026-08-18T09:00:00-03:00",
+  "ultima-chamada": "2026-08-19T09:00:00-03:00",
+  "lembrete-final": "2026-08-19T16:00:00-03:00",
 };
 
 /** Altura do iframe por variante: o convite é bem mais longo que os outros. */
@@ -35,6 +36,7 @@ const ALTURA: Record<VarianteCampanha, number> = {
   convite: 2900,
   vagas: 1900,
   "ultima-chamada": 1600,
+  "lembrete-final": 1600,
 };
 
 const diaLegivel = (iso: string) =>

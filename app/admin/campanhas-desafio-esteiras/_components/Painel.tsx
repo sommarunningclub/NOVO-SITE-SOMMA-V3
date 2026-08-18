@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
 interface LinhaPainel {
-  etapa: 1 | 2 | 3;
+  etapa: 1 | 2 | 3 | 4;
   rotulo: string;
   segmento: string;
   assunto: string;
@@ -18,6 +18,7 @@ interface LinhaPainel {
 
 interface Painel {
   campanha: string;
+  vagasRestantes: number;
   base: { total: number; porSegmento: Record<string, number> };
   linhas: LinhaPainel[];
   webhookConfigurado: boolean;
@@ -34,7 +35,7 @@ const CORES: Record<LinhaPainel["status"], string> = {
 const brasilia = (iso: string) =>
   new Date(iso).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo", dateStyle: "short", timeStyle: "short" });
 
-export function PainelCampanhas() {
+export function PainelDesafioEsteiras() {
   const [painel, setPainel] = useState<Painel | null>(null);
   const [erro, setErro] = useState<string | null>(null);
   const [ocupado, setOcupado] = useState<string | null>(null);
@@ -44,7 +45,7 @@ export function PainelCampanhas() {
 
   const carregar = useCallback(async () => {
     try {
-      const res = await fetch("/api/campanhas/painel");
+      const res = await fetch("/api/campanhas-desafio-esteiras/painel");
       const data = await res.json();
       if (!res.ok) { setErro(data.error ?? "Falha ao carregar."); return; }
       setPainel(data as Painel);
@@ -57,10 +58,10 @@ export function PainelCampanhas() {
   useEffect(() => { void carregar(); }, [carregar]);
 
   async function sincronizar() {
-    if (!confirm("Puxar cadastro_site + checkins para a campanha? Não envia nada.")) return;
+    if (!confirm("Puxar cadastro_site + checkins para esta campanha? Não envia nada.")) return;
     setOcupado("sync");
     try {
-      const res = await fetch("/api/campanhas/sincronizar", { method: "POST" });
+      const res = await fetch("/api/campanhas-desafio-esteiras/sincronizar", { method: "POST" });
       const data = await res.json();
       if (!res.ok) setErro(data.error ?? "Falha ao sincronizar.");
       else {
@@ -78,7 +79,7 @@ export function PainelCampanhas() {
     const k = chave(l);
     setOcupado(`previa:${k}`);
     try {
-      const res = await fetch(`/api/campanhas/previa?etapa=${l.etapa}&segmento=${l.segmento}`);
+      const res = await fetch(`/api/campanhas-desafio-esteiras/previa?etapa=${l.etapa}&segmento=${l.segmento}`);
       const data = await res.json();
       setPrevias((p) => ({ ...p, [k]: res.ok ? { total: data.total, amostra: data.amostra } : data.error }));
     } finally {
@@ -104,7 +105,7 @@ export function PainelCampanhas() {
     setOcupado(`disparo:${k}`);
     setErro(null);
     try {
-      const res = await fetch("/api/campanhas/disparar", {
+      const res = await fetch("/api/campanhas-desafio-esteiras/disparar", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ etapa: l.etapa, segmento: l.segmento, confirmar: true }),
@@ -112,7 +113,9 @@ export function PainelCampanhas() {
       const data = await res.json();
       if (!res.ok) setErro(data.error ?? "Falha ao disparar.");
       else {
-        alert(`Enviado.\n\nEnviados: ${data.enviados}\nFalhas: ${data.falhas}\nTotal na etapa: ${data.total}`);
+        alert(
+          `Enviado.\n\nEnviados: ${data.enviados}\nFalhas: ${data.falhas}\nTotal na etapa: ${data.total}\nVagas restantes no momento do envio: ${data.vagasRestantes}`
+        );
         await carregar();
       }
     } finally {
@@ -130,21 +133,22 @@ export function PainelCampanhas() {
   return (
     <main className="dst-grain min-h-[100svh] py-10 md:py-14">
       <div className="dst-wrap">
-        <p className="dst-label text-[color:var(--somma)]">Régua de 3 etapas · envio transacional</p>
+        <p className="dst-label text-[color:var(--somma)]">Régua de 4 etapas · envio transacional</p>
         <h1 className="dst-display mt-3 text-[clamp(1.8rem,7vw,3.5rem)] leading-[0.88]">
-          CAMPANHA
+          DESAFIO DAS
           <br />
-          EVOLVE
+          ESTEIRAS
         </h1>
+        <p className="dst-label mt-3 text-[color:rgba(242,240,236,0.5)]">
+          {painel.vagasRestantes} vagas restantes agora
+        </p>
 
-        {/* O aviso mais importante da tela: sem webhook a régua não fecha. */}
         {!painel.webhookConfigurado && (
           <div className="mt-7 border border-[color:var(--evolve)] bg-[rgba(226,33,28,0.1)] p-5">
             <p className="dst-label mb-2 text-[color:var(--evolve)]">Webhook não configurado</p>
             <p className="text-[0.9rem] leading-relaxed text-[color:rgba(242,240,236,0.75)]">
-              Sem <code className="dst-mono">RESEND_WEBHOOK_SECRET</code> as aberturas não são
-              capturadas, e as etapas 2 e 3 não têm como saber quem não abriu. Configure antes de
-              disparar a etapa 1: abertura que acontece com o webhook fora do ar não volta.
+              Sem <code className="dst-mono">RESEND_WEBHOOK_SECRET</code> as etapas 2, 3 e 4 não têm
+              como saber quem não abriu a anterior.
             </p>
           </div>
         )}
@@ -243,15 +247,8 @@ export function PainelCampanhas() {
           })}
         </div>
 
-        <p className="dst-label mt-12 text-[color:rgba(242,240,236,0.3)]">
-          Abertura é medida por pixel: quem lê com imagem bloqueada conta como não aberto, e o Apple
-          Mail pré-carrega o pixel de quem talvez não tenha visto. A régua é aproximação, não fato.
-        </p>
-        <Link
-          href="/admin/campanhas-desafio-esteiras"
-          className="dst-label mt-4 block text-[color:rgba(242,240,236,0.4)] underline"
-        >
-          Ver campanha Desafio das Esteiras
+        <Link href="/admin/campanhas" className="dst-label mt-12 block text-[color:rgba(242,240,236,0.4)] underline">
+          Ver campanha Evolve fortalecimento
         </Link>
       </div>
     </main>

@@ -64,12 +64,13 @@ const BLACK = "'Arial Black',Arial,Helvetica,sans-serif";
  */
 export const EMAIL_HERO_URL = `${SITE_URL}/desafio-esteiras-evolve/email/hero-banner.jpg`;
 
-export type VarianteCampanha = "convite" | "vagas" | "ultima-chamada";
+export type VarianteCampanha = "convite" | "vagas" | "ultima-chamada" | "lembrete-final";
 
 export const VARIANTES: readonly VarianteCampanha[] = [
   "convite",
   "vagas",
   "ultima-chamada",
+  "lembrete-final",
 ] as const;
 
 export interface DesafioEsteirasCampanhaData {
@@ -253,6 +254,38 @@ const COPY_VARIANTES: Record<VarianteCampanha, CopyVariante> = {
     cta: "GARANTIR AGORA",
     ctaApoio: "Gratuito. Leva menos de um minuto.",
     fecho: (c) => [`${c.contagem}.`, "A ESTEIRA NÃO", "ESPERA NINGUÉM."],
+    secoes: {
+      ticker: false,
+      manifesto: false,
+      experiencia: false,
+      passos: false,
+      regra: false,
+      unidades: true,
+      sommaBase: false,
+    },
+  },
+
+  /**
+   * O segundo e-mail do dia do evento. Não repete "última-chamada" para quem já
+   * ignorou uma vez hoje: essa manda pela manhã para todo mundo, esta manda à
+   * tarde só para quem não abriu a de manhã (a régua decide o "quem", não este
+   * arquivo). Assunto e corpo diferentes de propósito, focados em horário —
+   * "faltam poucas horas" é uma informação que a manhã não tinha.
+   */
+  "lembrete-final": {
+    rotulo: "Lembrete final",
+    selo: (c) => c.contagem,
+    assunto: () => `Faltam poucas horas: ${EVENT.horaExtenso} nas quatro unidades`,
+    preheader: (c) =>
+      `Última mensagem sobre o Desafio das Esteiras hoje. ${EVENT.horaExtenso}, quatro unidades da Evolve. ${frasePlacar(c)}`,
+    kicker: "Faltam poucas horas",
+    headline: () => ["FALTAM", "POUCAS HORAS."],
+    sub: `${escapeHtml(EVENT.horaExtenso).toUpperCase()} NAS QUATRO UNIDADES.`,
+    intro: (saudacao, c) =>
+      `${saudacao} Esta é a última mensagem sobre o Desafio das Esteiras hoje. As esteiras das quatro unidades da Evolve ligam às <strong style="color:${C.paper};">${escapeHtml(EVENT.horaExtenso)}</strong>. ${escapeHtml(frasePlacar(c))} Se ainda não garantiu o ticket, é agora.`,
+    cta: "GARANTIR AGORA",
+    ctaApoio: "Gratuito. Leva menos de um minuto.",
+    fecho: () => ["A ESTEIRA NÃO", "ESPERA NINGUÉM."],
     secoes: {
       ticker: false,
       manifesto: false,

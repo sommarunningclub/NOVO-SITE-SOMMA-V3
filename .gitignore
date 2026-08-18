@@ -43,3 +43,7 @@ segmento-*.json
 # vivem em public/desafio-esteiras-evolve/img/. Nada no código aponta para cá;
 # os originais ficam fora do repo para não pesar no build e no deploy.
 public/desafio-esteiras-evolve/imganes-evolve/
+
+# Estado local da CLI do Supabase (supabase link) — cache de versão e do
+# projeto linkado, específico de cada máquina, não é código do projeto.
+supabase/.temp/
