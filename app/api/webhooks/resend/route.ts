@@ -119,12 +119,15 @@ export async function POST(request: NextRequest) {
   const tags = payload.data?.tags ?? {};
 
   const campanha = tags.campanha;
-  const etapa = Number(tags.etapa);
   const segmento = tags.segmento;
-  /* As três tags só existem em e-mail que a régua mandou (linkOferta/tags em
-     lib/campanhas/regua.ts). Sem elas o evento é de outra coisa no domínio —
-     ticket, boas-vindas, o e-mail de contato de outra rota — e guardar tudo
-     encheria a tabela com linhas que nenhuma consulta lê. */
+  /* `etapa` é opcional na tag: campanhas de disparo único (ex.: Sunset Wine
+     Run) não têm régua de etapas e nunca mandam essa tag. Sem esta ressalva o
+     evento chegava com campanha/segmento válidos e ainda assim era descartado
+     em silêncio por faltar uma etapa que não existe — foi exatamente isso que
+     aconteceu no primeiro disparo do Sunset Wine Run: Resend confirmava
+     abertura, campanha_eventos ficava vazia. Presente e inválida (não-inteira,
+     ou menor que 1) ainda derruba o evento; ausente vira 1. */
+  const etapa = tags.etapa === undefined ? 1 : Number(tags.etapa);
   const daRegua = Boolean(campanha && segmento && Number.isInteger(etapa) && etapa >= 1);
 
   const interessa =

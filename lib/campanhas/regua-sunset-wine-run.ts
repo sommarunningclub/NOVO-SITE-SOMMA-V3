@@ -40,6 +40,7 @@ export const SEGMENTOS: readonly SegmentoBase[] = ["cadastro-site", "checkins", 
 export const EVENTOS_DE_ENGAJAMENTO = ["opened", "clicked"] as const;
 
 const TAG_CAMPANHA = "campanha";
+const TAG_ETAPA = "etapa";
 const TAG_SEGMENTO = "segmento";
 
 interface EtapaRegistro {
@@ -172,8 +173,14 @@ export async function dispararCampanha(segmento: SegmentoBase): Promise<Resultad
           "List-Unsubscribe": `<${descadastroUrl}>`,
           "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
         },
+        // A tag `etapa` é obrigatória mesmo aqui não havendo régua de etapas:
+        // o webhook (app/api/webhooks/resend/route.ts) só aceita um evento como
+        // "da régua" se `etapa` for um inteiro válido — sem ela, o evento chega
+        // mas é descartado em silêncio, e é exatamente o que aconteceu no
+        // primeiro disparo (Resend confirma abertura, campanha_eventos não).
         tags: [
           { name: TAG_CAMPANHA, value: CAMPANHA },
+          { name: TAG_ETAPA, value: String(ETAPA) },
           { name: TAG_SEGMENTO, value: segmento },
         ],
       };
