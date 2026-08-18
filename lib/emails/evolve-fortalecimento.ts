@@ -88,10 +88,13 @@ export const OFERTA = {
 } as const;
 
 /**
- * De onde veio o contato. Vira `utm_content`, e é como a Evolve separa quem
- * chegou da base de cadastro do site e quem chegou da base de check-in.
+ * De onde veio o contato. Vira `utm_content`, e é como cada campanha separa
+ * quem chegou da base de cadastro do site de quem chegou da base de check-in.
+ * `manual` é para contato avulso adicionado fora da sincronização automática
+ * (ex.: imprensa) — existe pra não forçar esse tipo de gente a entrar como
+ * "teste", que é rastro de bancada e não produção.
  */
-export type SegmentoBase = "cadastro-site" | "checkins" | "teste";
+export type SegmentoBase = "cadastro-site" | "checkins" | "manual" | "teste";
 
 export const SEGMENTOS: readonly SegmentoBase[] = ["cadastro-site", "checkins"] as const;
 
