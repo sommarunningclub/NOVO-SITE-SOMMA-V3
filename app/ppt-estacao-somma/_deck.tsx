@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import type { Opcionais } from "./_assets";
-import { EvolveLogo, EvolvePlusLogo, Lockup, SommaLogo } from "./_marca";
+import { Dupla, EvolveLogo, EvolvePlusLogo, Lockup, SommaLogo } from "./_marca";
 import { ESPACO_CERRADO, MapaEspacoCerrado } from "./_mapa";
 import { AppEstacao } from "./_app";
 import { TelaAgenda, TelaCarteira, TelaCheckin } from "./_telas";
@@ -1235,8 +1235,8 @@ export function Deck({ opcionais, app }: { opcionais: Opcionais; app: { url: str
           <div className="grid items-end gap-8 lg:grid-cols-[1.25fr_1fr]">
             <div>
               <Kicker>Marcas no complexo</Kicker>
-              <H2>
-                Marcas do DF
+              <H2 className="md:!text-[3.3rem] lg:!text-[3.7rem]">
+                Marcas do DF e do Brasil
                 <br />
                 dentro do <Accent>complexo</Accent>
               </H2>
@@ -1263,14 +1263,14 @@ export function Deck({ opcionais, app }: { opcionais: Opcionais; app: { url: str
           <div className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {MARCAS.map((m) => (
               <div key={m.nome} className="a-up border border-[color:var(--line)] bg-white p-5">
-                <div className="flex h-14 items-center gap-5">
+                <div className="flex h-14 min-w-0 items-center gap-3">
                   {m.logos.map((l, i) => (
-                    <span key={l.src} className="flex items-center gap-6">
+                    <span key={l.src} className="flex min-w-0 items-center gap-3">
                       {i > 0 ? (
-                        <span className="font-display text-[10px] font-semibold uppercase tracking-[0.3em] text-[color:var(--fg-faint)]">ou</span>
+                        <span className="shrink-0 font-display text-[9px] font-semibold uppercase tracking-[0.25em] text-[color:var(--fg-faint)]">ou</span>
                       ) : null}
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={l.src} alt={l.alt} className={`${l.h} w-auto`} />
+                      <img src={l.src} alt={l.alt} className={`${l.h} w-auto max-w-full object-contain`} />
                     </span>
                   ))}
                 </div>
@@ -1367,7 +1367,7 @@ export function Deck({ opcionais, app }: { opcionais: Opcionais; app: { url: str
       {/* ═══════════ 16 · SOMMA + EVOLVE ═══════════ */}
       <Slide index={idx("somma-evolve")} name="somma-evolve" tema="claro">
         <Miolo>
-          <Kicker>SOMMA + Evolve</Kicker>
+          <Dupla tema="claro" size="sm" className="a-up" />
           <H2>
             Duas forças <Accent>complementares</Accent>
           </H2>
@@ -1532,9 +1532,10 @@ export function Deck({ opcionais, app }: { opcionais: Opcionais; app: { url: str
       <Slide index={idx("quatro-maos")} name="quatro-maos" tema="claro">
         <Miolo>
           <Kicker>Proposta de construção a quatro mãos</Kicker>
-          <H2>
-            SOMMA + Evolve
-            <br />
+          <div className="a-up mt-5">
+            <Dupla tema="claro" size="xl" />
+          </div>
+          <H2 className="!mt-4">
             construindo o projeto <Accent>juntos</Accent>
           </H2>
           <Lead>

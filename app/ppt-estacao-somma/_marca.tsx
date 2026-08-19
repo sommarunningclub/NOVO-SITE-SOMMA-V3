@@ -92,3 +92,43 @@ export function Lockup({
     </div>
   );
 }
+
+type DuplaSize = Size | "xl";
+
+const DUPLA: Record<DuplaSize, { somma: string; evolve: string; gap: string; plus: string }> = {
+  sm: { somma: "h-4 md:h-5", evolve: "h-[0.95rem] md:h-[1.2rem]", gap: "gap-3 md:gap-4", plus: "text-base md:text-lg" },
+  md: { somma: "h-5 md:h-7", evolve: "h-[1.2rem] md:h-[1.7rem]", gap: "gap-4 md:gap-5", plus: "text-xl md:text-2xl" },
+  lg: { somma: "h-7 md:h-9", evolve: "h-[1.7rem] md:h-[2.2rem]", gap: "gap-5 md:gap-6", plus: "text-2xl md:text-3xl" },
+  xl: {
+    somma: "h-10 md:h-[3.25rem] lg:h-[3.6rem]",
+    evolve: "h-8 md:h-[2.55rem] lg:h-[2.85rem]",
+    gap: "gap-4 md:gap-6 lg:gap-7",
+    plus: "text-3xl md:text-5xl lg:text-[3.4rem]",
+  },
+};
+
+/** SOMMA + Evolve, as duas marcas oficiais lado a lado. */
+export function Dupla({
+  className = "",
+  size = "md",
+  tema = "escuro",
+}: {
+  className?: string;
+  size?: DuplaSize;
+  tema?: Tema;
+}) {
+  const a = DUPLA[size];
+  const claro = tema === "claro";
+  return (
+    <span className={`inline-flex items-center ${a.gap} ${className}`} aria-label="SOMMA + Evolve">
+      <SommaLogo tema={tema} className={a.somma} />
+      <span
+        className={`font-display font-light leading-none ${a.plus} ${claro ? "text-black/28" : "text-white/35"}`}
+        aria-hidden
+      >
+        +
+      </span>
+      <EvolveLogo tema={tema} className={a.evolve} />
+    </span>
+  );
+}

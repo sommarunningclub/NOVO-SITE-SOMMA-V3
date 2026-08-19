@@ -444,8 +444,8 @@ export const MARCAS = [
     nome: "Decathlon ou Centauro",
     papel: "Ponto de teste de calçados",
     logos: [
-      { src: "/estacao-somma/logos/decathlon.svg", alt: "Decathlon", h: "h-6 md:h-7" },
-      { src: "/estacao-somma/logos/centauro.svg", alt: "Centauro", h: "h-5 md:h-6" },
+      { src: "/estacao-somma/logos/decathlon.svg", alt: "Decathlon", h: "h-4 md:h-[1.15rem]" },
+      { src: "/estacao-somma/logos/centauro.svg", alt: "Centauro", h: "h-3.5 md:h-4" },
     ],
   },
   {
