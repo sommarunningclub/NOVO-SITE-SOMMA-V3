@@ -64,7 +64,9 @@ Formato sugerido: JPG, 16:9 para os renders de fundo (mínimo 1920 px de largura
   desconto; aluno paga tarifa de aluno; público paga integral (`RECOVERY_MODELO`). Referência de mercado citada:
   Pass da The Simple Gym (R$ 67 membro / R$ 97 não membro, site em ago. 2026).
 - Créditos avulsos (15): recovery, lockers e quadra desenhados; ducha, clínicas, eventos e loja como sugestão
-  (`CREDITOS`).
+  (`CREDITOS`). O slide traz um simulador de compra em loop (`_simulador.tsx`), na linha do Pass da The Simple Gym:
+  alterna vínculo (Evolve+, aluno, SOMMA, não membro) e área sozinho; um toque pausa e deixa explorar. Valores
+  ilustrativos, marcados no próprio cartão.
 - App Estação SOMMA powered by Evolve (17): check in do corre de sábado, agenda, créditos, eventos e novidades das
   unidades; referência Na Praia + Mané Mercado.
 - Bugu Delícias Caseiras (20): parceiro proposto para o café. Fotos e logo extraídas de bugudelicias.com.br

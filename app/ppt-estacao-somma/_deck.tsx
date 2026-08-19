@@ -7,6 +7,7 @@ import type { Opcionais } from "./_assets";
 import { Dupla, EvolveLogo, EvolvePlusLogo, Lockup, SommaLogo } from "./_marca";
 import { ESPACO_CERRADO, MapaEspacoCerrado } from "./_mapa";
 import { AppEstacao } from "./_app";
+import { SimuladorCreditos } from "./_simulador";
 import { TelaAgenda, TelaCarteira, TelaCheckin } from "./_telas";
 import { VideoLoop } from "./_video";
 import {
@@ -919,7 +920,7 @@ export function Deck({ opcionais, app }: { opcionais: Opcionais; app: { url: str
       {/* ═══════════ 10b · CRÉDITOS AVULSOS ═══════════ */}
       <Slide index={idx("creditos")} name="creditos" tema="grafite">
         <Miolo>
-          <div className="grid items-end gap-8 lg:grid-cols-[1.2fr_1fr]">
+          <div className="grid items-start gap-x-12 gap-y-8 lg:grid-cols-[1.15fr_0.85fr]">
             <div>
               <Kicker>Créditos avulsos</Kicker>
               <H2>
@@ -927,37 +928,43 @@ export function Deck({ opcionais, app }: { opcionais: Opcionais; app: { url: str
                 <br />
                 <Accent>geram receita</Accent>
               </H2>
-            </div>
-            <Lead className="!mt-0 lg:mb-2 lg:max-w-md lg:justify-self-end">
-              Além do café, algumas áreas da Estação são monetizadas por uso, pelo app, com condição melhor para quem
-              é aluno Evolve. As três primeiras já estão desenhadas; as demais são sugestões para decidir juntos.
-            </Lead>
-          </div>
+              <Lead>
+                Além do café, algumas áreas da Estação são monetizadas por uso, pelo app, com condição melhor para
+                quem é aluno Evolve. As três primeiras já estão desenhadas; as demais são sugestões para decidir
+                juntos.
+              </Lead>
 
-          <div className="mt-9 grid gap-x-8 sm:grid-cols-2 lg:grid-cols-4">
-            {CREDITOS.map((c, i) => (
-              <div key={c.titulo} className="a-up border-t border-[color:var(--line)] py-4">
-                <div className="flex items-baseline justify-between">
-                  <Indice n={String(i + 1).padStart(2, "0")} cor={ORANGE} />
-                  {c.sugestao ? (
-                    <span className="font-display text-[9px] font-semibold uppercase tracking-[0.3em] text-[color:var(--fg-faint)]">Sugestão</span>
-                  ) : null}
+              <div className="mt-7 grid gap-x-8 sm:grid-cols-2">
+                {CREDITOS.map((c, i) => (
+                  <div key={c.titulo} className="a-up border-t border-[color:var(--line)] py-3">
+                    <div className="flex items-baseline justify-between">
+                      <p className="font-display text-lg font-bold uppercase leading-none tracking-tight sm:text-xl">
+                        <span className="mr-3 font-mono text-[10px] tracking-[0.25em]" style={{ color: ORANGE }}>
+                          {String(i + 1).padStart(2, "0")}
+                        </span>
+                        {c.titulo}
+                      </p>
+                      {c.sugestao ? (
+                        <span className="font-display text-[8.5px] font-semibold uppercase tracking-[0.25em] text-[color:var(--fg-faint)]">Sugestão</span>
+                      ) : null}
+                    </div>
+                    <p className="mt-1.5 text-[12px] font-light leading-relaxed text-[color:var(--fg-soft)]">{c.texto}</p>
+                  </div>
+                ))}
+                <div className="a-up border-t border-[color:var(--line)] py-3">
+                  <p className="font-display text-[10px] font-semibold uppercase tracking-[0.3em]" style={{ color: ORANGE }}>
+                    Regra geral
+                  </p>
+                  <p className="mt-1.5 text-[12px] font-light leading-relaxed text-[color:var(--fg-soft)]">
+                    Evolve+ tem o melhor acesso, aluno Evolve tem condição, SOMMA tem condição nos dias de treino,
+                    público paga integral. Tudo reservado e pago no app.
+                  </p>
                 </div>
-                <p className="mt-2 font-display text-xl font-bold uppercase leading-none tracking-tight sm:text-2xl">{c.titulo}</p>
-                <p className="mt-2 text-[12.5px] font-light leading-relaxed text-[color:var(--fg-soft)]">{c.texto}</p>
               </div>
-            ))}
-            <div className="a-up hidden border-t border-[color:var(--line)] py-4 lg:block">
-              <p className="font-display text-[10px] font-semibold uppercase tracking-[0.3em]" style={{ color: ORANGE }}>
-                Regra geral
-              </p>
-              <p className="mt-2 text-[12.5px] font-light leading-relaxed text-[color:var(--fg-soft)]">
-                Evolve+ tem o melhor acesso, aluno Evolve tem condição, SOMMA tem condição nos dias de treino, público
-                paga integral. Tudo reservado e pago no app.
-              </p>
             </div>
+
+            <SimuladorCreditos className="lg:mt-14" />
           </div>
-          <Nota>Valores não definidos nesta etapa. O que está aqui é a lógica de acesso, não a tabela.</Nota>
         </Miolo>
         <Rodape />
       </Slide>
