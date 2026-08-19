@@ -40,6 +40,7 @@ const SLIDES = [
   "digital",
   "sistema",
   "cafe",
+  "marcas",
   "beneficios",
   "evolve-plus",
   "somma-evolve",

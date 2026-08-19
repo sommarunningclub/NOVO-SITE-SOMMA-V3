@@ -324,6 +324,50 @@ export const OPERACAO = [
   { titulo: "Licenciada", texto: "Espaço licenciado para um operador especializado." },
 ] as const;
 
+/* ── 13b · Marcas no complexo ──────────────────────────────────────────── */
+
+/** Como outras marcas entram na Estação: operação, experiência, naming rights. */
+export const MARCAS_FORMATOS = [
+  {
+    titulo: "Operação do café em parceria",
+    texto: "SOMMA e Evolve podem convidar marcas que já operam no DF para operar ou co-assinar o café.",
+  },
+  {
+    titulo: "Pontos de experiência",
+    texto: "Espaços de teste de produto dentro do complexo, como um ponto de teste de calçados.",
+  },
+  {
+    titulo: "Naming rights",
+    texto: "Áreas da Estação (recovery, lockers, arena funcional, eventos) podem levar a assinatura de uma marca.",
+  },
+] as const;
+
+/**
+ * Marcas com conversa possível. Nenhuma negociação está fechada: entram aqui
+ * como possibilidade. Logos: Silver Care (acervo do site), Decathlon, Centauro
+ * e Adidas (Wikimedia Commons).
+ */
+export const MARCAS = [
+  {
+    nome: "Silver Care",
+    papel: "Proteção solar e autocuidado no Parque",
+    logos: [{ src: "/estacao-somma/logos/silver-care.webp", alt: "Silver Care", h: "h-9 md:h-11" }],
+  },
+  {
+    nome: "Decathlon ou Centauro",
+    papel: "Ponto de teste de calçados",
+    logos: [
+      { src: "/estacao-somma/logos/decathlon.svg", alt: "Decathlon", h: "h-6 md:h-7" },
+      { src: "/estacao-somma/logos/centauro.svg", alt: "Centauro", h: "h-5 md:h-6" },
+    ],
+  },
+  {
+    nome: "Adidas Centro-Oeste",
+    papel: "Marca esportiva do complexo",
+    logos: [{ src: "/estacao-somma/logos/adidas.svg", alt: "Adidas", h: "h-10 md:h-12" }],
+  },
+] as const;
+
 /* ── 14 · Benefícios ───────────────────────────────────────────────────── */
 
 export const BENEFICIOS = [

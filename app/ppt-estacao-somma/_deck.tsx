@@ -48,6 +48,8 @@ import {
   FRENTES,
   HOJE,
   LOCKERS_NIVEIS,
+  MARCAS,
+  MARCAS_FORMATOS,
   OPERACAO,
   OPORTUNIDADE,
   PASSOS,
@@ -81,6 +83,7 @@ export const SLIDES = [
   "digital",
   "sistema",
   "cafe",
+  "marcas",
   "beneficios",
   "evolve-plus",
   "somma-evolve",
@@ -1087,6 +1090,65 @@ export function Deck({ opcionais, app }: { opcionais: Opcionais; app: { url: str
               </div>
             </div>
           </div>
+        </Miolo>
+        <Rodape />
+      </Slide>
+
+      {/* ═══════════ 13b · MARCAS NO COMPLEXO ═══════════ */}
+      <Slide index={idx("marcas")} name="marcas" tema="claro">
+        <Miolo>
+          <div className="grid items-end gap-8 lg:grid-cols-[1.25fr_1fr]">
+            <div>
+              <Kicker>Marcas no complexo</Kicker>
+              <H2>
+                Marcas do DF
+                <br />
+                dentro do <Accent>complexo</Accent>
+              </H2>
+            </div>
+            <Lead className="!mt-0 lg:mb-2 lg:max-w-md lg:justify-self-end">
+              O café pode ser operado com marcas que já atuam no Distrito Federal: SOMMA e Evolve podem convidá-las a
+              fazer parte do complexo da Estação SOMMA. E o espaço também pode vender naming rights.
+            </Lead>
+          </div>
+
+          <div className="mt-8 grid gap-x-8 sm:grid-cols-3">
+            {MARCAS_FORMATOS.map((f, i) => (
+              <div key={f.titulo} className="a-up border-t border-[color:var(--line)] pt-4">
+                <Indice n={`0${i + 1}`} cor={ORANGE} />
+                <p className="mt-2 font-display text-xl font-bold uppercase leading-none tracking-tight sm:text-2xl">{f.titulo}</p>
+                <p className="mt-2 max-w-sm text-[13px] font-light leading-relaxed text-[color:var(--fg-soft)]">{f.texto}</p>
+              </div>
+            ))}
+          </div>
+
+          <p className="a-up mt-10 font-display text-[10px] font-semibold uppercase tracking-[0.32em] text-[color:var(--fg-faint)]">
+            Marcas com conversa possível
+          </p>
+          <div className="mt-3 grid gap-4 sm:grid-cols-3">
+            {MARCAS.map((m) => (
+              <div key={m.nome} className="a-up border border-[color:var(--line)] bg-white p-6">
+                <div className="flex h-14 items-center gap-6">
+                  {m.logos.map((l, i) => (
+                    <span key={l.src} className="flex items-center gap-6">
+                      {i > 0 ? (
+                        <span className="font-display text-[10px] font-semibold uppercase tracking-[0.3em] text-[color:var(--fg-faint)]">ou</span>
+                      ) : null}
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={l.src} alt={l.alt} className={`${l.h} w-auto`} />
+                    </span>
+                  ))}
+                </div>
+                <p className="mt-5 font-display text-lg font-semibold uppercase leading-none tracking-tight sm:text-xl">{m.nome}</p>
+                <p className="mt-1.5 text-[13px] font-light text-[color:var(--fg-soft)]">{m.papel}</p>
+              </div>
+            ))}
+          </div>
+
+          <Nota>
+            Marcas indicadas como possibilidade, a partir de relacionamentos já existentes do SOMMA. Nenhuma negociação
+            está fechada; formatos e contrapartidas entram na frente de modelo comercial.
+          </Nota>
         </Miolo>
         <Rodape />
       </Slide>
