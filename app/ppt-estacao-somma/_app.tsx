@@ -59,7 +59,7 @@ const BENEFICIOS: Record<Perfil, string[]> = {
   visitante: ["Café e cardápio completo", "Recovery com valor integral", "Locker avulso", "Convite para os treinos SOMMA"],
   somma: ["Treinos e desafios SOMMA na agenda", "Locker SOMMA nos dias de treino", "Café no point do clube", "Condição especial para virar aluno Evolve"],
   evolve: ["Desconto no café", "Tarifa especial no recovery", "Locker de aluno", "Aulas outdoor da grade Evolve"],
-  "evolve-plus": ["Créditos mensais de recovery", "Prioridade nas reservas", "Desconto maior no café", "Experiências e eventos fechados"],
+  "evolve-plus": ["3 vouchers de recovery por mês", "1º mês da assessoria SOMMA grátis", "Prioridade nas reservas e na quadra", "Desconto maior no café"],
 };
 
 const CREDITOS_INICIAIS: Record<Perfil, number> = { visitante: 0, somma: 0, evolve: 1, "evolve-plus": 3 };
@@ -393,7 +393,7 @@ function Conteudo({ e, d }: { e: Estado; d: React.Dispatch<Acao> }) {
             <Linha a="Café" b={aluno ? (plus ? "Desconto maior" : "Desconto do plano") : "Cardápio completo"} c={aluno ? "Aplicado no pedido" : "Sem desconto neste perfil"} />
             <Linha
               a="Recov."
-              b={plus ? `${e.creditos} crédito${e.creditos === 1 ? "" : "s"} no mês` : aluno ? "Tarifa especial" : "Valor integral"}
+              b={plus ? `${e.creditos} voucher${e.creditos === 1 ? "" : "s"} no mês` : aluno ? "Tarifa especial" : "Valor integral"}
               c={e.recoveryReservado ? `Reservado às ${e.recoveryReservado}` : "Toque para reservar"}
               cor={aluno ? EVOLVE : undefined}
               acao={e.recoveryReservado ? "OK" : "Reservar"}
@@ -421,7 +421,7 @@ function Conteudo({ e, d }: { e: Estado; d: React.Dispatch<Acao> }) {
           <Topo direita="Recovery" voltar={() => ir("carteira")} />
           <Titulo rotulo="Recovery by Evolve">Escolha o horário</Titulo>
           <p className="mt-3 text-[10px] text-white/50">
-            {plus ? "Usa 1 crédito do mês." : aluno ? "Tarifa especial de aluno." : "Valor integral para visitante."}
+            {plus ? "Usa 1 voucher do mês. Depois, crédito com desconto." : aluno ? "Tarifa especial de aluno." : "Valor integral para visitante."}
           </p>
           <div className="mt-4 grid grid-cols-2 gap-2">
             {HORARIOS_RECOVERY.map((h) => (

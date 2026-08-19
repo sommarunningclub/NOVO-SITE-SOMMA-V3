@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import type { Opcionais } from "./_assets";
-import { EvolveLogo, Lockup, SommaLogo } from "./_marca";
+import { EvolveLogo, EvolvePlusLogo, Lockup, SommaLogo } from "./_marca";
 import { ESPACO_CERRADO, MapaEspacoCerrado } from "./_mapa";
 import { AppEstacao } from "./_app";
 import { TelaAgenda, TelaCarteira, TelaCheckin } from "./_telas";
@@ -30,11 +30,15 @@ import {
   Topico,
 } from "./_ui";
 import {
+  ACADEMIA_EVOLVE,
+  ASSESSORIA_CONDICOES,
   AULAS,
   BENEFICIOS,
+  BUGU,
   CAFE_MOMENTOS,
   CASOS,
   CICLO,
+  CREDITOS,
   COM_A_ESTACAO,
   DADOS,
   DIGITAL,
@@ -53,11 +57,11 @@ import {
   OPERACAO,
   OPORTUNIDADE,
   PASSOS,
-  PERFORMANCE,
   PORQUE,
   RECEITA_DIRETA,
   RECOVERY,
   RECOVERY_MODELO,
+  RECOVERY_REFERENCIA,
   SATELITES,
   SISTEMA_VANTAGENS,
   SOMMA_QUER,
@@ -79,10 +83,12 @@ export const SLIDES = [
   "performance",
   "recovery",
   "lockers",
+  "creditos",
   "aulas",
   "digital",
   "sistema",
   "cafe",
+  "bugu",
   "marcas",
   "beneficios",
   "evolve-plus",
@@ -766,76 +772,102 @@ export function Deck({ opcionais, app }: { opcionais: Opcionais; app: { url: str
         <Rodape />
       </Slide>
 
-      {/* ═══════════ 08 · EVOLVE PERFORMANCE ═══════════ */}
+      {/* ═══════════ 08 · ACADEMIA EVOLVE ═══════════ */}
       <Slide index={idx("performance")} name="performance" tema="claro">
         <Miolo>
-          <div className="grid items-center gap-12 lg:grid-cols-[1fr_1.1fr]">
+          <div className="grid items-center gap-12 lg:grid-cols-[0.9fr_1.2fr]">
             <FotoOuPrancha
               src={opcionais.renderPerformance ?? FOTOS.evolveBootcampLogo}
               alt="Área funcional Evolve"
-              rotulo="Evolve Performance"
-              detalhe="Render da área funcional outdoor"
-              legenda={opcionais.renderPerformance ? "Evolve Performance · área funcional outdoor" : "Bootcamp Evolve · referência de área funcional"}
+              rotulo="Academia Evolve"
+              detalhe="Render da academia outdoor"
+              legenda={opcionais.renderPerformance ? "Academia Evolve · outdoor" : "Bootcamp Evolve · referência de área funcional"}
               arquivo="render-performance.jpg"
               ratio="aspect-[4/5]"
               position="25% 50%"
             />
 
             <div>
-              <Kicker cor={EVOLVE}>Evolve Performance</Kicker>
+              <EvolveLogo tema="claro" className="a-up h-5 md:h-6" />
+              <Kicker className="mt-6" cor={EVOLVE}>Academia Evolve</Kicker>
               <H2>
                 Uma academia outdoor
                 <br />
                 com <Accent cor={EVOLVE}>outra lógica</Accent>
               </H2>
               <Lead>
-                Área funcional integrada à arquitetura. Poucos equipamentos, bem escolhidos, e treino orientado em
-                pequenos grupos.
+                Não é uma unidade dentro do Parque. É a parte da Evolve que faz sentido ao ar livre, prática de
+                operar, e que também vende: quem se interessa fecha o plano ali.
               </Lead>
 
-              <Palavras itens={PERFORMANCE} className="mt-9 max-w-xl" tamanho="md" />
-
-              <p className="a-up mt-10 max-w-lg border-l-2 pl-5 font-display text-lg font-medium uppercase leading-snug tracking-tight md:text-xl" style={{ borderColor: EVOLVE }}>
-                O Parque da Cidade vira mais um território de treinamento da Evolve.
-              </p>
+              <div className="mt-7 grid gap-x-8 sm:grid-cols-2">
+                {ACADEMIA_EVOLVE.map((a, i) => (
+                  <div key={a.titulo} className="a-up border-t border-[color:var(--line)] py-3">
+                    <p className="font-display text-lg font-semibold uppercase leading-none tracking-tight sm:text-xl">
+                      <span className="mr-3 font-mono text-[10px] tracking-[0.25em]" style={{ color: EVOLVE }}>
+                        {String(i + 1).padStart(2, "0")}
+                      </span>
+                      {a.titulo}
+                    </p>
+                    <p className="mt-1.5 text-[12.5px] font-light leading-relaxed text-[color:var(--fg-soft)]">{a.texto}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </Miolo>
         <Rodape />
       </Slide>
 
-      {/* ═══════════ 09 · RECOVERY BY EVOLVE ═══════════ */}
+      {/* ═══════════ 09 · RECOVERY BY EVOLVE+ ═══════════ */}
       <Slide index={idx("recovery")} name="recovery">
         {opcionais.renderRecovery ? (
-          <BgPhoto src={opcionais.renderRecovery} alt="Recovery by Evolve" veil="lateral" />
+          <BgPhoto src={opcionais.renderRecovery} alt="Recovery by Evolve+" veil="lateral" />
         ) : null}
         <Miolo>
-          <div className="grid items-start gap-12 lg:grid-cols-[1.1fr_0.9fr]">
+          <div className="grid items-start gap-12 lg:grid-cols-[1.05fr_0.95fr]">
             <div className="max-w-2xl">
-              <Kicker cor={EVOLVE}>Recovery by Evolve</Kicker>
+              <EvolvePlusLogo className="a-up h-6 md:h-7" />
+              <Kicker className="mt-6" cor={EVOLVE}>Recovery by Evolve+</Kicker>
               <H2>
-                Treinar é só
-                <br />
-                parte da <Accent cor={EVOLVE}>experiência</Accent>
+                O Evolve+ banca o recovery
+                <br />e ganha <Accent cor={EVOLVE}>exclusividade</Accent>
               </H2>
-              <Lead>Uma área premium de recovery, com acesso que pode ser pago e integrado aos planos Evolve.</Lead>
-              <Palavras itens={RECOVERY} className="mt-8 max-w-xl" tamanho="md" />
+              <Lead>
+                O produto mais premium da Evolve assina toda a área de recovery e o espaço premium da Estação. O
+                aluno Evolve+ chega, usa o voucher do mês e sente que aquilo é dele. Quando os vouchers acabam, ele
+                compra o crédito com desconto. Todo mundo mais paga para usar.
+              </Lead>
+              <Palavras itens={RECOVERY} className="mt-7 max-w-xl" tamanho="sm" />
             </div>
 
-            <div className="lg:mt-16">
+            <div className="lg:mt-14">
               <p className="a-up font-display text-[10px] font-semibold uppercase tracking-[0.32em] text-[color:var(--fg-faint)]">
-                Modelo possível
+                Modelo proposto
               </p>
               <div className="mt-3">
                 {RECOVERY_MODELO.map((m) => (
-                  <div key={m.quem} className="a-up grid grid-cols-[1fr_1.3fr] items-baseline gap-6 border-t border-[color:var(--line)] py-3.5">
-                    <p className="font-display text-lg font-semibold uppercase tracking-tight sm:text-xl">{m.quem}</p>
-                    <p className="text-[14px] font-light text-[color:var(--fg-soft)]">{m.regra}</p>
+                  <div key={m.quem} className="a-up grid grid-cols-[0.8fr_1.4fr] items-baseline gap-6 border-t border-[color:var(--line)] py-3.5">
+                    <p className="font-display text-lg font-semibold uppercase tracking-tight sm:text-xl" style={m.quem === "Evolve+" ? { color: EVOLVE } : undefined}>
+                      {m.quem}
+                    </p>
+                    <p className="text-[13.5px] font-light leading-relaxed text-[color:var(--fg-soft)]">{m.regra}</p>
                   </div>
                 ))}
                 <div className="border-t border-[color:var(--line)]" />
               </div>
-              <Nota>A modelagem final depende da estrutura jurídica e operacional permitida no espaço.</Nota>
+
+              <div className="a-up mt-6 border-l-2 pl-5" style={{ borderColor: EVOLVE }}>
+                <p className="font-display text-[10px] font-semibold uppercase tracking-[0.3em] text-[color:var(--fg-faint)]">
+                  Referência de mercado · {RECOVERY_REFERENCIA.quem}
+                </p>
+                <p className="mt-1.5 text-[13px] font-light leading-relaxed text-[color:var(--fg-soft)]">{RECOVERY_REFERENCIA.texto}</p>
+                <p className="mt-1 font-mono text-[9px] tracking-[0.12em] text-[color:var(--fg-faint)]">Fonte: {RECOVERY_REFERENCIA.fonte}</p>
+              </div>
+              <Nota className="mt-5">
+                Quantidade de vouchers, valores e descontos são propostas. A modelagem final depende da estrutura
+                jurídica e operacional permitida no espaço.
+              </Nota>
             </div>
           </div>
         </Miolo>
@@ -884,6 +916,52 @@ export function Deck({ opcionais, app }: { opcionais: Opcionais; app: { url: str
         <Rodape />
       </Slide>
 
+      {/* ═══════════ 10b · CRÉDITOS AVULSOS ═══════════ */}
+      <Slide index={idx("creditos")} name="creditos" tema="grafite">
+        <Miolo>
+          <div className="grid items-end gap-8 lg:grid-cols-[1.2fr_1fr]">
+            <div>
+              <Kicker>Créditos avulsos</Kicker>
+              <H2>
+                Espaços que
+                <br />
+                <Accent>geram receita</Accent>
+              </H2>
+            </div>
+            <Lead className="!mt-0 lg:mb-2 lg:max-w-md lg:justify-self-end">
+              Além do café, algumas áreas da Estação são monetizadas por uso, pelo app, com condição melhor para quem
+              é aluno Evolve. As três primeiras já estão desenhadas; as demais são sugestões para decidir juntos.
+            </Lead>
+          </div>
+
+          <div className="mt-9 grid gap-x-8 sm:grid-cols-2 lg:grid-cols-4">
+            {CREDITOS.map((c, i) => (
+              <div key={c.titulo} className="a-up border-t border-[color:var(--line)] py-4">
+                <div className="flex items-baseline justify-between">
+                  <Indice n={String(i + 1).padStart(2, "0")} cor={ORANGE} />
+                  {c.sugestao ? (
+                    <span className="font-display text-[9px] font-semibold uppercase tracking-[0.3em] text-[color:var(--fg-faint)]">Sugestão</span>
+                  ) : null}
+                </div>
+                <p className="mt-2 font-display text-xl font-bold uppercase leading-none tracking-tight sm:text-2xl">{c.titulo}</p>
+                <p className="mt-2 text-[12.5px] font-light leading-relaxed text-[color:var(--fg-soft)]">{c.texto}</p>
+              </div>
+            ))}
+            <div className="a-up hidden border-t border-[color:var(--line)] py-4 lg:block">
+              <p className="font-display text-[10px] font-semibold uppercase tracking-[0.3em]" style={{ color: ORANGE }}>
+                Regra geral
+              </p>
+              <p className="mt-2 text-[12.5px] font-light leading-relaxed text-[color:var(--fg-soft)]">
+                Evolve+ tem o melhor acesso, aluno Evolve tem condição, SOMMA tem condição nos dias de treino, público
+                paga integral. Tudo reservado e pago no app.
+              </p>
+            </div>
+          </div>
+          <Nota>Valores não definidos nesta etapa. O que está aqui é a lógica de acesso, não a tabela.</Nota>
+        </Miolo>
+        <Rodape />
+      </Slide>
+
       {/* ═══════════ 11 · AULAS E EXPERIÊNCIAS ═══════════ */}
       <Slide index={idx("aulas")} name="aulas">
         <BgPhoto src={FOTOS.energia} alt="Treino outdoor do SOMMA Club" veil="medio" position="50% 30%" />
@@ -910,15 +988,17 @@ export function Deck({ opcionais, app }: { opcionais: Opcionais; app: { url: str
         <Miolo>
           <div className="grid items-center gap-12 lg:grid-cols-[1.3fr_0.7fr]">
             <div>
-              <Kicker cor={EVOLVE}>Camada digital</Kicker>
+              <Kicker cor={EVOLVE}>App Estação SOMMA powered by Evolve</Kicker>
               <H2>
                 A experiência começa
                 <br />
                 antes de chegar <Accent cor={EVOLVE}>ao Parque</Accent>
               </H2>
               <Lead>
-                A Estação entra no ambiente digital que o aluno Evolve já usa. Não é um aplicativo novo: é o app da
-                Evolve ganhando o Parque, com a agenda, o check in e os benefícios da Estação dentro dele.
+                Um app que reúne as experiências da Estação: o check in do corre do SOMMA todo sábado, a agenda de
+                aulas e recovery, os eventos da Estação, as novidades das unidades Evolve e o consumo no café. Na
+                linha do que o Na Praia fez junto com o Mané Mercado em Brasília: programação, consumo e comunidade
+                num lugar só.
               </Lead>
 
               <div className="mt-9 grid gap-x-8 sm:grid-cols-3">
@@ -1094,6 +1174,61 @@ export function Deck({ opcionais, app }: { opcionais: Opcionais; app: { url: str
         <Rodape />
       </Slide>
 
+      {/* ═══════════ 13a · PARCEIRO DE A&B: BUGU ═══════════ */}
+      <Slide index={idx("bugu")} name="bugu">
+        <Miolo>
+          <div className="grid items-center gap-12 lg:grid-cols-[1.05fr_1fr]">
+            <div>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={BUGU.logoEscuro} alt={BUGU.nome} className="a-up h-12 w-auto md:h-14" />
+              <Kicker className="mt-7">Parceiro proposto para o café</Kicker>
+              <H2>
+                O café com quem já
+                <br />
+                correu com a <Accent>gente</Accent>
+              </H2>
+              <Lead>
+                Para a operação de A&amp;B, a proposta é o {BUGU.nome}: café colonial e confeitaria caseira de
+                Brasília, parceiro do SOMMA desde o começo do clube. O estilo de comida e o modo de operar casam com
+                a Estação.
+              </Lead>
+
+              <div className="mt-7">
+                {BUGU.porque.map((p, i) => (
+                  <p key={p} className="a-up flex items-baseline gap-4 border-t border-[color:var(--line)] py-2.5 font-display text-base font-semibold uppercase leading-tight tracking-tight sm:text-lg">
+                    <span className="font-mono text-[10px] tracking-[0.25em]" style={{ color: ORANGE }}>0{i + 1}</span>
+                    {p}
+                  </p>
+                ))}
+                <div className="border-t border-[color:var(--line)]" />
+              </div>
+
+              <div className="mt-6 grid grid-cols-3 gap-6">
+                {BUGU.fatos.map((f) => (
+                  <div key={f.rotulo} className="a-up">
+                    <p className="font-display text-2xl font-bold uppercase leading-none tracking-tight sm:text-3xl">{f.valor}</p>
+                    <p className="mt-1.5 text-[11.5px] font-light leading-snug text-[color:var(--fg-soft)]">{f.rotulo}</p>
+                  </div>
+                ))}
+              </div>
+              <Nota className="mt-5">
+                {BUGU.slogan}, {BUGU.onde}. Dados do site, do cardápio e do Instagram @bugu_delicias, ago. 2026.
+                Parceria a formalizar.
+              </Nota>
+            </div>
+
+            <div className="grid grid-cols-[1.15fr_1fr] gap-3">
+              <Foto src={BUGU.fotos.salao} alt="Salão do Bugu Delícias Caseiras" ratio="aspect-[3/4]" legenda="Salão do Bugu" sizes="30vw" />
+              <div className="grid gap-3">
+                <Foto src={BUGU.fotos.pao} alt="Salgado caseiro do Bugu" ratio="aspect-[4/3]" position="50% 40%" sizes="25vw" />
+                <Foto src={BUGU.fotos.mesa} alt="Mesa posta no Bugu" ratio="aspect-[4/3]" legenda="Fotos: bugudelicias.com.br" sizes="25vw" />
+              </div>
+            </div>
+          </div>
+        </Miolo>
+        <Rodape />
+      </Slide>
+
       {/* ═══════════ 13b · MARCAS NO COMPLEXO ═══════════ */}
       <Slide index={idx("marcas")} name="marcas" tema="claro">
         <Miolo>
@@ -1125,10 +1260,10 @@ export function Deck({ opcionais, app }: { opcionais: Opcionais; app: { url: str
           <p className="a-up mt-10 font-display text-[10px] font-semibold uppercase tracking-[0.32em] text-[color:var(--fg-faint)]">
             Marcas com conversa possível
           </p>
-          <div className="mt-3 grid gap-4 sm:grid-cols-3">
+          <div className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {MARCAS.map((m) => (
-              <div key={m.nome} className="a-up border border-[color:var(--line)] bg-white p-6">
-                <div className="flex h-14 items-center gap-6">
+              <div key={m.nome} className="a-up border border-[color:var(--line)] bg-white p-5">
+                <div className="flex h-14 items-center gap-5">
                   {m.logos.map((l, i) => (
                     <span key={l.src} className="flex items-center gap-6">
                       {i > 0 ? (
@@ -1186,21 +1321,22 @@ export function Deck({ opcionais, app }: { opcionais: Opcionais; app: { url: str
       <Slide index={idx("evolve-plus")} name="evolve-plus">
         <BgPhoto src={FOTOS.evolvePlus} alt="Unidade Evolve+" veil="lateral" position="80% 40%" />
         <Miolo>
-          <div className="max-w-3xl">
-            <Kicker cor={EVOLVE}>Evolve+</Kicker>
+          <div className="max-w-4xl">
+            <EvolvePlusLogo className="a-up h-6 md:h-7" />
+            <Kicker className="mt-6" cor={EVOLVE}>Evolve+</Kicker>
             <H2>
               A Estação pode dar uma
               <br />
               nova dimensão ao <Accent cor={EVOLVE}>Evolve+</Accent>
             </H2>
             <Lead className="text-white/75">
-              O espaço funciona como laboratório de experiências premium. Evolve+ deixa de ser apenas uma academia
-              superior e passa a ser lifestyle.
+              A rede Evolve+ vai crescer, e esse público já frequenta o Parque da Cidade. A Estação vira o diferencial
+              do plano: recovery e espaço premium assinados pelo Evolve+, e uma ponte direta para a assessoria SOMMA.
             </Lead>
 
-            <div className="mt-10 grid gap-x-8 sm:grid-cols-3">
+            <div className="mt-8 grid gap-x-8 sm:grid-cols-3">
               {EVOLVE_PLUS.map((p, i) => (
-                <p key={p} className="a-up border-t border-white/20 py-3 font-display text-lg font-medium uppercase tracking-tight sm:text-xl">
+                <p key={p} className="a-up border-t border-white/20 py-2.5 font-display text-base font-medium uppercase tracking-tight sm:text-lg">
                   <span className="mr-3 font-mono text-[10px] tracking-[0.25em]" style={{ color: EVOLVE }}>
                     {String(i + 1).padStart(2, "0")}
                   </span>
@@ -1208,6 +1344,21 @@ export function Deck({ opcionais, app }: { opcionais: Opcionais; app: { url: str
                 </p>
               ))}
             </div>
+
+            <p className="a-up mt-8 font-display text-[10px] font-semibold uppercase tracking-[0.32em] text-white/50">
+              Ponte com a assessoria SOMMA
+            </p>
+            <div className="mt-2 grid gap-x-8 sm:grid-cols-3">
+              {ASSESSORIA_CONDICOES.map((c) => (
+                <div key={c.quem} className="a-up border-t border-white/20 py-3">
+                  <p className="font-display text-base font-semibold uppercase leading-none tracking-tight sm:text-lg" style={c.quem === "Evolve+" ? { color: EVOLVE } : c.quem === "SOMMA" ? { color: ORANGE } : undefined}>
+                    {c.quem}
+                  </p>
+                  <p className="mt-1.5 text-[12.5px] font-light leading-relaxed text-white/60">{c.regra}</p>
+                </div>
+              ))}
+            </div>
+            <Nota className="mt-4 text-white/40">Percentuais de desconto a definir em conjunto. A Evolve vende o plano, o SOMMA converte o aluno.</Nota>
           </div>
         </Miolo>
         <Rodape />

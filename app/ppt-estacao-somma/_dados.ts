@@ -195,17 +195,16 @@ export const EVOLVE_POSSIBILIDADES = [
   "Benefícios para alunos",
 ] as const;
 
-/* ── 08 · Evolve Performance ───────────────────────────────────────────── */
+/* ── 08 · Academia Evolve ──────────────────────────────────────────────── */
 
-export const PERFORMANCE = [
-  "Barras",
-  "Kettlebells",
-  "Mobilidade",
-  "Funcional",
-  "Preparação para corrida",
-  "Treinos de força",
-  "Pequenos grupos",
-  "Aulas orientadas",
+/** O que a Evolve monta na Estação: academia outdoor, prática, com ponto de venda. */
+export const ACADEMIA_EVOLVE = [
+  { titulo: "Academia outdoor", texto: "Barras, kettlebells, funcional e força, integrados à arquitetura do Parque." },
+  { titulo: "Espaço de alongamento", texto: "Área aberta para mobilidade, pré e pós treino, com orientação." },
+  { titulo: "Maquinário prático", texto: "Poucos equipamentos, bem escolhidos, que funcionam ao ar livre e pedem pouca manutenção." },
+  { titulo: "Esteira de teste e aquecimento", texto: "Para o corredor testar o tênis, aquecer antes do long run ou fazer um tiro curto." },
+  { titulo: "Treino em pequenos grupos", texto: "Aulas orientadas da grade Evolve, com vaga reservada pelo app." },
+  { titulo: "Ponto de venda Evolve", texto: "Quem se interessa fecha o plano ali mesmo: a Estação vira porta de entrada da rede." },
 ] as const;
 
 /* ── 09 · Recovery ─────────────────────────────────────────────────────── */
@@ -219,16 +218,67 @@ export const RECOVERY = [
   "Área de descanso",
 ] as const;
 
+/** Modelo proposto: o Evolve+ banca o recovery e ganha exclusividade com ele. */
 export const RECOVERY_MODELO = [
-  { quem: "Público geral", regra: "Paga valor integral" },
-  { quem: "Aluno Evolve", regra: "Recebe tarifa especial" },
-  { quem: "Determinados planos", regra: "Podem incluir créditos mensais" },
-  { quem: "Evolve+", regra: "Pode receber benefícios superiores" },
+  { quem: "Evolve+", regra: "Até 3 vouchers por mês de recovery grátis. Depois, compra o crédito com desconto." },
+  { quem: "Aluno Evolve", regra: "Compra o crédito com tarifa de aluno." },
+  { quem: "Membro SOMMA e visitante", regra: "Crédito avulso pelo valor integral." },
 ] as const;
+
+/** Referência de mercado para o crédito avulso de recovery, em agosto de 2026. */
+export const RECOVERY_REFERENCIA = {
+  quem: "The Simple Gym · Pass",
+  texto: "Vende crédito avulso de recovery: R$ 67 para membro e R$ 97 para não membro, individual e intransferível.",
+  fonte: "thesimplegym.com.br, ago. 2026",
+} as const;
 
 /* ── 10 · Lockers ──────────────────────────────────────────────────────── */
 
 export const LOCKERS_NIVEIS = ["Visitante", "SOMMA", "Aluno Evolve", "Evolve+"] as const;
+
+/* ── 10b · Créditos avulsos ────────────────────────────────────────────── */
+
+/**
+ * Áreas da Estação que geram receita por uso. As marcadas como sugestão são
+ * ideias adicionais para decidir em conjunto.
+ */
+export const CREDITOS = [
+  {
+    titulo: "Recovery",
+    texto: "Vouchers mensais para Evolve+, crédito com desconto para aluno e valor integral para o público.",
+    sugestao: false,
+  },
+  {
+    titulo: "Lockers",
+    texto: "Diária ou mensal. Incluso para Evolve+, condição para aluno e para o SOMMA nos dias de treino.",
+    sugestao: false,
+  },
+  {
+    titulo: "Quadra ao lado",
+    texto: "Agenda online e pagamento pelo app. Aluno Evolve com condição especial e horários prioritários.",
+    sugestao: false,
+  },
+  {
+    titulo: "Ducha e vestiário avulso",
+    texto: "Para quem corre antes do trabalho e segue direto do Parque. Incluso nos planos, avulso para o público.",
+    sugestao: true,
+  },
+  {
+    titulo: "Aulas especiais e clínicas",
+    texto: "Turmas pagas de força para corredores, mobilidade, técnica de corrida e workshops com convidados.",
+    sugestao: true,
+  },
+  {
+    titulo: "Eventos e ativações",
+    texto: "Locação do espaço para marcas, empresas e aniversários fora do horário de pico, com o café operando.",
+    sugestao: true,
+  },
+  {
+    titulo: "Loja",
+    texto: "Produtos SOMMA e Evolve, edições com parceiros e itens de conveniência para quem treina.",
+    sugestao: true,
+  },
+] as const;
 
 /* ── 11 · Aulas ────────────────────────────────────────────────────────── */
 
@@ -248,7 +298,7 @@ export const AULAS = [
 export const DIGITAL_JORNADA = [
   {
     titulo: "Antes",
-    texto: "O aluno vê a agenda da Estação no app da Evolve, reserva a aula outdoor e o horário de recovery.",
+    texto: "O aluno vê a agenda da Estação no app, reserva a aula outdoor, o horário de recovery e o check in do corre de sábado.",
   },
   {
     titulo: "Na chegada",
@@ -261,17 +311,16 @@ export const DIGITAL_JORNADA = [
 ] as const;
 
 export const DIGITAL = [
-  "Agenda de aulas",
-  "Reserva",
+  "Check in do corre de sábado",
+  "Agenda de aulas e reserva",
   "Check in por QR Code",
-  "Reserva de recovery",
-  "Gestão de créditos",
-  "Benefícios",
-  "Descontos",
-  "Desafios",
-  "Atividades SOMMA",
-  "Eventos",
-  "Integração com consumo",
+  "Recovery, lockers e quadra",
+  "Créditos e vouchers",
+  "Benefícios e descontos",
+  "Desafios SOMMA",
+  "Eventos na Estação",
+  "Novidades das unidades Evolve",
+  "Pedido e pagamento no café",
 ] as const;
 
 /* ── 12b · Um sistema, duas marcas ─────────────────────────────────────── */
@@ -324,6 +373,39 @@ export const OPERACAO = [
   { titulo: "Licenciada", texto: "Espaço licenciado para um operador especializado." },
 ] as const;
 
+/* ── 13a · Parceiro de A&B: Bugu ───────────────────────────────────────── */
+
+/**
+ * Bugu Delícias Caseiras, parceiro do SOMMA desde o começo do clube. Dados do
+ * site (bugudelicias.com.br), do cardápio publicado e do Instagram
+ * (@bugu_delicias), consultados em agosto de 2026.
+ */
+export const BUGU = {
+  nome: "Bugu Delícias Caseiras",
+  slogan: "Comida simples e feita com amor",
+  onde: "QNJ 32, Taguatinga · Brasília",
+  porque: [
+    "Parceiro do SOMMA desde o começo do clube",
+    "Café colonial por quilo, cafés e confeitaria caseira: o cardápio que a Estação pede",
+    "Opera café da manhã e café da tarde, com eventos, reservas e delivery",
+    "Estilo de comida e modo de operar casam com o Parque",
+  ],
+  fatos: [
+    { valor: "80 mil", rotulo: "seguidores no Instagram" },
+    { valor: "Ter a dom", rotulo: "café colonial, manhã e tarde" },
+    { valor: "Por quilo", rotulo: "buffet que escala para o pós treino" },
+  ],
+  cardapio: ["Café colonial", "Cafés e cappuccinos", "Bolos e tortas", "Panquecas", "Salgados caseiros", "Delivery"],
+  fotos: {
+    salao: "/estacao-somma/bugu/bugu-salao.jpg",
+    ambiente: "/estacao-somma/bugu/bugu-ambiente.jpg",
+    mesa: "/estacao-somma/bugu/bugu-mesa.jpg",
+    pao: "/estacao-somma/bugu/bugu-pao.jpg",
+  },
+  logoEscuro: "/estacao-somma/logos/bugu-branco.png",
+  logoClaro: "/estacao-somma/logos/bugu-preto.png",
+} as const;
+
 /* ── 13b · Marcas no complexo ──────────────────────────────────────────── */
 
 /** Como outras marcas entram na Estação: operação, experiência, naming rights. */
@@ -348,6 +430,11 @@ export const MARCAS_FORMATOS = [
  * e Adidas (Wikimedia Commons).
  */
 export const MARCAS = [
+  {
+    nome: "Bugu Delícias Caseiras",
+    papel: "Operação do café (parceiro proposto)",
+    logos: [{ src: "/estacao-somma/logos/bugu-preto.png", alt: "Bugu Delícias Caseiras", h: "h-11 md:h-12" }],
+  },
   {
     nome: "Silver Care",
     papel: "Proteção solar e autocuidado no Parque",
@@ -384,8 +471,8 @@ export const BENEFICIOS = [
 /* ── 15 · Evolve+ ──────────────────────────────────────────────────────── */
 
 export const EVOLVE_PLUS = [
-  "Recovery premium",
-  "Créditos maiores",
+  "Recovery com vouchers mensais",
+  "Espaço premium da Estação",
   "Breakfast experiences",
   "Aulas exclusivas",
   "Eventos fechados",
@@ -393,6 +480,13 @@ export const EVOLVE_PLUS = [
   "Convidados",
   "Experiências de marcas",
   "Prioridade de reservas",
+] as const;
+
+/** Ponte Evolve+ e assessoria SOMMA: a Evolve vende o plano, o SOMMA converte o aluno. */
+export const ASSESSORIA_CONDICOES = [
+  { quem: "Evolve+", regra: "1º mês da assessoria SOMMA grátis ao fechar o plano. Depois, desconto especial na mensalidade." },
+  { quem: "Aluno Evolve", regra: "Condição própria na assessoria, menor que a do Evolve+." },
+  { quem: "SOMMA", regra: "Recebe o aluno no 1º mês e trabalha a conversão para a assessoria." },
 ] as const;
 
 /* ── 16 · SOMMA + Evolve ───────────────────────────────────────────────── */

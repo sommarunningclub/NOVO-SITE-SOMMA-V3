@@ -56,8 +56,24 @@ os arquivos a cada acesso, sem mexer em código.
 
 Formato sugerido: JPG, 16:9 para os renders de fundo (mínimo 1920 px de largura).
 
+## Monetização e parceiros (slides 12 a 21)
+
+- Academia Evolve (12): academia outdoor, alongamento, maquinário prático, esteira de teste/aquecimento e ponto de
+  venda de planos. Conteúdo em `ACADEMIA_EVOLVE`.
+- Recovery by Evolve+ (13): o Evolve+ assina o recovery; até 3 vouchers grátis por mês e depois crédito com
+  desconto; aluno paga tarifa de aluno; público paga integral (`RECOVERY_MODELO`). Referência de mercado citada:
+  Pass da The Simple Gym (R$ 67 membro / R$ 97 não membro, site em ago. 2026).
+- Créditos avulsos (15): recovery, lockers e quadra desenhados; ducha, clínicas, eventos e loja como sugestão
+  (`CREDITOS`).
+- App Estação SOMMA powered by Evolve (17): check in do corre de sábado, agenda, créditos, eventos e novidades das
+  unidades; referência Na Praia + Mané Mercado.
+- Bugu Delícias Caseiras (20): parceiro proposto para o café. Fotos e logo extraídas de bugudelicias.com.br
+  (`public/estacao-somma/bugu/`, `logos/bugu-*.png`).
+- Evolve+ (23): vouchers, espaço premium e ponte com a assessoria (1º mês grátis para Evolve+, condições por plano
+  em `ASSESSORIA_CONDICOES`).
+
 ## Logos
 
 `public/estacao-somma/` guarda as marcas oficiais vindas de `Apresentacao-Evolve`, sem redesenho ou recoloração:
 `somma-branco-laranja.svg` e `evolve-branco.png` para fundo escuro; `somma-preto-laranja.png` e
-`evolve-preto-vermelho.png` para fundo claro. Só as margens transparentes da Evolve foram aparadas para alinhar.
+`evolve-preto-vermelho.png` para fundo claro. Só as margens transparentes da Evolve foram aparadas para alinhar. As marcas Evolve+ oficiais (horizontal e símbolo, branca e preta) estão em `evolve-plus-*.png`, vindas da mesma pasta.

@@ -12,6 +12,10 @@ export const LOGOS = {
   sommaClaro: "/estacao-somma/somma-preto-laranja.png",
   evolveEscuro: "/estacao-somma/evolve-branco.png",
   evolveClaro: "/estacao-somma/evolve-preto-vermelho.png",
+  evolvePlusEscuro: "/estacao-somma/evolve-plus-branco.png",
+  evolvePlusClaro: "/estacao-somma/evolve-plus-preto.png",
+  evolvePlusSimboloEscuro: "/estacao-somma/evolve-plus-simbolo-branco.png",
+  evolvePlusSimboloClaro: "/estacao-somma/evolve-plus-simbolo-preto.png",
 } as const;
 
 type Tema = "escuro" | "claro";
@@ -41,6 +45,27 @@ export function EvolveLogo({ tema = "escuro", className = "" }: { tema?: Tema; c
       className={`w-auto ${className}`}
     />
   );
+}
+
+/** Marca Evolve+ (arquivos oficiais da pasta Apresentacao-Evolve, só com as margens aparadas). */
+export function EvolvePlusLogo({
+  tema = "escuro",
+  className = "",
+  simbolo = false,
+}: {
+  tema?: Tema;
+  className?: string;
+  /** Só o E com o sinal de mais, sem a palavra. */
+  simbolo?: boolean;
+}) {
+  const src = simbolo
+    ? tema === "claro"
+      ? LOGOS.evolvePlusSimboloClaro
+      : LOGOS.evolvePlusSimboloEscuro
+    : tema === "claro"
+      ? LOGOS.evolvePlusClaro
+      : LOGOS.evolvePlusEscuro;
+  return <img src={src} alt="Evolve+" className={`w-auto ${className}`} />;
 }
 
 /** SOMMA · powered by · Evolve. */
