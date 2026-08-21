@@ -651,7 +651,7 @@ export function CheckoutPixRecorrenteForm({ professor, planName, planValue }: Ch
           {metodo === "automatico" && (
             <div className="mt-3 pt-3 border-t border-white/10 space-y-2">
               <p className="text-xs text-white/40">
-                Código de liberação (gerado em /admin/pix-automatico)
+                Código de liberação (gerado no painel da gestão)
               </p>
               <input
                 type="text"

@@ -3,20 +3,11 @@ import { getServiceSupabase } from "@/lib/supabase"
 // Tokens que liberam o Pix Automático no checkout. O Pix Automático fica
 // visível porém bloqueado: a estratégia é levar o máximo de clientes para o
 // cartão e só liberar o débito automático para quem procura o atendimento.
+//
+// Os códigos são GERADOS no painel da gestão (admin.sommaclub.com.br, módulo
+// Pix Automático), na mesma tabela. Aqui o site só confere e consome.
 
 export const TABELA_TOKENS = "pix_automatico_tokens"
-export const VALIDADE_HORAS = 24
-
-// Sem I, O, 0 e 1: o código é ditado por telefone/WhatsApp e esses caracteres
-// se confundem entre si.
-const ALFABETO = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
-
-export function gerarCodigo(): string {
-  const bytes = new Uint8Array(8)
-  crypto.getRandomValues(bytes)
-  const s = Array.from(bytes, (b) => ALFABETO[b % ALFABETO.length]).join("")
-  return `${s.slice(0, 4)}-${s.slice(4, 8)}`
-}
 
 export function normalizarCodigo(valor: unknown): string {
   if (typeof valor !== "string") return ""
