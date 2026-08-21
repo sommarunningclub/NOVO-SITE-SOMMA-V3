@@ -9,7 +9,9 @@ const FRAMES = [
 
 type FrameId = (typeof FRAMES)[number]["id"];
 
-export function EmailPreviewFrames({ html }: { html: string }) {
+/** `altura` acompanha o tamanho do e-mail: um template longo cortado no iframe
+ *  esconde justamente o rodapé e o CTA final, que é o que precisa ser revisado. */
+export function EmailPreviewFrames({ html, altura = 1320 }: { html: string; altura?: number }) {
   const [ativo, setAtivo] = useState<FrameId | "ambos">("ambos");
 
   const visiveis = ativo === "ambos" ? FRAMES : FRAMES.filter((f) => f.id === ativo);
@@ -74,7 +76,7 @@ export function EmailPreviewFrames({ html }: { html: string }) {
                 className="block bg-[#08080a]"
                 style={{
                   width: frame.width,
-                  height: 1320,
+                  height: altura,
                   border: 0,
                 }}
               />

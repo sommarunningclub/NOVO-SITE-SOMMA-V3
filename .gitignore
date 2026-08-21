@@ -34,7 +34,16 @@ next-env.d.ts
 # reconstruíveis a partir do script e dos assets em public/michelob
 /output
 
+# Segmentos de disparo (npx tsx scripts/*-segmento.mts --escrever) — contêm
+# e-mail e nome da base. Gerar fora do repo, usar e apagar; a regra aqui é só a
+# rede de segurança para quando alguém gerar dentro da pasta do projeto.
+segmento-*.json
+
 # Originais das fotos da Evolve (62 MB) — as versões otimizadas versionadas
 # vivem em public/desafio-esteiras-evolve/img/. Nada no código aponta para cá;
 # os originais ficam fora do repo para não pesar no build e no deploy.
 public/desafio-esteiras-evolve/imganes-evolve/
+
+# Estado local da CLI do Supabase (supabase link) — cache de versão e do
+# projeto linkado, específico de cada máquina, não é código do projeto.
+supabase/.temp/
