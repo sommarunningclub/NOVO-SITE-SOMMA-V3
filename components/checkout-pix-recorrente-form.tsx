@@ -55,6 +55,12 @@ function fmtBRL(value: number) {
   return value.toFixed(2).replace(".", ",")
 }
 
+function fmtClock(totalSeconds: number) {
+  const m = Math.floor(totalSeconds / 60)
+  const s = totalSeconds % 60
+  return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`
+}
+
 export function CheckoutPixRecorrenteForm({ professor, planName, planValue }: CheckoutPixRecorrenteFormProps) {
   const [pageState, setPageState] = useState<"form" | "processing" | "pix" | "success" | "error">("form")
   const [isLoading, setIsLoading] = useState(false)
@@ -74,11 +80,25 @@ export function CheckoutPixRecorrenteForm({ professor, planName, planValue }: Ch
   const [pixCopied, setPixCopied] = useState(false)
   const [pollExpired, setPollExpired] = useState(false)
   const [pollRestart, setPollRestart] = useState(0)
+  // Espera do pagamento: o cliente precisa ver que algo está acontecendo. No
+  // Pix Automático a confirmação pode levar alguns minutos (pagamento liquida,
+  // depois o banco ativa a autorização), e tela parada parece erro.
+  const [waitSeconds, setWaitSeconds] = useState(0)
+  const [paymentDetected, setPaymentDetected] = useState(false)
 
   // Reaproveita o cliente Asaas em caso de retry com os MESMOS dados: evita
   // duplicar cadastros quando a assinatura falha e o usuário tenta de novo.
   // Qualquer campo alterado (nome, e-mail, telefone, CPF) recria o cliente.
   const customerRef = useRef<{ fingerprint: string; id: string } | null>(null)
+
+  // ─── Cronômetro da espera ────────────────────────────────────────────────
+  // Conta enquanto a tela do QR está aberta, para o cliente ver movimento
+  // mesmo antes de qualquer resposta do Asaas.
+  useEffect(() => {
+    if (pageState !== "pix") return
+    const tick = setInterval(() => setWaitSeconds((s) => s + 1), 1000)
+    return () => clearInterval(tick)
+  }, [pageState])
 
   // ─── Polling ──────────────────────────────────────────────────────────────
   // No Pix Automático o que prova o teste é a AUTORIZAÇÃO virar ACTIVE (é ela
@@ -128,6 +148,9 @@ export function CheckoutPixRecorrenteForm({ professor, planName, planValue }: Ch
         consecutiveFailures = 0
 
         if (metodo === "automatico") {
+          // Pagamento já caiu, autorização ainda sendo ativada pelo banco.
+          if (data.paymentDetected) setPaymentDetected(true)
+
           if (data.active) {
             stop()
             setSubscriptionId(data.subscriptionId || null)
@@ -243,6 +266,8 @@ export function CheckoutPixRecorrenteForm({ professor, planName, planValue }: Ch
       }
 
       setPollExpired(false)
+      setWaitSeconds(0)
+      setPaymentDetected(false)
       setPageState("pix")
     } catch (err: any) {
       setError(err.message)
@@ -292,7 +317,48 @@ export function CheckoutPixRecorrenteForm({ professor, planName, planValue }: Ch
           </div>
 
           <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-6 space-y-6">
-            {pixQrCode && (
+            {/* Status da espera: enquanto não confirma, a tela precisa mostrar
+                movimento — senão o cliente acha que travou e paga de novo. */}
+            {!pollExpired && (
+              <div
+                className={`rounded-xl border p-4 ${
+                  paymentDetected
+                    ? "border-[#32bcad]/40 bg-[#32bcad]/10"
+                    : "border-white/10 bg-white/[0.04]"
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <Loader2
+                    className={`w-5 h-5 flex-shrink-0 animate-spin ${
+                      paymentDetected ? "text-[#32bcad]" : "text-white/40"
+                    }`}
+                  />
+                  <div className="flex-grow min-w-0">
+                    <p
+                      className={`text-sm font-medium ${
+                        paymentDetected ? "text-[#32bcad]" : "text-white"
+                      }`}
+                    >
+                      {paymentDetected
+                        ? metodo === "automatico"
+                          ? "Pagamento recebido! Ativando o débito automático..."
+                          : "Pagamento recebido! Confirmando..."
+                        : "Aguardando o pagamento"}
+                    </p>
+                    <p className="text-xs text-white/40 mt-0.5">
+                      {paymentDetected
+                        ? "Não feche esta tela. A confirmação pode levar alguns minutos."
+                        : "Esta tela atualiza sozinha quando o pagamento cair."}
+                    </p>
+                  </div>
+                  <span className="text-sm font-mono text-white/40 tabular-nums flex-shrink-0">
+                    {fmtClock(waitSeconds)}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {pixQrCode && !paymentDetected && (
               <div className="flex justify-center">
                 <div className="bg-white p-3 rounded-xl">
                   <img
@@ -312,12 +378,12 @@ export function CheckoutPixRecorrenteForm({ professor, planName, planValue }: Ch
                 Plano {planName} ·{" "}
                 {metodo === "automatico" ? "1ª mensalidade + autorização" : "assinatura recorrente via PIX"}
               </p>
-              {formattedExpiration && (
+              {formattedExpiration && !paymentDetected && (
                 <p className="text-xs text-white/30">Válido até {formattedExpiration}</p>
               )}
             </div>
 
-            {pixPayload && (
+            {pixPayload && !paymentDetected && (
               <div className="space-y-2">
                 <p className="text-xs text-white/40 text-center">Ou copie o código PIX:</p>
                 <div className="bg-white/[0.05] border border-white/10 rounded-lg px-3 py-2">

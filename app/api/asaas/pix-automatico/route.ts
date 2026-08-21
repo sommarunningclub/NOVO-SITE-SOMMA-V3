@@ -20,6 +20,9 @@ type AutorizacaoResponse = {
   payload?: string
   encodedImage?: string
   subscriptionId?: string | null
+  // Identificador da transação Pix: aparece quando o QR imediato é pago, ainda
+  // antes de a autorização terminar de ser ativada pelo banco do pagador.
+  endToEndIdentifier?: string | null
   immediateQrCode?: { conciliationIdentifier?: string; expirationDate?: string }
   errors?: { description?: string }[]
 }
@@ -152,11 +155,16 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: friendlyError(data) }, { status: res.status })
     }
 
+    const active = data.status === "ACTIVE"
+
     return NextResponse.json({
       id: data.id,
       status: data.status,
       subscriptionId: data.subscriptionId ?? null,
-      active: data.status === "ACTIVE",
+      active,
+      // Entre pagar o QR e a autorização ficar ativa existe uma janela de
+      // alguns minutos. Sinalizar essa fase evita que a tela pareça travada.
+      paymentDetected: active || Boolean(data.endToEndIdentifier),
       failed: data.status === "REFUSED" || data.status === "CANCELLED" || data.status === "EXPIRED",
     })
   } catch (error) {
