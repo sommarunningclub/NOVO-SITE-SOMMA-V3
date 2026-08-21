@@ -172,6 +172,14 @@ export function CheckoutForm({ plan, initialProfessors }: CheckoutFormProps) {
   const [waitSeconds, setWaitSeconds] = useState(0)
   const [pollExpired, setPollExpired] = useState(false)
   const [pollRestart, setPollRestart] = useState(0)
+  // Liberação do Pix Automático: a opção aparece para todo mundo, mas só roda
+  // com um código que o atendimento gera. O padrão comercial continua sendo o
+  // cartão.
+  const [pixAutoPainelAberto, setPixAutoPainelAberto] = useState(false)
+  const [pixAutoLiberado, setPixAutoLiberado] = useState(false)
+  const [tokenCodigo, setTokenCodigo] = useState("")
+  const [tokenErro, setTokenErro] = useState<string | null>(null)
+  const [tokenLoading, setTokenLoading] = useState(false)
   const [pixQrCode, setPixQrCode] = useState<string | null>(null)
   const [pixPayload, setPixPayload] = useState<string | null>(null)
   const [pixExpiration, setPixExpiration] = useState<string | null>(null)
@@ -242,6 +250,31 @@ export function CheckoutForm({ plan, initialProfessors }: CheckoutFormProps) {
       setCouponError("Erro ao validar cupom")
     } finally {
       setIsCouponLoading(false)
+    }
+  }
+
+  // ─── Liberação do Pix Automático ─────────────────────────────────────────
+  const validarTokenPixAuto = async () => {
+    const codigo = tokenCodigo.trim()
+    if (!codigo) { setTokenErro("Digite o código que o atendimento enviou"); return }
+    setTokenLoading(true)
+    setTokenErro(null)
+    try {
+      const res = await fetch(`/api/pix-automatico/tokens/validar?codigo=${encodeURIComponent(codigo)}`)
+      const data = await res.json()
+      if (!data.valido) {
+        setTokenErro(data.error || "Código inválido")
+        setPixAutoLiberado(false)
+        return
+      }
+      setPixAutoLiberado(true)
+      // Se um cupom entrou enquanto a validação estava em voo, o cupom vence:
+      // a liberação fica guardada e o cliente escolhe depois de removê-lo.
+      if (!couponData) setPaymentMethod("pix-automatico")
+    } catch {
+      setTokenErro("Não foi possível validar agora. Tente de novo.")
+    } finally {
+      setTokenLoading(false)
     }
   }
 
@@ -487,6 +520,7 @@ export function CheckoutForm({ plan, initialProfessors }: CheckoutFormProps) {
             customerId: customerResult.id,
             planKey: plan.pixAutomaticoKey,
             professor,
+            token: tokenCodigo.trim(),
           }),
         })
         const autoResult = await autoRes.json()
@@ -1278,7 +1312,13 @@ export function CheckoutForm({ plan, initialProfessors }: CheckoutFormProps) {
 
                   <button
                     type="button"
-                    onClick={() => !couponData && setPaymentMethod("pix-automatico")}
+                    onClick={() => {
+                      if (couponData) return
+                      // Sem liberação o clique não escolhe a forma de pagamento:
+                      // abre o painel para o cliente pedir o código.
+                      if (pixAutoLiberado) setPaymentMethod("pix-automatico")
+                      else setPixAutoPainelAberto((aberto) => !aberto)
+                    }}
                     disabled={!!couponData}
                     className={`w-full text-left p-4 rounded-lg border transition-all disabled:opacity-40 disabled:cursor-not-allowed ${
                       paymentMethod === "pix-automatico"
@@ -1293,16 +1333,16 @@ export function CheckoutForm({ plan, initialProfessors }: CheckoutFormProps) {
                         }`}
                       />
                       <div className="flex-grow">
-                        <p className="text-sm font-medium text-white">
-                          Pix Automático{" "}
-                          <span className="text-[10px] uppercase tracking-wider text-[#32bcad] ml-1">
-                            Novo
-                          </span>
+                        <p className="text-sm font-medium text-white flex items-center gap-1.5">
+                          Pix Automático
+                          {!pixAutoLiberado && <Lock className="w-3 h-3 text-white/40" />}
                         </p>
                         <p className="text-xs text-white/50 mt-1">
                           {couponData
                             ? "Indisponível com cupom aplicado. Remova o cupom para usar."
-                            : "Débito automático na sua conta, sem precisar de cartão."}
+                            : pixAutoLiberado
+                              ? "Débito automático na sua conta, sem precisar de cartão."
+                              : "Débito automático na conta. Disponível mediante liberação do atendimento."}
                         </p>
                       </div>
                       {paymentMethod === "pix-automatico" && (
@@ -1312,8 +1352,72 @@ export function CheckoutForm({ plan, initialProfessors }: CheckoutFormProps) {
                   </button>
                 </div>
 
-                {paymentMethod === "pix-automatico" && (
+                {pixAutoPainelAberto && !pixAutoLiberado && !couponData && (
+                  <div className="mt-3 p-4 bg-white/[0.02] border border-white/10 rounded-xl space-y-4">
+                    <div>
+                      <p className="text-sm font-medium text-white mb-1">
+                        Liberação pelo atendimento
+                      </p>
+                      <p className="text-xs text-white/50 leading-relaxed">
+                        O débito automático é liberado caso a caso. Fale com a gente pelo WhatsApp
+                        que a equipe envia um código de liberação, válido por 24 horas.
+                      </p>
+                    </div>
+
+                    <a
+                      href={`https://wa.me/5561995372477?text=${encodeURIComponent(
+                        `Olá! Quero assinar o Plano ${plan.name} da assessoria pagando com Pix Automático. Podem liberar o código para mim?`,
+                      )}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full py-3 flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#20BA58] text-black font-semibold rounded-lg transition-colors"
+                    >
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.272-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.67-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.076 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421-7.403h-.004a9.87 9.87 0 00-9.746 9.798c0 2.687.733 5.308 2.122 7.618L2.06 23.766l8.25-2.166c2.213 1.201 4.708 1.86 7.332 1.86 5.736 0 10.562-4.652 10.562-10.38 0-2.777-1.132-5.388-3.188-7.36A10.56 10.56 0 0012.051 6.979z" />
+                      </svg>
+                      Pedir liberação no WhatsApp
+                    </a>
+
+                    <div className="space-y-2">
+                      <p className="text-xs text-white/40">Já tem o código?</p>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={tokenCodigo}
+                          onChange={(e) => { setTokenCodigo(e.target.value.toUpperCase()); setTokenErro(null) }}
+                          onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), validarTokenPixAuto())}
+                          placeholder="XXXX-XXXX"
+                          maxLength={9}
+                          className={`flex-1 px-4 py-3 bg-white/[0.03] border rounded-lg text-base sm:text-sm text-white placeholder-white/25 focus:outline-none transition-all uppercase font-mono tracking-wider ${
+                            tokenErro ? "border-red-500/50" : "border-white/10 focus:border-[#32bcad]"
+                          }`}
+                        />
+                        <button
+                          type="button"
+                          onClick={validarTokenPixAuto}
+                          disabled={tokenLoading || !tokenCodigo.trim()}
+                          className="px-5 py-3 bg-white/[0.05] hover:bg-white/10 border border-white/10 text-white text-sm rounded-lg transition-colors disabled:opacity-40"
+                        >
+                          {tokenLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Liberar"}
+                        </button>
+                      </div>
+                      {tokenErro && (
+                        <p className="text-xs text-red-400 flex items-center gap-1">
+                          <AlertCircle className="w-3 h-3" />{tokenErro}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {paymentMethod === "pix-automatico" && pixAutoLiberado && (
                   <div className="mt-4 p-4 bg-white/[0.02] border border-white/10 rounded-xl">
+                    <div className="flex items-center gap-2 mb-4 pb-4 border-b border-white/10">
+                      <Check className="w-4 h-4 text-[#32bcad]" />
+                      <p className="text-xs text-[#32bcad]">
+                        Código liberado. Você pode pagar com Pix Automático.
+                      </p>
+                    </div>
                     <p className="text-xs text-white/40 uppercase tracking-wider mb-4">
                       Como funciona
                     </p>

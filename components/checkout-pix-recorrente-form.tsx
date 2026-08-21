@@ -85,6 +85,10 @@ export function CheckoutPixRecorrenteForm({ professor, planName, planValue }: Ch
   // depois o banco ativa a autorização), e tela parada parece erro.
   const [waitSeconds, setWaitSeconds] = useState(0)
   const [paymentDetected, setPaymentDetected] = useState(false)
+  // O Pix Automático exige código de liberação também aqui: a rota é pública e
+  // uma exceção por plano viraria porta dos fundos.
+  const [tokenCodigo, setTokenCodigo] = useState("")
+  const [tokenErro, setTokenErro] = useState<string | null>(null)
 
   // Reaproveita o cliente Asaas em caso de retry com os MESMOS dados: evita
   // duplicar cadastros quando a assinatura falha e o usuário tenta de novo.
@@ -226,7 +230,11 @@ export function CheckoutPixRecorrenteForm({ professor, planName, planValue }: Ch
         const autoRes = await fetch("/api/asaas/pix-automatico", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ customerId: asaasCustomerId }),
+          body: JSON.stringify({
+            customerId: asaasCustomerId,
+            planKey: "teste",
+            token: tokenCodigo.trim(),
+          }),
         })
         const autoResult = await autoRes.json()
         if (!autoRes.ok) throw new Error(autoResult.error || "Erro ao criar o Pix Automático")
@@ -639,6 +647,29 @@ export function CheckoutPixRecorrenteForm({ professor, planName, planValue }: Ch
               </div>
             </button>
           </div>
+
+          {metodo === "automatico" && (
+            <div className="mt-3 pt-3 border-t border-white/10 space-y-2">
+              <p className="text-xs text-white/40">
+                Código de liberação (gerado em /admin/pix-automatico)
+              </p>
+              <input
+                type="text"
+                value={tokenCodigo}
+                onChange={(e) => { setTokenCodigo(e.target.value.toUpperCase()); setTokenErro(null) }}
+                placeholder="XXXX-XXXX"
+                maxLength={9}
+                className={`w-full px-4 py-3 bg-white/[0.03] border rounded-lg text-base sm:text-sm text-white placeholder-white/25 focus:outline-none transition-all uppercase font-mono tracking-wider ${
+                  tokenErro ? "border-red-500/50" : "border-white/10 focus:border-[#32bcad]"
+                }`}
+              />
+              {tokenErro && (
+                <p className="text-xs text-red-400 flex items-center gap-1">
+                  <AlertCircle className="w-3 h-3" />{tokenErro}
+                </p>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Professor fixo */}

@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { resolvePlanoPixAutomatico } from "@/lib/checkout/planos-pix-automatico"
+import { consumirToken, conferirToken, devolverToken, mensagemDoMotivo } from "@/lib/pix-automatico/tokens"
 
 const ASAAS_API_URL = "https://api.asaas.com/v3"
 const ASAAS_API_KEY = process.env.ASAAS_API_KEY
@@ -33,16 +34,23 @@ function friendlyError(data: any): string {
 
 export async function POST(request: NextRequest) {
   try {
-    const { customerId, planKey, professor } = await request.json()
+    const { customerId, planKey, professor, token } = await request.json()
 
     if (!customerId) {
       return NextResponse.json({ error: "customerId é obrigatório" }, { status: 400 })
     }
 
-    // Sem planKey assume o teste, para a página de teste seguir funcionando.
-    const plano = resolvePlanoPixAutomatico(planKey ?? "teste")
+    const plano = resolvePlanoPixAutomatico(planKey)
     if (!plano) {
       return NextResponse.json({ error: "Plano inválido para Pix Automático" }, { status: 400 })
+    }
+
+    // Código de liberação obrigatório, SEM exceção por plano: a rota é pública,
+    // então uma chave livre viraria porta dos fundos para autorizar recorrência
+    // barata e registrar a venda cheia na gestão.
+    const conferencia = await conferirToken(token)
+    if (!conferencia.ok) {
+      return NextResponse.json({ error: mensagemDoMotivo(conferencia.motivo) }, { status: 403 })
     }
 
     const headers = {
@@ -87,6 +95,15 @@ export async function POST(request: NextRequest) {
       },
     }
 
+    // Consome o código ANTES de falar com o Asaas: é o consumo atômico que
+    // impede dois checkouts simultâneos de usarem o mesmo código. Se a criação
+    // falhar depois, devolvemos o código (o cliente não perde a liberação por
+    // um erro que não foi dele).
+    const consumo = await consumirToken(token, { customerId, nome: professor })
+    if (!consumo.ok) {
+      return NextResponse.json({ error: mensagemDoMotivo(consumo.motivo) }, { status: 403 })
+    }
+
     console.log("[Asaas] Criando autorização de Pix Automático:", {
       customerId,
       planKey: planKey ?? "teste",
@@ -105,6 +122,7 @@ export async function POST(request: NextRequest) {
 
     if (!res.ok) {
       console.error("[Asaas] Erro na autorização de Pix Automático:", data)
+      await devolverToken(token)
       return NextResponse.json({ error: friendlyError(data) }, { status: res.status })
     }
 
@@ -118,6 +136,7 @@ export async function POST(request: NextRequest) {
           headers,
         }).catch((e) => console.error("[Asaas] Falha ao cancelar autorização órfã:", data.id, e))
       }
+      await devolverToken(token)
       return NextResponse.json(
         { error: "A autorização foi criada, mas o QR Code não veio. Tente novamente." },
         { status: 502 },
