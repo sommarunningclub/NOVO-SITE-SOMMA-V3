@@ -2,12 +2,20 @@
 
 import type React from "react"
 import { useState, useEffect, useRef } from "react"
-import { Loader2, Check, AlertCircle, Lock, QrCode, Copy, RefreshCw } from "lucide-react"
+import { Loader2, Check, AlertCircle, Lock, QrCode, Copy, RefreshCw, Zap } from "lucide-react"
 import Image from "next/image"
 
-// Checkout de TESTE do PIX recorrente (assinatura mensal com billingType PIX).
+// Checkout de TESTE das duas modalidades de PIX recorrente do Asaas:
+//
+// - "automatico": Pix Automático (Jornada 3). Um QR único junta a 1ª cobrança
+//   com o consentimento; depois o banco do cliente debita sozinho todo mês.
+// - "manual": assinatura com billingType PIX. O Asaas gera uma cobrança nova
+//   por ciclo e o cliente paga um QR novo a cada mês.
+//
 // Página isolada do checkout oficial: professor fixo, sem cupom, sem contrato,
-// sem gravação na gestão — só o fluxo Asaas (cliente → assinatura → QR → status).
+// sem gravação na gestão — só o fluxo Asaas.
+
+type Metodo = "automatico" | "manual"
 
 interface Professor {
   id: string
@@ -56,6 +64,8 @@ export function CheckoutPixRecorrenteForm({ professor, planName, planValue }: Ch
     name: "", email: "", cpfCnpj: "", phone: "",
   })
 
+  const [metodo, setMetodo] = useState<Metodo>("automatico")
+  const [authorizationId, setAuthorizationId] = useState<string | null>(null)
   const [subscriptionId, setSubscriptionId] = useState<string | null>(null)
   const [pixPaymentId, setPixPaymentId] = useState<string | null>(null)
   const [pixQrCode, setPixQrCode] = useState<string | null>(null)
@@ -70,14 +80,22 @@ export function CheckoutPixRecorrenteForm({ professor, planName, planValue }: Ch
   // Qualquer campo alterado (nome, e-mail, telefone, CPF) recria o cliente.
   const customerRef = useRef<{ fingerprint: string; id: string } | null>(null)
 
-  // ─── Polling do status da 1ª cobrança ────────────────────────────────────
+  // ─── Polling ──────────────────────────────────────────────────────────────
+  // No Pix Automático o que prova o teste é a AUTORIZAÇÃO virar ACTIVE (é ela
+  // que autoriza os débitos futuros); no PIX manual basta a cobrança ser paga.
   useEffect(() => {
-    if (pageState !== "pix" || !pixPaymentId) return
+    if (pageState !== "pix") return
+    const alvo = metodo === "automatico" ? authorizationId : pixPaymentId
+    if (!alvo) return
 
     let pollInterval: NodeJS.Timeout | null = null
     let attempts = 0
+    let consecutiveFailures = 0
     // Teto de ~20 min (400 x 3s), igual ao checkout oficial.
     const MAX_ATTEMPTS = 400
+    // Erro persistente na consulta (id inválido, chave da API fora do ar) não
+    // pode deixar o usuário 20 min olhando um QR que nunca vai confirmar.
+    const MAX_CONSECUTIVE_FAILURES = 10
 
     const stop = () => {
       if (pollInterval) {
@@ -86,21 +104,52 @@ export function CheckoutPixRecorrenteForm({ professor, planName, planValue }: Ch
       }
     }
 
-    const checkPaymentStatus = async () => {
+    const checkStatus = async () => {
       attempts++
       try {
-        const res = await fetch(`/api/asaas/payment-status?paymentId=${pixPaymentId}`)
+        const url =
+          metodo === "automatico"
+            ? `/api/asaas/pix-automatico?authorizationId=${alvo}`
+            : `/api/asaas/payment-status?paymentId=${alvo}`
+        const res = await fetch(url)
         const data = await res.json()
         if (!res.ok) {
           console.error("Erro ao verificar status:", data.error)
+          consecutiveFailures++
+          if (consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) {
+            stop()
+            setError(
+              "Não foi possível confirmar o pagamento junto ao Asaas. Se o valor já saiu da sua conta, confira o painel antes de tentar de novo.",
+            )
+            setPageState("error")
+          }
           return
         }
-        if (data.paid) {
+        consecutiveFailures = 0
+
+        if (metodo === "automatico") {
+          if (data.active) {
+            stop()
+            setSubscriptionId(data.subscriptionId || null)
+            setPageState("success")
+          } else if (data.failed) {
+            stop()
+            setError(
+              data.status === "CANCELLED"
+                ? "A autorização foi cancelada, seja pelo seu banco, seja no painel do Asaas."
+                : data.status === "REFUSED"
+                  ? "A autorização não foi aceita. Isso costuma acontecer quando o QR Code expira sem pagamento ou quando o banco do pagador não suporta Pix Automático."
+                  : `A autorização foi encerrada (status ${data.status}).`,
+            )
+            setPageState("error")
+          }
+        } else if (data.paid) {
           stop()
           setPageState("success")
         }
       } catch (err) {
         console.error("Erro no polling:", err)
+        consecutiveFailures++
       } finally {
         if (attempts >= MAX_ATTEMPTS) {
           stop()
@@ -110,13 +159,13 @@ export function CheckoutPixRecorrenteForm({ professor, planName, planValue }: Ch
       }
     }
 
-    checkPaymentStatus()
-    pollInterval = setInterval(checkPaymentStatus, 3000)
+    checkStatus()
+    pollInterval = setInterval(checkStatus, 3000)
 
     return () => {
       if (pollInterval) clearInterval(pollInterval)
     }
-  }, [pageState, pixPaymentId, pollRestart])
+  }, [pageState, metodo, authorizationId, pixPaymentId, pollRestart])
 
   // ─── Submit ──────────────────────────────────────────────────────────────
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -148,30 +197,51 @@ export function CheckoutPixRecorrenteForm({ professor, planName, planValue }: Ch
         customerRef.current = { fingerprint, id: asaasCustomerId }
       }
 
-      // 2. Assinatura mensal via PIX: a rota devolve a 1ª cobrança já com o
-      // QR Code resolvido (e desfaz a assinatura no Asaas se algo falhar).
-      const subRes = await fetch("/api/asaas/subscription", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          customerId: asaasCustomerId,
-          type: "pix-recurring",
-          description: `Somma Assessoria - Plano ${planName} PIX Recorrente (TESTE) | Prof: ${professor?.nome || "-"}`,
-        }),
-      })
-      const subResult = await subRes.json()
-      if (!subRes.ok) throw new Error(subResult.error || "Erro ao criar assinatura PIX")
+      if (metodo === "automatico") {
+        // 2a. Pix Automático: a autorização já nasce com o QR imediato, que
+        // cobra a 1ª mensalidade e coleta o consentimento da recorrência.
+        const autoRes = await fetch("/api/asaas/pix-automatico", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ customerId: asaasCustomerId }),
+        })
+        const autoResult = await autoRes.json()
+        if (!autoRes.ok) throw new Error(autoResult.error || "Erro ao criar o Pix Automático")
 
-      const paymentId = subResult.firstPayment?.id
-      if (!paymentId || !subResult.pixQrCode?.payload) {
-        throw new Error("Assinatura criada, mas a cobrança PIX não foi localizada.")
+        setAuthorizationId(autoResult.authorizationId)
+        setSubscriptionId(autoResult.subscriptionId || null)
+        setPixPaymentId(null)
+        setPixQrCode(autoResult.encodedImage || null)
+        setPixPayload(autoResult.payload)
+        setPixExpiration(autoResult.expirationDate || null)
+      } else {
+        // 2b. Assinatura mensal via PIX: a rota devolve a 1ª cobrança já com o
+        // QR Code resolvido (e desfaz a assinatura no Asaas se algo falhar).
+        const subRes = await fetch("/api/asaas/subscription", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            customerId: asaasCustomerId,
+            type: "pix-recurring",
+            description: `Somma Assessoria - Plano ${planName} PIX Recorrente (TESTE) | Prof: ${professor?.nome || "-"}`,
+          }),
+        })
+        const subResult = await subRes.json()
+        if (!subRes.ok) throw new Error(subResult.error || "Erro ao criar assinatura PIX")
+
+        const paymentId = subResult.firstPayment?.id
+        if (!paymentId || !subResult.pixQrCode?.payload) {
+          throw new Error("Assinatura criada, mas a cobrança PIX não foi localizada.")
+        }
+
+        setAuthorizationId(null)
+        setSubscriptionId(subResult.subscription?.id || null)
+        setPixPaymentId(paymentId)
+        setPixQrCode(subResult.pixQrCode.encodedImage)
+        setPixPayload(subResult.pixQrCode.payload)
+        setPixExpiration(subResult.pixQrCode.expirationDate)
       }
 
-      setSubscriptionId(subResult.subscription?.id || null)
-      setPixPaymentId(paymentId)
-      setPixQrCode(subResult.pixQrCode.encodedImage)
-      setPixPayload(subResult.pixQrCode.payload)
-      setPixExpiration(subResult.pixQrCode.expirationDate)
       setPollExpired(false)
       setPageState("pix")
     } catch (err: any) {
@@ -211,9 +281,13 @@ export function CheckoutPixRecorrenteForm({ professor, planName, planValue }: Ch
             <div className="w-20 h-20 bg-[#32bcad]/10 border border-[#32bcad]/20 rounded-full flex items-center justify-center mx-auto mb-6">
               <QrCode className="w-10 h-10 text-[#32bcad]" strokeWidth={1.5} />
             </div>
-            <h1 className="text-2xl font-light text-white mb-2">Assinatura via PIX</h1>
+            <h1 className="text-2xl font-light text-white mb-2">
+              {metodo === "automatico" ? "Pix Automático" : "Assinatura via PIX"}
+            </h1>
             <p className="text-sm text-white/50">
-              Pague a primeira mensalidade para ativar a assinatura
+              {metodo === "automatico"
+                ? "Ao pagar este QR Code você também autoriza os débitos mensais no seu banco"
+                : "Pague a primeira mensalidade para ativar a assinatura"}
             </p>
           </div>
 
@@ -235,7 +309,8 @@ export function CheckoutPixRecorrenteForm({ professor, planName, planValue }: Ch
             <div className="space-y-2 text-center">
               <p className="text-3xl font-light text-white">R$ {fmtBRL(planValue)}</p>
               <p className="text-xs text-white/40">
-                Plano {planName} · assinatura recorrente via PIX
+                Plano {planName} ·{" "}
+                {metodo === "automatico" ? "1ª mensalidade + autorização" : "assinatura recorrente via PIX"}
               </p>
               {formattedExpiration && (
                 <p className="text-xs text-white/30">Válido até {formattedExpiration}</p>
@@ -274,15 +349,32 @@ export function CheckoutPixRecorrenteForm({ professor, planName, planValue }: Ch
               <div className="flex items-start gap-3 text-sm">
                 <Check className="w-4 h-4 text-[#32bcad] flex-shrink-0 mt-0.5" />
                 <p className="text-white/50">
-                  A confirmação é automática assim que o banco processar o pagamento.
+                  {metodo === "automatico"
+                    ? "Esta tela confirma sozinha quando a autorização for ativada pelo seu banco."
+                    : "A confirmação é automática assim que o banco processar o pagamento."}
                 </p>
               </div>
               <div className="flex items-start gap-3 text-sm">
-                <RefreshCw className="w-4 h-4 text-[#32bcad] flex-shrink-0 mt-0.5" />
+                {metodo === "automatico" ? (
+                  <Zap className="w-4 h-4 text-[#32bcad] flex-shrink-0 mt-0.5" />
+                ) : (
+                  <RefreshCw className="w-4 h-4 text-[#32bcad] flex-shrink-0 mt-0.5" />
+                )}
                 <p className="text-white/50">
-                  Todo mês uma nova cobrança PIX é gerada e enviada por e-mail.
+                  {metodo === "automatico"
+                    ? "Depois disso o valor é debitado da sua conta todo mês, sem QR Code novo."
+                    : "Todo mês uma nova cobrança PIX é gerada e enviada por e-mail."}
                 </p>
               </div>
+              {metodo === "automatico" && (
+                <div className="flex items-start gap-3 text-sm">
+                  <AlertCircle className="w-4 h-4 text-amber-400/70 flex-shrink-0 mt-0.5" />
+                  <p className="text-white/50">
+                    Pague pelo app do banco (não pela carteira digital). O banco do pagador precisa
+                    suportar Pix Automático.
+                  </p>
+                </div>
+              )}
               {pollExpired && (
                 <button
                   type="button"
@@ -296,9 +388,9 @@ export function CheckoutPixRecorrenteForm({ professor, planName, planValue }: Ch
             </div>
           </div>
 
-          {subscriptionId && (
+          {(authorizationId || subscriptionId) && (
             <p className="text-center text-[10px] text-white/20 font-mono mt-4">
-              Assinatura: {subscriptionId}
+              {authorizationId ? `Autorização: ${authorizationId}` : `Assinatura: ${subscriptionId}`}
             </p>
           )}
         </div>
@@ -312,8 +404,14 @@ export function CheckoutPixRecorrenteForm({ professor, planName, planValue }: Ch
       <div className="min-h-screen bg-black flex items-center justify-center px-4">
         <div className="text-center max-w-md w-full">
           <Loader2 className="w-10 h-10 text-[#32bcad] animate-spin mx-auto mb-8" />
-          <h2 className="text-2xl font-light text-white mb-3">Criando sua assinatura</h2>
-          <p className="text-sm text-white/60">Gerando a cobrança PIX da primeira mensalidade...</p>
+          <h2 className="text-2xl font-light text-white mb-3">
+            {metodo === "automatico" ? "Criando sua autorização" : "Criando sua assinatura"}
+          </h2>
+          <p className="text-sm text-white/60">
+            {metodo === "automatico"
+              ? "Gerando o QR Code de pagamento e autorização..."
+              : "Gerando a cobrança PIX da primeira mensalidade..."}
+          </p>
         </div>
       </div>
     )
@@ -327,16 +425,23 @@ export function CheckoutPixRecorrenteForm({ professor, planName, planValue }: Ch
           <div className="w-20 h-20 bg-[#32bcad]/10 border border-[#32bcad]/20 rounded-full flex items-center justify-center mx-auto mb-6">
             <Check className="w-10 h-10 text-[#32bcad]" strokeWidth={1.5} />
           </div>
-          <h1 className="text-3xl font-light text-white mb-3">Pagamento confirmado!</h1>
+          <h1 className="text-3xl font-light text-white mb-3">
+            {metodo === "automatico" ? "Débito automático ativo!" : "Pagamento confirmado!"}
+          </h1>
           <p className="text-white/50 mb-2">
-            A assinatura do Plano {planName} via PIX recorrente está ativa.
+            {metodo === "automatico"
+              ? `A autorização de Pix Automático do Plano ${planName} está ativa.`
+              : `A assinatura do Plano ${planName} via PIX recorrente está ativa.`}
           </p>
           <p className="text-sm text-white/40 mb-8">
-            A próxima mensalidade de R$ {fmtBRL(planValue)} vence no mesmo dia do mês que vem e o
-            link de pagamento chega por e-mail antes do vencimento.
+            {metodo === "automatico"
+              ? `A partir do mês que vem, R$ ${fmtBRL(planValue)} são debitados da sua conta automaticamente, sem QR Code novo. Você pode revogar a autorização no app do seu banco quando quiser.`
+              : `A próxima mensalidade de R$ ${fmtBRL(planValue)} vence no mesmo dia do mês que vem e o link de pagamento chega por e-mail antes do vencimento.`}
           </p>
-          {subscriptionId && (
-            <p className="text-xs text-white/25 font-mono mb-8">Assinatura: {subscriptionId}</p>
+          {(authorizationId || subscriptionId) && (
+            <p className="text-xs text-white/25 font-mono mb-8">
+              {authorizationId ? `Autorização: ${authorizationId}` : `Assinatura: ${subscriptionId}`}
+            </p>
           )}
           <a
             href="/"
@@ -357,7 +462,9 @@ export function CheckoutPixRecorrenteForm({ professor, planName, planValue }: Ch
           <div className="w-20 h-20 bg-red-500/10 border border-red-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
             <AlertCircle className="w-10 h-10 text-red-400" strokeWidth={1.5} />
           </div>
-          <h2 className="text-2xl font-light text-white mb-2">Erro ao criar assinatura</h2>
+          <h2 className="text-2xl font-light text-white mb-2">
+            {metodo === "automatico" ? "Não foi possível ativar" : "Erro ao criar assinatura"}
+          </h2>
           <p className="text-sm text-white/50 mb-8">{error || "Ocorreu um erro ao processar."}</p>
           <button
             onClick={() => { setPageState("form"); setError(null) }}
@@ -411,11 +518,60 @@ export function CheckoutPixRecorrenteForm({ professor, planName, planValue }: Ch
               <p className="text-xs text-white/40">por mês</p>
             </div>
           </div>
-          <div className="flex items-center gap-2 pt-4 border-t border-white/10">
-            <QrCode className="w-4 h-4 text-[#32bcad]" />
-            <p className="text-xs text-[#32bcad]">
-              Única forma de pagamento: PIX recorrente (nova cobrança a cada mês)
-            </p>
+          <div className="pt-4 border-t border-white/10 space-y-3">
+            <p className="text-xs text-white/40 uppercase tracking-wider">Forma de pagamento</p>
+
+            <button
+              type="button"
+              onClick={() => setMetodo("automatico")}
+              className={`w-full text-left p-4 rounded-xl border transition-all ${
+                metodo === "automatico"
+                  ? "border-[#32bcad] bg-[#32bcad]/10"
+                  : "border-white/10 hover:border-white/20"
+              }`}
+            >
+              <div className="flex items-start gap-3">
+                <Zap
+                  className={`w-4 h-4 flex-shrink-0 mt-0.5 ${
+                    metodo === "automatico" ? "text-[#32bcad]" : "text-white/40"
+                  }`}
+                />
+                <div className="flex-grow">
+                  <p className="text-sm font-medium text-white">Pix Automático</p>
+                  <p className="text-xs text-white/50 mt-1">
+                    Você autoriza uma vez e o valor é debitado da sua conta todo mês, igual a débito
+                    automático.
+                  </p>
+                </div>
+                {metodo === "automatico" && <Check className="w-4 h-4 text-[#32bcad] flex-shrink-0" />}
+              </div>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setMetodo("manual")}
+              className={`w-full text-left p-4 rounded-xl border transition-all ${
+                metodo === "manual"
+                  ? "border-[#32bcad] bg-[#32bcad]/10"
+                  : "border-white/10 hover:border-white/20"
+              }`}
+            >
+              <div className="flex items-start gap-3">
+                <RefreshCw
+                  className={`w-4 h-4 flex-shrink-0 mt-0.5 ${
+                    metodo === "manual" ? "text-[#32bcad]" : "text-white/40"
+                  }`}
+                />
+                <div className="flex-grow">
+                  <p className="text-sm font-medium text-white">PIX recorrente (manual)</p>
+                  <p className="text-xs text-white/50 mt-1">
+                    Uma cobrança nova por mês, enviada por e-mail. Você paga um QR Code a cada
+                    mensalidade.
+                  </p>
+                </div>
+                {metodo === "manual" && <Check className="w-4 h-4 text-[#32bcad] flex-shrink-0" />}
+              </div>
+            </button>
           </div>
         </div>
 

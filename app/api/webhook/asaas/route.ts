@@ -28,7 +28,15 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: false, error: "Supabase off" }, { status: 200 });
   }
 
-  let body: { id?: string; event?: string; payment?: AsaasPayment } = {};
+  type AsaasAuthorization = { id?: string; status?: string; customerId?: string };
+  let body: {
+    id?: string;
+    event?: string;
+    payment?: AsaasPayment | string;
+    authorization?: AsaasAuthorization;
+    pixAutomaticAuthorization?: string;
+    paymentInstruction?: { id?: string; payment?: string; authorization?: AsaasAuthorization };
+  } = {};
   try {
     body = await request.json();
   } catch {
@@ -46,9 +54,41 @@ export async function POST(request: NextRequest) {
     console.warn("[webhook/asaas] ASAAS_WEBHOOK_TOKEN não setado — webhook aberto (fail-open).");
   }
 
-  const { id: eventId, event: eventType, payment } = body;
-  if (!eventId || !eventType) {
-    return NextResponse.json({ ok: false, error: "Missing event id/type" }, { status: 200 });
+  const { id: rawEventId, event: eventType } = body;
+  if (!eventType) {
+    return NextResponse.json({ ok: false, error: "Missing event type" }, { status: 200 });
+  }
+
+  // Nos eventos de cobrança o Asaas manda o objeto completo; em alguns fluxos
+  // de Pix Automático manda só o id da cobrança como string.
+  const payment = typeof body.payment === "object" ? body.payment : undefined;
+
+  // Pix Automático: a documentação publica DOIS formatos para os eventos de
+  // autorização (objeto aninhado `authorization` ou campo plano
+  // `pixAutomaticAuthorization`), e o exemplo aninhado nem traz `id` na raiz.
+  // Aceitar os dois evita descartar evento sem registro.
+  const authorization = body.authorization ?? body.paymentInstruction?.authorization;
+  const authorizationId =
+    authorization?.id ??
+    (typeof body.pixAutomaticAuthorization === "string" ? body.pixAutomaticAuthorization : null);
+
+  // Sem id de evento não dá para deduplicar pelo id: deriva uma chave estável
+  // do que o payload traz, para o log continuar idempotente. A cobrança/
+  // instrução entra na chave porque o MESMO tipo de evento se repete na mesma
+  // autorização a cada ciclo (e a cada retentativa) — só a autorização não
+  // distingue um mês do outro.
+  const instructionId = body.paymentInstruction?.id ?? null;
+  const relatedPaymentId =
+    (typeof body.paymentInstruction?.payment === "string" ? body.paymentInstruction.payment : null) ??
+    (typeof body.payment === "string" ? body.payment : null) ??
+    (typeof body.payment === "object" ? body.payment?.id ?? null : null);
+
+  const derivedKey = [authorizationId, instructionId, relatedPaymentId].filter(Boolean).join(":");
+  const eventId = rawEventId ?? (derivedKey ? `${eventType}:${derivedKey}` : null);
+
+  if (!eventId) {
+    console.warn("[webhook/asaas] Evento sem id identificável:", eventType);
+    return NextResponse.json({ ok: false, error: "Missing event id" }, { status: 200 });
   }
 
   // 2. Log idempotente (event_id é UNIQUE)
@@ -56,13 +96,19 @@ export async function POST(request: NextRequest) {
     {
       event_id: eventId,
       event_type: eventType,
-      payment_id: payment?.id ?? null,
-      customer_id: payment?.customer ?? null,
+      payment_id: payment?.id ?? relatedPaymentId,
+      customer_id: payment?.customer ?? authorization?.customerId ?? null,
       status: "received",
       payload: body,
     },
     { onConflict: "event_id", ignoreDuplicates: true }
   );
+
+  if (eventType.startsWith("PIX_AUTOMATIC_RECURRING")) {
+    // Ainda não há processamento próprio: o registro acima já permite auditar
+    // ativação, recusa e cancelamento das autorizações no Supabase.
+    console.log("[webhook/asaas] Pix Automático:", eventType, authorizationId ?? "(sem id)");
+  }
 
   // 3. Ignorar eventos não-payment ou sem payload
   if (!PAYMENT_EVENTS.has(eventType) || !payment) {
