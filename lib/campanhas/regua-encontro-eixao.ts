@@ -21,11 +21,16 @@ import {
 } from "@/lib/emails/somma-club-encontro";
 
 /**
- * Encontro de domingo no Eixão, com três disparos no MESMO dia (sexta):
+ * Encontro de domingo no Eixão, em três disparos:
  *
- *   etapa 1  11h30  convite, base inteira
- *   etapa 2  16h00  reforço, só quem recebeu a 1 e não abriu
- *   etapa 3  19h30  véspera, base inteira de novo
+ *   etapa 1  sexta 16h40   convite, base inteira
+ *   etapa 3  sexta 19h30   véspera, base inteira de novo
+ *   etapa 2  sábado 09h00  reforço, só quem recebeu a 1 e não abriu
+ *
+ * A etapa 2 sai DEPOIS da 3, fora de ordem numérica, e isso é de propósito: ela
+ * é a única que depende de dados de abertura, e abertura não chega em minutos.
+ * Rodá-la na mesma tarde da etapa 1 marcaria como "não abriu" quase todo mundo
+ * que só ia abrir mais tarde. A numeração é da régua, não do relógio.
  *
  * Segmento único, `checkins`: esta campanha fala com quem já apareceu num
  * evento do SOMMA, não com a base de cadastro do site. Por isso `SEGMENTOS`
@@ -296,9 +301,9 @@ export interface LinhaPainel {
 
 /** Só rótulo de painel. O horário que vale de verdade é o do cron. */
 export const HORARIO_PREVISTO: Record<EtapaEncontro, string> = {
-  1: "11h30",
-  2: "16h00",
-  3: "19h30",
+  1: "sexta 16h40",
+  2: "sábado 09h00",
+  3: "sexta 19h30",
 };
 
 export interface Painel {
