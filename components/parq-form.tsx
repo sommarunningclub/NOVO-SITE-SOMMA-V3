@@ -6,7 +6,8 @@ import { PARQ_QUESTIONS } from "@/lib/parq";
 
 type Status = "idle" | "loading" | "done" | "error";
 
-export function ParqForm({ cpf }: { cpf: string }) {
+/** O CPF do aluno o servidor descobre pela sessão de checkout — daí só o token. */
+export function ParqForm({ checkoutToken }: { checkoutToken: string | null }) {
   const [answers, setAnswers] = useState<Record<string, boolean>>({});
   const [observacoes, setObservacoes] = useState("");
   const [status, setStatus] = useState<Status>("idle");
@@ -28,8 +29,11 @@ export function ParqForm({ cpf }: { cpf: string }) {
     try {
       const res = await fetch("/api/parq", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ cpf, answers, observacoes }),
+        headers: {
+          "Content-Type": "application/json",
+          "x-checkout-session": checkoutToken ?? "",
+        },
+        body: JSON.stringify({ answers, observacoes }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Erro ao enviar.");

@@ -2,7 +2,7 @@
 
 Rota: `/ppt-estacao-somma` (protegida por código de 6 dígitos, igual aos outros decks).
 
-- Código padrão: `101010`. Troque com `PPT_ESTACAO_SOMMA_CODE` (e, se quiser, `PPT_ESTACAO_SOMMA_SECRET`).
+- Código de acesso: obrigatório em `PPT_ESTACAO_SOMMA_CODE`. Sem a variável o deck não abre — não existe código padrão, e nenhum código fica versionado aqui. O cookie é assinado com o `AUTH_SECRET` da aplicação.
 - Navegação: scroll, setas, PageUp/PageDown, Home/End. Animações de entrada com GSAP + ScrollTrigger.
 - `/ppt-estacao-somma/app`: a mesma experiência em tela cheia para o telefone de quem assiste, aberta pelo QR do
   slide 16 (o QR só aparece no desktop). Não passa pelo código de acesso. Em desenvolvimento o QR aponta para o host

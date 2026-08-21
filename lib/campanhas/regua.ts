@@ -1,6 +1,7 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getServiceSupabase } from "@/lib/supabase";
+import { jaReceberam, liberarEtapa, reivindicarEtapa } from "@/lib/campanhas/claim";
 import { getEmailFrom, getResendClient } from "@/lib/resend";
 import { linkDescadastro, descadastradosGlobalmente } from "@/lib/campanhas/descadastro";
 import {
@@ -70,7 +71,7 @@ export interface EtapaRegistro {
   assunto: string;
   agendado_para: string | null;
   enviado_em: string | null;
-  status: "rascunho" | "agendado" | "enviado" | "cancelado";
+  status: "rascunho" | "agendado" | "enviando" | "enviado" | "cancelado";
   total_destinatarios: number;
 }
 
@@ -199,19 +200,36 @@ export async function dispararEtapa(params: {
   etapa: EtapaRegua;
   segmento: SegmentoBase;
 }): Promise<ResultadoDisparo> {
+  const supabase = getServiceSupabase();
+  if (!supabase) throw new Error("Supabase não configurado.");
+
+  const chave = { campanha: CAMPANHA, etapa: params.etapa, segmento: params.segmento };
+  const reserva = await reivindicarEtapa(supabase, chave, {
+    variante: etapaRotulo(params.etapa),
+    assunto: evolveFortalecimentoSubject(params.etapa),
+  });
+  if (!reserva.ok) throw new Error(reserva.motivo);
+
+  try {
+    return await executarDisparo(params);
+  } catch (err) {
+    // Reserva é para impedir disparo duplo, não para trancar a etapa para
+    // sempre: se nada saiu, o operador precisa poder tentar de novo.
+    await liberarEtapa(supabase, chave);
+    throw err;
+  }
+}
+
+async function executarDisparo(params: {
+  etapa: EtapaRegua;
+  segmento: SegmentoBase;
+}): Promise<ResultadoDisparo> {
   const { etapa, segmento } = params;
   const supabase = getServiceSupabase();
   const resend = getResendClient();
   const from = getEmailFrom();
   if (!supabase) throw new Error("Supabase não configurado.");
   if (!resend || !from) throw new Error("Resend não configurado.");
-
-  const jaExiste = await buscarEtapa(supabase, etapa, segmento);
-  if (jaExiste && jaExiste.status !== "cancelado" && jaExiste.status !== "rascunho") {
-    throw new Error(
-      `A etapa ${etapa} de ${segmento} já está em ${jaExiste.status}. Cancele antes de recriar.`
-    );
-  }
 
   const head = await fetch(EMAIL_HERO_URL, { method: "HEAD" });
   if (!head.ok || !(head.headers.get("content-type") ?? "").startsWith("image/")) {
@@ -220,7 +238,12 @@ export async function dispararEtapa(params: {
     );
   }
 
-  const destinatarios = await destinatariosDaEtapa(etapa, segmento);
+  // Uma tentativa anterior pode ter morrido no meio (timeout, lote com erro).
+  // Quem já recebeu esta etapa fica de fora: retentativa continua, não reenvia.
+  const servidos = await jaReceberam(supabase, { campanha: CAMPANHA, etapa, segmento });
+  const destinatarios = (await destinatariosDaEtapa(etapa, segmento)).filter(
+    (d) => !servidos.has(d.email.toLowerCase())
+  );
   if (destinatarios.length === 0) {
     throw new Error(`Nenhum destinatário para a etapa ${etapa} de ${segmento}.`);
   }

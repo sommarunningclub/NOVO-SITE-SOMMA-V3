@@ -2,21 +2,36 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServiceSupabase } from "@/lib/supabase";
 import {
   brDateToISO,
+  detectarDocumento,
   slugifyFileName,
   vagaCandidaturaSchema,
   validateCurriculo,
 } from "@/lib/validation";
+import { clientIp, rateLimit } from "@/lib/rate-limit";
 import { sendCandidaturaEmails } from "@/lib/emails/vaga-candidatura";
 import { getVagaBySlug } from "@/app/trabalhe-conosco-vagas/_vagas";
 
 const BUCKET = "curriculos";
-const SIGNED_URL_TTL = 60 * 60 * 24 * 30; // 30 dias
+// 7 dias. O link assinado vai por e-mail para o RH e um e-mail é para sempre:
+// 30 dias transformavam a caixa de entrada num acervo de currículos abertos a
+// quem tivesse acesso a ela. Uma semana cobre a triagem; depois disso, o
+// arquivo se busca no painel do Storage.
+const SIGNED_URL_TTL = 60 * 60 * 24 * 7;
 
 // Candidatura a vaga (/trabalhe-conosco-vagas).
 // Recebe multipart/form-data: os campos do formulário + o arquivo do currículo.
 // Grava o arquivo no bucket privado `curriculos` e a ficha em `candidatos_vagas`.
 export async function POST(request: NextRequest) {
   try {
+    const ip = clientIp(request);
+    const limite = await rateLimit(`vagas:candidatura:${ip}`, 5, 600);
+    if (!limite.ok) {
+      return NextResponse.json(
+        { error: "Muitas candidaturas enviadas. Aguarde alguns minutos." },
+        { status: 429, headers: { "Retry-After": String(limite.retryAfterSeconds) } }
+      );
+    }
+
     const formData = await request.formData();
 
     const raw = Object.fromEntries(
@@ -95,13 +110,23 @@ export async function POST(request: NextRequest) {
 
     // 1. Currículo → bucket privado. Se falhar, a candidatura não é gravada:
     // uma ficha sem currículo não serve para a triagem.
+    // O que vale é a assinatura do arquivo, não o rótulo que o navegador mandou.
+    const bytes = new Uint8Array(await curriculo.arrayBuffer());
+    const tipoReal = detectarDocumento(bytes);
+    if (!tipoReal) {
+      return NextResponse.json(
+        { error: "Arquivo não reconhecido. Envie um PDF, DOC ou DOCX de verdade." },
+        { status: 415 }
+      );
+    }
+
     const nomeArquivo = slugifyFileName(curriculo.name);
     const path = `${vaga.slug}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${nomeArquivo}`;
 
     const { error: uploadError } = await supabase.storage
       .from(BUCKET)
-      .upload(path, Buffer.from(await curriculo.arrayBuffer()), {
-        contentType: curriculo.type || "application/pdf",
+      .upload(path, bytes, {
+        contentType: tipoReal,
         upsert: false,
       });
 
@@ -119,7 +144,7 @@ export async function POST(request: NextRequest) {
         .toLocaleString("sv-SE", { timeZone: "America/Sao_Paulo" })
         .replace(" ", "T") + "-03:00";
 
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from("candidatos_vagas")
       .insert([
         {
@@ -146,8 +171,7 @@ export async function POST(request: NextRequest) {
           criado_em: criadoEm,
           origem: "site",
         },
-      ])
-      .select("id");
+      ]);
 
     if (error) {
       // Órfão evitado: sem a ficha, o arquivo não serve para nada.
@@ -190,7 +214,9 @@ export async function POST(request: NextRequest) {
       curriculo_nome: nomeArquivo,
     });
 
-    return NextResponse.json({ success: true, id: data?.[0]?.id ?? null });
+    // Resposta mínima: o id da ficha não serve para nada na tela e é uma
+    // referência interna a mais circulando.
+    return NextResponse.json({ success: true });
   } catch (error) {
     console.error("[trabalhe-conosco] Erro inesperado:", error);
     return NextResponse.json({ error: "Erro interno do servidor." }, { status: 500 });

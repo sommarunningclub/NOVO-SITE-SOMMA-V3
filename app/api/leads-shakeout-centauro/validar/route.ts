@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 import { requireInsiderAuth } from '@/lib/auth/insider'
+import { filtroIlike } from '@/lib/postgrest-filtro'
 
 const ORIGEM = 'shakeout-centauro-somma-rj'
 
@@ -30,7 +31,10 @@ export async function GET(req: Request) {
 
     if (busca) {
       const digits = busca.replace(/\D/g, '')
-      if (digits.length >= 3) query = query.or(`nome_completo.ilike.%${busca}%,cpf.ilike.%${digits}%`)
+      if (digits.length >= 3)
+        query = query.or(
+          `nome_completo.ilike.${filtroIlike(busca)},cpf.ilike.${filtroIlike(digits)}`
+        )
       else query = query.ilike('nome_completo', `%${busca}%`)
     }
 

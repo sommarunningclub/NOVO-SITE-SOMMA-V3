@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
   const inicio = Date.now();
 
   const ip = clientIp(request);
-  const limit = rateLimit(`camp:login:${ip}`, 10, 600);
+  const limit = await rateLimit(`camp:login:${ip}`, 10, 600);
   if (!limit.ok) {
     return NextResponse.json(
       { error: "Muitas tentativas. Aguarde alguns minutos." },

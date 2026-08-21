@@ -23,7 +23,8 @@ export async function setWingsAdminSessionCookie(): Promise<void> {
   const cookieStore = await cookies()
   cookieStore.set(WINGS_ADMIN_COOKIE, createWingsAdminSessionToken(), {
     httpOnly: true,
-    sameSite: 'lax',
+    // `strict`: painel de cronometragem, sem entrada por link externo.
+    sameSite: 'strict',
     secure: process.env.NODE_ENV === 'production',
     path: '/',
     maxAge: SESSION_MAX_AGE,

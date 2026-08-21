@@ -21,7 +21,11 @@ const MAX_AGE = 60 * 60 * 8; // 8h: uma jornada, não uma sessão eterna
 
 export const COOKIE_OPTS = {
   httpOnly: true,
-  sameSite: "lax" as const,
+  // `strict`: nenhuma navegação vinda de fora carrega o cookie, então um link
+  // hostil não chega ao painel já autenticado. O custo é que abrir /admin por
+  // um link de e-mail mostra o login uma vez — recarregar resolve. Para um
+  // painel que dispara e-mail para a base inteira, é troca barata.
+  sameSite: "strict" as const,
   secure: process.env.NODE_ENV === "production",
   path: "/",
   maxAge: MAX_AGE,

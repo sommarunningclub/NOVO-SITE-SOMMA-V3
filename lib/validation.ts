@@ -170,6 +170,8 @@ export function isAtLeastYearsOld(value: string, years: number): boolean {
 }
 
 // Valida o arquivo do currículo. Retorna a mensagem de erro ou null.
+// Checagem barata, para o formulário avisar antes de subir 5 MB. Quem decide de
+// verdade é `detectarDocumento`, no servidor, olhando os bytes.
 export function validateCurriculo(file: File | null): string | null {
   if (!file || file.size === 0) return "Anexe seu currículo em PDF, DOC ou DOCX.";
   if (file.size > CURRICULO_MAX_BYTES) return "O currículo deve ter no máximo 5MB.";
@@ -178,6 +180,45 @@ export function validateCurriculo(file: File | null): string | null {
   // Alguns navegadores/SOs entregam type vazio; nesse caso caímos na extensão.
   const extOk = /\.(pdf|doc|docx)$/i.test(file.name);
   if (!mimeOk && !extOk) return "Formato não aceito. Envie PDF, DOC ou DOCX.";
+
+  return null;
+}
+
+/**
+ * O tipo do currículo pela assinatura do arquivo.
+ *
+ * `file.type` e a extensão vêm do cliente e são forjáveis. O arquivo vai para
+ * um bucket e depois é aberto por alguém do RH a partir de um link assinado —
+ * é o caminho clássico para entregar um executável ou um HTML se passando por
+ * PDF. Só passa quem começa com a assinatura certa.
+ *
+ * DOCX é um ZIP (`PK`), então esta checagem confirma o contêiner, não o
+ * conteúdo. Já elimina o caso que interessa: arquivo que não é documento nenhum.
+ */
+export function detectarDocumento(bytes: Uint8Array): string | null {
+  if (bytes.length < 8) return null;
+
+  // PDF: "%PDF-"
+  if (bytes[0] === 0x25 && bytes[1] === 0x50 && bytes[2] === 0x44 && bytes[3] === 0x46) {
+    return "application/pdf";
+  }
+
+  // DOC (OLE2 / Compound File): D0 CF 11 E0 A1 B1 1A E1
+  const ole = [0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1];
+  if (ole.every((b, i) => bytes[i] === b)) return "application/msword";
+
+  // DOCX: ZIP — "PK\x03\x04" (ou os marcadores de arquivo vazio/spanned)
+  if (bytes[0] === 0x50 && bytes[1] === 0x4b) {
+    const terceiro = bytes[2];
+    const quarto = bytes[3];
+    const zip =
+      (terceiro === 0x03 && quarto === 0x04) ||
+      (terceiro === 0x05 && quarto === 0x06) ||
+      (terceiro === 0x07 && quarto === 0x08);
+    if (zip) {
+      return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+    }
+  }
 
   return null;
 }

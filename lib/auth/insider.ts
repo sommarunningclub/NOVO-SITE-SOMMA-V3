@@ -30,7 +30,9 @@ export async function setInsiderSessionCookie(insider: InsiderSession): Promise<
   cookieStore.set(INSIDER_SESSION_COOKIE, createInsiderSessionToken(insider), {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    // `strict`: o Insider Conect valida check-in e transfere inscrição. Nenhuma
+    // dessas ações deve poder ser disparada por navegação vinda de outro site.
+    sameSite: 'strict',
     path: '/',
     maxAge: SESSION_MAX_AGE,
   })

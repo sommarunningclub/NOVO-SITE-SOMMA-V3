@@ -61,6 +61,13 @@ export default function TransferirPage() {
   const [autorizado, setAutorizado] = useState(false)
 
   const [origem, setOrigem] = useState({ cpf: '', email: '' })
+  // Segundo fator: CPF e e-mail identificam, o código enviado ao e-mail do
+  // titular é o que autoriza. `desafio` e `autorizacao` são tokens assinados
+  // pelo servidor — a tela só os carrega de um passo para o outro.
+  const [desafio, setDesafio] = useState<string | null>(null)
+  const [emailMascarado, setEmailMascarado] = useState('')
+  const [codigo, setCodigo] = useState('')
+  const [autorizacao, setAutorizacao] = useState<string | null>(null)
   const [inscricao, setInscricao] = useState<InscricaoEncontrada | null>(null)
   const [novo, setNovo] = useState<NovoTitular>({
     peloton: '',
@@ -104,6 +111,41 @@ export default function TransferirPage() {
         setError(json.error || 'Inscrição não encontrada.')
         return
       }
+      setDesafio(json.desafio)
+      setEmailMascarado(json.email_mascarado || '')
+      setCodigo('')
+    } catch {
+      setError('Erro de conexão. Tente novamente.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const confirmarCodigo = async () => {
+    if (codigo.replace(/\D/g, '').length !== 6) {
+      setError('Digite os 6 dígitos do código.')
+      return
+    }
+    setLoading(true)
+    setError('')
+    try {
+      const res = await fetch('/api/transferencias/validar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          evento_id: EVENTO.id,
+          cpf: origem.cpf,
+          email: origem.email,
+          codigo,
+          desafio,
+        }),
+      })
+      const json = await res.json()
+      if (!res.ok) {
+        setError(json.error || 'Código inválido.')
+        return
+      }
+      setAutorizacao(json.autorizacao)
       setInscricao(json.inscricao)
       if (json.inscricao?.pelotao) {
         setNovo(p => ({ ...p, peloton: json.inscricao.pelotao }))
@@ -129,10 +171,7 @@ export default function TransferirPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          inscricao_original_id: inscricao.id,
-          evento_id: EVENTO.id,
-          cpf_origem: origem.cpf,
-          email_origem: origem.email,
+          autorizacao,
           dados_novo: {
             nome: novo.nome,
             email: novo.email,
@@ -277,9 +316,13 @@ export default function TransferirPage() {
                 <h3 className="text-2xl sm:text-3xl font-black uppercase text-white mb-1" style={{ fontFamily: 'var(--font-barlow-condensed, sans-serif)' }}>
                   Identifique sua inscrição
                 </h3>
-                <p className="text-zinc-500 text-xs mb-6">Informe CPF e e-mail usados no check-in</p>
+                <p className="text-zinc-500 text-xs mb-6">
+                  {desafio
+                    ? `Enviamos um código de 6 dígitos para ${emailMascarado}`
+                    : 'Informe CPF e e-mail usados no check-in'}
+                </p>
 
-                <div className="space-y-3 mb-5">
+                <div className={`space-y-3 mb-5 ${desafio ? 'hidden' : ''}`}>
                   <div>
                     <label className={labelClass}>CPF <span className="text-[#F26522]">*</span></label>
                     <input
@@ -304,6 +347,22 @@ export default function TransferirPage() {
                   </div>
                 </div>
 
+                {desafio && (
+                  <div className="mb-5">
+                    <label className={labelClass}>Código do e-mail <span className="text-[#F26522]">*</span></label>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      value={codigo}
+                      onChange={e => setCodigo(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                      placeholder="000000"
+                      maxLength={6}
+                      autoFocus
+                      className={`${inputClass} font-mono text-center text-xl tracking-[0.5em]`}
+                    />
+                  </div>
+                )}
+
                 {error && (
                   <div className="flex items-start gap-2 bg-red-900/20 border border-red-500/30 px-4 py-3 mb-4">
                     <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" />
@@ -312,13 +371,28 @@ export default function TransferirPage() {
                 )}
 
                 <button
-                  onClick={validarTitular}
+                  onClick={desafio ? confirmarCodigo : validarTitular}
                   disabled={loading}
                   className="w-full bg-[#F26522] hover:bg-[#CC0000] disabled:opacity-60 text-white font-black text-base uppercase tracking-wider py-4 flex items-center justify-center gap-2 transition-colors cursor-pointer"
                   style={{ fontFamily: 'var(--font-barlow-condensed, sans-serif)' }}
                 >
-                  {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <>Buscar minha inscrição <ArrowRight className="w-4 h-4" /></>}
+                  {loading ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : desafio ? (
+                    <>Confirmar código <ArrowRight className="w-4 h-4" /></>
+                  ) : (
+                    <>Buscar minha inscrição <ArrowRight className="w-4 h-4" /></>
+                  )}
                 </button>
+
+                {desafio && (
+                  <button
+                    onClick={() => { setDesafio(null); setCodigo(''); setError('') }}
+                    className="w-full mt-3 text-zinc-500 hover:text-zinc-300 text-xs uppercase tracking-widest py-2 transition-colors cursor-pointer"
+                  >
+                    Corrigir CPF ou e-mail
+                  </button>
+                )}
               </motion.div>
             )}
 
@@ -358,7 +432,14 @@ export default function TransferirPage() {
 
                 <div className="flex gap-3">
                   <button
-                    onClick={() => { setStep(1); setInscricao(null); setError('') }}
+                    onClick={() => {
+                      setStep(1)
+                      setInscricao(null)
+                      setDesafio(null)
+                      setAutorizacao(null)
+                      setCodigo('')
+                      setError('')
+                    }}
                     className="border border-zinc-700 hover:border-zinc-500 text-zinc-400 hover:text-white font-black text-sm uppercase px-6 py-4 flex items-center justify-center cursor-pointer"
                     style={{ fontFamily: 'var(--font-barlow-condensed, sans-serif)' }}
                   >

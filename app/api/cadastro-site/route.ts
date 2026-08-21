@@ -99,8 +99,7 @@ export async function POST(request: NextRequest) {
               .toLocaleString("sv-SE", { timeZone: "America/Sao_Paulo" })
               .replace(" ", "T") + "-03:00",
         },
-      ])
-      .select();
+      ]);
 
     if (error) {
       console.error("[cadastro-site] Erro ao inserir:", error);
@@ -120,7 +119,9 @@ export async function POST(request: NextRequest) {
       console.error("[cadastro-site] Erro ao enviar e-mail de boas-vindas:", err);
     });
 
-    return NextResponse.json({ success: true, persisted: true, data });
+    // Resposta mínima: a tela só precisa saber que deu certo. Devolver a
+    // linha inserida era ecoar CPF, e-mail e telefone de volta pela rede.
+    return NextResponse.json({ success: true, persisted: true });
   } catch (err) {
     console.error("[cadastro-site] Erro interno:", err);
     return NextResponse.json({ error: "Erro interno do servidor." }, { status: 500 });

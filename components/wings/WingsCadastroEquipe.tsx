@@ -371,6 +371,14 @@ function WizardCadastro({
         setErroGlobal(j.error || 'Erro ao cadastrar.')
         return
       }
+      // Guarda o crachá de edição: é ele que autoriza mexer na equipe depois.
+      if (j.edit_token && j.atletica?.id) {
+        try {
+          localStorage.setItem(`wings_equipe_token_${j.atletica.id}`, j.edit_token)
+        } catch {
+          /* navegador sem storage: a equipe fica editável só pelo staff */
+        }
+      }
       setSucesso(true)
       setTimeout(() => {
         onSucesso(nome.trim())
@@ -951,9 +959,15 @@ function ModalEditarEquipe({
     }
     setSalvando(true)
     try {
+      let editToken = ''
+      try {
+        editToken = localStorage.getItem(`wings_equipe_token_${equipeAlvo.id}`) ?? ''
+      } catch {
+        /* sem storage: cai na recusa do servidor, com a mensagem certa */
+      }
       const res = await fetch('/api/wings-comp/equipe-publica/editar', {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'x-wings-edit-token': editToken },
         body: JSON.stringify({
           id: equipeAlvo.id,
           nome: nome.trim(),

@@ -1,6 +1,7 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getServiceSupabase } from "@/lib/supabase";
+import { jaReceberam, liberarEtapa, reivindicarEtapa } from "@/lib/campanhas/claim";
 import { getEmailFrom, getResendClient } from "@/lib/resend";
 import { linkDescadastro, descadastradosGlobalmente } from "@/lib/campanhas/descadastro";
 import {
@@ -20,18 +21,35 @@ import {
   LINK_VENDAS_PENDENTE,
   renderSunsetWineRunEmail,
   sunsetWineRunSubject,
+  type VarianteSwr,
 } from "@/lib/emails/sunset-wine-run";
 
 /**
- * Disparo do Sunset Wine Run: um envio só pra base inteira, não uma régua de
- * etapas como Evolve/Desafio das Esteiras. Não existe "quem não abriu" aqui
- * porque não há e-mail seguinte — por isso `campanha_etapas`/`campanha_eventos`
- * são usadas com `etapa` sempre 1, só para reaproveitar as mesmas tabelas e o
- * mesmo motor de envio (lib/campanhas/envio.ts) já testado nas outras duas.
+ * Campanha do Sunset Wine Run, em duas etapas:
+ *
+ *   etapa 1  convite, para a base inteira de cada segmento
+ *   etapa 2  última chamada, só para quem recebeu a 1 e não abriu
+ *
+ * Nasceu como disparo único (só a etapa 1) porque não havia e-mail seguinte. A
+ * etapa 2 entrou quando o cupom SOMA10 chegou ao último dia (19/08) e o
+ * fechamento passou a ter argumento próprio — o mesmo formato de régua que
+ * Evolve e Desafio das Esteiras já usavam, com o motor compartilhado de
+ * lib/campanhas/envio.ts.
+ *
+ * O "não abriu" é aproximação, não fato: pixel de abertura falha em cliente que
+ * bloqueia imagem. Quem clicou também conta como engajado e sai da etapa 2 —
+ * ver EVENTOS_DE_ENGAJAMENTO.
  */
 
 export const CAMPANHA = "sunset-wine-run-ago2026";
-export const ETAPA = 1;
+
+export type EtapaSwr = 1 | 2;
+export const ETAPAS = [1, 2] as const;
+
+/** A variante de copy de cada etapa. Ver VarianteSwr em lib/emails. */
+export function varianteDaEtapa(etapa: EtapaSwr): VarianteSwr {
+  return etapa === 2 ? "ultima-chamada" : "convite";
+}
 
 /** Inclui `manual`, ao contrário do SEGMENTOS das outras campanhas: é onde
  *  entra contato avulso (ex.: imprensa) que não vem de cadastro_site/checkins. */
@@ -44,10 +62,11 @@ const TAG_ETAPA = "etapa";
 const TAG_SEGMENTO = "segmento";
 
 interface EtapaRegistro {
+  etapa: EtapaSwr;
   segmento: SegmentoBase;
   assunto: string;
   enviado_em: string | null;
-  status: "rascunho" | "agendado" | "enviado" | "cancelado";
+  status: "rascunho" | "agendado" | "enviando" | "enviado" | "cancelado";
   total_destinatarios: number;
 }
 
@@ -92,7 +111,18 @@ export interface Destinatario {
   nome: string | null;
 }
 
-export async function destinatarios(segmento: SegmentoBase): Promise<Destinatario[]> {
+/**
+ * Etapa 1: a base do segmento, menos quem descadastrou.
+ * Etapa 2: quem RECEBEU a etapa 1 e não gerou evento de engajamento nela.
+ *
+ * O filtro de descadastro é refeito aqui e não herdado da etapa 1: entre um
+ * disparo e outro alguém pode ter pedido para sair, e a lista de ontem não sabe
+ * disso.
+ */
+export async function destinatarios(
+  segmento: SegmentoBase,
+  etapa: EtapaSwr = 1
+): Promise<Destinatario[]> {
   const supabase = getServiceSupabase();
   if (!supabase) throw new Error("Supabase não configurado.");
 
@@ -107,15 +137,59 @@ export async function destinatarios(segmento: SegmentoBase): Promise<Destinatari
     ),
     descadastradosGlobalmente(),
   ]);
-  return contatos.filter((c) => !descadastrados.has(c.email.toLowerCase()));
+  const daBase = contatos.filter((c) => !descadastrados.has(c.email.toLowerCase()));
+  if (etapa === 1) return daBase;
+
+  const registro = await buscarEtapa(supabase, segmento, 1);
+  if (!registro || registro.status !== "enviado") {
+    throw new Error("A etapa 1 deste segmento ainda não foi disparada, então não há como saber quem não abriu.");
+  }
+
+  const recebeuEtapa1 = new Set(
+    (
+      await paginar<{ email: string }>((de, ate) =>
+        supabase
+          .from("campanha_destinatarios")
+          .select("email")
+          .eq("campanha", CAMPANHA)
+          .eq("etapa", 1)
+          .eq("segmento", segmento)
+          .range(de, ate)
+      )
+    ).map((r) => r.email.toLowerCase())
+  );
+
+  const engajou = new Set(
+    (
+      await paginar<{ email: string }>((de, ate) =>
+        supabase
+          .from("campanha_eventos")
+          .select("email")
+          .eq("campanha", CAMPANHA)
+          .eq("etapa", 1)
+          .eq("segmento", segmento)
+          .in("tipo", [...EVENTOS_DE_ENGAJAMENTO])
+          .range(de, ate)
+      )
+    ).map((r) => r.email.toLowerCase())
+  );
+
+  return daBase.filter((c) => {
+    const email = c.email.toLowerCase();
+    return recebeuEtapa1.has(email) && !engajou.has(email);
+  });
 }
 
-async function buscarEtapa(supabase: SupabaseClient, segmento: SegmentoBase): Promise<EtapaRegistro | null> {
+async function buscarEtapa(
+  supabase: SupabaseClient,
+  segmento: SegmentoBase,
+  etapa: EtapaSwr
+): Promise<EtapaRegistro | null> {
   const { data, error } = await supabase
     .from("campanha_etapas")
-    .select("segmento, assunto, enviado_em, status, total_destinatarios")
+    .select("etapa, segmento, assunto, enviado_em, status, total_destinatarios")
     .eq("campanha", CAMPANHA)
-    .eq("etapa", ETAPA)
+    .eq("etapa", etapa)
     .eq("segmento", segmento)
     .maybeSingle();
   if (error) throw new Error(`campanha_etapas: ${error.message}`);
@@ -126,12 +200,40 @@ async function buscarEtapa(supabase: SupabaseClient, segmento: SegmentoBase): Pr
 
 export interface ResultadoDisparo {
   segmento: SegmentoBase;
+  etapa: EtapaSwr;
   total: number;
   enviados: number;
   falhas: number;
 }
 
-export async function dispararCampanha(segmento: SegmentoBase): Promise<ResultadoDisparo> {
+export async function dispararCampanha(
+  segmento: SegmentoBase,
+  etapa: EtapaSwr = 1
+): Promise<ResultadoDisparo> {
+  const supabase = getServiceSupabase();
+  if (!supabase) throw new Error("Supabase não configurado.");
+
+  // Reserva atômica: fecha a janela entre conferir e marcar como enviado.
+  const chave = { campanha: CAMPANHA, etapa, segmento };
+  const varianteReserva = varianteDaEtapa(etapa);
+  const reserva = await reivindicarEtapa(supabase, chave, {
+    variante: varianteReserva,
+    assunto: sunsetWineRunSubject(varianteReserva),
+  });
+  if (!reserva.ok) throw new Error(reserva.motivo);
+
+  try {
+    return await executarDisparo(segmento, etapa);
+  } catch (err) {
+    await liberarEtapa(supabase, chave);
+    throw err;
+  }
+}
+
+async function executarDisparo(
+  segmento: SegmentoBase,
+  etapa: EtapaSwr
+): Promise<ResultadoDisparo> {
   const supabase = getServiceSupabase();
   const resend = getResendClient();
   const from = getEmailFrom();
@@ -146,24 +248,28 @@ export async function dispararCampanha(segmento: SegmentoBase): Promise<Resultad
     );
   }
 
-  const jaExiste = await buscarEtapa(supabase, segmento);
-  if (jaExiste && jaExiste.status !== "cancelado" && jaExiste.status !== "rascunho") {
-    throw new Error(`O segmento ${segmento} já está em ${jaExiste.status}. Cancele antes de recriar.`);
-  }
-
-  const alvo = await destinatarios(segmento);
+  // Retentativa continua de onde parou em vez de reenviar para quem já recebeu.
+  const servidos = await jaReceberam(supabase, { campanha: CAMPANHA, etapa, segmento });
+  const alvo = (await destinatarios(segmento, etapa)).filter(
+    (d) => !servidos.has(d.email.toLowerCase())
+  );
   if (alvo.length === 0) {
-    throw new Error(`Nenhum destinatário para o segmento ${segmento}.`);
+    throw new Error(`Nenhum destinatário para a etapa ${etapa} de ${segmento}.`);
   }
 
-  const assunto = sunsetWineRunSubject();
+  const variante = varianteDaEtapa(etapa);
+  /* Uma referência de tempo só para o disparo inteiro: sem isto, um envio que
+     atravessasse a meia-noite mandaria "hoje, até 23h59" para uns e "até 19/08"
+     para outros dentro do mesmo lote. */
+  const agora = new Date();
+  const assunto = sunsetWineRunSubject(variante);
   const sucesso: Destinatario[] = [];
   let falhas = 0;
 
   for (const lote of partir(alvo, TAMANHO_LOTE)) {
     const itens: ItemLote[] = lote.map((d) => {
       const descadastroUrl = linkDescadastro(d.email);
-      const html = renderSunsetWineRunEmail({ nome: d.nome, descadastroUrl });
+      const html = renderSunsetWineRunEmail({ nome: d.nome, descadastroUrl, variante, agora });
       return {
         from,
         to: d.email,
@@ -180,7 +286,7 @@ export async function dispararCampanha(segmento: SegmentoBase): Promise<Resultad
         // primeiro disparo (Resend confirma abertura, campanha_eventos não).
         tags: [
           { name: TAG_CAMPANHA, value: CAMPANHA },
-          { name: TAG_ETAPA, value: String(ETAPA) },
+          { name: TAG_ETAPA, value: String(etapa) },
           { name: TAG_SEGMENTO, value: segmento },
         ],
       };
@@ -205,7 +311,7 @@ export async function dispararCampanha(segmento: SegmentoBase): Promise<Resultad
     throw new Error(`Nenhum e-mail foi enviado (${falhas} falha(s)). Não marcado como enviado.`);
   }
 
-  const linhasDestinatarios = sucesso.map((d) => ({ campanha: CAMPANHA, etapa: ETAPA, segmento, email: d.email }));
+  const linhasDestinatarios = sucesso.map((d) => ({ campanha: CAMPANHA, etapa, segmento, email: d.email }));
   for (let i = 0; i < linhasDestinatarios.length; i += 500) {
     const { error } = await supabase
       .from("campanha_destinatarios")
@@ -220,9 +326,9 @@ export async function dispararCampanha(segmento: SegmentoBase): Promise<Resultad
   const { error: erroEtapa } = await supabase.from("campanha_etapas").upsert(
     {
       campanha: CAMPANHA,
-      etapa: ETAPA,
+      etapa,
       segmento,
-      variante: "único",
+      variante,
       assunto,
       agendado_para: agoraIso,
       enviado_em: agoraIso,
@@ -233,12 +339,13 @@ export async function dispararCampanha(segmento: SegmentoBase): Promise<Resultad
   );
   if (erroEtapa) throw new Error(`campanha_etapas: ${erroEtapa.message}`);
 
-  return { segmento, total: alvo.length, enviados: sucesso.length, falhas };
+  return { segmento, etapa, total: alvo.length, enviados: sucesso.length, falhas };
 }
 
 /* ── 4. Painel ───────────────────────────────────────────────────────────── */
 
 export interface LinhaPainel {
+  etapa: EtapaSwr;
   segmento: SegmentoBase;
   assunto: string;
   status: EtapaRegistro["status"] | "pendente";
@@ -246,6 +353,10 @@ export interface LinhaPainel {
   totalDestinatarios: number;
   aberturas: number;
   cliques: number;
+  /** Quem recebeu e não abriu — o alvo da etapa seguinte. Null se não enviada. */
+  naoAbriram: number | null;
+  /** Motivo de a etapa não poder ser disparada ainda, ou null se pode. */
+  bloqueada: string | null;
 }
 
 export interface Painel {
@@ -272,42 +383,52 @@ export async function montarPainel(): Promise<Painel> {
 
   const { data: etapasRaw, error } = await supabase
     .from("campanha_etapas")
-    .select("segmento, assunto, enviado_em, status, total_destinatarios")
-    .eq("campanha", CAMPANHA)
-    .eq("etapa", ETAPA);
+    .select("etapa, segmento, assunto, enviado_em, status, total_destinatarios")
+    .eq("campanha", CAMPANHA);
   if (error) throw new Error(`campanha_etapas: ${error.message}`);
   const etapas = (etapasRaw ?? []) as EtapaRegistro[];
 
   const linhas: LinhaPainel[] = [];
-  for (const segmento of SEGMENTOS) {
-    const reg = etapas.find((e) => e.segmento === segmento) ?? null;
+  for (const etapa of ETAPAS) {
+    for (const segmento of SEGMENTOS) {
+      const reg = etapas.find((e) => e.etapa === etapa && e.segmento === segmento) ?? null;
 
-    let aberturas = 0;
-    let cliques = 0;
-    if (reg?.status === "enviado") {
-      const eventos = await paginar<{ tipo: string; email: string }>((de, ate) =>
-        supabase
-          .from("campanha_eventos")
-          .select("tipo, email")
-          .eq("campanha", CAMPANHA)
-          .eq("etapa", ETAPA)
-          .eq("segmento", segmento)
-          .in("tipo", [...EVENTOS_DE_ENGAJAMENTO])
-          .range(de, ate)
-      );
-      aberturas = new Set(eventos.map((e) => e.email)).size;
-      cliques = new Set(eventos.filter((e) => e.tipo === "clicked").map((e) => e.email)).size;
+      let aberturas = 0;
+      let cliques = 0;
+      if (reg?.status === "enviado") {
+        const eventos = await paginar<{ tipo: string; email: string }>((de, ate) =>
+          supabase
+            .from("campanha_eventos")
+            .select("tipo, email")
+            .eq("campanha", CAMPANHA)
+            .eq("etapa", etapa)
+            .eq("segmento", segmento)
+            .in("tipo", [...EVENTOS_DE_ENGAJAMENTO])
+            .range(de, ate)
+        );
+        aberturas = new Set(eventos.map((e) => e.email)).size;
+        cliques = new Set(eventos.filter((e) => e.tipo === "clicked").map((e) => e.email)).size;
+      }
+
+      const anterior = etapas.find((e) => e.etapa === 1 && e.segmento === segmento) ?? null;
+      const bloqueada =
+        etapa === 2 && anterior?.status !== "enviado"
+          ? "Depende da etapa 1 deste segmento ter sido enviada."
+          : null;
+
+      linhas.push({
+        etapa,
+        segmento,
+        assunto: reg?.assunto ?? sunsetWineRunSubject(varianteDaEtapa(etapa)),
+        status: reg?.status ?? "pendente",
+        enviadoEm: reg?.enviado_em ?? null,
+        totalDestinatarios: reg?.total_destinatarios ?? 0,
+        aberturas,
+        cliques,
+        naoAbriram: reg?.status === "enviado" ? Math.max(0, (reg.total_destinatarios ?? 0) - aberturas) : null,
+        bloqueada,
+      });
     }
-
-    linhas.push({
-      segmento,
-      assunto: reg?.assunto ?? sunsetWineRunSubject(),
-      status: reg?.status ?? "pendente",
-      enviadoEm: reg?.enviado_em ?? null,
-      totalDestinatarios: reg?.total_destinatarios ?? 0,
-      aberturas,
-      cliques,
-    });
   }
 
   return {

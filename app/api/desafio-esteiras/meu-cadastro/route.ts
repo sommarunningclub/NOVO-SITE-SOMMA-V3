@@ -25,7 +25,7 @@ const CAMPOS =
  */
 export async function POST(request: NextRequest) {
   const ip = clientIp(request);
-  const limite = rateLimit(`dst:meu-cadastro:${ip}`, 5, 600);
+  const limite = await rateLimit(`dst:meu-cadastro:${ip}`, 5, 600);
   if (!limite.ok) {
     return NextResponse.json(
       { error: "Muitas tentativas. Aguarde alguns minutos e tente de novo." },
@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
  */
 export async function PATCH(request: NextRequest) {
   const ip = clientIp(request);
-  const limite = rateLimit(`dst:editar:${ip}`, 20, 600);
+  const limite = await rateLimit(`dst:editar:${ip}`, 20, 600);
   if (!limite.ok) {
     return NextResponse.json({ error: "Muitas tentativas. Aguarde." }, { status: 429 });
   }
@@ -153,7 +153,7 @@ export async function PATCH(request: NextRequest) {
   const { error } = await supabase
     .from(TABLE)
     .update({
-      full_name: dados.full_name.replace(/\s+/g, " ").trim(),
+      full_name: dados.full_name,
       email: dados.email,
       phone: dados.phone,
       unit_id: dados.unit_id,

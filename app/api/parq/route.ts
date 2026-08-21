@@ -1,21 +1,40 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { getServiceSupabase } from "@/lib/supabase";
 import { PARQ_IDS, computeApto } from "@/lib/parq";
+import { requireCheckoutSession } from "@/lib/asaas/checkout-session";
+import { clientIp, rateLimit } from "@/lib/rate-limit";
 
-// Recebe as respostas do Par-Q e atualiza o cadastro do aluno
-// em "gestao-clientes-assessoria", localizado pelo CPF.
+const ASAAS_API_URL = "https://api.asaas.com/v3";
+
+/**
+ * Respostas do Par-Q, gravadas no cadastro do aluno em
+ * "gestao-clientes-assessoria".
+ *
+ * O formulário só existe na tela de sucesso do checkout, então a rota exige a
+ * mesma sessão assinada do resto da compra. E o CPF do cadastro a atualizar vem
+ * do cliente no Asaas, não do corpo: antes bastava saber o CPF de alguém para
+ * sobrescrever a anamnese daquela pessoa — inclusive marcando "apto" quem não é.
+ */
 export async function POST(request: NextRequest) {
   try {
+    const ip = clientIp(request);
+    const limite = await rateLimit(`parq:${ip}`, 10, 600);
+    if (!limite.ok) {
+      return NextResponse.json(
+        { error: "Muitas tentativas. Aguarde alguns minutos." },
+        { status: 429, headers: { "Retry-After": String(limite.retryAfterSeconds) } }
+      );
+    }
+
     const body = await request.json();
-    const { cpf, answers, observacoes } = body as {
-      cpf?: string;
+    const { answers, observacoes } = body as {
       answers?: Record<string, unknown>;
       observacoes?: string;
     };
 
-    if (!cpf) {
-      return NextResponse.json({ error: "CPF não informado." }, { status: 400 });
-    }
+    const auth = requireCheckoutSession(request, body);
+    if (!auth.ok) return auth.response;
+
     if (!answers || typeof answers !== "object") {
       return NextResponse.json({ error: "Respostas inválidas." }, { status: 400 });
     }
@@ -33,13 +52,32 @@ export async function POST(request: NextRequest) {
       normalized[id] = v;
     }
 
+    const apiKey = process.env.ASAAS_API_KEY;
+    if (!apiKey) {
+      console.error("[parq] ASAAS_API_KEY ausente — sem como identificar o aluno.");
+      return NextResponse.json({ error: "Configuração ausente." }, { status: 503 });
+    }
+
+    const customerRes = await fetch(
+      `${ASAAS_API_URL}/customers/${encodeURIComponent(auth.session.customerId)}`,
+      { headers: { "Content-Type": "application/json", access_token: apiKey } }
+    );
+    if (!customerRes.ok) {
+      console.error("[parq] Cliente do Asaas não encontrado:", auth.session.customerId);
+      return NextResponse.json({ error: "Cadastro não encontrado." }, { status: 404 });
+    }
+    const customer = (await customerRes.json()) as { cpfCnpj?: string };
+    const cpfDigits = String(customer.cpfCnpj ?? "").replace(/\D/g, "");
+    if (cpfDigits.length !== 11) {
+      return NextResponse.json({ error: "Cadastro não encontrado." }, { status: 404 });
+    }
+
     const supabase = getServiceSupabase();
     if (!supabase) {
-      console.warn("[parq] Supabase não configurado. Respostas não persistidas:", { cpf });
+      console.warn("[parq] Supabase não configurado. Respostas não persistidas.");
       return NextResponse.json({ success: true, persisted: false });
     }
 
-    const cpfDigits = String(cpf).replace(/\D/g, "");
     const cpfFormatted = cpfDigits.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
 
     const payload = {
@@ -56,7 +94,7 @@ export async function POST(request: NextRequest) {
     const { data, error } = await supabase
       .from("gestao-clientes-assessoria")
       .update(payload)
-      .in("cpf", [cpfDigits, cpfFormatted, cpf])
+      .in("cpf", [cpfDigits, cpfFormatted])
       .select("id");
 
     if (error) {

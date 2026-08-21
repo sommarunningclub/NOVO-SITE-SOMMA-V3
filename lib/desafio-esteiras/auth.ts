@@ -48,7 +48,9 @@ const MAX_AGE = 60 * 60 * 12; // 12h — cobre um dia de operação sem sessão 
 
 export const COOKIE_OPTS = {
   httpOnly: true,
-  sameSite: "lax" as const,
+  // `strict`: o painel de operação não é aberto por link externo, e assim
+  // nenhuma navegação de outro site chega aqui já autenticada.
+  sameSite: "strict" as const,
   secure: process.env.NODE_ENV === "production",
   path: "/",
   maxAge: MAX_AGE,

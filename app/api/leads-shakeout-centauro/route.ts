@@ -1,6 +1,8 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
 import { isValidCPF } from '@/lib/cpf'
+import { filtroValor } from '@/lib/postgrest-filtro'
+import { clientIp, rateLimit } from '@/lib/rate-limit'
 
 const ORIGEM = 'shakeout-centauro-somma-rj'
 const UFS = ['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO']
@@ -8,6 +10,15 @@ const SEXOS = ['masculino', 'feminino', 'outro', 'prefiro-nao-dizer']
 
 export async function POST(request: NextRequest) {
   try {
+    const ip = clientIp(request)
+    const limite = await rateLimit(`shakeout:lead:${ip}`, 10, 600)
+    if (!limite.ok) {
+      return NextResponse.json(
+        { error: 'Muitas tentativas. Aguarde alguns minutos.' },
+        { status: 429, headers: { 'Retry-After': String(limite.retryAfterSeconds) } }
+      )
+    }
+
     const body = await request.json()
     const nome_completo = String(body.nome_completo ?? '').trim()
     const email = String(body.email ?? '').trim().toLowerCase()
@@ -58,12 +69,12 @@ export async function POST(request: NextRequest) {
       .from('leads_shakeout_centauro')
       .select('cpf, email')
       .eq('origem', ORIGEM)
-      .or(`cpf.eq.${cpfDigits},email.eq.${email}`)
+      .or(`cpf.eq.${filtroValor(cpfDigits)},email.eq.${filtroValor(email)}`)
       .limit(5)
 
     if (checkError) {
       console.error('[shakeout] Erro ao verificar check-in existente:', checkError)
-      return NextResponse.json({ error: 'Erro ao validar check-in: ' + checkError.message }, { status: 500 })
+      return NextResponse.json({ error: 'Erro ao validar check-in.' }, { status: 500 })
     }
     if (existing && existing.length > 0) {
       const cpfDup = existing.some((r) => r.cpf === cpfDigits)
@@ -73,7 +84,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('leads_shakeout_centauro')
       .insert([
         {
@@ -90,14 +101,14 @@ export async function POST(request: NextRequest) {
           origem: ORIGEM,
         },
       ])
-      .select()
 
     if (error) {
       console.error('[shakeout] Erro ao inserir check-in:', error)
-      return NextResponse.json({ error: 'Erro ao salvar check-in: ' + error.message }, { status: 400 })
+      return NextResponse.json({ error: 'Não foi possível confirmar sua presença.' }, { status: 400 })
     }
 
-    return NextResponse.json({ success: true, data })
+    // Resposta mínima: devolver a linha era ecoar CPF, e-mail e telefone.
+    return NextResponse.json({ success: true })
   } catch (error) {
     console.error('[shakeout] Erro na API de check-in:', error)
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })

@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServiceClient } from '@/lib/wings/supabase'
+import { criarTokenEdicao } from '@/lib/wings/edicao'
+import { clientIp, rateLimit } from '@/lib/rate-limit'
 
 // POST público: cria atlética competidora + 4 atletas (2M+2F, modalidades 1-4)
 // numa transação lógica. Sem auth (qualquer atlética pode cadastrar sua equipe).
@@ -13,6 +15,15 @@ import { getServiceClient } from '@/lib/wings/supabase'
 type AtletaInput = { nome: string; sexo: 'M' | 'F'; modalidade: number }
 
 export async function POST(req: NextRequest) {
+  const ip = clientIp(req)
+  const limite = await rateLimit(`wings:equipe:${ip}`, 10, 600)
+  if (!limite.ok) {
+    return NextResponse.json(
+      { error: 'Muitos cadastros. Aguarde alguns minutos.' },
+      { status: 429, headers: { 'Retry-After': String(limite.retryAfterSeconds) } }
+    )
+  }
+
   const body = await req.json().catch(() => null)
   if (!body) {
     return NextResponse.json({ error: 'Body inválido.' }, { status: 400 })
@@ -100,5 +111,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: errB.message }, { status: 500 })
   }
 
-  return NextResponse.json({ atletica })
+  // O token sai uma vez só, no cadastro. É o que autoriza editar depois.
+  return NextResponse.json({ atletica, edit_token: criarTokenEdicao(atletica.id) })
 }

@@ -22,7 +22,7 @@ const MAX_CODE_TRIES = 5;
 export async function POST(request: NextRequest) {
   // 1. Freio de rajada — 5 tentativas por IP a cada 10 minutos.
   const ip = clientIp(request);
-  const limit = rateLimit(`dst:inscricao:${ip}`, 5, 600);
+  const limit = await rateLimit(`dst:inscricao:${ip}`, 5, 600);
   if (!limit.ok) {
     return NextResponse.json(
       { error: "Muitas tentativas. Aguarde alguns minutos e tente de novo." },
@@ -151,7 +151,7 @@ export async function POST(request: NextRequest) {
   const ticket_token = generateTicketToken();
   const registro = {
     ...(evento_id ? { evento_id } : {}),
-    full_name: data.full_name.replace(/\s+/g, " ").trim(),
+    full_name: data.full_name,
     cpf: data.cpf,
     birth_date: data.birth_date,
     email: data.email,

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import Link from "next/link";
 import { EVENT, EVENT_PATH, VAGAS_TOTAIS } from "@/lib/desafio-esteiras/event.config";
 import { getEventStats } from "@/lib/desafio-esteiras/db";
@@ -29,6 +30,7 @@ const AGENDA: Record<VarianteCampanha, string> = {
   vagas: "2026-08-18T09:00:00-03:00",
   "ultima-chamada": "2026-08-19T09:00:00-03:00",
   "lembrete-final": "2026-08-19T16:00:00-03:00",
+  "chamada-final": "2026-08-19T18:00:00-03:00",
 };
 
 /** Altura do iframe por variante: o convite é bem mais longo que os outros. */
@@ -36,6 +38,7 @@ const ALTURA: Record<VarianteCampanha, number> = {
   convite: 2900,
   vagas: 1900,
   "ultima-chamada": 1600,
+  "chamada-final": 1600,
   "lembrete-final": 1600,
 };
 
@@ -47,7 +50,21 @@ const diaLegivel = (iso: string) =>
     timeZone: "America/Sao_Paulo",
   });
 
+/**
+ * Preview interno do e-mail — fora do ar em produção.
+ *
+ * `noindex` não é controle de acesso: a página continuava aberta a quem
+ * soubesse a URL, expondo a arte, o texto e a contagem de vagas de uma campanha
+ * antes do disparo. Em produção a rota responde 404; em desenvolvimento ela
+ * abre normalmente, que é onde a preview serve para alguma coisa.
+ */
+function previewLiberada(): boolean {
+  return process.env.NODE_ENV !== "production" || process.env.EMAIL_PREVIEW_ABERTA === "true";
+}
+
 export default async function CampanhaPreviewPage() {
+  if (!previewLiberada()) notFound();
+
   // O preview usa a contagem real de competidores: é o mesmo número que vai no
   // disparo, então dá para conferir a frase de escassez antes de enviar.
   const stats = await getEventStats();

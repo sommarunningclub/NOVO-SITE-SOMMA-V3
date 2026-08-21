@@ -2,33 +2,7 @@ import type { Metadata } from "next"
 import { redirect } from "next/navigation"
 import { CheckoutForm } from "@/components/checkout-form"
 import { createClient as createAnonClient } from "@supabase/supabase-js"
-
-const planData = {
-  mensal: {
-    name: "Mensal",
-    period: "mensal",
-    price: 220,
-    total: 220,
-    installments: 1,
-    type: "recurring" as const,
-  },
-  semestral: {
-    name: "Semestral",
-    period: "semestral",
-    price: 200,
-    total: 1200,
-    installments: 6,
-    type: "installment" as const,
-  },
-  anual: {
-    name: "Anual",
-    period: "anual",
-    price: 180,
-    total: 2160,
-    installments: 12,
-    type: "installment" as const,
-  },
-}
+import { PLANOS, PLANOS_PUBLICOS, type PlanId } from "@/lib/checkout/planos"
 
 export async function generateMetadata({
   params,
@@ -36,7 +10,7 @@ export async function generateMetadata({
   params: Promise<{ plano: string }>
 }): Promise<Metadata> {
   const { plano } = await params
-  const plan = planData[plano as keyof typeof planData]
+  const plan = PLANOS_PUBLICOS.includes(plano as PlanId) ? PLANOS[plano as PlanId] : null
 
   if (!plan) {
     return {
@@ -56,7 +30,7 @@ export default async function CheckoutPage({
   params: Promise<{ plano: string }>
 }) {
   const { plano } = await params
-  const plan = planData[plano as keyof typeof planData]
+  const plan = PLANOS_PUBLICOS.includes(plano as PlanId) ? PLANOS[plano as PlanId] : null
 
   if (!plan) {
     redirect("/")

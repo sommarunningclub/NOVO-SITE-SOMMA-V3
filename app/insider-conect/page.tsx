@@ -130,6 +130,7 @@ function EventoSelector({
 
 function LoginScreen({ onLogin }: { onLogin: (insider: Insider) => void }) {
   const [cpf, setCpf] = useState('')
+  const [senha, setSenha] = useState('')
   const [loading, setLoading] = useState(false)
   const [erro, setErro] = useState('')
 
@@ -141,7 +142,7 @@ function LoginScreen({ onLogin }: { onLogin: (insider: Insider) => void }) {
       const res = await insiderFetch('/api/insider/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cpf: cpf.replace(/\D/g, '') }),
+        body: JSON.stringify({ cpf: cpf.replace(/\D/g, ''), senha }),
       })
       const data = await res.json()
       if (!res.ok) { setErro(data.error || 'Acesso negado.'); return }
@@ -232,6 +233,20 @@ function LoginScreen({ onLogin }: { onLogin: (insider: Insider) => void }) {
             />
           </div>
 
+          <div>
+            <label className="block text-xs text-zinc-400 uppercase tracking-wide mb-1.5 font-medium">
+              Senha
+            </label>
+            <input
+              type="password"
+              value={senha}
+              onChange={e => setSenha(e.target.value)}
+              placeholder="••••••••"
+              autoComplete="current-password"
+              className="w-full bg-zinc-900/80 backdrop-blur-sm border-2 border-zinc-700 focus:border-[#ff2c03] text-white placeholder:text-zinc-600 rounded-xl px-4 py-3.5 text-sm outline-none transition-all"
+            />
+          </div>
+
           {erro && (
             <div className="flex items-center gap-2 bg-red-900/20 border border-red-500/40 rounded-lg px-3.5 py-2.5">
               <Lock className="w-3.5 h-3.5 text-red-400 flex-shrink-0" />
@@ -241,7 +256,7 @@ function LoginScreen({ onLogin }: { onLogin: (insider: Insider) => void }) {
 
           <button
             type="submit"
-            disabled={loading || cpf.replace(/\D/g, '').length < 11}
+            disabled={loading || cpf.replace(/\D/g, '').length < 11 || !senha}
             className="w-full bg-[#ff2c03] hover:bg-[#cc2402] disabled:bg-zinc-800 disabled:text-zinc-600 text-white font-semibold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-all duration-200 text-sm disabled:cursor-not-allowed"
           >
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShieldCheck className="w-4 h-4" />}

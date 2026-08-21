@@ -1,7 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServiceSupabase } from '@/lib/supabase'
+import { clientIp, rateLimit } from '@/lib/rate-limit'
+import {
+  conferirDesafio,
+  criarAutorizacao,
+  criarDesafio,
+  enviarCodigo,
+  gerarCodigo,
+} from '@/lib/transferencias/otp'
 
 export const dynamic = 'force-dynamic'
+
+/**
+ * Duas etapas na mesma rota:
+ *
+ * 1. Sem `codigo`: confere CPF + e-mail contra a inscrição e MANDA um código
+ *    para o e-mail cadastrado. A resposta não revela nada da inscrição.
+ * 2. Com `codigo` + `desafio`: confere o código e libera os dados mascarados
+ *    junto com a autorização assinada que a etapa de confirmação exige.
+ *
+ * CPF e e-mail não são segredo — sozinhos, permitiam a qualquer um tomar a vaga
+ * de outra pessoa. O código no e-mail do titular é o que fecha essa porta.
+ */
 
 function mascararNome(nome: string) {
   const partes = nome.trim().split(/\s+/)
@@ -30,10 +50,19 @@ function deadlinePassou(dataEvento: string) {
 
 export async function POST(request: NextRequest) {
   try {
+    const ip = clientIp(request)
+    const limite = await rateLimit(`transf:validar:${ip}`, 10, 600)
+    if (!limite.ok) {
+      return NextResponse.json(
+        { error: 'Muitas tentativas. Aguarde alguns minutos.' },
+        { status: 429, headers: { 'Retry-After': String(limite.retryAfterSeconds) } }
+      )
+    }
+
     const supabase = getServiceSupabase()
     if (!supabase) return NextResponse.json({ error: 'Erro de configuração' }, { status: 500 })
 
-    const { evento_id, cpf, email } = await request.json()
+    const { evento_id, cpf, email, codigo, desafio } = await request.json()
 
     if (!evento_id || !cpf || !email) {
       return NextResponse.json(
@@ -91,16 +120,57 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    const dados = {
+      inscricaoId: String(inscricao.id),
+      eventoId: String(evento_id),
+      cpfOrigem: cpfLimpo,
+      emailOrigem: emailNorm,
+    }
+
+    // ─── Etapa 2: conferir o código ──────────────────────────────────────────
+    if (codigo) {
+      const porCodigo = await rateLimit(`transf:codigo:${cpfLimpo}`, 6, 900)
+      if (!porCodigo.ok) {
+        return NextResponse.json(
+          { error: 'Muitas tentativas. Peça um novo código em alguns minutos.' },
+          { status: 429, headers: { 'Retry-After': String(porCodigo.retryAfterSeconds) } }
+        )
+      }
+
+      const conferido = conferirDesafio(desafio, String(codigo).replace(/\D/g, ''))
+      if (!conferido || conferido.inscricaoId !== dados.inscricaoId) {
+        return NextResponse.json({ error: 'Código inválido ou expirado.' }, { status: 401 })
+      }
+
+      return NextResponse.json({
+        success: true,
+        autorizacao: criarAutorizacao(dados),
+        inscricao: {
+          id: inscricao.id,
+          nome_mascarado: mascararNome(inscricao.nome_completo),
+          email_mascarado: mascararEmail(inscricao.email),
+          pelotao: inscricao.pelotao,
+          nome_do_evento: inscricao.nome_do_evento,
+          data_do_evento: inscricao.data_do_evento,
+        },
+      })
+    }
+
+    // ─── Etapa 1: enviar o código ────────────────────────────────────────────
+    const novoCodigo = gerarCodigo()
+    const envio = await enviarCodigo(
+      inscricao.email,
+      novoCodigo,
+      inscricao.nome_do_evento || 'seu evento'
+    )
+    if (!envio.ok) {
+      return NextResponse.json({ error: envio.error }, { status: 502 })
+    }
+
     return NextResponse.json({
-      success: true,
-      inscricao: {
-        id: inscricao.id,
-        nome_mascarado: mascararNome(inscricao.nome_completo),
-        email_mascarado: mascararEmail(inscricao.email),
-        pelotao: inscricao.pelotao,
-        nome_do_evento: inscricao.nome_do_evento,
-        data_do_evento: inscricao.data_do_evento,
-      },
+      codigo_enviado: true,
+      email_mascarado: mascararEmail(inscricao.email),
+      desafio: criarDesafio(dados, novoCodigo),
     })
   } catch (err) {
     console.error('[transferencias/validar] erro:', err)

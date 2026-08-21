@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import Link from "next/link";
 import { EVENT, EVENT_PATH } from "@/lib/desafio-esteiras/event.config";
 import { emailLogoDataUris } from "@/lib/emails/desafio-esteiras-ticket";
@@ -18,7 +19,21 @@ export const metadata: Metadata = {
 
 const NOME_EXEMPLO = "Marina";
 
+/**
+ * Preview interno do e-mail — fora do ar em produção.
+ *
+ * `noindex` não é controle de acesso: a página continuava aberta a quem
+ * soubesse a URL, expondo a arte e o texto de uma campanha antes do disparo.
+ * Em produção a rota responde 404; em desenvolvimento ela abre normalmente,
+ * que é onde a preview serve para alguma coisa.
+ */
+function previewLiberada(): boolean {
+  return process.env.NODE_ENV !== "production" || process.env.EMAIL_PREVIEW_ABERTA === "true";
+}
+
 export default function ConvitePreviewPage() {
+  if (!previewLiberada()) notFound();
+
   const logos = emailLogoDataUris();
   const html = renderDesafioEsteirasConviteEmail({
     nome: NOME_EXEMPLO,

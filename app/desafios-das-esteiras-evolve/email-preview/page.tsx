@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { EVENT, EVENT_PATH, UNITS } from "@/lib/desafio-esteiras/event.config";
 import { ticketQrPng } from "@/lib/desafio-esteiras/qr";
 import { generateTicketToken, ticketUrl } from "@/lib/desafio-esteiras/ticket";
@@ -16,7 +17,21 @@ const SAMPLE_UNIT = UNITS.find((u) => u.id === "alameda") ?? UNITS[0];
 const SAMPLE_CODE = `DST-${SAMPLE_UNIT.ticketPrefix}-8F4X29`;
 const SAMPLE_NAME = "Maria Souza";
 
+/**
+ * Preview interno do e-mail — fora do ar em produção.
+ *
+ * `noindex` não é controle de acesso: a página continuava aberta a quem
+ * soubesse a URL, expondo a arte, o texto e a contagem de vagas de uma campanha
+ * antes do disparo. Em produção a rota responde 404; em desenvolvimento ela
+ * abre normalmente, que é onde a preview serve para alguma coisa.
+ */
+function previewLiberada(): boolean {
+  return process.env.NODE_ENV !== "production" || process.env.EMAIL_PREVIEW_ABERTA === "true";
+}
+
 export default async function EmailPreviewPage() {
+  if (!previewLiberada()) notFound();
+
   const token = generateTicketToken();
   const png = await ticketQrPng(token);
   const logos = emailLogoDataUris();

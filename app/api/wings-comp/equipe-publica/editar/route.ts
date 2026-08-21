@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServiceClient } from '@/lib/wings/supabase'
+import { lerTokenEdicao } from '@/lib/wings/edicao'
+import { isStaffAuthorized } from '@/lib/wings-cronometragem/auth'
+import { clientIp, rateLimit } from '@/lib/rate-limit'
 
 // PATCH /api/wings-comp/equipe-publica/editar
-// Edição pública (sem auth) — atualiza atlética + lista de 4 atletas em
+// Edição da própria equipe — atualiza atlética + lista de 4 atletas em
 // uma operação atômica lógica. Mantém os IDs dos atletas existentes
 // (delete+insert seria caro). Aceita o mesmo body do cadastro:
 // {
@@ -14,12 +17,34 @@ import { getServiceClient } from '@/lib/wings/supabase'
 // - Não permite mudar a quantidade (sempre 4 atletas)
 // - Não permite deletar a equipe inteira (só admin)
 // - Bloqueia mudança de nome se já existe outra equipe com esse nome
+// - Exige o `edit_token` emitido no cadastro (ou sessão de staff): sem isso,
+//   qualquer um achava a equipe pela busca e reescrevia a lista de atletas
 type AtletaPatch = { id?: string; nome: string; sexo: 'M' | 'F'; modalidade: number }
 
 export async function PATCH(req: NextRequest) {
+  const ip = clientIp(req)
+  const limite = await rateLimit(`wings:editar:${ip}`, 20, 600)
+  if (!limite.ok) {
+    return NextResponse.json(
+      { error: 'Muitas tentativas. Aguarde alguns minutos.' },
+      { status: 429, headers: { 'Retry-After': String(limite.retryAfterSeconds) } }
+    )
+  }
+
   const body = await req.json().catch(() => null)
   if (!body?.id) {
     return NextResponse.json({ error: 'id da equipe obrigatório.' }, { status: 400 })
+  }
+
+  // Dono da equipe (token do cadastro) ou staff. Nada mais entra.
+  const tokenDono = lerTokenEdicao(
+    req.headers.get('x-wings-edit-token') ?? (typeof body.edit_token === 'string' ? body.edit_token : null)
+  )
+  if (tokenDono !== body.id && !(await isStaffAuthorized())) {
+    return NextResponse.json(
+      { error: 'Edição não autorizada. Use o dispositivo em que a equipe foi cadastrada ou fale com o staff.' },
+      { status: 403 }
+    )
   }
 
   const supabase = getServiceClient()

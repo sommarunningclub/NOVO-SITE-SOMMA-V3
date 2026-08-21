@@ -1,6 +1,7 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getServiceSupabase } from "@/lib/supabase";
+import { jaReceberam, liberarEtapa, reivindicarEtapa } from "@/lib/campanhas/claim";
 import { getEmailFrom, getResendClient } from "@/lib/resend";
 import { linkDescadastro, descadastradosGlobalmente } from "@/lib/campanhas/descadastro";
 import {
@@ -69,7 +70,7 @@ interface EtapaRegistro {
   segmento: SegmentoEncontro;
   assunto: string;
   enviado_em: string | null;
-  status: "rascunho" | "agendado" | "enviado" | "cancelado";
+  status: "rascunho" | "agendado" | "enviando" | "enviado" | "cancelado";
   total_destinatarios: number;
 }
 
@@ -184,20 +185,44 @@ export async function dispararCampanha(
   segmento: SegmentoEncontro = "checkins"
 ): Promise<ResultadoDisparo> {
   const supabase = getServiceSupabase();
+  if (!supabase) throw new Error("Supabase não configurado.");
+
+  /* A trava de idempotência. O gatilho é um cron e cron repete: sem isto, uma
+     segunda chamada da mesma etapa mandaria o e-mail de novo para a base
+     inteira. A reserva é uma escrita atômica, não uma leitura seguida de
+     escrita — o `SELECT` de antes deixava uma janela de até 5 minutos entre
+     conferir e marcar, tempo de sobra para dois disparos passarem juntos. */
+  const chave = { campanha: CAMPANHA, etapa, segmento };
+  const varianteReserva = varianteDaEtapa(etapa);
+  const reserva = await reivindicarEtapa(supabase, chave, {
+    variante: varianteReserva,
+    assunto: sommaClubEncontroSubject(varianteReserva),
+  });
+  if (!reserva.ok) throw new Error(reserva.motivo);
+
+  try {
+    return await executarDisparo(etapa, segmento);
+  } catch (err) {
+    await liberarEtapa(supabase, chave);
+    throw err;
+  }
+}
+
+async function executarDisparo(
+  etapa: EtapaEncontro,
+  segmento: SegmentoEncontro
+): Promise<ResultadoDisparo> {
+  const supabase = getServiceSupabase();
   const resend = getResendClient();
   const from = getEmailFrom();
   if (!supabase) throw new Error("Supabase não configurado.");
   if (!resend || !from) throw new Error("Resend não configurado.");
 
-  /* A trava de idempotência. O gatilho é um cron e cron repete: sem isto, uma
-     segunda chamada da mesma etapa mandaria o e-mail de novo para a base
-     inteira. Falha alto em vez de reenviar em silêncio. */
-  const jaExiste = await buscarEtapa(supabase, segmento, etapa);
-  if (jaExiste && jaExiste.status !== "cancelado" && jaExiste.status !== "rascunho") {
-    throw new Error(`A etapa ${etapa} já está em ${jaExiste.status}. Cancele antes de recriar.`);
-  }
-
-  const alvo = await destinatarios(segmento, etapa);
+  // Retentativa continua de onde parou em vez de reenviar para quem já recebeu.
+  const servidos = await jaReceberam(supabase, { campanha: CAMPANHA, etapa, segmento });
+  const alvo = (await destinatarios(segmento, etapa)).filter(
+    (d) => !servidos.has(d.email.toLowerCase())
+  );
   if (alvo.length === 0) throw new Error(`Nenhum destinatário para a etapa ${etapa}.`);
 
   const variante = varianteDaEtapa(etapa);

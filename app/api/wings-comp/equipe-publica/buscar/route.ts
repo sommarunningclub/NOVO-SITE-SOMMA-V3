@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServiceClient } from '@/lib/wings/supabase'
+import { filtroIlike } from '@/lib/postgrest-filtro'
 
 // GET /api/wings-comp/equipe-publica/buscar?q=HAL
 // Busca por sigla (exata, case-insensitive) ou parte do nome.
@@ -17,7 +18,7 @@ export async function GET(req: NextRequest) {
   const { data, error } = await supabase
     .from('wings_comp_atleticas')
     .select('id, nome, sigla, cor, foto_url')
-    .or(`sigla.ilike.${q},nome.ilike.%${q}%`)
+    .or(`sigla.ilike.${filtroIlike(q, { exato: true })},nome.ilike.${filtroIlike(q)}`)
     .order('nome', { ascending: true })
     .limit(20)
 

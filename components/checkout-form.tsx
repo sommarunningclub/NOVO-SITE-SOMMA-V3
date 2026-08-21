@@ -16,15 +16,7 @@ import {
 import Image from "next/image"
 import { ParqForm } from "./parq-form"
 import { ContratoCheckbox } from "./contrato-checkbox"
-
-interface Plan {
-  name: string
-  period: string
-  price: number
-  total: number
-  installments: number
-  type: "recurring" | "installment"
-}
+import type { Plan } from "@/lib/checkout/planos"
 
 interface CheckoutFormProps {
   plan: Plan
@@ -73,11 +65,6 @@ interface CouponData {
     originalValue: number
     discount: number
     finalValue: number
-  }
-  asaasDiscount: {
-    value: number
-    dueDateLimitDays: number
-    type: string
   }
 }
 
@@ -153,6 +140,10 @@ export function CheckoutForm({ plan, initialProfessors }: CheckoutFormProps) {
   const [pixExpiration, setPixExpiration] = useState<string | null>(null)
   const [pixCopied, setPixCopied] = useState(false)
   const [pixPaymentId, setPixPaymentId] = useState<string | null>(null)
+  // Sessão de checkout assinada pelo servidor: acompanha a compra do cadastro
+  // do cliente até a confirmação do PIX. Em ref, não em estado, porque o
+  // polling precisa do valor mais novo sem esperar um re-render.
+  const checkoutTokenRef = useRef<string | null>(null)
 
   const baseTotalForInstallments = plan.type === "installment" ? (plan.total / plan.installments) * installments : plan.total
   const discountedPrice = couponData ? couponData.calculation.finalValue : plan.price
@@ -199,7 +190,9 @@ export function CheckoutForm({ plan, initialProfessors }: CheckoutFormProps) {
     setIsCouponLoading(true)
     setCouponError(null)
     try {
-      const res = await fetch(`/api/checkout/validate-coupon?code=${encodeURIComponent(couponCode)}&value=${plan.price}&professor=${encodeURIComponent(professor)}&planType=${encodeURIComponent(plan.type)}`)
+      const res = await fetch(
+        `/api/checkout/validate-coupon?code=${encodeURIComponent(couponCode)}&planId=${encodeURIComponent(plan.id)}&professor=${encodeURIComponent(professor)}`
+      )
       const data = await res.json()
       if (!data.valid) { setCouponError(data.error || "Cupom invalido"); setCouponData(null); return }
       setCouponData(data)
@@ -246,7 +239,9 @@ export function CheckoutForm({ plan, initialProfessors }: CheckoutFormProps) {
     const checkPaymentStatus = async () => {
       attempts++
       try {
-        const res = await fetch(`/api/asaas/payment-status?paymentId=${pixPaymentId}`)
+        const res = await fetch(`/api/asaas/payment-status?paymentId=${pixPaymentId}`, {
+          headers: { "x-checkout-session": checkoutTokenRef.current ?? "" },
+        })
         const data = await res.json()
 
         if (!res.ok) {
@@ -293,60 +288,52 @@ export function CheckoutForm({ plan, initialProfessors }: CheckoutFormProps) {
     setPageState("processing")
 
     try {
-      // 1. Create customer
+      // 1. Cliente no Asaas + sessão de checkout assinada.
+      // Daqui em diante o navegador não manda mais valor nenhum: a escolha
+      // (plano, parcelas, cupom, professor) fica carimbada no token e o
+      // servidor recalcula o preço a cada passo.
       const customerRes = await fetch("/api/asaas/customer", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...customerData, professor }),
+        body: JSON.stringify({
+          ...customerData,
+          professor,
+          planId: plan.id,
+          method: paymentMethod,
+          installments,
+          couponCode: couponData?.coupon.code ?? null,
+          shirtSize,
+        }),
       })
       const customerResult = await customerRes.json()
       if (!customerRes.ok) throw new Error(customerResult.error || "Erro ao salvar dados")
+      checkoutTokenRef.current = customerResult.checkoutToken ?? null
 
-      // Vínculo aluno↔professor (base do repasse, espelha GESTÃO). Best-effort: não bloqueia o checkout.
-      fetch("/api/professores/clientes", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          professor_nome: professor,
-          asaas_customer_id: customerResult.id,
-          customer_name: customerData.name,
-          customer_email: customerData.email,
-          customer_cpf_cnpj: customerData.cpfCnpj?.replace(/\D/g, ""),
-          tag: "alunoprofessor",
-        }),
-      }).catch(() => {})
+      const comSessao = () => ({
+        "Content-Type": "application/json",
+        "x-checkout-session": checkoutTokenRef.current ?? "",
+      })
 
-      // 2a. PIX à vista — novo fluxo
-      if (paymentMethod === "pix" && plan.type === "installment") {
-        const pixPaymentRes = await fetch("/api/asaas/subscription", {
+      // Vínculo aluno↔professor (base do repasse, espelha GESTÃO). Best-effort:
+      // não bloqueia o checkout. Só depois da cobrança existir — antes, era um
+      // aluno pendurado no professor sem nenhuma compra por trás.
+      const vincularProfessor = () =>
+        fetch("/api/professores/clientes", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: comSessao(),
           body: JSON.stringify({
-            customerId: customerResult.id,
-            type: "pix",
-            pixValue: pixTotalValue,
-            description: `Somma Assessoria - Plano ${plan.name} PIX | Prof: ${professor} | Camiseta: ${shirtSize}${couponData ? ` | Cupom: ${couponData.coupon.code}` : ""}`,
+            customer_name: customerData.name,
+            customer_email: customerData.email,
+            customer_cpf_cnpj: customerData.cpfCnpj?.replace(/\D/g, ""),
           }),
-        })
-        const pixPaymentResult = await pixPaymentRes.json()
-        if (!pixPaymentRes.ok) throw new Error(pixPaymentResult.error || "Erro ao gerar PIX")
+        }).catch(() => {})
 
-        const paymentId = pixPaymentResult.payment.id
-
-        // Buscar QR Code PIX
-        const pixQrRes = await fetch(`/api/asaas/pix?paymentId=${paymentId}`)
-        const pixQrData = await pixQrRes.json()
-        if (!pixQrRes.ok) throw new Error(pixQrData.error || "Erro ao gerar QR Code PIX")
-
-        setPixPaymentId(paymentId)
-        setPixQrCode(pixQrData.encodedImage)
-        setPixPayload(pixQrData.payload)
-        setPixExpiration(pixQrData.expirationDate)
-
-        // Salvar no Supabase com status "Aguardando PIX"
-        await fetch("/api/supabase/cliente", {
+      // Registro na gestão: plano, valor, professor e status saem do servidor,
+      // que confere a cobrança no Asaas antes de gravar.
+      const registrarNaGestao = () =>
+        fetch("/api/supabase/cliente", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: comSessao(),
           body: JSON.stringify({
             nome: customerData.name,
             email: customerData.email,
@@ -358,14 +345,37 @@ export function CheckoutForm({ plan, initialProfessors }: CheckoutFormProps) {
             cidade: customerData.city,
             cep: customerData.postalCode,
             estado: customerData.state,
-            veste: shirtSize || null,
-            professor: professor || null,
-            tipo_plano: plan.name,
-            valor: pixTotalValue,
-            forma_pagamento: "PIX",
-            status_pagamento: "Aguardando PIX",
           }),
+        }).catch((err) => console.error("[checkout] Erro ao registrar na gestão:", err))
+
+      // 2a. PIX à vista — novo fluxo
+      if (paymentMethod === "pix" && plan.type === "installment") {
+        const pixPaymentRes = await fetch("/api/asaas/subscription", {
+          method: "POST",
+          headers: comSessao(),
+          body: JSON.stringify({}),
         })
+        const pixPaymentResult = await pixPaymentRes.json()
+        if (!pixPaymentRes.ok) throw new Error(pixPaymentResult.error || "Erro ao gerar PIX")
+        if (pixPaymentResult.checkoutToken) checkoutTokenRef.current = pixPaymentResult.checkoutToken
+
+        const paymentId = pixPaymentResult.payment.id
+
+        // Buscar QR Code PIX
+        const pixQrRes = await fetch(`/api/asaas/pix?paymentId=${encodeURIComponent(paymentId)}`, {
+          headers: { "x-checkout-session": checkoutTokenRef.current ?? "" },
+        })
+        const pixQrData = await pixQrRes.json()
+        if (!pixQrRes.ok) throw new Error(pixQrData.error || "Erro ao gerar QR Code PIX")
+
+        setPixPaymentId(paymentId)
+        setPixQrCode(pixQrData.encodedImage)
+        setPixPayload(pixQrData.payload)
+        setPixExpiration(pixQrData.expirationDate)
+
+        // Entra na gestão como "Aguardando PIX" — quem decide isso é o servidor.
+        await registrarNaGestao()
+        void vincularProfessor()
 
         setPageState("pix")
         setIsLoading(false)
@@ -373,74 +383,33 @@ export function CheckoutForm({ plan, initialProfessors }: CheckoutFormProps) {
       }
 
       // 2b. Cartão — fluxo existente
-      const ipRes = await fetch("/api/client-ip")
-      const ipData = await ipRes.json()
-      const clientIp = ipData.ip || "0.0.0.0"
-
-      const paymentPayload: Record<string, unknown> = {
-        customerId: customerResult.id,
-        type: plan.type,
-        description: `Somma Assessoria - Plano ${plan.name} | Prof: ${professor} | Camiseta: ${shirtSize}${couponData ? ` | Cupom: ${couponData.coupon.code}` : ""}`,
-        creditCard: {
-          holderName: cardData.holderName,
-          number: cardData.number.replace(/\s/g, ""),
-          expiryMonth: cardData.expiryMonth,
-          expiryYear: cardData.expiryYear,
-          ccv: cardData.ccv,
-        },
-        creditCardHolderInfo: {
-          name: customerData.name,
-          email: customerData.email,
-          cpfCnpj: customerData.cpfCnpj.replace(/\D/g, ""),
-          postalCode: customerData.postalCode.replace(/\D/g, ""),
-          addressNumber: customerData.addressNumber,
-          phone: customerData.phone.replace(/\D/g, ""),
-        },
-        remoteIp: clientIp,
-      }
-
-      if (plan.type === "recurring") {
-        paymentPayload.value = discountedPrice
-        // Desconto de primeira mensalidade: a partir do 2º mês volta o valor cheio.
-        if (firstMonthOnly) paymentPayload.valueAfterFirstCycle = plan.price
-      } else {
-        paymentPayload.installmentCount = installments
-        paymentPayload.installmentValue = discountedPrice
-      }
-
       const paymentRes = await fetch("/api/asaas/subscription", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(paymentPayload),
+        headers: comSessao(),
+        body: JSON.stringify({
+          creditCard: {
+            holderName: cardData.holderName,
+            number: cardData.number.replace(/\s/g, ""),
+            expiryMonth: cardData.expiryMonth,
+            expiryYear: cardData.expiryYear,
+            ccv: cardData.ccv,
+          },
+          creditCardHolderInfo: {
+            name: customerData.name,
+            email: customerData.email,
+            cpfCnpj: customerData.cpfCnpj.replace(/\D/g, ""),
+            postalCode: customerData.postalCode.replace(/\D/g, ""),
+            addressNumber: customerData.addressNumber,
+            phone: customerData.phone.replace(/\D/g, ""),
+          },
+        }),
       })
       const paymentResult = await paymentRes.json()
       if (!paymentRes.ok) throw new Error(paymentResult.error || "Erro ao processar pagamento")
+      if (paymentResult.checkoutToken) checkoutTokenRef.current = paymentResult.checkoutToken
 
-      // Salvar cliente na tabela de gestão
-      await fetch("/api/supabase/cliente", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          nome: customerData.name,
-          email: customerData.email,
-          telefone: customerData.phone,
-          cpf: customerData.cpfCnpj,
-          rua: customerData.street,
-          numero: customerData.addressNumber,
-          bairro: customerData.neighborhood,
-          cidade: customerData.city,
-          cep: customerData.postalCode,
-          estado: customerData.state,
-          veste: shirtSize || null,
-          professor: professor || null,
-          tipo_plano: plan.name,
-          // Na gestão `valor` é a mensalidade do plano. Com cupom de primeiro mês
-          // a mensalidade continua sendo a cheia — o desconto foi só na 1ª cobrança.
-          valor: firstMonthOnly ? plan.price : discountedPrice,
-          forma_pagamento: "Cartão de Crédito",
-          status_pagamento: "Pago",
-        }),
-      })
+      await registrarNaGestao()
+      void vincularProfessor()
 
       // Mensal cria assinatura; Semestral/Anual, cobrança parcelada.
       sendWelcomeEmail(
@@ -676,7 +645,7 @@ export function CheckoutForm({ plan, initialProfessors }: CheckoutFormProps) {
           </div>
 
           {/* Par-Q — anamnese pós-compra, salva no cadastro do aluno pelo CPF */}
-          <ParqForm cpf={customerData.cpfCnpj} />
+          <ParqForm checkoutToken={checkoutTokenRef.current} />
 
           {/* Kit Assessoria */}
           <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-6 sm:p-8 mb-8">

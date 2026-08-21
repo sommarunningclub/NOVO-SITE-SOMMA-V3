@@ -4,6 +4,7 @@ import { escopoDaSessao, requireOperator } from "@/lib/desafio-esteiras/auth";
 import { TABLE, type Registration } from "@/lib/desafio-esteiras/db";
 import { extractToken, normalizeTicketCode } from "@/lib/desafio-esteiras/ticket";
 import { onlyDigits } from "@/lib/desafio-esteiras/schema";
+import { filtroIlike, filtroValor } from "@/lib/postgrest-filtro";
 
 export const dynamic = "force-dynamic";
 
@@ -71,16 +72,16 @@ export async function GET(request: NextRequest) {
   // 3. CPF ou telefone
   if (!resultados.length && digitos.length >= 10) {
     const { data } = await escopo()
-      .or(`cpf.eq.${digitos},phone.eq.${digitos}`)
+      .or(`cpf.eq.${filtroValor(digitos)},phone.eq.${filtroValor(digitos)}`)
       .limit(20);
     resultados = (data ?? []) as unknown as Registration[];
   }
 
   // 4. Nome (ou e-mail)
   if (!resultados.length && !digitos.match(/^\d+$/)) {
-    const termo = q.replace(/[%,()]/g, " ").trim();
+    const termo = filtroIlike(q);
     const { data } = await escopo()
-      .or(`full_name.ilike.%${termo}%,email.ilike.%${termo}%`)
+      .or(`full_name.ilike.${termo},email.ilike.${termo}`)
       .order("full_name")
       .limit(20);
     resultados = (data ?? []) as unknown as Registration[];

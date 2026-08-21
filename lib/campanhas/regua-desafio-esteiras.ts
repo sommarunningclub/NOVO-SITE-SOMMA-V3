@@ -1,6 +1,7 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getServiceSupabase } from "@/lib/supabase";
+import { jaReceberam, liberarEtapa, reivindicarEtapa } from "@/lib/campanhas/claim";
 import { getEmailFrom, getResendClient } from "@/lib/resend";
 import { linkDescadastro, descadastradosGlobalmente } from "@/lib/campanhas/descadastro";
 import {
@@ -42,14 +43,15 @@ export const CAMPANHA = "desafio-esteiras-convite-ago2026";
 
 export const EVENTOS_DE_ENGAJAMENTO = ["opened", "clicked"] as const;
 
-export type EtapaDesafioEsteiras = 1 | 2 | 3 | 4;
-export const ETAPAS: readonly EtapaDesafioEsteiras[] = [1, 2, 3, 4] as const;
+export type EtapaDesafioEsteiras = 1 | 2 | 3 | 4 | 5;
+export const ETAPAS: readonly EtapaDesafioEsteiras[] = [1, 2, 3, 4, 5] as const;
 
 const ETAPA_VARIANTE: Record<EtapaDesafioEsteiras, VarianteCampanha> = {
   1: "convite",
   2: "vagas",
   3: "ultima-chamada",
   4: "lembrete-final",
+  5: "chamada-final",
 };
 
 const TAG_CAMPANHA = "campanha";
@@ -63,7 +65,7 @@ export interface EtapaRegistro {
   assunto: string;
   agendado_para: string | null;
   enviado_em: string | null;
-  status: "rascunho" | "agendado" | "enviado" | "cancelado";
+  status: "rascunho" | "agendado" | "enviando" | "enviado" | "cancelado";
   total_destinatarios: number;
 }
 
@@ -185,6 +187,30 @@ export async function dispararEtapa(params: {
   etapa: EtapaDesafioEsteiras;
   segmento: SegmentoBase;
 }): Promise<ResultadoDisparo> {
+  const supabase = getServiceSupabase();
+  if (!supabase) throw new Error("Supabase não configurado.");
+
+  // Reserva atômica antes de qualquer envio: dois cliques ou um retry do cron
+  // não podem mais mandar a mesma etapa duas vezes para a base.
+  const chave = { campanha: CAMPANHA, etapa: params.etapa, segmento: params.segmento };
+  const reserva = await reivindicarEtapa(supabase, chave, {
+    variante: ETAPA_VARIANTE[params.etapa],
+    assunto: desafioEsteirasCampanhaSubject(ETAPA_VARIANTE[params.etapa]),
+  });
+  if (!reserva.ok) throw new Error(reserva.motivo);
+
+  try {
+    return await executarDisparo(params);
+  } catch (err) {
+    await liberarEtapa(supabase, chave);
+    throw err;
+  }
+}
+
+async function executarDisparo(params: {
+  etapa: EtapaDesafioEsteiras;
+  segmento: SegmentoBase;
+}): Promise<ResultadoDisparo> {
   const { etapa, segmento } = params;
   const supabase = getServiceSupabase();
   const resend = getResendClient();
@@ -192,19 +218,16 @@ export async function dispararEtapa(params: {
   if (!supabase) throw new Error("Supabase não configurado.");
   if (!resend || !from) throw new Error("Resend não configurado.");
 
-  const jaExiste = await buscarEtapa(supabase, etapa, segmento);
-  if (jaExiste && jaExiste.status !== "cancelado" && jaExiste.status !== "rascunho") {
-    throw new Error(
-      `A etapa ${etapa} de ${segmento} já está em ${jaExiste.status}. Cancele antes de recriar.`
-    );
-  }
-
   const head = await fetch(EMAIL_HERO_URL, { method: "HEAD" });
   if (!head.ok || !(head.headers.get("content-type") ?? "").startsWith("image/")) {
     throw new Error(`O banner não está publicado (${head.status}).`);
   }
 
-  const destinatarios = await destinatariosDaEtapa(etapa, segmento);
+  // Retentativa continua de onde parou em vez de reenviar para quem já recebeu.
+  const servidos = await jaReceberam(supabase, { campanha: CAMPANHA, etapa, segmento });
+  const destinatarios = (await destinatariosDaEtapa(etapa, segmento)).filter(
+    (d) => !servidos.has(d.email.toLowerCase())
+  );
   if (destinatarios.length === 0) {
     throw new Error(`Nenhum destinatário para a etapa ${etapa} de ${segmento}.`);
   }

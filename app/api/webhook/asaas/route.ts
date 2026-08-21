@@ -1,14 +1,18 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { getServiceSupabase } from "@/lib/supabase";
 import { translateStatus, PAYMENT_EVENTS, RECEBIDAS } from "@/lib/asaas/status";
+import { safeCompare } from "@/lib/auth/session-token";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-// Espelho FIEL de somma-site-assessoria-esportiva/app/api/webhook/asaas/route.ts.
-// CRÍTICO: o Asaas pausa a fila se receber 4xx/5xx — sempre retornar 200 (exceto 401),
-// logando erros em webhook_events.status / processed_at.
+// Espelho de somma-site-assessoria-esportiva/app/api/webhook/asaas/route.ts.
+// CRÍTICO: o Asaas pausa a fila se receber 4xx/5xx — erros de PROCESSAMENTO
+// sempre voltam 200, logados em webhook_events.status / processed_at. A recusa
+// por autenticação é a exceção: 401/503 e nada é gravado.
 //
-// ATENÇÃO (segurança): a origem é fail-open — se ASAAS_WEBHOOK_TOKEN não estiver
-// setado, a validação é pulada. Mantido igual à origem; em produção DEFINA o token.
+// Diferença deliberada em relação à origem: aqui é fail-CLOSED. Sem
+// ASAAS_WEBHOOK_TOKEN configurado o endpoint recusa tudo, em vez de aceitar
+// qualquer POST anônimo e deixar estranhos escreverem em `payments` e nos
+// totais financeiros dos alunos.
 type AsaasPayment = {
   id: string;
   customer?: string;
@@ -23,6 +27,17 @@ type AsaasPayment = {
 };
 
 export async function POST(request: NextRequest) {
+  // 1. Autenticação — antes de ler o corpo e antes de tocar no banco.
+  const expectedToken = process.env.ASAAS_WEBHOOK_TOKEN;
+  if (!expectedToken) {
+    console.error("[webhook/asaas] ASAAS_WEBHOOK_TOKEN ausente — webhook recusado.");
+    return NextResponse.json({ ok: false, error: "Webhook não configurado" }, { status: 503 });
+  }
+  const token = request.headers.get("asaas-access-token");
+  if (!token || !safeCompare(token, expectedToken)) {
+    return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
+  }
+
   const supabase = getServiceSupabase();
   if (!supabase) {
     return NextResponse.json({ ok: false, error: "Supabase off" }, { status: 200 });
@@ -33,17 +48,6 @@ export async function POST(request: NextRequest) {
     body = await request.json();
   } catch {
     return NextResponse.json({ ok: false, error: "Invalid JSON" }, { status: 200 });
-  }
-
-  // 1. Validar token (header asaas-access-token)
-  const expectedToken = process.env.ASAAS_WEBHOOK_TOKEN;
-  if (expectedToken) {
-    const token = request.headers.get("asaas-access-token");
-    if (token !== expectedToken) {
-      return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
-    }
-  } else {
-    console.warn("[webhook/asaas] ASAAS_WEBHOOK_TOKEN não setado — webhook aberto (fail-open).");
   }
 
   const { id: eventId, event: eventType, payment } = body;

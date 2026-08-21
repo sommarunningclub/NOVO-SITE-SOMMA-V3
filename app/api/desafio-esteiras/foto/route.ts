@@ -26,7 +26,7 @@ export const dynamic = "force-dynamic";
  */
 export async function POST(request: NextRequest) {
   const ip = clientIp(request);
-  const limite = rateLimit(`dst:foto:${ip}`, 10, 600);
+  const limite = await rateLimit(`dst:foto:${ip}`, 10, 600);
   if (!limite.ok) {
     return NextResponse.json(
       { error: "Muitos envios. Aguarde alguns minutos." },

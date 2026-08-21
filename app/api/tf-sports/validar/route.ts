@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 import { requireInsiderAuth } from '@/lib/auth/insider'
+import { filtroIlike } from '@/lib/postgrest-filtro'
 
 // Atletas do Treinão do Somma Special Day (integração TF Sports).
 // Nome da tabela tem hífen → usar exatamente 'tf-sports'.
@@ -27,7 +28,10 @@ export async function GET(req: Request) {
       let q = supabase.from(TABLE).select(cols).order('nome_atleta', { ascending: true }).limit(2000)
       if (busca) {
         const digits = busca.replace(/\D/g, '')
-        if (digits.length >= 3) q = q.or(`nome_atleta.ilike.%${busca}%,documento.ilike.%${digits}%`)
+        if (digits.length >= 3)
+          q = q.or(
+            `nome_atleta.ilike.${filtroIlike(busca)},documento.ilike.${filtroIlike(digits)}`
+          )
         else q = q.ilike('nome_atleta', `%${busca}%`)
       }
       return q

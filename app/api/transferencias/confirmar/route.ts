@@ -1,7 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServiceSupabase } from '@/lib/supabase'
+import { clientIp, rateLimit } from '@/lib/rate-limit'
+import { lerAutorizacao } from '@/lib/transferencias/otp'
 
 export const dynamic = 'force-dynamic'
+
+// A transferência só acontece com a autorização assinada que
+// `/api/transferencias/validar` emite DEPOIS de o titular digitar o código
+// recebido por e-mail. Inscrição, evento, CPF e e-mail de origem saem de lá —
+// não do corpo da requisição, que antes era tudo o que se exigia.
 
 function deadlinePassou(dataEvento: string) {
   if (!dataEvento) return false
@@ -12,21 +19,36 @@ function deadlinePassou(dataEvento: string) {
 
 export async function POST(request: NextRequest) {
   try {
+    const ip = clientIp(request)
+    const limite = await rateLimit(`transf:confirmar:${ip}`, 10, 600)
+    if (!limite.ok) {
+      return NextResponse.json(
+        { error: 'Muitas tentativas. Aguarde alguns minutos.' },
+        { status: 429, headers: { 'Retry-After': String(limite.retryAfterSeconds) } }
+      )
+    }
+
     const supabase = getServiceSupabase()
     if (!supabase) return NextResponse.json({ error: 'Erro de configuração' }, { status: 500 })
 
     const body = await request.json()
-    const {
-      inscricao_original_id,
-      evento_id,
-      cpf_origem,
-      email_origem,
-      dados_novo,
-    } = body
+    const { autorizacao, dados_novo } = body
 
-    if (!inscricao_original_id || !evento_id || !cpf_origem || !email_origem || !dados_novo) {
+    const permissao = lerAutorizacao(autorizacao)
+    if (!permissao) {
+      return NextResponse.json(
+        { error: 'Autorização expirada. Refaça a verificação por e-mail.' },
+        { status: 401 }
+      )
+    }
+    if (!dados_novo) {
       return NextResponse.json({ error: 'Dados incompletos.' }, { status: 400 })
     }
+
+    const inscricao_original_id = permissao.inscricaoId
+    const evento_id = permissao.eventoId
+    const cpf_origem = permissao.cpfOrigem
+    const email_origem = permissao.emailOrigem
 
     const { data: eventoFlag } = await supabase
       .from('eventos')

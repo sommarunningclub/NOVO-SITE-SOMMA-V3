@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { sendAssessoriaBoasVindasEmail } from "@/lib/emails/assessoria-boas-vindas";
 import { getServiceSupabase } from "@/lib/supabase";
 import { RECEBIDAS } from "@/lib/asaas/status";
+import { clientIp, rateLimit } from "@/lib/rate-limit";
 
 const ASAAS_API_URL = "https://api.asaas.com/v3";
 
@@ -51,6 +52,17 @@ async function resolveCustomerId(
 
 export async function POST(request: NextRequest) {
   try {
+    // A prova de compra já barra e-mail para estranho; a cota impede que alguém
+    // use a rota para bombardear um cliente legítimo repetindo o mesmo paymentId.
+    const ip = clientIp(request);
+    const limite = await rateLimit(`assessoria:boas-vindas:${ip}`, 10, 600);
+    if (!limite.ok) {
+      return NextResponse.json(
+        { error: "Muitas tentativas. Aguarde alguns minutos." },
+        { status: 429, headers: { "Retry-After": String(limite.retryAfterSeconds) } }
+      );
+    }
+
     const body = await request.json();
     const { paymentId, subscriptionId, plano, professor } = body;
 

@@ -45,7 +45,7 @@ const transferenciaSchema = z.object({
  */
 export async function POST(request: NextRequest) {
   const ip = clientIp(request);
-  const limite = rateLimit(`dst:transferir:${ip}`, 5, 600);
+  const limite = await rateLimit(`dst:transferir:${ip}`, 5, 600);
   if (!limite.ok) {
     return NextResponse.json(
       { error: "Muitas tentativas. Aguarde alguns minutos." },
@@ -168,7 +168,7 @@ export async function POST(request: NextRequest) {
   const { data: atualizado, error } = await supabase
     .from(TABLE)
     .update({
-      full_name: novo.full_name.replace(/\s+/g, " ").trim(),
+      full_name: novo.full_name,
       cpf: novo.cpf,
       birth_date: novo.birth_date,
       email: novo.email,

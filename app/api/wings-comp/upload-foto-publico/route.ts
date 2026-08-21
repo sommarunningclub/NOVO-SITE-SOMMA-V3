@@ -1,13 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServiceClient } from '@/lib/wings/supabase'
+import { EXTENSAO_IMAGEM, detectarImagem } from '@/lib/imagem'
+import { clientIp, rateLimit } from '@/lib/rate-limit'
 
 // Versão pública do upload — sem auth (usado no cadastro público de equipes).
-// Mesmas regras de validação que o /upload-foto autenticado.
+//
+// O que mudou: o formato passou a ser decidido pelos BYTES do arquivo, não pelo
+// `Content-Type` nem pela extensão do nome, que vêm do cliente. O bucket é
+// público, então aceitar o rótulo do cliente permitia hospedar HTML ou script
+// num domínio da Somma. O nome do arquivo também é gerado aqui, sem nada vindo
+// de fora, e existe cota por IP para o bucket não virar hospedagem grátis.
 const MAX_BYTES = 5 * 1024 * 1024
-const ALLOWED = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/heic', 'image/heif']
 const BUCKET = 'wings-equipes'
 
 export async function POST(req: NextRequest) {
+  const ip = clientIp(req)
+  const limite = await rateLimit(`wings:upload:${ip}`, 10, 600)
+  if (!limite.ok) {
+    return NextResponse.json(
+      { error: 'Muitos envios. Aguarde alguns minutos.' },
+      { status: 429, headers: { 'Retry-After': String(limite.retryAfterSeconds) } }
+    )
+  }
+
   const formData = await req.formData().catch(() => null)
   if (!formData) {
     return NextResponse.json({ error: 'Formulário inválido.' }, { status: 400 })
@@ -16,23 +31,34 @@ export async function POST(req: NextRequest) {
   if (!(file instanceof File)) {
     return NextResponse.json({ error: 'Arquivo "file" obrigatório.' }, { status: 400 })
   }
-  if (file.size > MAX_BYTES) {
-    return NextResponse.json({ error: 'Imagem maior que 5 MB.' }, { status: 400 })
+  if (file.size === 0) {
+    return NextResponse.json({ error: 'O arquivo está vazio.' }, { status: 400 })
   }
-  if (!ALLOWED.includes(file.type.toLowerCase())) {
-    return NextResponse.json({ error: 'Formato não suportado. Use JPG, PNG ou WEBP.' }, { status: 400 })
+  if (file.size > MAX_BYTES) {
+    return NextResponse.json({ error: 'Imagem maior que 5 MB.' }, { status: 413 })
   }
 
-  const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg'
-  const key = `equipes/publico-${Date.now()}-${Math.random().toString(36).slice(2, 10)}.${ext}`
+  const buffer = new Uint8Array(await file.arrayBuffer())
+  const mime = detectarImagem(buffer)
+  if (!mime) {
+    return NextResponse.json(
+      { error: 'Formato não suportado. Use JPG, PNG, WEBP ou HEIC.' },
+      { status: 415 }
+    )
+  }
+
+  const aleatorio = crypto.randomUUID().replace(/-/g, '')
+  const key = `equipes/publico-${aleatorio}.${EXTENSAO_IMAGEM[mime]}`
 
   const supabase = getServiceClient()
-  const buffer = Buffer.from(await file.arrayBuffer())
   const { error: upErr } = await supabase.storage.from(BUCKET).upload(key, buffer, {
-    contentType: file.type,
+    contentType: mime,
     upsert: false,
   })
-  if (upErr) return NextResponse.json({ error: upErr.message }, { status: 500 })
+  if (upErr) {
+    console.error('[wings/upload-foto-publico] falha no upload:', upErr.message)
+    return NextResponse.json({ error: 'Não foi possível enviar a imagem.' }, { status: 500 })
+  }
 
   const { data: pub } = supabase.storage.from(BUCKET).getPublicUrl(key)
   return NextResponse.json({ url: pub.publicUrl, key })
