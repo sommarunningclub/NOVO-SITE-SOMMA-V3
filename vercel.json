@@ -1,0 +1,8 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "crons": [
+    { "path": "/api/campanhas-encontro-eixao/cron?etapa=1", "schedule": "30 14 21 8 *" },
+    { "path": "/api/campanhas-encontro-eixao/cron?etapa=2", "schedule": "0 19 21 8 *" },
+    { "path": "/api/campanhas-encontro-eixao/cron?etapa=3", "schedule": "30 22 21 8 *" }
+  ]
+}

@@ -23,7 +23,7 @@ import {
 /**
  * Encontro de domingo no Eixão, com três disparos no MESMO dia (sexta):
  *
- *   etapa 1  09h30  convite, base inteira
+ *   etapa 1  11h30  convite, base inteira
  *   etapa 2  16h00  reforço, só quem recebeu a 1 e não abriu
  *   etapa 3  19h30  véspera, base inteira de novo
  *
@@ -296,7 +296,7 @@ export interface LinhaPainel {
 
 /** Só rótulo de painel. O horário que vale de verdade é o do cron. */
 export const HORARIO_PREVISTO: Record<EtapaEncontro, string> = {
-  1: "09h30",
+  1: "11h30",
   2: "16h00",
   3: "19h30",
 };
