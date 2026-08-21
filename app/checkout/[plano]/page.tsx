@@ -11,6 +11,7 @@ const planData = {
     total: 220,
     installments: 1,
     type: "recurring" as const,
+    pixAutomaticoKey: "mensal" as const,
   },
   semestral: {
     name: "Semestral",

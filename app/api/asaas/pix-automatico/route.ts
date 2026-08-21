@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
+import { resolvePlanoPixAutomatico } from "@/lib/checkout/planos-pix-automatico"
 
 const ASAAS_API_URL = "https://api.asaas.com/v3"
 const ASAAS_API_KEY = process.env.ASAAS_API_KEY
@@ -8,9 +9,8 @@ const ASAAS_API_KEY = process.env.ASAAS_API_KEY
 // e a 1ª cobrança liquida, a autorização vira ACTIVE e o débito das próximas
 // mensalidades acontece sozinho na conta dele.
 //
-// Página de TESTE (/checkout/teste-pix-recorrente): valor travado no servidor,
-// já que a rota é pública e cria recorrência sem cartão.
-const VALOR_TESTE = 10
+// O valor NUNCA vem do cliente: chega só a chave do plano e o preço sai do
+// catálogo do servidor (lib/checkout/planos-pix-automatico.ts).
 
 // Ao contrário do resto da API do Asaas, aqui o campo é "customerId" (e não
 // "customer") e o QR imediato é obrigatório.
@@ -33,10 +33,16 @@ function friendlyError(data: any): string {
 
 export async function POST(request: NextRequest) {
   try {
-    const { customerId } = await request.json()
+    const { customerId, planKey, professor } = await request.json()
 
     if (!customerId) {
       return NextResponse.json({ error: "customerId é obrigatório" }, { status: 400 })
+    }
+
+    // Sem planKey assume o teste, para a página de teste seguir funcionando.
+    const plano = resolvePlanoPixAutomatico(planKey ?? "teste")
+    if (!plano) {
+      return NextResponse.json({ error: "Plano inválido para Pix Automático" }, { status: 400 })
     }
 
     const headers = {
@@ -61,12 +67,14 @@ export async function POST(request: NextRequest) {
     const payload = {
       customerId,
       frequency: "MONTHLY",
-      value: VALOR_TESTE,
+      value: plano.valor,
       startDate,
       // contractId é o identificador do contrato do nosso lado (máx. 35 chars).
-      contractId: `TESTE-PIXAUTO-${Date.now()}`.slice(0, 35),
+      // O Asaas corta em 35 chars e esse texto aparece para o cliente no app
+      // do banco, então o prefixo é curto para o timestamp nao ser truncado.
+      contractId: `SOMMA-${Date.now()}`,
       // description também é limitada a 35 caracteres pelo Asaas.
-      description: "Somma Assessoria Mensal".slice(0, 35),
+      description: plano.descricao.slice(0, 35),
       // O Asaas gera as cobranças de cada ciclo sozinho depois da ativação.
       paymentCreationMode: "SUBSCRIPTION",
       // Retentativas só podem ser habilitadas na criação, nunca depois.
@@ -75,11 +83,17 @@ export async function POST(request: NextRequest) {
         // 24h de validade: se o QR expirar sem pagamento a autorização vai
         // para REFUSED e todo o fluxo precisa ser refeito.
         expirationSeconds: 86400,
-        originalValue: VALOR_TESTE,
+        originalValue: plano.valor,
       },
     }
 
-    console.log("[Asaas] Criando autorização de Pix Automático:", { customerId, startDate })
+    console.log("[Asaas] Criando autorização de Pix Automático:", {
+      customerId,
+      planKey: planKey ?? "teste",
+      valor: plano.valor,
+      professor: professor ?? "-",
+      startDate,
+    })
 
     const res = await fetch(`${ASAAS_API_URL}/pix/automatic/authorizations`, {
       method: "POST",
@@ -122,7 +136,7 @@ export async function POST(request: NextRequest) {
       expirationDate: data.immediateQrCode?.expirationDate,
       subscriptionId: data.subscriptionId ?? null,
       startDate,
-      value: VALOR_TESTE,
+      value: plano.valor,
     })
   } catch (error) {
     console.error("[Asaas] Erro no Pix Automático:", error)

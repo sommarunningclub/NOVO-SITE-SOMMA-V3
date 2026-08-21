@@ -12,10 +12,12 @@ import {
   Tag,
   QrCode,
   Copy,
+  Zap,
 } from "lucide-react"
 import Image from "next/image"
 import { ParqForm } from "./parq-form"
 import { ContratoCheckbox } from "./contrato-checkbox"
+import { PixAutomaticoOnboarding } from "./pix-automatico-onboarding"
 
 interface Plan {
   name: string
@@ -24,6 +26,9 @@ interface Plan {
   total: number
   installments: number
   type: "recurring" | "installment"
+  // Chave do catálogo do servidor (lib/checkout/planos-pix-automatico.ts).
+  // Só planos mensais com chave aceitam Pix Automático.
+  pixAutomaticoKey?: "mensal" | "mensal-alexandre"
 }
 
 interface CheckoutFormProps {
@@ -118,6 +123,15 @@ function fmtBRL(value: number) {
   return value.toFixed(2).replace(".", ",")
 }
 
+function fmtClock(totalSeconds: number) {
+  const h = Math.floor(totalSeconds / 3600)
+  const m = Math.floor((totalSeconds % 3600) / 60)
+  const s = totalSeconds % 60
+  const mm = String(m).padStart(2, "0")
+  const ss = String(s).padStart(2, "0")
+  return h > 0 ? `${h}:${mm}:${ss}` : `${mm}:${ss}`
+}
+
 export function CheckoutForm({ plan, initialProfessors }: CheckoutFormProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -129,6 +143,9 @@ export function CheckoutForm({ plan, initialProfessors }: CheckoutFormProps) {
   const [professors, setProfessors] = useState<Professor[]>(initialProfessors)
   const [professor, setProfessor] = useState("")
   const welcomeEmailSentRef = useRef(false)
+  // Duas respostas de polling sobrepostas podem chegar com active=true antes do
+  // stop(): sem guard, o cliente entraria duas vezes na gestão.
+  const gestaoGravadaRef = useRef(false)
   const [shirtSize, setShirtSize] = useState("")
   const [installments, setInstallments] = useState(plan.installments)
 
@@ -147,7 +164,14 @@ export function CheckoutForm({ plan, initialProfessors }: CheckoutFormProps) {
   })
 
   // ─── PIX ──────────────────────────────────────────────────────────────────
-  const [paymentMethod, setPaymentMethod] = useState<"card" | "pix">("card")
+  // "pix" = PIX à vista (semestral/anual). "pix-automatico" = débito recorrente
+  // autorizado no banco do cliente (plano mensal).
+  const [paymentMethod, setPaymentMethod] = useState<"card" | "pix" | "pix-automatico">("card")
+  const [authorizationId, setAuthorizationId] = useState<string | null>(null)
+  const [pixAutoDetected, setPixAutoDetected] = useState(false)
+  const [waitSeconds, setWaitSeconds] = useState(0)
+  const [pollExpired, setPollExpired] = useState(false)
+  const [pollRestart, setPollRestart] = useState(0)
   const [pixQrCode, setPixQrCode] = useState<string | null>(null)
   const [pixPayload, setPixPayload] = useState<string | null>(null)
   const [pixExpiration, setPixExpiration] = useState<string | null>(null)
@@ -162,6 +186,7 @@ export function CheckoutForm({ plan, initialProfessors }: CheckoutFormProps) {
   // Cupom que só vale na primeira mensalidade (ex.: ANALU). Só faz sentido na
   // assinatura recorrente — no parcelado o desconto continua valendo por parcela.
   const firstMonthOnly = plan.type === "recurring" && couponData?.coupon.firstMonthOnly === true
+  const isPixAutomatico = paymentMethod === "pix-automatico"
 
   // ─── CEP ─────────────────────────────────────────────────────────────────
   const fetchAddressByCep = async (cep: string) => {
@@ -196,6 +221,13 @@ export function CheckoutForm({ plan, initialProfessors }: CheckoutFormProps) {
   // ─── Coupon ───────────────────────────────────────────────────────────────
   const validateCoupon = async () => {
     if (!couponCode.trim()) { setCouponError("Digite um cupom"); return }
+    // O Pix Automático cobra o valor fixo do catálogo do servidor e não aceita
+    // desconto. Aplicar o cupom aqui mostraria um preço com desconto na tela e
+    // debitaria o valor cheio na conta do cliente.
+    if (isPixAutomatico) {
+      setCouponError("Cupons não valem no Pix Automático. Escolha cartão de crédito para usar o cupom.")
+      return
+    }
     setIsCouponLoading(true)
     setCouponError(null)
     try {
@@ -203,6 +235,9 @@ export function CheckoutForm({ plan, initialProfessors }: CheckoutFormProps) {
       const data = await res.json()
       if (!data.valid) { setCouponError(data.error || "Cupom invalido"); setCouponData(null); return }
       setCouponData(data)
+      // Se o cliente clicou em Pix Automático enquanto o cupom validava, o
+      // desconto vence: cupom só existe no cartão.
+      setPaymentMethod((atual) => (atual === "pix-automatico" ? "card" : atual))
     } catch {
       setCouponError("Erro ao validar cupom")
     } finally {
@@ -226,6 +261,124 @@ export function CheckoutForm({ plan, initialProfessors }: CheckoutFormProps) {
     },
     [professor, plan.name]
   )
+
+  // Cronômetro da espera: sem sinal de movimento o cliente acha que travou.
+  useEffect(() => {
+    if (pageState !== "pix" || paymentMethod !== "pix-automatico") return
+    const tick = setInterval(() => setWaitSeconds((s) => s + 1), 1000)
+    return () => clearInterval(tick)
+  }, [pageState, paymentMethod])
+
+  // Pix Automático: o que confirma a venda é a AUTORIZAÇÃO virar ACTIVE, o que
+  // acontece alguns minutos depois de o QR ser pago e autorizado no banco.
+  useEffect(() => {
+    if (pageState !== "pix" || paymentMethod !== "pix-automatico" || !authorizationId) return
+
+    let pollInterval: NodeJS.Timeout | null = null
+    let attempts = 0
+    let consecutiveFailures = 0
+    let activeSemAssinatura = 0
+    const MAX_ATTEMPTS = 400
+    const MAX_CONSECUTIVE_FAILURES = 10
+
+    const stop = () => {
+      if (pollInterval) {
+        clearInterval(pollInterval)
+        pollInterval = null
+      }
+    }
+
+    const checkAuthorization = async () => {
+      attempts++
+      try {
+        const res = await fetch(`/api/asaas/pix-automatico?authorizationId=${authorizationId}`)
+        const data = await res.json()
+        if (!res.ok) {
+          consecutiveFailures++
+          if (consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) {
+            stop()
+            setError("Não foi possível confirmar a autorização. Se o valor já saiu da sua conta, fale com o concierge antes de tentar de novo.")
+            setPageState("error")
+          }
+          return
+        }
+        consecutiveFailures = 0
+
+        if (data.paymentDetected) setPixAutoDetected(true)
+
+        if (data.active) {
+          // O subscriptionId costuma vir junto com a ativação, mas pode atrasar
+          // alguns segundos. Sem ele a rota de e-mail recusa o envio.
+          if (!data.subscriptionId && activeSemAssinatura < 5) {
+            activeSemAssinatura++
+            return
+          }
+
+          stop()
+
+          if (gestaoGravadaRef.current) return
+          gestaoGravadaRef.current = true
+
+          // Só agora a venda existe: registra na gestão e manda o e-mail.
+          fetch("/api/supabase/cliente", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              nome: customerData.name,
+              email: customerData.email,
+              telefone: customerData.phone,
+              cpf: customerData.cpfCnpj,
+              rua: customerData.street,
+              numero: customerData.addressNumber,
+              bairro: customerData.neighborhood,
+              cidade: customerData.city,
+              cep: customerData.postalCode,
+              estado: customerData.state,
+              veste: shirtSize || null,
+              professor: professor || null,
+              tipo_plano: plan.name,
+              valor: plan.price,
+              forma_pagamento: "Pix Automático",
+              status_pagamento: "Pago",
+            }),
+          }).catch((err) => console.error("[checkout] Falha ao gravar cliente na gestão:", err))
+
+          if (data.subscriptionId) {
+            sendWelcomeEmail({ subscriptionId: data.subscriptionId })
+          } else {
+            console.error("[checkout] Autorização ativa sem subscriptionId:", authorizationId)
+          }
+          setPageState("success")
+        } else if (data.failed) {
+          stop()
+          setError(
+            data.status === "REFUSED"
+              ? "A autorização não foi aceita. Isso costuma acontecer quando o QR Code expira sem pagamento ou quando o banco não oferece Pix Automático."
+              : "A autorização foi cancelada. Se preferir, finalize com cartão de crédito.",
+          )
+          setPageState("error")
+        }
+      } catch (err) {
+        console.error("Erro no polling da autorização:", err)
+        consecutiveFailures++
+      } finally {
+        // O QR vale 24h, mas o polling não roda esse tempo todo: ao parar, a
+        // tela precisa avisar e oferecer nova checagem.
+        if (attempts >= MAX_ATTEMPTS) {
+          stop()
+          setPollExpired(true)
+        }
+      }
+    }
+
+    checkAuthorization()
+    pollInterval = setInterval(checkAuthorization, 3000)
+
+    return () => {
+      if (pollInterval) clearInterval(pollInterval)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pageState, paymentMethod, authorizationId, pollRestart, sendWelcomeEmail])
 
   useEffect(() => {
     if (pageState !== "pix" || !pixPaymentId) return
@@ -316,7 +469,46 @@ export function CheckoutForm({ plan, initialProfessors }: CheckoutFormProps) {
         }),
       }).catch(() => {})
 
-      // 2a. PIX à vista — novo fluxo
+      // 2a. Pix Automático (plano mensal): autorização com QR imediato. O valor
+      // sai do catálogo do servidor a partir da chave do plano.
+      if (paymentMethod === "pix-automatico" && plan.type === "recurring" && plan.pixAutomaticoKey) {
+        // Trava de segurança: o Pix Automático cobra o valor cheio do catálogo.
+        // Com cupom, a tela mostraria um preço e o banco debitaria outro.
+        if (couponData) {
+          throw new Error(
+            "Cupons não valem no Pix Automático. Remova o cupom ou finalize com cartão de crédito.",
+          )
+        }
+
+        const autoRes = await fetch("/api/asaas/pix-automatico", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            customerId: customerResult.id,
+            planKey: plan.pixAutomaticoKey,
+            professor,
+          }),
+        })
+        const autoResult = await autoRes.json()
+        if (!autoRes.ok) throw new Error(autoResult.error || "Erro ao gerar o Pix Automático")
+
+        setAuthorizationId(autoResult.authorizationId)
+        setPixQrCode(autoResult.encodedImage)
+        setPixPayload(autoResult.payload)
+        setPixExpiration(autoResult.expirationDate)
+        setPixAutoDetected(false)
+        setWaitSeconds(0)
+        setPollExpired(false)
+
+        // A gravação na gestão acontece só quando a autorização é ativada (ver
+        // o polling): a rota faz insert, então gravar agora deixaria uma linha
+        // "aguardando" para sempre em quem desiste no meio.
+        setPageState("pix")
+        setIsLoading(false)
+        return
+      }
+
+      // 2b. PIX à vista — novo fluxo
       if (paymentMethod === "pix" && plan.type === "installment") {
         const pixPaymentRes = await fetch("/api/asaas/subscription", {
           method: "POST",
@@ -488,15 +680,71 @@ export function CheckoutForm({ plan, initialProfessors }: CheckoutFormProps) {
             <div className="w-20 h-20 bg-[#32bcad]/10 border border-[#32bcad]/20 rounded-full flex items-center justify-center mx-auto mb-6">
               <QrCode className="w-10 h-10 text-[#32bcad]" strokeWidth={1.5} />
             </div>
-            <h1 className="text-2xl font-light text-white mb-2">Pagamento via PIX</h1>
+            <h1 className="text-2xl font-light text-white mb-2">
+              {isPixAutomatico ? "Autorize o Pix Automático" : "Pagamento via PIX"}
+            </h1>
             <p className="text-sm text-white/50">
-              Escaneie o QR Code ou copie o código abaixo
+              {isPixAutomatico
+                ? "Pague pelo app do seu banco e marque a autorização dos próximos meses"
+                : "Escaneie o QR Code ou copie o código abaixo"}
             </p>
           </div>
 
           <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-6 space-y-6">
+            {/* Status da espera: a confirmação do Pix Automático leva alguns
+                minutos e a tela não pode parecer congelada. Só nesse fluxo:
+                o PIX à vista tem polling próprio e continua como era. */}
+            {isPixAutomatico && (
+            <div
+              className={`rounded-xl border p-4 ${
+                pixAutoDetected ? "border-[#32bcad]/40 bg-[#32bcad]/10" : "border-white/10 bg-white/[0.04]"
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                {pollExpired ? (
+                  <AlertCircle className="w-5 h-5 flex-shrink-0 text-white/40" />
+                ) : (
+                  <Loader2
+                    className={`w-5 h-5 flex-shrink-0 animate-spin ${
+                      pixAutoDetected ? "text-[#32bcad]" : "text-white/40"
+                    }`}
+                  />
+                )}
+                <div className="flex-grow min-w-0">
+                  <p className={`text-sm font-medium ${pixAutoDetected ? "text-[#32bcad]" : "text-white"}`}>
+                    {pollExpired
+                      ? "Verificação pausada"
+                      : pixAutoDetected
+                        ? "Pagamento recebido! Ativando o débito automático..."
+                        : "Aguardando o pagamento"}
+                  </p>
+                  <p className="text-xs text-white/40 mt-0.5">
+                    {pollExpired
+                      ? "O código continua válido. Toque abaixo para verificar de novo."
+                      : pixAutoDetected
+                        ? "Não feche esta tela. A confirmação pode levar alguns minutos."
+                        : "Esta tela atualiza sozinha quando o pagamento cair."}
+                  </p>
+                </div>
+                <span className="text-sm font-mono text-white/40 tabular-nums flex-shrink-0">
+                  {fmtClock(waitSeconds)}
+                </span>
+              </div>
+
+              {pollExpired && (
+                <button
+                  type="button"
+                  onClick={() => { setPollExpired(false); setPollRestart((n) => n + 1) }}
+                  className="w-full mt-3 py-2.5 flex items-center justify-center gap-2 bg-white/10 hover:bg-white/15 text-white text-sm font-medium rounded-lg transition-colors"
+                >
+                  Já paguei, verificar novamente
+                </button>
+              )}
+            </div>
+            )}
+
             {/* QR Code */}
-            {pixQrCode && (
+            {pixQrCode && !pixAutoDetected && (
               <div className="flex justify-center">
                 <div className="bg-white p-3 rounded-xl">
                   <img
@@ -513,20 +761,31 @@ export function CheckoutForm({ plan, initialProfessors }: CheckoutFormProps) {
             {/* Valor e vencimento */}
             <div className="space-y-2 text-center">
               <p className="text-3xl font-light text-white">
-                R$ {fmtBRL(pixTotalValue)}
+                R$ {fmtBRL(isPixAutomatico ? plan.price : pixTotalValue)}
               </p>
               <p className="text-xs text-white/40">
-                Plano {plan.name} · pagamento à vista
+                Plano {plan.name} ·{" "}
+                {isPixAutomatico ? "1ª mensalidade + autorização" : "pagamento à vista"}
               </p>
-              {formattedExpiration && (
+              {formattedExpiration && !pixAutoDetected && (
                 <p className="text-xs text-white/30">
                   Válido até {formattedExpiration}
                 </p>
               )}
             </div>
 
+            {/* Lembrete do consentimento: é o passo que o cliente esquece. */}
+            {isPixAutomatico && !pixAutoDetected && (
+              <div className="p-3 bg-amber-500/5 border border-amber-500/20 rounded-lg">
+                <p className="text-xs text-white/60 leading-relaxed">
+                  No app do banco, confirme o pagamento e marque a opção que autoriza os próximos
+                  pagamentos com Pix automático. Sem essa marcação a recorrência não é ativada.
+                </p>
+              </div>
+            )}
+
             {/* Código copia e cola */}
-            {pixPayload && (
+            {pixPayload && !pixAutoDetected && (
               <div className="space-y-2">
                 <p className="text-xs text-white/40 text-center">Ou copie o código PIX:</p>
                 <div className="bg-white/[0.05] border border-white/10 rounded-lg px-3 py-2">
@@ -611,10 +870,10 @@ export function CheckoutForm({ plan, initialProfessors }: CheckoutFormProps) {
 
           {/* Progress steps */}
           <div className="space-y-4">
-            {(paymentMethod === "pix"
+            {(paymentMethod === "pix" || paymentMethod === "pix-automatico"
               ? [
                   { label: "Validando dados", delay: "0s" },
-                  { label: "Gerando cobrança PIX", delay: "0.8s" },
+                  { label: paymentMethod === "pix-automatico" ? "Criando a autorização" : "Gerando cobrança PIX", delay: "0.8s" },
                   { label: "Criando QR Code", delay: "1.6s" },
                 ]
               : [
@@ -985,6 +1244,85 @@ export function CheckoutForm({ plan, initialProfessors }: CheckoutFormProps) {
               </div>
             </section>
 
+            {/* Forma de pagamento — plano mensal: cartão ou Pix Automático */}
+            {plan.type === "recurring" && plan.pixAutomaticoKey && (
+              <section>
+                <h2 className="text-xs sm:text-sm font-medium text-white/50 uppercase tracking-wider mb-3 sm:mb-4">
+                  4. Forma de pagamento
+                </h2>
+                <div className="space-y-2">
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethod("card")}
+                    className={`w-full text-left p-4 rounded-lg border transition-all ${
+                      paymentMethod === "card"
+                        ? "border-[#ff4f2d] bg-[#ff4f2d]/10"
+                        : "border-white/10 hover:border-white/20"
+                    }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <CreditCard
+                        className={`w-4 h-4 flex-shrink-0 mt-0.5 ${
+                          paymentMethod === "card" ? "text-[#ff4f2d]" : "text-white/40"
+                        }`}
+                      />
+                      <div className="flex-grow">
+                        <p className="text-sm font-medium text-white">Cartão de crédito</p>
+                        <p className="text-xs text-white/50 mt-1">
+                          Cobrança automática todo mês no cartão. Aceita cupom.
+                        </p>
+                      </div>
+                      {paymentMethod === "card" && <Check className="w-4 h-4 text-[#ff4f2d] flex-shrink-0" />}
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => !couponData && setPaymentMethod("pix-automatico")}
+                    disabled={!!couponData}
+                    className={`w-full text-left p-4 rounded-lg border transition-all disabled:opacity-40 disabled:cursor-not-allowed ${
+                      paymentMethod === "pix-automatico"
+                        ? "border-[#32bcad] bg-[#32bcad]/10"
+                        : "border-white/10 hover:border-white/20"
+                    }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <Zap
+                        className={`w-4 h-4 flex-shrink-0 mt-0.5 ${
+                          paymentMethod === "pix-automatico" ? "text-[#32bcad]" : "text-white/40"
+                        }`}
+                      />
+                      <div className="flex-grow">
+                        <p className="text-sm font-medium text-white">
+                          Pix Automático{" "}
+                          <span className="text-[10px] uppercase tracking-wider text-[#32bcad] ml-1">
+                            Novo
+                          </span>
+                        </p>
+                        <p className="text-xs text-white/50 mt-1">
+                          {couponData
+                            ? "Indisponível com cupom aplicado. Remova o cupom para usar."
+                            : "Débito automático na sua conta, sem precisar de cartão."}
+                        </p>
+                      </div>
+                      {paymentMethod === "pix-automatico" && (
+                        <Check className="w-4 h-4 text-[#32bcad] flex-shrink-0" />
+                      )}
+                    </div>
+                  </button>
+                </div>
+
+                {paymentMethod === "pix-automatico" && (
+                  <div className="mt-4 p-4 bg-white/[0.02] border border-white/10 rounded-xl">
+                    <p className="text-xs text-white/40 uppercase tracking-wider mb-4">
+                      Como funciona
+                    </p>
+                    <PixAutomaticoOnboarding valorMensal={fmtBRL(plan.price)} />
+                  </div>
+                )}
+              </section>
+            )}
+
             {/* Payment Method Toggle — somente planos semestral/anual */}
             {plan.type === "installment" && (
               <section>
@@ -1027,11 +1365,11 @@ export function CheckoutForm({ plan, initialProfessors }: CheckoutFormProps) {
               </section>
             )}
 
-            {/* Card — hidden quando PIX selecionado */}
-            {(plan.type !== "installment" || paymentMethod === "card") && (
+            {/* Card — escondido em qualquer modalidade PIX */}
+            {paymentMethod === "card" && (
               <section>
                 <h2 className="text-xs sm:text-sm font-medium text-white/50 uppercase tracking-wider mb-3 sm:mb-4">
-                  {plan.type === "installment" ? "7" : "4"}. Cartao de credito
+                  {plan.type === "installment" ? "7" : plan.pixAutomaticoKey ? "5" : "4"}. Cartao de credito
                 </h2>
               <div className="space-y-2 sm:space-y-3">
                 <input
@@ -1193,6 +1531,11 @@ export function CheckoutForm({ plan, initialProfessors }: CheckoutFormProps) {
             >
               {isLoading ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
+              ) : paymentMethod === "pix-automatico" && plan.type === "recurring" ? (
+                <>
+                  <Zap className="w-4 h-4" />
+                  Gerar Pix Automático · R$ {fmtBRL(plan.price)}/mês
+                </>
               ) : paymentMethod === "pix" && plan.type === "installment" ? (
                 <>
                   <QrCode className="w-4 h-4" />
@@ -1264,7 +1607,7 @@ function OrderSummary({
   discountAmount: number
   discountedTotal: number
   firstMonthOnly: boolean
-  paymentMethod: "card" | "pix"
+  paymentMethod: "card" | "pix" | "pix-automatico"
   pixTotalValue: number
 }) {
   return (
@@ -1274,7 +1617,9 @@ function OrderSummary({
         <h3 className="text-white font-medium text-base">Somma Assessoria · Plano {plan.name}</h3>
         <p className="text-white/50 text-sm mt-0.5">
           {plan.type === "recurring"
-            ? "Cobranca mensal recorrente"
+            ? paymentMethod === "pix-automatico"
+              ? "Débito automático mensal via Pix"
+              : "Cobranca mensal recorrente"
             : paymentMethod === "pix"
             ? "PIX à vista · pagamento único"
             : `${plan.installments}x de R$ ${fmtBRL(plan.price)} sem juros`

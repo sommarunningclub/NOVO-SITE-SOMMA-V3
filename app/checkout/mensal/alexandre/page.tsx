@@ -17,6 +17,7 @@ export default async function CheckoutAlexandrePage() {
     total: 330,
     installments: 1,
     type: "recurring" as const,
+    pixAutomaticoKey: "mensal-alexandre" as const,
   }
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
