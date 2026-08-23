@@ -11,7 +11,7 @@ import {
 } from "@/lib/sunday-social-run/event.config";
 import { track } from "@/lib/sunday-social-run/analytics";
 import { TicketCta } from "./base";
-import { LogoSantaMonica, LogoSomma } from "./Logos";
+import { LogoHypeOn, LogoSantaMonica, LogoSomma } from "./Logos";
 
 const LINKS = [
   { href: "#experiencia", label: "Experiência" },
@@ -143,7 +143,14 @@ export function EventHeader() {
             ))}
           </nav>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3 md:gap-4">
+            {/* Quem vende a vaga assina o canto direito. No mobile fica só o
+                logo — o texto não caberia ao lado do botão de menu. */}
+            <span className="flex items-center gap-2">
+              <span className="ris-label hidden opacity-45 lg:inline">powered by</span>
+              <LogoHypeOn className="h-[15px] w-auto md:h-[17px]" />
+            </span>
+
             <TicketCta
               origem="header"
               className="hidden !min-h-[42px] !text-[0.68rem] sm:inline-flex"

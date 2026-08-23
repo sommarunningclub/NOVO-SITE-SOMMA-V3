@@ -11,8 +11,7 @@ import {
   spotsLabel,
 } from "@/lib/sunday-social-run/event.config";
 import { EASE, gsap, prefersReducedMotion, useScope } from "../_motion";
-import { Fit, Label, TicketCta } from "./base";
-import { LogoHypeOn } from "./Logos";
+import { Fit, TicketCta } from "./base";
 
 /**
  * O filme do hero: três quadros da mesma manhã, todos do acervo real do SOMMA
@@ -128,7 +127,7 @@ export function HeroExperience() {
       ref={root}
       id="hero"
       aria-labelledby="hero-titulo"
-      className="ris-dark relative isolate flex min-h-[100svh] flex-col justify-between overflow-hidden pb-6 pt-[calc(env(safe-area-inset-top)+5.5rem)] md:pb-10 md:pt-28"
+      className="ris-dark relative isolate flex min-h-[100svh] flex-col justify-end overflow-hidden pb-6 pt-[calc(env(safe-area-inset-top)+5.5rem)] md:pb-10 md:pt-28"
     >
       {/* ── O filme ──────────────────────────────────────────────────────── */}
       <div className="hero-palco absolute inset-0 -z-10">
@@ -158,18 +157,6 @@ export function HeroExperience() {
         {/* Luz da manhã por cima da foto: clareia o topo, assenta o pé */}
         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(6,6,10,0.78)_0%,rgba(20,30,9,0.3)_26%,rgba(20,30,9,0.52)_60%,rgba(20,30,9,0.94)_100%)]" />
         <div className="absolute inset-0 bg-[radial-gradient(120%_80%_at_50%_0%,transparent_35%,rgba(6,6,10,0.5)_100%)]" />
-      </div>
-
-      {/*
-        SOMMA e Santa Monica já assinam o header — repetir as duas aqui era
-        dizer a mesma coisa duas vezes na mesma dobra. Fica só a Hype On, que
-        não aparece lá em cima e é onde a vaga é vendida.
-      */}
-      <div className="ris-wrap hero-conteudo">
-        <div className="hero-fade flex items-center gap-2">
-          <Label className="opacity-50">powered by</Label>
-          <LogoHypeOn className="h-[18px] w-auto md:h-5" />
-        </div>
       </div>
 
       {/* ── Nome, assinatura e conversão ─────────────────────────────────── */}
