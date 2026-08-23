@@ -415,6 +415,28 @@ html[data-ris-luz="flare"] .ris-header[data-solido="sim"] {
   border-bottom-color: rgba(255, 255, 255, 0.22);
 }
 
+/* Assinatura do header: só uma das duas versões fica visível por vez. A luz
+   vigente (publicada pelo palco no <html>) decide qual — e o menu aberto força
+   a versão clara, porque ali o header vive sobre o painel escuro. */
+
+.ris-marca-clara {
+  display: none;
+}
+
+html[data-ris-luz="run"] .ris-marca-clara,
+html[data-ris-luz="night"] .ris-marca-clara,
+html[data-ris-luz="flare"] .ris-marca-clara,
+.ris-header[data-menu="aberto"] .ris-marca-clara {
+  display: flex;
+}
+
+html[data-ris-luz="run"] .ris-marca-escura,
+html[data-ris-luz="night"] .ris-marca-escura,
+html[data-ris-luz="flare"] .ris-marca-escura,
+.ris-header[data-menu="aberto"] .ris-marca-escura {
+  display: none;
+}
+
 /* ── Marquee ──────────────────────────────────────────────────────────────
    Só transform, duplicando o conteúdo — sem reflow, roda liso no mobile. */
 

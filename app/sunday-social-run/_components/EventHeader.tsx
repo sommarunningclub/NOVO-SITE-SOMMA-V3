@@ -11,6 +11,7 @@ import {
 } from "@/lib/sunday-social-run/event.config";
 import { track } from "@/lib/sunday-social-run/analytics";
 import { TicketCta } from "./base";
+import { LogoSantaMonica, LogoSomma } from "./Logos";
 
 const LINKS = [
   { href: "#experiencia", label: "Experiência" },
@@ -94,6 +95,7 @@ export function EventHeader() {
     <>
       <header
         data-solido={solido && !aberto ? "sim" : "nao"}
+        data-menu={aberto ? "aberto" : "fechado"}
         className="ris-chrome ris-header fixed inset-x-0 top-0"
         style={{
           paddingTop: "env(safe-area-inset-top)",
@@ -107,12 +109,28 @@ export function EventHeader() {
           className="ris-wrap flex items-center justify-between gap-4 transition-[height] duration-500"
           style={{ height: solido ? 60 : 76 }}
         >
+          {/*
+            As duas marcas assinam o header no lugar do wordmark. Cada uma entra
+            em duas versões — a de fundo claro e a de fundo escuro — e o CSS
+            mostra a certa conforme a luz que o palco publica no <html>. Sem JS
+            no meio: a troca acontece junto com a cor do próprio header.
+          */}
           <a
             href={EVENT_PATH}
-            aria-label="Sunday Social Run — início"
-            className="ris-display flex shrink-0 items-center text-[0.86rem] leading-none tracking-[-0.02em] md:text-[1rem]"
+            aria-label="Sunday Social Run — SOMMA Club × Santa Monica Gastrobar"
+            className="flex shrink-0 items-center"
           >
-            SUNDAY SOCIAL RUN
+            <span className="ris-marca ris-marca-escura flex items-center gap-2.5 md:gap-3">
+              <LogoSomma tom="escuro" className="h-[17px] w-auto md:h-[20px]" />
+              <span className="ris-label opacity-25">×</span>
+              <LogoSantaMonica tom="escuro" className="h-[21px] w-auto md:h-[25px]" />
+            </span>
+
+            <span className="ris-marca ris-marca-clara flex items-center gap-2.5 md:gap-3">
+              <LogoSomma tom="claro" className="h-[17px] w-auto md:h-[20px]" />
+              <span className="ris-label opacity-35">×</span>
+              <LogoSantaMonica tom="claro" className="h-[21px] w-auto md:h-[25px]" />
+            </span>
           </a>
 
           <nav aria-label="Seções da experiência" className="hidden items-center gap-7 lg:flex">

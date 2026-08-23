@@ -12,7 +12,7 @@ import {
 } from "@/lib/sunday-social-run/event.config";
 import { EASE, gsap, prefersReducedMotion, useScope } from "../_motion";
 import { Fit, Label, TicketCta } from "./base";
-import { LogoHypeOn, LogoSantaMonica, LogoSomma } from "./Logos";
+import { LogoHypeOn } from "./Logos";
 
 /**
  * O filme do hero: três quadros da mesma manhã, todos do acervo real do SOMMA
@@ -160,18 +160,15 @@ export function HeroExperience() {
         <div className="absolute inset-0 bg-[radial-gradient(120%_80%_at_50%_0%,transparent_35%,rgba(6,6,10,0.5)_100%)]" />
       </div>
 
-      {/* ── Marcas ───────────────────────────────────────────────────────── */}
+      {/*
+        SOMMA e Santa Monica já assinam o header — repetir as duas aqui era
+        dizer a mesma coisa duas vezes na mesma dobra. Fica só a Hype On, que
+        não aparece lá em cima e é onde a vaga é vendida.
+      */}
       <div className="ris-wrap hero-conteudo">
-        <div className="hero-fade flex flex-col gap-3 md:flex-row md:flex-wrap md:items-center md:justify-between md:gap-x-5">
-          <div className="flex items-center gap-3">
-            <LogoSomma tom="claro" className="h-[20px] w-auto md:h-[24px]" />
-            <span className="ris-label opacity-40">×</span>
-            <LogoSantaMonica tom="claro" className="h-[26px] w-auto md:h-[30px]" />
-          </div>
-          <div className="flex items-center gap-2">
-            <Label className="opacity-50">powered by</Label>
-            <LogoHypeOn className="h-[18px] w-auto md:h-5" />
-          </div>
+        <div className="hero-fade flex items-center gap-2">
+          <Label className="opacity-50">powered by</Label>
+          <LogoHypeOn className="h-[18px] w-auto md:h-5" />
         </div>
       </div>
 
