@@ -1,0 +1,574 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   SUNDAY SOCIAL RUN — sistema visual da experiência
+   SOMMA Club × Santa Monica Gastrobar · powered by Hype On Club
+
+   Conceito: A MANHÃ COMO NARRATIVA. A página não é dividida em blocos de cor —
+   ela muda de luz. Sai do creme da alvorada, esquenta no laranja da corrida,
+   apaga no preto e dourado do digital, volta para o céu do brunch e termina em
+   laranja pleno. Quem faz isso é o `.ris-stage`: camadas empilhadas em fundo
+   fixo, cada uma acesa por scroll. Nada de `background` chapado por seção.
+
+   Sobre a linha: um único traço atravessa a experiência inteira mudando de
+   significado (rota → pace → conexão → waveform). É o elemento proprietário.
+
+   Tudo prefixado com `ris-` para não vazar para o resto do site.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.ris {
+  /* SOMMA */
+  --somma: #ff2c04;
+  --somma-deep: #c81f00;
+
+  /* Santa Monica */
+  --cream: #fdfaf4;
+  --olive: #465e2c;
+  --olive-deep: #283916;
+  --ink: #141e09;
+  --sky: #8dceee;
+  --sky-light: #ceeefe;
+  --terra: #c75541;
+
+  /* Hype On — dark UI. O dourado abaixo é o TOKEN DO EVENTO, definido para
+     esta página; não é a cor institucional da Hype. Quando o token oficial da
+     marca chegar, é só trocar aqui. */
+  --night: #06060a;
+  --night-2: #0d0d12;
+  --gold: #c9a15a;
+  --gold-soft: #e6cf9d;
+
+  --white: #ffffff;
+
+  /* Alphas nomeados. O modificador `/50` do Tailwind não funciona sobre
+     `var(--x)`: a cor com transparência precisa existir como token. */
+  --somma-15: rgba(255, 44, 4, 0.15);
+  --somma-25: rgba(255, 44, 4, 0.25);
+  --gold-25: rgba(201, 161, 90, 0.25);
+  --gold-40: rgba(201, 161, 90, 0.4);
+  --night-80: rgba(6, 6, 10, 0.8);
+  --night-92: rgba(6, 6, 10, 0.92);
+  --cream-20: rgba(253, 250, 244, 0.2);
+  --cream-70: rgba(253, 250, 244, 0.7);
+  --cream-75: rgba(253, 250, 244, 0.75);
+
+  /* Papéis (o que os componentes realmente usam) */
+  --fg: var(--ink);
+  --line: rgba(20, 30, 9, 0.14);
+  --line-strong: rgba(20, 30, 9, 0.28);
+  --veil: rgba(20, 30, 9, 0.05);
+
+  color: var(--fg);
+  /* Sem cor de fundo aqui: quem pinta é `.ris-stage`, e um fundo opaco neste
+     elemento cobriria as camadas de luz (que vivem em z-index negativo). */
+  background: transparent;
+  font-family: var(--font-ris-body), var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  font-synthesis-weight: none;
+  overflow-x: clip;
+  /* comportamento de app: sem realce azul de toque e sem arrasto de seleção */
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ris *,
+.ris *::before,
+.ris *::after {
+  box-sizing: border-box;
+  border-color: var(--line);
+}
+
+.ris ::selection {
+  background: var(--somma);
+  color: var(--cream);
+}
+
+/* Blocos sobre fundo escuro invertem os papéis de cor — uma classe só. */
+.ris-dark {
+  --fg: var(--cream);
+  --line: rgba(253, 250, 244, 0.16);
+  --line-strong: rgba(253, 250, 244, 0.4);
+  --veil: rgba(253, 250, 244, 0.06);
+  color: var(--fg);
+}
+
+/* ── Palco de luz ─────────────────────────────────────────────────────────
+   Camadas fixas atrás de tudo. Só a opacidade anima (composição na GPU), então
+   a página inteira troca de clima sem repintar layout. */
+
+.ris-stage {
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  background: var(--cream);
+}
+
+.ris-layer {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  will-change: opacity;
+}
+
+.ris-layer[data-luz="dawn"] {
+  opacity: 1;
+  background:
+    radial-gradient(120% 90% at 12% 0%, rgba(206, 238, 254, 0.85) 0%, transparent 58%),
+    radial-gradient(90% 70% at 92% 8%, rgba(255, 44, 4, 0.14) 0%, transparent 60%),
+    linear-gradient(180deg, #fdfaf4 0%, #f7f1e6 100%);
+}
+
+.ris-layer[data-luz="run"] {
+  background:
+    radial-gradient(100% 80% at 78% 10%, rgba(255, 44, 4, 0.55) 0%, transparent 62%),
+    radial-gradient(90% 70% at 8% 88%, rgba(40, 57, 22, 0.9) 0%, transparent 66%),
+    linear-gradient(170deg, #2b1206 0%, #180d07 52%, #0f0a06 100%);
+}
+
+.ris-layer[data-luz="night"] {
+  background:
+    radial-gradient(70% 55% at 50% 0%, rgba(201, 161, 90, 0.22) 0%, transparent 60%),
+    radial-gradient(80% 60% at 88% 92%, rgba(255, 44, 4, 0.16) 0%, transparent 62%),
+    linear-gradient(180deg, #06060a 0%, #0d0d12 60%, #06060a 100%);
+}
+
+.ris-layer[data-luz="noon"] {
+  background:
+    radial-gradient(110% 80% at 20% 4%, rgba(141, 206, 238, 0.9) 0%, transparent 62%),
+    radial-gradient(80% 60% at 96% 78%, rgba(199, 85, 65, 0.28) 0%, transparent 60%),
+    linear-gradient(180deg, #ceeefe 0%, #fdfaf4 48%, #f6efe2 100%);
+}
+
+.ris-layer[data-luz="flare"] {
+  background:
+    radial-gradient(90% 70% at 50% 108%, rgba(255, 255, 255, 0.22) 0%, transparent 60%),
+    linear-gradient(165deg, #ff3d12 0%, #ff2c04 46%, #c81f00 100%);
+}
+
+/* Grão fino sobre o palco: tira o "digital limpo demais" do gradiente. */
+.ris-grain::after {
+  content: "";
+  position: fixed;
+  inset: -100%;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ── Tipografia ───────────────────────────────────────────────────────────
+   Três vozes: Space Grotesk nos títulos, Figtree no texto e Space Mono nos
+   números. Limpo, direto e com um pouco de graça no desenho das letras. */
+
+.ris-display {
+  font-family: var(--font-ris-display), ui-sans-serif, system-ui, sans-serif;
+  font-weight: 700;
+  line-height: 0.88;
+  letter-spacing: -0.035em;
+  text-transform: uppercase;
+}
+
+/*
+  `text-wrap` é componente do shorthand `white-space`: declarar `balance` aqui
+  derrubaria o `nowrap` de quem precisa de linha única (a headline que se
+  dimensiona, a faixa deslizante). Por isso ele vive numa classe à parte, usada
+  só em texto que realmente pode quebrar.
+*/
+.ris-balance {
+  text-wrap: balance;
+}
+
+/* Frase de destaque: o que a página fala em voz alta entre um bloco e outro.
+   Mesma display, peso médio, caixa normal — respira sem virar título. */
+.ris-lead {
+  font-family: var(--font-ris-display), ui-sans-serif, system-ui, sans-serif;
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  text-transform: none;
+  text-wrap: balance;
+}
+
+.ris-mono {
+  font-family: var(--font-ris-mono), ui-monospace, "SFMono-Regular", monospace;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1, "zero" 1;
+  letter-spacing: -0.01em;
+}
+
+/* Rótulo técnico — a voz dos dados em corpo pequeno. */
+.ris-label {
+  font-family: var(--font-ris-mono), ui-monospace, monospace;
+  font-size: clamp(0.6rem, 1.5vw, 0.72rem);
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+/*
+  Tipografia que preenche a linha.
+
+  Cada linha declara seu comprimento em `--len` e o tamanho sai de uma divisão:
+  o texto ocupa a largura útil e nunca transborda, em qualquer viewport, sem
+  media query e sem medir nada em JS. 0.86em é o avanço médio por caractere da
+  display expandida, com folga para o fallback enquanto a web font carrega.
+
+  `nowrap` é parte do contrato: uma linha declarada é uma linha renderizada.
+*/
+.ris-fit {
+  font-size: clamp(
+    var(--fit-min, 1.1rem),
+    calc(var(--avail, 92vw) / (var(--len, 10) * 0.62)),
+    var(--fit-max, 11rem)
+  );
+  white-space: nowrap;
+}
+
+/* ── Layout ───────────────────────────────────────────────────────────────── */
+
+.ris-wrap {
+  --gutter: clamp(1.125rem, 4vw, 4rem);
+  --avail: calc(min(1440px, 100vw) - 2 * var(--gutter));
+  width: 100%;
+  max-width: 1440px;
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+  position: relative;
+}
+
+/*
+  Headline dentro de coluna: no mobile ocupa a largura toda; no desktop, apenas
+  a fração da grade em que vive — senão o tamanho é calculado para a página
+  inteira e a palavra vaza para fora da coluna.
+*/
+@media (min-width: 768px) {
+  .ris-col-4 {
+    --avail: calc((min(1440px, 100vw) - 2 * var(--gutter)) * 0.31);
+  }
+  .ris-col-5 {
+    --avail: calc((min(1440px, 100vw) - 2 * var(--gutter)) * 0.39);
+  }
+  .ris-col-6 {
+    --avail: calc((min(1440px, 100vw) - 2 * var(--gutter)) * 0.47);
+  }
+  .ris-col-7 {
+    --avail: calc((min(1440px, 100vw) - 2 * var(--gutter)) * 0.55);
+  }
+  .ris-col-8 {
+    --avail: calc((min(1440px, 100vw) - 2 * var(--gutter)) * 0.63);
+  }
+}
+
+.ris-section {
+  position: relative;
+  padding-block: clamp(5rem, 12vw, 10rem);
+}
+
+/* Janela de revelação: o filho sobe de baixo com a máscara cortando. */
+.ris-mask {
+  display: block;
+  overflow: hidden;
+  padding-bottom: 0.06em;
+}
+.ris-mask > * {
+  display: block;
+}
+
+/* ── Superfícies ──────────────────────────────────────────────────────────── */
+
+/* Vidro da Hype: usado só no ato CONNECT. */
+.ris-glass {
+  background: linear-gradient(150deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.03) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-radius: 20px;
+}
+
+/* Cartão Santa Monica: mid-century, canto generoso, papel. */
+.ris-card {
+  background: rgba(253, 250, 244, 0.72);
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.ris-hairline {
+  height: 1px;
+  width: 100%;
+  background: var(--line);
+}
+
+/* ── CTA ──────────────────────────────────────────────────────────────────── */
+
+.ris-btn {
+  --btn-bg: var(--somma);
+  --btn-fg: var(--cream);
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  min-height: 56px;
+  padding-inline: clamp(1.5rem, 5vw, 2.5rem);
+  border-radius: 999px;
+  background: var(--btn-bg);
+  color: var(--btn-fg);
+  font-family: var(--font-ris-mono), ui-monospace, monospace;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  overflow: hidden;
+  isolation: isolate;
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.5s ease;
+  box-shadow: 0 10px 30px -14px rgba(255, 44, 4, 0.9);
+}
+
+/* Brilho que atravessa o botão — some sob prefers-reduced-motion. */
+.ris-btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(100deg, transparent 20%, rgba(255, 255, 255, 0.32) 50%, transparent 80%);
+  transform: translateX(-120%);
+  transition: transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (hover: hover) {
+  .ris-btn:hover::before {
+    transform: translateX(120%);
+  }
+  .ris-btn:hover {
+    box-shadow: 0 16px 40px -16px rgba(255, 44, 4, 1);
+  }
+}
+
+.ris-btn:active {
+  transform: scale(0.97);
+}
+
+/* O CSS do evento carrega depois das utilities do Tailwind, então `display`
+   aqui venceria o `hidden` de um botão escondido por breakpoint. Esta regra
+   devolve a palavra final para a utility. */
+.ris-btn.hidden {
+  display: none;
+}
+
+.ris-btn[data-variant="ghost"] {
+  --btn-bg: transparent;
+  --btn-fg: var(--fg);
+  border: 1px solid var(--line-strong);
+  box-shadow: none;
+}
+
+.ris-btn[data-variant="ink"] {
+  --btn-bg: var(--ink);
+  --btn-fg: var(--cream);
+  box-shadow: 0 10px 30px -16px rgba(20, 30, 9, 0.9);
+}
+
+.ris-btn[data-variant="cream"] {
+  --btn-bg: var(--cream);
+  --btn-fg: var(--ink);
+  box-shadow: 0 12px 34px -18px rgba(0, 0, 0, 0.7);
+}
+
+/* ── Elementos flutuantes ────────────────────────────────────────────────
+   Header e CTA fixo vivem por cima de qualquer luz. Em vez de recalcular
+   scroll, eles leem o atributo que o palco publica no <html> e trocam de tom
+   junto com a página. */
+
+.ris-chrome {
+  color: var(--ink);
+  transition: color 0.6s ease;
+}
+
+html[data-ris-luz="run"] .ris-chrome,
+html[data-ris-luz="night"] .ris-chrome,
+html[data-ris-luz="flare"] .ris-chrome {
+  color: var(--cream);
+}
+
+/* O header só ganha corpo depois do hero, e o vidro assume a cor da luz da
+   vez: papel na manhã, fumaça no asfalto e no digital, laranja na conversão. */
+.ris-header {
+  border-bottom: 1px solid transparent;
+  transition: background-color 0.6s ease, backdrop-filter 0.5s ease, border-color 0.6s ease;
+}
+
+.ris-header[data-solido="sim"] {
+  background: rgba(253, 250, 244, 0.78);
+  border-bottom-color: rgba(20, 30, 9, 0.12);
+  backdrop-filter: blur(16px) saturate(1.3);
+  -webkit-backdrop-filter: blur(16px) saturate(1.3);
+}
+
+html[data-ris-luz="run"] .ris-header[data-solido="sim"],
+html[data-ris-luz="night"] .ris-header[data-solido="sim"] {
+  background: rgba(6, 6, 10, 0.72);
+  border-bottom-color: rgba(255, 255, 255, 0.14);
+}
+
+html[data-ris-luz="flare"] .ris-header[data-solido="sim"] {
+  background: rgba(200, 31, 0, 0.6);
+  border-bottom-color: rgba(255, 255, 255, 0.22);
+}
+
+/* ── Marquee ──────────────────────────────────────────────────────────────
+   Só transform, duplicando o conteúdo — sem reflow, roda liso no mobile. */
+
+.ris-marquee {
+  display: flex;
+  width: max-content;
+  will-change: transform;
+}
+
+/* ── A linha ──────────────────────────────────────────────────────────────── */
+
+.ris-line-path {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+/* ── Ponto pulsante (mapa / confirmados) ──────────────────────────────────── */
+
+.ris-pulse {
+  position: relative;
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: currentColor;
+}
+.ris-pulse::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  opacity: 0.6;
+  animation: ris-ping 2.2s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+@keyframes ris-ping {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.7;
+  }
+  80%,
+  100% {
+    transform: scale(2.6);
+    opacity: 0;
+  }
+}
+
+/* ── Estados de motion ────────────────────────────────────────────────────
+   O conteúdo nasce visível: se o JS falhar ou o usuário pedir menos movimento,
+   a página continua legível. O GSAP é quem esconde, no momento de animar. */
+
+.ris [data-motion] {
+  opacity: 1;
+}
+
+/* ── Foco e acessibilidade ────────────────────────────────────────────────── */
+
+.ris :focus-visible {
+  outline: 2px solid var(--somma);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+/* Alvos de toque: nada com menos de 44px em telas de dedo. */
+@media (pointer: coarse) {
+  .ris a,
+  .ris button {
+    min-height: 44px;
+  }
+  .ris a.ris-inline,
+  .ris button.ris-inline {
+    min-height: 0;
+  }
+}
+
+/* Safe area do iPhone para o CTA fixo. */
+.ris-sticky {
+  padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ris *,
+  .ris *::before,
+  .ris *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+  .ris-marquee {
+    animation: none !important;
+  }
+}
+
+/* ── Mapa do percurso ─────────────────────────────────────────────────────
+   Os marcadores são HTML sobre o mapa (OverlayView), não ícones de imagem:
+   assim herdam a paleta do evento e podem pulsar por CSS. */
+
+.ris-map-pin,
+.ris-map-pelotao {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.ris-map-pin {
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  background: var(--ink);
+  border: 2px solid var(--cream);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.28);
+}
+
+/* Rótulo do marcador fixo, escrito ao lado do ponto. */
+.ris-map-pin[data-rotulo]::after {
+  content: attr(data-rotulo);
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  white-space: nowrap;
+  font-family: var(--font-ris-mono), ui-monospace, monospace;
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  color: var(--ink);
+  background: rgba(253, 250, 244, 0.9);
+  padding: 3px 7px;
+  border-radius: 999px;
+}
+
+.ris-map-pin-virada {
+  background: var(--olive);
+}
+
+/* O pelotão: ponto laranja com halo que pulsa enquanto corre. */
+.ris-map-pelotao {
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  background: var(--somma);
+  border: 3px solid var(--cream);
+  box-shadow: 0 4px 14px rgba(255, 44, 4, 0.55);
+  z-index: 2;
+}
+
+.ris-map-pelotao::after {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border-radius: 999px;
+  border: 2px solid var(--somma);
+  animation: ris-ping 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
