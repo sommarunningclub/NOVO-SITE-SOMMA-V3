@@ -3,18 +3,9 @@
 import Link from "next/link";
 import { MessageCircle, PartyPopper } from "lucide-react";
 import { AgendaSubscribe } from "@/components/agenda-subscribe";
-
-// Mesma lógica do site atual: distribui aleatoriamente entre os grupos de WhatsApp.
-const WHATSAPP_GROUPS = [
-  "https://chat.whatsapp.com/HqEzvY8SbSvImtGaw3UkEk?mode=gi_t",
-  "https://chat.whatsapp.com/B5MSnH8DoasDVfgMlbuAng?mode=gi_t",
-];
+import { abrirGrupo } from "@/lib/whatsapp-grupos";
 
 export default function ObrigadoPage() {
-  const entrarNoGrupo = () => {
-    const link = WHATSAPP_GROUPS[Math.floor(Math.random() * WHATSAPP_GROUPS.length)];
-    window.open(link, "_blank", "noopener,noreferrer");
-  };
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-ink p-6 text-white">
@@ -59,7 +50,7 @@ export default function ObrigadoPage() {
         {/* WhatsApp (grupo aleatório) */}
         <button
           type="button"
-          onClick={entrarNoGrupo}
+          onClick={abrirGrupo}
           className="mt-8 flex w-full items-center justify-center gap-2 rounded-full bg-[#25D366] px-6 py-3.5 text-base font-semibold text-white transition-opacity hover:opacity-90"
         >
           <MessageCircle className="h-5 w-5" />
