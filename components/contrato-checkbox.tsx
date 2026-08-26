@@ -42,9 +42,9 @@ export function ContratoCheckbox({
           >
             Contrato de Prestação de Serviços
           </button>{" "}
-          da Assessoria Somma Club, incluindo as regras de plano, pagamento, fidelidade,
-          cancelamento, recomposição de desconto, inadimplência, responsabilidade pela prática
-          esportiva, uso de imagem e tratamento de dados pessoais (LGPD).
+          da Assessoria Somma Club e as condições do plano escolhido, incluindo as regras de
+          pagamento, permanência mínima, cancelamento, inadimplência, responsabilidade pela prática
+          esportiva e tratamento de dados pessoais (LGPD).
         </span>
       </label>
 
