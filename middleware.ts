@@ -33,6 +33,7 @@ const MODULOS: Modulo[] = [
     cookie: "dst_op",
     purpose: "desafio-esteiras-operador",
   },
+  { base: "o-longao", cookie: "lgo_op", purpose: "o-longao-operador" },
 ];
 
 export async function middleware(request: NextRequest) {
