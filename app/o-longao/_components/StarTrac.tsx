@@ -5,6 +5,7 @@ import { ESTEIRA } from "@/lib/o-longao/config";
 import { STAR_TRAC } from "@/lib/o-longao/copy";
 import { EASE, gsap, isLowPower, maskReveal, parallax, riseIn, useScope } from "../_motion";
 import { EsteiraCinematica } from "./EsteiraCinematica";
+import { EsteiraRaioX } from "./EsteiraRaioX";
 import { FitLines } from "./FitLines";
 
 /** O copy é a fonte única; aqui só quebramos o título em linhas para o FitLines. */
@@ -179,20 +180,29 @@ export function StarTrac() {
       <EsteiraCinematica />
 
       <div className="lgo-wrap relative">
-        {/* ── Por que esta máquina, em 24 horas ────────────────────────── */}
-        <ol className="st-argumentos mt-14 grid gap-3 md:mt-20 md:grid-cols-3 md:gap-4">
-          {STAR_TRAC.argumentos.map((arg) => (
-            <li key={arg.indice} className="st-arg lgo-panel flex flex-col p-6 md:p-7">
-              <span className="lgo-num text-[color:var(--sinal)]">{arg.indice}</span>
-              <h3 className="lgo-display lgo-display-condensed mt-4 text-[clamp(1.3rem,4vw,1.7rem)]">
-                {arg.titulo}
-              </h3>
-              <p className="mt-3 text-[0.92rem] leading-relaxed text-[color:rgba(242,240,236,0.7)]">
-                {arg.texto}
-              </p>
-            </li>
-          ))}
-        </ol>
+        {/* ── Por que esta máquina, em 24 horas ──────────────────────────
+            A vista explodida à esquerda é a prova; os três argumentos à
+            direita são a leitura. No mobile o vídeo vem primeiro. */}
+        <div className="st-argumentos mt-14 grid gap-4 md:mt-20 md:grid-cols-12 md:gap-6">
+          <div className="st-arg md:col-span-5">
+            <EsteiraRaioX />
+          </div>
+          <ol className="grid gap-3 md:col-span-7 md:gap-4">
+            {STAR_TRAC.argumentos.map((arg) => (
+              <li key={arg.indice} className="st-arg lgo-panel flex flex-col p-6 md:flex-row md:items-start md:gap-6 md:p-7">
+                <span className="lgo-num shrink-0 text-[color:var(--sinal)]">{arg.indice}</span>
+                <div>
+                  <h3 className="lgo-display lgo-display-condensed mt-3 text-[clamp(1.3rem,4vw,1.7rem)] md:mt-0">
+                    {arg.titulo}
+                  </h3>
+                  <p className="mt-3 text-[0.92rem] leading-relaxed text-[color:rgba(242,240,236,0.7)]">
+                    {arg.texto}
+                  </p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </div>
 
         {/* ── Console + ficha técnica ──────────────────────────────────── */}
         <div className="st-console mt-14 grid gap-10 md:mt-20 md:grid-cols-12 md:items-center md:gap-8 lg:gap-12">

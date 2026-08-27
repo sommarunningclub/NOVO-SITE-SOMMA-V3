@@ -254,6 +254,12 @@ export const STAR_TRAC = {
     legenda: "HexDeck. Motor CA de 5 HP. Apex LED. Pronta para 24 horas sem parar.",
     dica: "ROLE PARA VER",
   },
+  /** O painel de vista explodida ao lado dos argumentos. */
+  raioX: {
+    kicker: "POR DENTRO",
+    legenda:
+      "Deck de alumínio sobre folha fenólica, os blocos hexagonais do HexDeck e o motor CA de 5 HP. É isso que fica entre o atleta e o chão por 24 horas.",
+  },
   galeriaKicker: "A FREERUNNER POR TODOS OS ÂNGULOS",
   specsKicker: "FICHA TÉCNICA",
 } as const;
