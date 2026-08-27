@@ -96,6 +96,40 @@ export function rotuloPremio(valor: number | null): string {
   return valor === null ? PREMIACAO.rotuloSurpresa : formataReais(valor);
 }
 
+/**
+ * A máquina oficial da prova.
+ *
+ * Tudo que a landing afirma sobre o equipamento sai daqui: hero, seção da
+ * Star Trac, seletiva, arena, FAQ e regulamento. Os números são os da ficha
+ * técnica da Star Trac para a FreeRunner 10TRx; o display é a opção Apex LED,
+ * que foi a escolhida para o evento.
+ */
+export const ESTEIRA = {
+  marca: "Star Trac",
+  modelo: "FreeRunner 10TRx",
+  display: "Apex LED Display",
+  nomeCompleto: "Star Trac FreeRunner 10TRx",
+  imagens: {
+    /** Ângulo 3/4 com o console Apex LED: a foto principal. */
+    principal: "/o-longao/esteira/freerunner-10trx-led.webp",
+    frente: "/o-longao/esteira/freerunner-10trx-frente.webp",
+    lateralEsq: "/o-longao/esteira/freerunner-10trx-lateral-esq.webp",
+    lateralDir: "/o-longao/esteira/freerunner-10trx-lateral-dir.webp",
+    /** Close do console Apex LED. */
+    console: "/o-longao/esteira/apex-led-console.webp",
+  },
+  specs: [
+    { rotulo: "Velocidade", valor: "0,5 a 24 km/h" },
+    { rotulo: "Inclinação", valor: "0 a 20%" },
+    { rotulo: "Motor", valor: "CA de 5 HP" },
+    { rotulo: "Área de corrida", valor: "152 × 55 cm" },
+    { rotulo: "Peso máximo do atleta", valor: "227 kg" },
+    { rotulo: "Deck", valor: "HexDeck de alumínio" },
+    { rotulo: "Altura do deck", valor: "28 cm" },
+    { rotulo: "Peso da máquina", valor: "234 kg" },
+  ],
+} as const;
+
 /** Timeline das 24 horas — a espinha da seção "Como são as 24 horas". */
 export const TIMELINE_24H = [
   { hora: "09:00", titulo: "Largada", texto: "Oito esteiras aceleram juntas. O relógio começa a descontar." },
