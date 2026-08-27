@@ -37,6 +37,14 @@ export function EsteiraCinematica() {
     }
     const v = video.current;
     if (!v) return;
+    /*
+      Só o desktop com scrub precisa do arquivo inteiro antes da hora: sem ele
+      buferizado, arrastar o scroll para o meio do vídeo trava esperando rede.
+      No celular o loop começa a tocar com o que já chegou, e 4 MB a mais de
+      pré-carga num plano de dados não se justificam.
+    */
+    const scrubPossivel = window.matchMedia("(min-width: 1024px)").matches && !isLowPower();
+    v.preload = scrubPossivel ? "auto" : "metadata";
     // Reduced-motion: primeiro frame parado, sem loop.
     if (prefersReducedMotion()) return;
     v.play().catch(() => {});
@@ -142,19 +150,30 @@ export function EsteiraCinematica() {
       className="relative flex h-[68svh] min-h-[420px] items-center justify-center overflow-hidden lg:h-[100svh]"
       aria-label={`${ESTEIRA.nomeCompleto} em movimento`}
     >
+      {/* Luz de stand: é isto que aparece "atrás" da máquina quando o preto do vídeo some. */}
       <div
         aria-hidden
-        className="lgo-glow left-1/2 top-1/2 h-[60%] w-[70%] -translate-x-1/2 -translate-y-1/2"
-        style={{ background: "var(--sinal)", opacity: 0.1 }}
+        className="lgo-glow left-1/2 top-[58%] h-[55%] w-[60%] -translate-x-1/2 -translate-y-1/2"
+        style={{ background: "var(--sinal)", opacity: 0.14 }}
+      />
+      <div
+        aria-hidden
+        className="lgo-glow left-[30%] top-[40%] h-[40%] w-[30%] -translate-x-1/2 -translate-y-1/2"
+        style={{ background: "var(--somma)", opacity: 0.08 }}
       />
 
       {/*
-        O quadro: proporção do vídeo, escala sob o scrub, cantos retos como
-        painel. `max-h` segura em tela baixa (1440×900 daria 961px de altura);
-        o `object-cover` do vídeo absorve a diferença cortando um pouco em cima
-        e embaixo, em vez de deixar barra preta.
+        O quadro: proporção do vídeo, escala sob o scrub. `max-h` segura em
+        tela baixa (1440×900 daria 961px de altura); o `object-cover` absorve
+        a diferença cortando um pouco em cima e embaixo.
+
+        Sem fundo nem borda de painel de propósito: o vídeo vem em ProRes 422,
+        que não tem canal alfa, então o "sem fundo" dele é preto sólido gravado.
+        Com `mix-blend-mode: screen` o preto vira transparente de fato e a
+        máquina flutua sobre o halo âmbar da seção. Um painel opaco atrás
+        mataria exatamente esse efeito.
       */}
-      <div className="ecv-quadro lgo-panel relative aspect-[1178/786] max-h-[86svh] w-full max-w-[1440px] origin-center">
+      <div className="ecv-quadro relative aspect-[1178/786] max-h-[86svh] w-full max-w-[1440px] origin-center">
         {semVideo ? (
           <Image
             src={ESTEIRA.imagens.principal}
@@ -170,10 +189,11 @@ export function EsteiraCinematica() {
             muted
             loop
             playsInline
-            preload="auto"
+            preload="metadata"
             tabIndex={-1}
             aria-hidden
             className="absolute inset-0 h-full w-full object-cover"
+            style={{ mixBlendMode: "screen" }}
           />
         )}
 
