@@ -118,8 +118,12 @@ export const ESTEIRA = {
     /** Close do console Apex LED. */
     console: "/o-longao/esteira/apex-led-console.webp",
   },
-  /** 7 segundos, 1,3 MB, sem áudio: cabe pré-carregar inteiro para o scrub. */
+  /** Máquina montada, fundo preto (vira transparente por blend). 7 s, 4 MB. */
   video: "/o-longao/esteira/freerunner-cinematic.mp4",
+  /** Vista explodida em estúdio cinza: deck, HexDeck e motor separados. 7 s, 5 MB. */
+  videoRaioX: "/o-longao/esteira/freerunner-raio-x.mp4",
+  /** Primeiro frame do raio-x: segura o painel enquanto os 5 MB não chegam. */
+  posterRaioX: "/o-longao/esteira/freerunner-raio-x-poster.jpg",
   specs: [
     { rotulo: "Velocidade", valor: "0,5 a 24 km/h" },
     { rotulo: "Inclinação", valor: "0 a 20%" },
