@@ -4,6 +4,7 @@ import Image from "next/image";
 import { ESTEIRA } from "@/lib/o-longao/config";
 import { STAR_TRAC } from "@/lib/o-longao/copy";
 import { EASE, gsap, isLowPower, maskReveal, parallax, riseIn, useScope } from "../_motion";
+import { EsteiraCinematica } from "./EsteiraCinematica";
 import { FitLines } from "./FitLines";
 
 /** O copy é a fonte única; aqui só quebramos o título em linhas para o FitLines. */
@@ -168,6 +169,16 @@ export function StarTrac() {
           </div>
         </div>
 
+      </div>
+
+      {/*
+        Faixa de vídeo em sangria total: fica FORA do wrap de propósito, para
+        tomar a largura da tela e ser fixada pelo scrub sem carregar o padding
+        lateral junto. Os blocos seguintes reabrem o wrap.
+      */}
+      <EsteiraCinematica />
+
+      <div className="lgo-wrap relative">
         {/* ── Por que esta máquina, em 24 horas ────────────────────────── */}
         <ol className="st-argumentos mt-14 grid gap-3 md:mt-20 md:grid-cols-3 md:gap-4">
           {STAR_TRAC.argumentos.map((arg) => (

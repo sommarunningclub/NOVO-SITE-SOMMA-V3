@@ -118,6 +118,8 @@ export const ESTEIRA = {
     /** Close do console Apex LED. */
     console: "/o-longao/esteira/apex-led-console.webp",
   },
+  /** 7 segundos, 1,3 MB, sem áudio: cabe pré-carregar inteiro para o scrub. */
+  video: "/o-longao/esteira/freerunner-cinematic.mp4",
   specs: [
     { rotulo: "Velocidade", valor: "0,5 a 24 km/h" },
     { rotulo: "Inclinação", valor: "0 a 20%" },

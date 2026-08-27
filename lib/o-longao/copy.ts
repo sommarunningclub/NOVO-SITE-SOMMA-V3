@@ -248,6 +248,12 @@ export const STAR_TRAC = {
     texto:
       "Os números que importam, sem distração: tempo, distância, pace e frequência cardíaca em LED de alta visibilidade, controles Quick Key e alças de frequência por contato. A leitura de quem está na esteira e de quem está no box.",
   },
+  /** A faixa de vídeo: o scroll comanda a máquina no desktop, loop no celular. */
+  video: {
+    kicker: "A MÁQUINA EM MOVIMENTO",
+    legenda: "HexDeck. Motor CA de 5 HP. Apex LED. Pronta para 24 horas sem parar.",
+    dica: "ROLE PARA VER",
+  },
   galeriaKicker: "A FREERUNNER POR TODOS OS ÂNGULOS",
   specsKicker: "FICHA TÉCNICA",
 } as const;
