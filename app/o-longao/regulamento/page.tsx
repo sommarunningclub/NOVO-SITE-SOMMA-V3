@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import {
+  ESTEIRA,
   EVENTO,
   EVENT_URL,
   FORMATO,
@@ -79,7 +80,7 @@ const SECOES: readonly Secao[] = [
     numero: "04",
     titulo: "A SELETIVA",
     paragrafos: [
-      `A seletiva acontece em unidade Evolve, em baterias classificatórias. Cada equipe recebe ${FORMATO.esteirasPorEquipe} esteira ${EVENTO.masterSponsor} e tem ${FORMATO.seletivaMinutos} minutos para acumular a maior distância possível.`,
+      `A seletiva acontece em unidade Evolve, em baterias classificatórias. Cada equipe recebe ${FORMATO.esteirasPorEquipe} ${ESTEIRA.nomeCompleto} e tem ${FORMATO.seletivaMinutos} minutos para acumular a maior distância possível.`,
       `Janela prevista: ${EVENTO.seletiva.janela}. Local: ${EVENTO.seletiva.local}.`,
     ],
     itens: [

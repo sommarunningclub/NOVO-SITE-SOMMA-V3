@@ -1,4 +1,5 @@
 import {
+  ESTEIRA,
   EVENTO,
   FORMATO,
   PREMIACAO,
@@ -42,15 +43,15 @@ export const HERO = {
  */
 export const HERO_MAQUINA = {
   rotulo: "A máquina",
-  selo: "Equipamento oficial de competição",
+  selo: `${ESTEIRA.modelo} · ${ESTEIRA.display}`,
   chamada: "Esteira comum não atravessa uma madrugada.",
   texto:
-    "Star Trac é a infraestrutura oficial do Longão. Motor dimensionado para uso contínuo, plataforma estável em qualquer pace e telemetria alimentando o placar ao vivo.",
-  cta: "Ver o equipamento",
+    `A ${ESTEIRA.nomeCompleto} é a máquina oficial do Longão. Motor CA de 5 HP para regime contínuo, HexDeck de alumínio que poupa articulação por 24 horas e Hot Bar para a troca em segundos.`,
+  cta: "Ver a FreeRunner",
   specs: [
     { rotulo: "Regime", valor: "24h direto" },
-    { rotulo: "Por crew", valor: `${FORMATO.esteirasPorEquipe} esteira` },
-    { rotulo: "Telemetria", valor: "Ao vivo" },
+    { rotulo: "Motor", valor: "CA 5 HP" },
+    { rotulo: "Deck", valor: "HexDeck" },
   ],
 } as const;
 
@@ -101,7 +102,7 @@ export const SELETIVA = {
     "Todas as crews inscritas participam de uma classificatória realizada em uma unidade Evolve. O objetivo é um só: acumular a maior distância possível em 120 minutos.",
   passos: [
     { rotulo: "EQUIPE", valor: "8 atletas", texto: "Todos os oito precisam correr. Ninguém assiste da grade." },
-    { rotulo: "MÁQUINA", valor: "1 esteira Star Trac", texto: "A mesma para todo mundo. A diferença é quem pisa nela." },
+    { rotulo: "MÁQUINA", valor: `1 ${ESTEIRA.nomeCompleto}`, texto: "A mesma para todo mundo. A diferença é quem pisa nela." },
     { rotulo: "TEMPO", valor: "2 horas", texto: "Cento e vinte minutos com o relógio correndo contra todas as crews." },
     { rotulo: "TROCAS", valor: "Livres", texto: "Troque quando quiser. Cada segundo de transição custa metros." },
   ],
@@ -200,7 +201,7 @@ export const ARENA = {
   texto:
     "A Evolve vira o palco do Longão: esteiras Star Trac alinhadas, um box por crew e a prova inteira acontecendo na frente de quem veio ver.",
   itens: [
-    "Esteiras Star Trac",
+    `Esteiras ${ESTEIRA.nomeCompleto}`,
     "Boxes das crews",
     "Área de recovery",
     "Leaderboard ao vivo",
@@ -217,14 +218,38 @@ export const ARENA = {
 export const STAR_TRAC = {
   kicker: "POWERED BY",
   titulo: "24 HORAS EXIGEM OUTRO NÍVEL DE EQUIPAMENTO.",
+  modeloKicker: "A MÁQUINA OFICIAL DO LONGÃO",
   texto:
-    "A Star Trac é a infraestrutura oficial de competição do Longão. Cada crew corre as 24 horas inteiras sobre uma única máquina, e a máquina não pode ser a variável. Motor dimensionado para uso contínuo, plataforma estável em qualquer pace e telemetria que alimenta o placar em tempo real.",
-  slots: [
-    { rotulo: "MODELO", valor: "A anunciar" },
-    { rotulo: "USO CONTÍNUO", valor: "24 horas por equipe" },
-    { rotulo: "TELEMETRIA", valor: "Distância, pace e trocas ao vivo" },
-    { rotulo: "MÁQUINAS NA ARENA", valor: "8 + reservas" },
+    `Cada crew corre as 24 horas inteiras sobre uma única ${ESTEIRA.nomeCompleto}, e a máquina não pode ser a variável. Motor de corrente alternada dimensionado para regime contínuo, deck de alumínio com suspensão hexagonal que devolve energia e poupa articulação, e a barra de comando ao alcance do corredor para a troca acontecer sem perder segundos.`,
+  /** Por que esta máquina, em uma prova de 24 horas. Três argumentos, na voz de pit wall. */
+  argumentos: [
+    {
+      indice: "01",
+      titulo: "Oito atletas, um deck",
+      texto:
+        "O HexDeck é uma plataforma de alumínio sobre suspensão hexagonal patenteada. Absorve o impacto e devolve resposta, turno após turno. O quarto turno de cada atleta precisa das mesmas pernas do primeiro.",
+    },
+    {
+      indice: "02",
+      titulo: "Troca em segundos",
+      texto:
+        "A Hot Bar fica mais perto de quem corre, com velocidade e inclinação a um toque e parada integrada. Cada segundo parado na troca é distância que não volta.",
+    },
+    {
+      indice: "03",
+      titulo: "Motor de regime contínuo",
+      texto:
+        "Motor CA de 5 HP, 227 kg de capacidade e 24 km/h de teto. Sobra máquina para qualquer pace da madrugada, e ela não esquenta antes da crew.",
+    },
   ],
+  display: {
+    kicker: "O CONSOLE",
+    titulo: ESTEIRA.display,
+    texto:
+      "Os números que importam, sem distração: tempo, distância, pace e frequência cardíaca em LED de alta visibilidade, controles Quick Key e alças de frequência por contato. A leitura de quem está na esteira e de quem está no box.",
+  },
+  galeriaKicker: "A FREERUNNER POR TODOS OS ÂNGULOS",
+  specsKicker: "FICHA TÉCNICA",
 } as const;
 
 export const DIGITAL = {
@@ -291,7 +316,7 @@ export const FAQ: readonly { p: string; r: string }[] = [
   },
   {
     p: "Como funciona a seletiva?",
-    r: "Baterias classificatórias em uma unidade Evolve: cada equipe recebe uma esteira Star Trac e tem 2 horas para acumular a maior distância possível, com trocas livres. Ao final de todas as baterias sai o ranking geral.",
+    r: `Baterias classificatórias em uma unidade Evolve: cada equipe recebe uma ${ESTEIRA.nomeCompleto} e tem 2 horas para acumular a maior distância possível, com trocas livres. Ao final de todas as baterias sai o ranking geral.`,
   },
   {
     p: "Quanto tempo dura a seletiva?",

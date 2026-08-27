@@ -129,6 +129,9 @@
   .lgo-col-4 {
     --avail: calc((min(1440px, 100vw) - 2 * var(--gutter)) * 0.3);
   }
+  .lgo-col-5 {
+    --avail: calc((min(1440px, 100vw) - 2 * var(--gutter)) * 0.38);
+  }
   .lgo-col-6 {
     --avail: calc((min(1440px, 100vw) - 2 * var(--gutter)) * 0.47);
   }
