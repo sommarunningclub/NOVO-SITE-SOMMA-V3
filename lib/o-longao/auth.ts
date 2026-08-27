@@ -1,7 +1,7 @@
 import "server-only";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { createSignedToken, verifySignedToken, safeCompare, authSecretConfigured } from "@/lib/auth/session-token";
+import { createSignedToken, verifySignedToken, safeCompare } from "@/lib/auth/session-token";
 
 /**
  * Autenticação do painel do O LONGÃO.
@@ -25,8 +25,25 @@ export type OperatorSession = {
 
 type TokenPayload = OperatorSession & { exp: number };
 
+/**
+ * A chave de assinatura é lida aqui, e não por um helper de `lib/auth`.
+ *
+ * O nome do helper mudou entre os ramos do projeto, e este módulo não pode
+ * quebrar por causa disso: a lista de env vars aceitas é a mesma que
+ * `getAuthSecret()` consulta, só que sem lançar. Aqui a pergunta é "dá para
+ * emitir sessão?", e a resposta certa para "não" é desenhar o aviso de acesso
+ * não configurado, nunca derrubar a página.
+ */
+function segredoDeSessaoConfigurado(): boolean {
+  return Boolean(
+    process.env.AUTH_SECRET ||
+      process.env.INSIDER_SESSION_SECRET ||
+      process.env.SUPABASE_SERVICE_ROLE_KEY
+  );
+}
+
 export function authConfigured(): boolean {
-  return Boolean(process.env[ENV_ADMIN]) && authSecretConfigured();
+  return Boolean(process.env[ENV_ADMIN]) && segredoDeSessaoConfigurado();
 }
 
 export function envSugerida(): string {

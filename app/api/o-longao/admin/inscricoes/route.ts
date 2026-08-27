@@ -4,7 +4,7 @@ import { requireOperator } from "@/lib/o-longao/auth";
 import { BUCKET_LOGOS, EVENT_SLUG, TB, logoUrl } from "@/lib/o-longao/db";
 import type { CrewStatus, TeamStatus } from "@/lib/o-longao/db";
 import { formatCPF } from "@/lib/cpf";
-import { filtroIlike } from "@/lib/postgrest-filtro";
+import { filtroIlike } from "@/lib/o-longao/postgrest";
 
 export const dynamic = "force-dynamic";
 
@@ -90,7 +90,7 @@ function mascararCpf(cpf: string): string {
 
 // A busca vai para dentro de um `.or()`, que o PostgREST reparsa: escapar só
 // os curingas do LIKE não basta, porque vírgula, ponto e parêntese viram
-// sintaxe. `filtroIlike` (lib/postgrest-filtro) devolve o valor entre aspas,
+// sintaxe. `filtroIlike` devolve o valor entre aspas duplas,
 // que é a defesa que o próprio PostgREST oferece.
 
 function semSupabase() {
