@@ -21,8 +21,11 @@ type AutorizacaoResponse = {
   payload?: string
   encodedImage?: string
   subscriptionId?: string | null
-  // Identificador da transação Pix: aparece quando o QR imediato é pago, ainda
-  // antes de a autorização terminar de ser ativada pelo banco do pagador.
+  // ATENÇÃO: NÃO é sinal de pagamento. O Asaas devolve este identificador já
+  // na criação da autorização (confirmado em produção: autorizações CREATED
+  // nunca pagas e até REFUSED vêm com ele preenchido). Tratá-lo como "pago"
+  // escondia o QR Code do cliente antes de ele pagar. Mantido no tipo só para
+  // documentar o que o campo é — não use para detectar liquidação.
   endToEndIdentifier?: string | null
   immediateQrCode?: { conciliationIdentifier?: string; expirationDate?: string }
   errors?: { description?: string }[]
@@ -30,6 +33,64 @@ type AutorizacaoResponse = {
 
 function friendlyError(data: any): string {
   return data?.errors?.[0]?.description || "Erro ao criar autorização de Pix Automático"
+}
+
+function asaasHeaders() {
+  return {
+    "Content-Type": "application/json",
+    access_token: ASAAS_API_KEY || "",
+  }
+}
+
+// Status de cobrança que significam dinheiro liquidado no Asaas.
+const PIX_LIQUIDADO = new Set(["RECEIVED", "CONFIRMED", "RECEIVED_IN_CASH"])
+
+/**
+ * O QR imediato desta autorização já foi pago?
+ *
+ * Quando o pagador liquida o QR, o Asaas cria uma cobrança avulsa na conta com
+ * `pixQrCodeId` igual ao `conciliationIdentifier` da autorização. Essa cobrança
+ * é a ÚNICA prova de pagamento disponível enquanto a autorização ainda está em
+ * CREATED — o status da autorização só muda quando o banco do pagador conclui
+ * a ativação, o que leva minutos.
+ *
+ * Falha fechada: qualquer erro devolve `false`. Um falso positivo aqui esconde
+ * o meio de pagamento de quem ainda não pagou, que foi exatamente o defeito
+ * que esta função substitui.
+ */
+async function qrImediatoPago(conciliationIdentifier: string): Promise<boolean> {
+  try {
+    const res = await fetch(
+      `${ASAAS_API_URL}/payments?pixQrCodeId=${encodeURIComponent(conciliationIdentifier)}&limit=20`,
+      // Sinal cosmético: não pode segurar o polling se o Asaas ficar lento.
+      // O catch converte o abort em `false`, que é o fallback desejado.
+      { headers: asaasHeaders(), signal: AbortSignal.timeout(3000) },
+    )
+    if (!res.ok) {
+      console.error(
+        "[Asaas] Consulta do pagamento do QR imediato recusada:",
+        res.status,
+        conciliationIdentifier,
+      )
+      return false
+    }
+    const lista = await res.json()
+    const cobrancas: { status?: string; pixQrCodeId?: string | null }[] = Array.isArray(lista?.data)
+      ? lista.data
+      : []
+    // Confere o identificador na própria cobrança em vez de confiar que o
+    // filtro da query foi aplicado. O Asaas IGNORA silenciosamente parâmetros
+    // que não reconhece (medido: `?xxNaoExiste=abc` devolve a conta inteira, e
+    // `?customer=` é ignorado no endpoint de autorizações). Se `pixQrCodeId`
+    // for renomeado ou depreciado, sem esta conferência a lista inteira da
+    // conta viraria "pago" e o QR sumiria de novo para todo mundo.
+    return cobrancas.some(
+      (c) => c?.pixQrCodeId === conciliationIdentifier && PIX_LIQUIDADO.has(String(c?.status)),
+    )
+  } catch (error) {
+    console.error("[Asaas] Falha ao conferir pagamento do QR imediato:", error)
+    return false
+  }
 }
 
 export async function POST(request: NextRequest) {
@@ -53,10 +114,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: mensagemDoMotivo(conferencia.motivo) }, { status: 403 })
     }
 
-    const headers = {
-      "Content-Type": "application/json",
-      access_token: ASAAS_API_KEY || "",
-    }
+    const headers = asaasHeaders()
 
     // O QR imediato cobre a 1ª mensalidade (hoje). A recorrência automática
     // começa no ciclo seguinte: startDate no mês que vem, para o débito
@@ -168,17 +226,20 @@ export async function POST(request: NextRequest) {
 // EXPIRED = não vai ativar.
 export async function GET(request: NextRequest) {
   try {
-    const authorizationId = new URL(request.url).searchParams.get("authorizationId")
+    const url = new URL(request.url)
+    const authorizationId = url.searchParams.get("authorizationId")
 
     if (!authorizationId) {
       return NextResponse.json({ error: "authorizationId é obrigatório" }, { status: 400 })
     }
+    // O id vai direto no path da API do Asaas: sem validar, uma barra no valor
+    // sai do recurso e alcança qualquer GET da conta com a nossa chave.
+    if (!/^[A-Za-z0-9-]{1,60}$/.test(authorizationId)) {
+      return NextResponse.json({ error: "authorizationId inválido" }, { status: 400 })
+    }
 
-    const res = await fetch(`${ASAAS_API_URL}/pix/automatic/authorizations/${authorizationId}`, {
-      headers: {
-        "Content-Type": "application/json",
-        access_token: ASAAS_API_KEY || "",
-      },
+    const res = await fetch(`${ASAAS_API_URL}/pix/automatic/authorizations/${encodeURIComponent(authorizationId)}`, {
+      headers: asaasHeaders(),
     })
 
     const data: AutorizacaoResponse = await res.json()
@@ -190,14 +251,24 @@ export async function GET(request: NextRequest) {
 
     const active = data.status === "ACTIVE"
 
+    // Entre pagar o QR e a autorização ficar ativa existe uma janela de alguns
+    // minutos. Sinalizar essa fase evita que a tela pareça travada — mas só
+    // com prova de liquidação, nunca por palpite: a tela usa este campo para
+    // esconder o QR Code, então um falso positivo deixa o cliente sem como
+    // pagar. A consulta extra é opcional (`verificarPagamento`) para o polling
+    // de 3s não dobrar o número de chamadas à API do Asaas.
+    const conciliationIdentifier = data.immediateQrCode?.conciliationIdentifier
+    const querVerificar = url.searchParams.get("verificarPagamento") === "true"
+    const paymentDetected =
+      active ||
+      (querVerificar && !!conciliationIdentifier && (await qrImediatoPago(conciliationIdentifier)))
+
     return NextResponse.json({
       id: data.id,
       status: data.status,
       subscriptionId: data.subscriptionId ?? null,
       active,
-      // Entre pagar o QR e a autorização ficar ativa existe uma janela de
-      // alguns minutos. Sinalizar essa fase evita que a tela pareça travada.
-      paymentDetected: active || Boolean(data.endToEndIdentifier),
+      paymentDetected,
       failed: data.status === "REFUSED" || data.status === "CANCELLED" || data.status === "EXPIRED",
     })
   } catch (error) {

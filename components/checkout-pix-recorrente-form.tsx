@@ -131,9 +131,12 @@ export function CheckoutPixRecorrenteForm({ professor, planName, planValue }: Ch
     const checkStatus = async () => {
       attempts++
       try {
+        // Mesma cadência do checkout oficial: a confirmação do pagamento custa
+        // uma consulta extra no Asaas, então roda a cada 4ª tentativa (~12s).
         const url =
           metodo === "automatico"
-            ? `/api/asaas/pix-automatico?authorizationId=${alvo}`
+            ? `/api/asaas/pix-automatico?authorizationId=${alvo}` +
+              (attempts % 4 === 1 ? "&verificarPagamento=true" : "")
             : `/api/asaas/payment-status?paymentId=${alvo}`
         const res = await fetch(url)
         const data = await res.json()

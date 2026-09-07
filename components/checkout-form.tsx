@@ -169,6 +169,10 @@ export function CheckoutForm({ plan, initialProfessors }: CheckoutFormProps) {
   const [paymentMethod, setPaymentMethod] = useState<"card" | "pix" | "pix-automatico">("card")
   const [authorizationId, setAuthorizationId] = useState<string | null>(null)
   const [pixAutoDetected, setPixAutoDetected] = useState(false)
+  // Escape do cliente: mesmo com pagamento detectado ele pode reabrir o QR.
+  // Enquanto a autorização não fica ACTIVE nada é definitivo, e ficar sem meio
+  // de pagamento na tela já custou venda.
+  const [mostrarQrMesmoAssim, setMostrarQrMesmoAssim] = useState(false)
   const [waitSeconds, setWaitSeconds] = useState(0)
   const [pollExpired, setPollExpired] = useState(false)
   const [pollRestart, setPollRestart] = useState(0)
@@ -324,7 +328,14 @@ export function CheckoutForm({ plan, initialProfessors }: CheckoutFormProps) {
     const checkAuthorization = async () => {
       attempts++
       try {
-        const res = await fetch(`/api/asaas/pix-automatico?authorizationId=${authorizationId}`)
+        // A confirmação do pagamento exige uma consulta extra no Asaas. Ela
+        // roda a cada 4ª tentativa (~12s) só para sinalizar a espera; o que
+        // fecha a venda é a autorização virar ACTIVE, checada a cada 3s.
+        const verificarPagamento = attempts % 4 === 1
+        const res = await fetch(
+          `/api/asaas/pix-automatico?authorizationId=${authorizationId}` +
+            (verificarPagamento ? "&verificarPagamento=true" : ""),
+        )
         const data = await res.json()
         if (!res.ok) {
           consecutiveFailures++
@@ -531,6 +542,7 @@ export function CheckoutForm({ plan, initialProfessors }: CheckoutFormProps) {
         setPixPayload(autoResult.payload)
         setPixExpiration(autoResult.expirationDate)
         setPixAutoDetected(false)
+        setMostrarQrMesmoAssim(false)
         setWaitSeconds(0)
         setPollExpired(false)
 
@@ -689,6 +701,9 @@ export function CheckoutForm({ plan, initialProfessors }: CheckoutFormProps) {
 
   // ─── PIX ─────────────────────────────────────────────────────────────────
   if (pageState === "pix") {
+    // O meio de pagamento só some com pagamento confirmado, e mesmo assim o
+    // cliente pode trazê-lo de volta.
+    const mostrarMeioDePagamento = !pixAutoDetected || mostrarQrMesmoAssim
     const formattedExpiration = pixExpiration
       ? new Date(pixExpiration).toLocaleDateString("pt-BR", {
           day: "2-digit",
@@ -777,8 +792,20 @@ export function CheckoutForm({ plan, initialProfessors }: CheckoutFormProps) {
             </div>
             )}
 
+            {/* Ainda dá para pagar: sem esta saída, um falso positivo na
+                detecção deixa o cliente olhando uma tela sem QR nem código. */}
+            {isPixAutomatico && pixAutoDetected && !mostrarQrMesmoAssim && (
+              <button
+                type="button"
+                onClick={() => setMostrarQrMesmoAssim(true)}
+                className="w-full py-2.5 text-sm text-white/50 hover:text-white/80 underline underline-offset-4 transition-colors"
+              >
+                Ainda não paguei — mostrar o QR Code
+              </button>
+            )}
+
             {/* QR Code */}
-            {pixQrCode && !pixAutoDetected && (
+            {pixQrCode && mostrarMeioDePagamento && (
               <div className="flex justify-center">
                 <div className="bg-white p-3 rounded-xl">
                   <img
@@ -801,25 +828,28 @@ export function CheckoutForm({ plan, initialProfessors }: CheckoutFormProps) {
                 Plano {plan.name} ·{" "}
                 {isPixAutomatico ? "1ª mensalidade + autorização" : "pagamento à vista"}
               </p>
-              {formattedExpiration && !pixAutoDetected && (
+              {formattedExpiration && mostrarMeioDePagamento && (
                 <p className="text-xs text-white/30">
                   Válido até {formattedExpiration}
                 </p>
               )}
             </div>
 
-            {/* Lembrete do consentimento: é o passo que o cliente esquece. */}
-            {isPixAutomatico && !pixAutoDetected && (
+            {/* Lembrete do consentimento: é o passo que o cliente esquece.
+                Com o pagamento já reconhecido o texto se inverte: mandar pagar
+                quem já pagou convida a uma segunda cobrança de verdade. */}
+            {isPixAutomatico && mostrarMeioDePagamento && (
               <div className="p-3 bg-amber-500/5 border border-amber-500/20 rounded-lg">
                 <p className="text-xs text-white/60 leading-relaxed">
-                  No app do banco, confirme o pagamento e marque a opção que autoriza os próximos
-                  pagamentos com Pix automático. Sem essa marcação a recorrência não é ativada.
+                  {pixAutoDetected
+                    ? "Este pagamento já foi reconhecido. Só pague de novo se tiver certeza de que o valor não saiu da sua conta — o QR continua aqui por segurança."
+                    : "No app do banco, confirme o pagamento e marque a opção que autoriza os próximos pagamentos com Pix automático. Sem essa marcação a recorrência não é ativada."}
                 </p>
               </div>
             )}
 
             {/* Código copia e cola */}
-            {pixPayload && !pixAutoDetected && (
+            {pixPayload && mostrarMeioDePagamento && (
               <div className="space-y-2">
                 <p className="text-xs text-white/40 text-center">Ou copie o código PIX:</p>
                 <div className="bg-white/[0.05] border border-white/10 rounded-lg px-3 py-2">
