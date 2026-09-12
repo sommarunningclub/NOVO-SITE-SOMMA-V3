@@ -5,21 +5,21 @@
  * identificação também precisa mandar gente para o grupo, os links passam a
  * viver aqui: um lugar só para adicionar, remover ou trocar um convite.
  *
- * A distribuição é aleatória para os grupos crescerem parelhos. Não há estado
- * compartilhado entre visitantes, então isso não garante equilíbrio exato,
- * apenas evita que todo mundo caia no primeiro.
+ * Por enquanto o sorteio entre grupos está desligado: o site inteiro (home,
+ * `/obrigado` e e-mail de boas-vindas) manda todo mundo para o grupo 3. Para
+ * trocar de grupo, basta mudar `GRUPO_ATUAL`.
  */
-export const WHATSAPP_GRUPOS = [
-  "https://chat.whatsapp.com/HqEzvY8SbSvImtGaw3UkEk?mode=gi_t",
-  "https://chat.whatsapp.com/B5MSnH8DoasDVfgMlbuAng?mode=gi_t",
-] as const;
+export const WHATSAPP_GRUPOS = {
+  grupo1: "https://chat.whatsapp.com/HqEzvY8SbSvImtGaw3UkEk",
+  grupo2: "https://chat.whatsapp.com/B5MSnH8DoasDVfgMlbuAng",
+  grupo3: "https://chat.whatsapp.com/Cw7SxDvVDDW6kAW0fj06FT",
+} as const;
 
-export function sortearGrupo(): string {
-  return WHATSAPP_GRUPOS[Math.floor(Math.random() * WHATSAPP_GRUPOS.length)];
-}
+/** O grupo para onde o site manda todo mundo. */
+export const GRUPO_ATUAL: string = WHATSAPP_GRUPOS.grupo3;
 
 /** Abre o grupo em nova aba. Client-side. */
 export function abrirGrupo(): void {
   if (typeof window === "undefined") return;
-  window.open(sortearGrupo(), "_blank", "noopener,noreferrer");
+  window.open(GRUPO_ATUAL, "_blank", "noopener,noreferrer");
 }

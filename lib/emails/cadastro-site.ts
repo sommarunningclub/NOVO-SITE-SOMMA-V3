@@ -1,8 +1,9 @@
 import { getEmailFrom, getResendClient } from "@/lib/resend";
+import { GRUPO_ATUAL } from "@/lib/whatsapp-grupos";
 
 const LOGO_URL =
   "https://cdn.shopify.com/s/files/1/0788/1932/8253/files/HORIZONTAL_PRETA_LARANJA.png?v=1772322941";
-const WHATSAPP_URL = "https://chat.whatsapp.com/HqEzvY8SbSvImtGaw3UkEk?mode=gi_t";
+const WHATSAPP_URL = GRUPO_ATUAL;
 
 export interface CadastroSiteEmailData {
   nome: string;

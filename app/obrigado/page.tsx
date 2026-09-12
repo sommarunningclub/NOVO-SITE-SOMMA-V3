@@ -47,7 +47,7 @@ export default function ObrigadoPage() {
         {/* Agenda Oficial do Somma (assinatura de calendário) */}
         <AgendaSubscribe />
 
-        {/* WhatsApp (grupo aleatório) */}
+        {/* WhatsApp (grupo atual) */}
         <button
           type="button"
           onClick={abrirGrupo}
