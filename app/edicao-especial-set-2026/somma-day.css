@@ -1,0 +1,323 @@
+/*
+ * SOMMA DAY — linguagem gráfica da edição.
+ * Tudo escopado em .somma-day-root: esta rota tem identidade própria e não
+ * pode vazar estilo para o resto do site.
+ *
+ * As cores são as do arquivo da logo (public/somma-day/logo-somma-day.svg),
+ * pipetadas dos próprios paths — página e impresso falam a mesma língua.
+ */
+.somma-day-root {
+  --sd-creme: #f7f4e9;
+  --sd-vermelho: #fa3606;
+  --sd-marca: #ff2c03;
+  --sd-azul: #0148f9;
+  --sd-amarelo: #f2b002;
+  --sd-petroleo: #3a86a6;
+  --sd-tinta: #101010;
+
+  background: var(--sd-creme);
+  color: var(--sd-tinta);
+  font-family: var(--sd-copy), system-ui, sans-serif;
+  overflow-x: clip;
+}
+
+.somma-day-root ::selection {
+  background: var(--sd-amarelo);
+  color: var(--sd-tinta);
+}
+
+.sd-display {
+  font-family: var(--sd-display), Impact, system-ui, sans-serif;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  line-height: 0.9;
+}
+
+/* ── Sticker: contorno grosso + sombra dura, nunca sombra suave ───────────── */
+.sd-sticker {
+  border: 3px solid var(--sd-tinta);
+  border-radius: 18px;
+  box-shadow: 7px 7px 0 var(--sd-tinta);
+}
+
+.sd-sticker-creme {
+  border: 3px solid var(--sd-creme);
+  border-radius: 18px;
+  box-shadow: 7px 7px 0 var(--sd-creme);
+}
+
+/* Cada peça sai um pouco do esquadro — é o que faz parecer colado à mão. */
+.sd-t1 { transform: rotate(-1.6deg); }
+.sd-t2 { transform: rotate(1.2deg); }
+.sd-t3 { transform: rotate(-0.8deg); }
+.sd-t4 { transform: rotate(2deg); }
+
+/* Contorno de recorte no texto, na mesma lógica do die cut da logo. */
+.sd-recorte {
+  position: relative;
+  isolation: isolate;
+}
+.sd-recorte::before {
+  content: attr(data-texto);
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  color: var(--sd-creme);
+  -webkit-text-stroke: 0.16em var(--sd-creme);
+  paint-order: stroke fill;
+}
+
+/* ── Letreiro ─────────────────────────────────────────────────────────────── */
+.sd-marquee {
+  display: flex;
+  width: max-content;
+  animation: sd-desliza 28s linear infinite;
+}
+.sd-marquee > * { flex: none; }
+@keyframes sd-desliza {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(-50%, 0, 0); }
+}
+
+/* Respeita quem pediu menos movimento — a faixa vira estática. */
+@media (prefers-reduced-motion: reduce) {
+  .sd-marquee { animation: none; }
+  .somma-day-root * { transition: none !important; }
+}
+
+/* ── Grão: toque impresso sem imagem nenhuma ──────────────────────────────
+   Camada única e fixa sobre a rota. Como ::after de seção, a trama terminava
+   no meio da página e o corte aparecia. */
+.somma-day-root::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  pointer-events: none;
+  opacity: 0.22;
+  mix-blend-mode: multiply;
+  background-image: radial-gradient(var(--sd-tinta) 0.5px, transparent 0.6px);
+  background-size: 5px 5px;
+}
+
+/* ── Formulário ───────────────────────────────────────────────────────────── */
+.sd-campo {
+  width: 100%;
+  border: 3px solid var(--sd-tinta);
+  border-radius: 12px;
+  background: #fff;
+  padding: 0.85rem 1rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--sd-tinta);
+  outline: none;
+}
+.sd-campo::placeholder { color: #9b9689; font-weight: 500; }
+.sd-campo:focus-visible {
+  box-shadow: 5px 5px 0 var(--sd-azul);
+  border-color: var(--sd-azul);
+}
+.sd-campo[aria-invalid="true"] {
+  border-color: var(--sd-vermelho);
+  box-shadow: 5px 5px 0 var(--sd-vermelho);
+}
+.sd-rotulo {
+  display: block;
+  margin-bottom: 0.4rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.sd-erro {
+  margin-top: 0.35rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--sd-vermelho);
+}
+
+/* Botão sticker: some a sombra ao apertar, como um adesivo pressionado. */
+.sd-botao {
+  border: 3px solid var(--sd-tinta);
+  border-radius: 999px;
+  box-shadow: 6px 6px 0 var(--sd-tinta);
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+.sd-botao:hover { transform: translate(2px, 2px); box-shadow: 4px 4px 0 var(--sd-tinta); }
+.sd-botao:active { transform: translate(6px, 6px); box-shadow: 0 0 0 var(--sd-tinta); }
+.sd-botao:disabled { opacity: 0.55; transform: none; box-shadow: 6px 6px 0 var(--sd-tinta); cursor: not-allowed; }
+
+.sd-escolha {
+  border: 3px solid var(--sd-tinta);
+  border-radius: 999px;
+  padding: 0.6rem 1.1rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 0.8rem;
+  background: #fff;
+  transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease;
+}
+.sd-escolha[aria-pressed="true"] {
+  background: var(--sd-tinta);
+  color: var(--sd-creme);
+  box-shadow: 4px 4px 0 var(--sd-amarelo);
+}
+
+/* ── Pelotão: escolha grande, de dedo, não de mouse ───────────────────────── */
+.sd-pelotao {
+  width: 100%;
+  border: 3px solid var(--sd-tinta);
+  border-radius: 14px;
+  background: #fff;
+  padding: 1.1rem 0.5rem;
+  font-family: var(--sd-display), Impact, system-ui, sans-serif;
+  font-size: clamp(1.7rem, 5vw, 2.2rem);
+  line-height: 1;
+  text-transform: uppercase;
+  transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease, color 120ms ease;
+}
+.sd-pelotao:hover { transform: translate(-1px, -1px); box-shadow: 5px 5px 0 var(--sd-tinta); }
+.sd-pelotao[aria-pressed="true"] {
+  background: var(--sd-vermelho);
+  color: var(--sd-creme);
+  box-shadow: 5px 5px 0 var(--sd-tinta);
+}
+
+/* ── Marcador do mapa ─────────────────────────────────────────────────────── */
+.sd-mapa-pulso {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  transform: translate(-50%, -50%);
+  border-radius: 9999px;
+  background: var(--sd-vermelho);
+  border: 3px solid var(--sd-creme);
+  pointer-events: none;
+}
+.sd-mapa-pulso::before {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border-radius: 9999px;
+  background: rgba(250, 54, 6, 0.45);
+  animation: sd-ping 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+@keyframes sd-ping {
+  0% { transform: scale(1); opacity: 0.7; }
+  80%, 100% { transform: scale(3.2); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sd-mapa-pulso::before { animation: none; }
+}
+
+/* A última linha do cronograma não precisa de régua embaixo. */
+.sd-linha:last-child { border-bottom: 0; }
+
+/* ── Impressão: sai o bilhete, some o resto ───────────────────────────────── */
+@media print {
+  .somma-day-root {
+    background: #fff;
+  }
+  .somma-day-root::after { display: none; }
+  .sd-nao-imprimir { display: none !important; }
+  .sd-ticket {
+    box-shadow: none;
+    border-width: 2px;
+    break-inside: avoid;
+    margin: 0;
+  }
+  /* O navegador não imprime cor de fundo por padrão; sem isto o bilhete sai
+     branco e o código perde o destaque que ele tem na tela. */
+  .sd-ticket, .sd-ticket * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+/* ── Fotografia ───────────────────────────────────────────────────────────── */
+.sd-quadro {
+  position: relative;
+  overflow: hidden;
+  border: 3px solid var(--sd-tinta);
+  border-radius: 18px;
+  background: var(--sd-tinta);
+  margin: 0;
+}
+.sd-quadro-midia {
+  position: absolute;
+  inset: 0;
+  will-change: transform;
+}
+.sd-cortina {
+  position: absolute;
+  inset: 0;
+  background: var(--sd-creme);
+  z-index: 2;
+}
+.sd-legenda {
+  position: absolute;
+  left: 14px;
+  bottom: 14px;
+  z-index: 3;
+  background: var(--sd-creme);
+  border: 3px solid var(--sd-tinta);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+/* ── Capa ─────────────────────────────────────────────────────────────────── */
+.sd-capa {
+  position: relative;
+  min-height: 100svh;
+  overflow: hidden;
+  background: var(--sd-tinta);
+  display: flex;
+  align-items: center;
+}
+.sd-capa-midia {
+  position: absolute;
+  inset: -8% 0;
+  will-change: transform;
+}
+/* A foto é multidão em luz alta: sem este véu, tipografia creme sobre ela some.
+   Escuro embaixo, transparente no topo — o céu da foto continua respirando. */
+.sd-capa-veu {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(16, 16, 16, 0.72) 0%, rgba(16, 16, 16, 0.35) 38%, rgba(16, 16, 16, 0.88) 100%);
+}
+.sd-cue {
+  width: 26px;
+  height: 44px;
+  border: 3px solid var(--sd-creme);
+  border-radius: 999px;
+  position: relative;
+}
+.sd-cue::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 8px;
+  width: 4px;
+  height: 9px;
+  margin-left: -2px;
+  border-radius: 999px;
+  background: var(--sd-creme);
+  animation: sd-desce 1.6s ease-in-out infinite;
+}
+@keyframes sd-desce {
+  0% { transform: translateY(0); opacity: 0; }
+  30% { opacity: 1; }
+  70% { transform: translateY(15px); opacity: 0; }
+  100% { opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sd-cue::after { animation: none; }
+}
