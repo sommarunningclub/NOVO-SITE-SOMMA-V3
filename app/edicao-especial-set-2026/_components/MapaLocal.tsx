@@ -81,11 +81,11 @@ export default function MapaLocal() {
   return (
     <div className="sd-sticker overflow-hidden bg-[var(--sd-tinta)]">
       {falhou ? (
-        <div className="flex h-[260px] items-center justify-center bg-white px-6 text-center text-sm font-bold sm:h-[340px]">
+        <div className="flex h-[200px] items-center justify-center bg-white px-6 text-center text-sm font-bold sm:h-[340px]">
           {ENDERECO_COMPLETO}
         </div>
       ) : (
-        <div ref={ref} className="h-[260px] w-full sm:h-[340px]" aria-label={`Mapa: ${LOCAL_COMPLETO}`} />
+        <div ref={ref} className="h-[200px] w-full sm:h-[340px]" aria-label={`Mapa: ${LOCAL_COMPLETO}`} />
       )}
 
       <div className="flex flex-wrap items-center justify-between gap-3 border-t-[3px] border-[var(--sd-tinta)] bg-[var(--sd-creme)] px-5 py-4">

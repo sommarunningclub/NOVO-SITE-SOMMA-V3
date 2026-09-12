@@ -78,7 +78,7 @@ export default function Capa() {
 
       <div
         data-conteudo
-        className="relative z-10 mx-auto grid w-full max-w-[1200px] items-center gap-7 px-5 py-14 md:grid-cols-[0.8fr_1.2fr] md:gap-12 md:py-20"
+        className="sd-seguro-lados relative z-10 mx-auto grid w-full max-w-[1200px] items-center gap-7 py-14 md:grid-cols-[0.8fr_1.2fr] md:gap-12 md:py-20"
       >
         <div data-marca className="mx-auto w-full min-w-0 max-w-[260px] sm:max-w-[320px] md:max-w-none">
           <Image
@@ -95,7 +95,7 @@ export default function Capa() {
         <div className="min-w-0 text-[var(--sd-creme)]">
           <h1 className="sd-display text-[clamp(2.9rem,9vw,6rem)] leading-[1.02]">
             {["A corrida", "é só", "o começo."].map((linha, i) => (
-              <span key={linha} className="block overflow-hidden">
+              <span key={linha} className="sd-mask">
                 <span
                   data-linha
                   className="block"
@@ -122,7 +122,7 @@ export default function Capa() {
           <div data-apoio className="mt-7 flex flex-wrap items-center gap-4">
             <a
               href="#inscricao"
-              className="sd-botao inline-block bg-[var(--sd-vermelho)] px-9 py-5 text-sm font-extrabold uppercase tracking-[0.14em] text-[var(--sd-creme)]"
+              className="sd-botao sd-toque inline-block bg-[var(--sd-vermelho)] px-9 py-5 text-sm font-extrabold uppercase tracking-[0.14em] text-[var(--sd-creme)]"
               style={{ borderColor: "var(--sd-creme)", boxShadow: "6px 6px 0 var(--sd-creme)" }}
             >
               Garanta sua pulseira
