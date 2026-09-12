@@ -26,6 +26,7 @@ import Inscricao from "./_components/Inscricao";
 import Letreiro from "./_components/Letreiro";
 import MapaLocal from "./_components/MapaLocal";
 import Rastreio from "./_components/Rastreio";
+import BarraInscricao from "./_components/BarraInscricao";
 import "./somma-day.css";
 
 // A página é a peça mais compartilhada da edição. 60s de cache tira o banco do
@@ -51,7 +52,7 @@ function Titulo({
         <span className="px-3">·</span>
         {chapeu}
       </p>
-      <h2 className="sd-display mt-4 text-[clamp(2.4rem,7vw,4.4rem)] leading-[0.95]">{children}</h2>
+      <h2 className="sd-display mt-2 text-[clamp(1.85rem,7vw,4.4rem)] leading-[0.95]">{children}</h2>
     </Entra>
   );
 }
@@ -67,18 +68,19 @@ export default async function EdicaoEspecialSet2026() {
   return (
     <main>
       <Rastreio />
+      <BarraInscricao />
       <Capa />
       <Letreiro cor="var(--sd-amarelo)" texto="var(--sd-tinta)" />
 
       {/* ══ 01 · O que é ═══════════════════════════════════════════════════ */}
-      <section className="mx-auto max-w-[1200px] px-5 py-16 md:py-24">
+      <section className="mx-auto max-w-[1200px] px-5 py-8 md:py-24">
         <Titulo numero="01" chapeu="O que é">
           Não é prova.
           <br />
           <span className="text-[var(--sd-vermelho)]">É o nosso dia.</span>
         </Titulo>
 
-        <div className="mt-12 grid gap-10 md:grid-cols-[1.1fr_1fr] md:items-center md:gap-14">
+        <div className="mt-8 grid gap-10 md:grid-cols-[1.1fr_1fr] md:items-center md:gap-14">
           <Entra>
             <Foto
               src="/midiakit/comunidade.jpg"
@@ -105,7 +107,7 @@ export default async function EdicaoEspecialSet2026() {
                 d: `Abre às ${ABERTURA} e vai até ${ENCERRAMENTO}. A corrida ocupa uma hora; o resto do dia é o evento.`,
               },
             ].map((c) => (
-              <article key={c.t} className="sd-sticker bg-white px-7 py-6">
+              <article key={c.t} className="sd-sticker bg-white px-6 py-5 sm:px-7 sm:py-6">
                 <h3 className="sd-display text-[clamp(1.4rem,3.6vw,1.9rem)] leading-none">{c.t}</h3>
                 <p className="mt-3 text-[15px] font-medium leading-relaxed">{c.d}</p>
               </article>
@@ -115,7 +117,7 @@ export default async function EdicaoEspecialSet2026() {
       </section>
 
       {/* ══ 02 · Quando e onde ═════════════════════════════════════════════ */}
-      <section className="bg-[var(--sd-tinta)] px-5 py-16 text-[var(--sd-creme)] md:py-24">
+      <section className="bg-[var(--sd-tinta)] px-5 py-10 text-[var(--sd-creme)] md:py-24">
         <div className="mx-auto max-w-[1200px]">
           <Titulo numero="02" chapeu="Quando e onde" claro>
             <span className="text-[var(--sd-amarelo)]">{DATA_CURTA}</span>
@@ -123,7 +125,7 @@ export default async function EdicaoEspecialSet2026() {
             {LOCAL_COMPLETO}
           </Titulo>
 
-          <Entra stagger className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <Entra stagger className="mt-8 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
             {[
               ["Data", DATA_EXTENSO.replace("Sábado, ", "Sáb, ")],
               ["Abertura", `${ABERTURA} — credenciamento`],
@@ -143,54 +145,10 @@ export default async function EdicaoEspecialSet2026() {
         </div>
       </section>
 
-      {/* ══ 03 · Como se inscrever ═════════════════════════════════════════ */}
-      <section className="mx-auto max-w-[1200px] px-5 py-16 md:py-24">
-        <Titulo numero="03" chapeu="Como entrar">
-          Três passos.
-          <br />
-          <span className="text-[var(--sd-azul)]">Dois minutos.</span>
-        </Titulo>
-
-        <Entra stagger className="mt-12 grid gap-5 md:grid-cols-3">
-          {[
-            {
-              n: "01",
-              t: "Informe seu CPF",
-              d: "Se você já é do Somma, a gente te reconhece e não pede nada de novo. Se não, é um cadastro rápido que vale para as próximas edições.",
-              cor: "var(--sd-vermelho)",
-            },
-            {
-              n: "02",
-              t: "Escolha seu pelotão",
-              d: "5, 6 ou 8 km. Dá para trocar no dia, falando com a organização no credenciamento.",
-              cor: "var(--sd-azul)",
-            },
-            {
-              n: "03",
-              t: "Receba seu código",
-              d: "Ele aparece na tela e chega no seu e-mail. É esse código que vira sua pulseira na entrada.",
-              cor: "var(--sd-petroleo)",
-            },
-          ].map((p) => (
-            <article key={p.n} className="sd-sticker px-7 py-8 text-[var(--sd-creme)]" style={{ background: p.cor }}>
-              <p className="sd-display text-[2.8rem] leading-none opacity-70">{p.n}</p>
-              <h3 className="sd-display mt-2 text-[clamp(1.5rem,4vw,2rem)] leading-none">{p.t}</h3>
-              <p className="mt-4 text-[15px] font-semibold leading-relaxed">{p.d}</p>
-            </article>
-          ))}
-        </Entra>
-
-        <Entra className="mt-10">
-          <p className="text-[14px] font-bold uppercase tracking-[0.12em]">
-            Evento gratuito · Inscrição obrigatória · {ESCASSEZ_PUBLICA}
-          </p>
-        </Entra>
-      </section>
-
       <Letreiro cor="var(--sd-vermelho)" texto="var(--sd-creme)" />
 
       {/* ══ 04 · Pelotões ══════════════════════════════════════════════════ */}
-      <section className="bg-[var(--sd-azul)] px-5 py-16 text-[var(--sd-creme)] md:py-24">
+      <section className="bg-[var(--sd-azul)] px-5 py-10 text-[var(--sd-creme)] md:py-24">
         <div className="mx-auto max-w-[1200px]">
           <Titulo numero="04" chapeu={`Largada às ${LARGADA}`} claro>
             5K. 6K. 8K.
@@ -198,7 +156,7 @@ export default async function EdicaoEspecialSet2026() {
             <span className="text-[var(--sd-amarelo)]">Você escolhe.</span>
           </Titulo>
 
-          <div className="mt-12 grid gap-10 md:grid-cols-[1fr_1fr] md:items-center md:gap-14">
+          <div className="mt-8 grid gap-10 md:grid-cols-[1fr_1fr] md:items-center md:gap-14">
             <Entra stagger className="grid gap-4">
               {PELOTOES.map((p) => (
                 <div
@@ -219,7 +177,7 @@ export default async function EdicaoEspecialSet2026() {
               <Foto
                 src="/somma/IMG_1479_JPG.jpg"
                 alt="Corredores do SOMMA Club em movimento"
-                ratio={3 / 4}
+                ratio={16 / 10}
                 parallax={14}
                 direcao="right"
                 sizes="(max-width: 768px) 100vw, 45vw"
@@ -237,21 +195,21 @@ export default async function EdicaoEspecialSet2026() {
       </section>
 
       {/* ══ 05 · O que acontece no dia ═════════════════════════════════════ */}
-      <section className="mx-auto max-w-[1200px] px-5 py-16 md:py-24">
+      <section className="mx-auto max-w-[1200px] px-5 py-8 md:py-24">
         <Titulo numero="05" chapeu="O arco do dia">
           Corre cedo,
           <br />
           fica até mais tarde
         </Titulo>
 
-        <Entra stagger className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <Entra stagger className="mt-8 grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3">
           {JORNADA.map((j, i) => (
             <article
               key={j.titulo}
-              className={`sd-sticker ${i % 2 === 0 ? "sd-t3" : "sd-t2"} p-7`}
+              className={`sd-sticker ${i % 2 === 0 ? "sd-t3" : "sd-t2"} p-5 sm:p-7`}
               style={{ background: j.cor, color: j.cor === "#F2B002" ? "#101010" : "#F7F4E9" }}
             >
-              <p className="sd-display text-[2.4rem] leading-none opacity-70">
+              <p className="sd-display text-[1.8rem] leading-none opacity-70 sm:text-[2.4rem]">
                 {String(i + 1).padStart(2, "0")}
               </p>
               <h3 className="sd-display mt-2 text-[clamp(1.6rem,4vw,2.1rem)]">{j.titulo}</h3>
@@ -260,7 +218,7 @@ export default async function EdicaoEspecialSet2026() {
           ))}
         </Entra>
 
-        <div className="mt-12 grid gap-5 sm:grid-cols-3">
+        <div className="sd-trilho mt-8">
           <Entra>
             <Foto
               src="/midiakit/treino.jpg"
@@ -268,7 +226,7 @@ export default async function EdicaoEspecialSet2026() {
               ratio={1}
               parallax={10}
               legenda="Experiências"
-              sizes="(max-width: 768px) 100vw, 33vw"
+              sizes="(max-width: 768px) 78vw, 33vw"
             />
           </Entra>
           <Entra delay={0.08}>
@@ -278,7 +236,7 @@ export default async function EdicaoEspecialSet2026() {
               ratio={1}
               parallax={10}
               legenda="Sorteios"
-              sizes="(max-width: 768px) 100vw, 33vw"
+              sizes="(max-width: 768px) 78vw, 33vw"
             />
           </Entra>
           <Entra delay={0.16}>
@@ -288,14 +246,14 @@ export default async function EdicaoEspecialSet2026() {
               ratio={1}
               parallax={10}
               legenda="Celebração"
-              sizes="(max-width: 768px) 100vw, 33vw"
+              sizes="(max-width: 768px) 78vw, 33vw"
             />
           </Entra>
         </div>
       </section>
 
       {/* ══ 06 · Cronograma ════════════════════════════════════════════════ */}
-      <section className="bg-[#fffdf6] px-5 py-16 md:py-24">
+      <section className="bg-[#fffdf6] px-5 py-8 md:py-24">
         <div className="mx-auto max-w-[1200px]">
           <Titulo numero="06" chapeu={`${ABERTURA} às ${ENCERRAMENTO}`}>
             O dia inteiro,
@@ -303,18 +261,18 @@ export default async function EdicaoEspecialSet2026() {
             hora a hora
           </Titulo>
 
-          <Entra stagger className="mt-12">
+          <Entra stagger className="mt-8">
             {CRONOGRAMA.map((item) => (
               <div
                 key={item.hora}
-                className="sd-linha grid items-baseline gap-2 border-b-[3px] border-[var(--sd-tinta)] py-5 sm:grid-cols-[128px_1fr] sm:gap-6"
+                className="sd-linha grid grid-cols-[4.4rem_1fr] items-baseline gap-x-3 gap-y-0.5 border-b-[3px] border-[var(--sd-tinta)] py-3 sm:grid-cols-[128px_1fr] sm:gap-6 sm:py-5"
               >
                 <p className="sd-display text-[clamp(1.6rem,4vw,2.1rem)] leading-none" style={{ color: item.cor }}>
                   {item.hora}
                 </p>
                 <div>
-                  <h3 className="sd-display text-[clamp(1.4rem,3.4vw,1.9rem)] leading-none">{item.titulo}</h3>
-                  <p className="mt-2 max-w-2xl text-[15px] font-medium leading-relaxed">{item.texto}</p>
+                  <h3 className="sd-display text-[1.15rem] leading-none sm:text-[clamp(1.4rem,3.4vw,1.9rem)]">{item.titulo}</h3>
+                  <p className="mt-1.5 max-w-2xl text-[14px] font-medium leading-snug sm:mt-2 sm:text-[15px]">{item.texto}</p>
                 </div>
               </div>
             ))}
@@ -323,7 +281,7 @@ export default async function EdicaoEspecialSet2026() {
       </section>
 
       {/* ══ 07 · A pulseira ════════════════════════════════════════════════ */}
-      <section className="bg-[var(--sd-vermelho)] px-5 py-16 text-[var(--sd-creme)] md:py-24">
+      <section className="bg-[var(--sd-vermelho)] px-5 py-10 text-[var(--sd-creme)] md:py-24">
         <div className="mx-auto max-w-[1200px]">
           <Titulo numero="07" chapeu="O passaporte do dia" claro>
             Sem pulseira,
@@ -331,7 +289,7 @@ export default async function EdicaoEspecialSet2026() {
             <span className="text-[var(--sd-amarelo)]">sem o resto.</span>
           </Titulo>
 
-          <div className="mt-12 grid gap-11 md:grid-cols-[1fr_1fr] md:gap-16">
+          <div className="mt-8 grid gap-11 md:grid-cols-[1fr_1fr] md:gap-16">
             <Entra className="min-w-0">
               <p className="max-w-md text-[16px] font-semibold leading-relaxed">
                 Você se inscreve aqui, faz o check-in no Estacionamento 9 e recebe a pulseira
@@ -347,11 +305,11 @@ export default async function EdicaoEspecialSet2026() {
               </p>
             </Entra>
 
-            <Entra stagger className="grid content-start gap-3 sm:grid-cols-2">
+            <Entra stagger className="grid grid-cols-2 content-start gap-3">
               {BENEFICIOS.map((b) => (
                 <div
                   key={b}
-                  className="sd-sticker-creme bg-[var(--sd-vermelho)] px-5 py-4 text-[15px] font-extrabold uppercase tracking-[0.04em]"
+                  className="sd-sticker-creme bg-[var(--sd-vermelho)] px-4 py-3 text-[13px] font-extrabold uppercase tracking-[0.02em] sm:px-5 sm:py-4 sm:text-[15px]"
                 >
                   {b}
                 </div>
@@ -362,7 +320,7 @@ export default async function EdicaoEspecialSet2026() {
       </section>
 
       {/* ══ 08 · A comunidade ══════════════════════════════════════════════ */}
-      <section className="mx-auto max-w-[1200px] px-5 py-16 md:py-24">
+      <section className="mx-auto max-w-[1200px] px-5 py-8 md:py-24">
         <Titulo numero="08" chapeu="Quem faz">
           5.000 pessoas
           <br />
@@ -376,40 +334,44 @@ export default async function EdicaoEspecialSet2026() {
           </p>
         </Entra>
 
-        <div className="mt-12 grid gap-5 md:grid-cols-[1.3fr_1fr]">
-          <Entra>
+        {/* Trilho no celular; no desktop a primeira foto volta a mandar,
+            ocupando as duas linhas da coluna larga. */}
+        <div className="sd-trilho mt-8 md:!grid md:grid-cols-[1.3fr_1fr] md:grid-rows-2 md:gap-5">
+          <Entra className="md:row-span-2">
             <Foto
               src="/somma/EXQTSMM-284.jpg"
               alt="Foto oficial do grupo do SOMMA Club reunido no Parque da Cidade"
               ratio={16 / 10}
               parallax={12}
               priority={false}
-              sizes="(max-width: 768px) 100vw, 60vw"
+              sizes="(max-width: 768px) 78vw, 60vw"
             />
           </Entra>
-          <Entra delay={0.1} className="grid gap-5">
+          <Entra delay={0.1}>
             <Foto
               src="/midiakit/eixao2.jpg"
               alt="Pelotão do SOMMA Club correndo com a bandeira do clube"
               ratio={16 / 11}
               parallax={8}
               direcao="left"
-              sizes="(max-width: 768px) 100vw, 40vw"
+              sizes="(max-width: 768px) 78vw, 40vw"
             />
+          </Entra>
+          <Entra delay={0.18}>
             <Foto
               src="/midiakit/espacos.jpg"
               alt="Ativação de parceiro em um evento do SOMMA Club"
               ratio={16 / 11}
               parallax={8}
               direcao="right"
-              sizes="(max-width: 768px) 100vw, 40vw"
+              sizes="(max-width: 768px) 78vw, 40vw"
             />
           </Entra>
         </div>
       </section>
 
       {/* ══ 09 · Inscrição ═════════════════════════════════════════════════ */}
-      <section id="inscricao" className="bg-[var(--sd-amarelo)] px-5 py-16 md:py-24">
+      <section id="inscricao" className="bg-[var(--sd-amarelo)] px-5 py-8 md:py-24">
         <div className="mx-auto grid max-w-[1100px] gap-10 md:grid-cols-[0.85fr_1.15fr] md:gap-14">
           <Entra className="min-w-0">
             <p className="text-[11px] font-extrabold uppercase tracking-[0.3em] opacity-70">
@@ -426,9 +388,28 @@ export default async function EdicaoEspecialSet2026() {
               Gratuito, com inscrição obrigatória e {ESCASSEZ_PUBLICA.toLowerCase()}. Uma inscrição
               por CPF: se você já se inscreveu, o mesmo CPF devolve o seu código.
             </p>
+            {/* Os mesmos três passos que eram uma seção inteira. Aqui valem mais:
+                ficam ao lado do formulário que os executa, e o indicador de
+                etapa do próprio formulário continua a conversa. */}
+            <ol className="mt-7 grid gap-3">
+              {[
+                ["01", "Informe seu CPF", "Se você já é do Somma, a gente te reconhece."],
+                ["02", "Escolha seu pelotão", "5, 6 ou 8 km. Dá para trocar no dia."],
+                ["03", "Receba seu código", "Na tela e no e-mail. Ele vira sua pulseira."],
+              ].map(([n, t, d]) => (
+                <li key={n} className="flex gap-3">
+                  <span className="sd-display shrink-0 text-[1.5rem] leading-none text-[var(--sd-vermelho)]">{n}</span>
+                  <span className="min-w-0">
+                    <span className="block text-[14px] font-extrabold uppercase tracking-[0.06em]">{t}</span>
+                    <span className="mt-0.5 block text-[13px] font-medium leading-snug opacity-80">{d}</span>
+                  </span>
+                </li>
+              ))}
+            </ol>
+
             <p className="mt-6 text-[13px] font-bold uppercase tracking-[0.16em] opacity-70">
               Dúvida? Chama no{" "}
-              <a href={SOMMA.links.whatsapp} className="underline decoration-2 underline-offset-4">
+              <a href={SOMMA.links.whatsapp} className="sd-link-toque underline decoration-2 underline-offset-4">
                 WhatsApp
               </a>
             </p>
@@ -441,12 +422,12 @@ export default async function EdicaoEspecialSet2026() {
       </section>
 
       {/* ══ 10 · Perguntas ═════════════════════════════════════════════════ */}
-      <section className="mx-auto max-w-[1200px] px-5 py-16 md:py-24">
+      <section className="mx-auto max-w-[1200px] px-5 py-8 md:py-24">
         <Titulo numero="10" chapeu="Antes de perguntar">
           O básico
         </Titulo>
 
-        <Entra stagger className="mt-10 grid gap-4 md:grid-cols-2">
+        <Entra stagger className="mt-8 grid gap-3 md:grid-cols-2 md:gap-4">
           {[
             { p: "Quanto custa?", r: "Nada. O evento é gratuito — o que existe é inscrição obrigatória e vaga limitada." },
             { p: "Preciso correr?", r: `A corrida é o começo, não a obrigação. Largada às ${LARGADA}, e o evento segue até ${ENCERRAMENTO}.` },
@@ -455,10 +436,13 @@ export default async function EdicaoEspecialSet2026() {
             { p: "Dá para trocar de pelotão?", r: "No dia, fale com a organização no credenciamento. O pelotão da inscrição serve para organizar a largada." },
             { p: "Tem chopp?", r: `Tem, a partir das ${BEBIDA_HORA}, junto com o pagode. Com identificação para maiores de ${IDADE_MINIMA_BEBIDA}.` },
           ].map((item) => (
-            <article key={item.p} className="sd-sticker bg-white px-6 py-6">
-              <h3 className="sd-display text-[1.4rem] leading-none">{item.p}</h3>
-              <p className="mt-3 text-[15px] font-medium leading-relaxed">{item.r}</p>
-            </article>
+            <details key={item.p} className="sd-sanfona sd-sticker bg-white">
+              <summary className="sd-sanfona-topo">
+                <h3 className="sd-display text-[1.3rem] leading-none sm:text-[1.4rem]">{item.p}</h3>
+                <span className="sd-sanfona-seta" aria-hidden="true" />
+              </summary>
+              <p className="px-6 pb-6 text-[15px] font-medium leading-relaxed">{item.r}</p>
+            </details>
           ))}
         </Entra>
       </section>
@@ -466,7 +450,7 @@ export default async function EdicaoEspecialSet2026() {
       <Letreiro cor="var(--sd-amarelo)" texto="var(--sd-tinta)" />
 
       {/* ── Rodapé ───────────────────────────────────────────────────────── */}
-      <footer className="mx-auto flex max-w-[1200px] flex-col items-center gap-6 px-5 py-14 text-center">
+      <footer className="mx-auto flex max-w-[1200px] flex-col items-center gap-4 px-5 pt-10 pb-[calc(6.5rem+env(safe-area-inset-bottom))] text-center sm:gap-6 md:pt-14 md:pb-14">
         <p className="sd-display text-[clamp(1.6rem,5vw,2.6rem)] leading-none">{MOTE}</p>
         <a
           href="#inscricao"
@@ -476,13 +460,13 @@ export default async function EdicaoEspecialSet2026() {
         </a>
         <p className="text-[12px] font-extrabold uppercase tracking-[0.2em]">SOMMA Club · {CIDADE}</p>
         <div className="flex flex-wrap justify-center gap-5 text-[12px] font-extrabold uppercase tracking-[0.16em]">
-          <a href={SOMMA.links.instagram} className="underline decoration-2 underline-offset-4">
+          <a href={SOMMA.links.instagram} className="sd-link-toque underline decoration-2 underline-offset-4">
             Instagram
           </a>
-          <a href="/" className="underline decoration-2 underline-offset-4">
+          <a href="/" className="sd-link-toque underline decoration-2 underline-offset-4">
             sommaclub.com.br
           </a>
-          <a href="/check-in" className="underline decoration-2 underline-offset-4">
+          <a href="/check-in" className="sd-link-toque underline decoration-2 underline-offset-4">
             Check-in do sábado
           </a>
         </div>

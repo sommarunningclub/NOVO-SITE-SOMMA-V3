@@ -17,11 +17,18 @@ import { evento as rastrear } from "@/lib/somma-day/analytics";
  */
 type Etapa = "cpf" | "dados" | "pelotao" | "indo";
 
+/**
+ * `auto` é o token de preenchimento automático do iOS. Com ele o teclado
+ * oferece o nome, o e-mail e o telefone que a pessoa já tem salva no aparelho,
+ * e a inscrição deixa de ser digitação. `nascimento` fica de fora de propósito:
+ * é campo mascarado em dd/mm/aaaa e o autofill do sistema entrega em outro
+ * formato, o que sujaria o campo em vez de ajudar.
+ */
 const CAMPOS = {
-  nome: { rotulo: "Nome completo", placeholder: "Como está no documento", modo: "text" },
-  email: { rotulo: "E-mail", placeholder: "voce@email.com", modo: "email" },
-  telefone: { rotulo: "WhatsApp", placeholder: "(61) 90000-0000", modo: "tel" },
-  nascimento: { rotulo: "Nascimento", placeholder: "dd/mm/aaaa", modo: "numeric" },
+  nome: { rotulo: "Nome completo", placeholder: "Como está no documento", modo: "text", auto: "name" },
+  email: { rotulo: "E-mail", placeholder: "voce@email.com", modo: "email", auto: "email" },
+  telefone: { rotulo: "WhatsApp", placeholder: "(61) 90000-0000", modo: "tel", auto: "tel-national" },
+  nascimento: { rotulo: "Nascimento", placeholder: "dd/mm/aaaa", modo: "numeric", auto: "off" },
 } as const;
 
 type CampoId = keyof typeof CAMPOS;
@@ -251,6 +258,7 @@ export default function Inscricao({ aberto }: { aberto: boolean }) {
             className="sd-campo"
             inputMode="numeric"
             autoComplete="off"
+            enterKeyHint="go"
             value={cpf}
             onChange={(e) => {
               setCpf(formatCPF(e.target.value));
@@ -292,8 +300,13 @@ export default function Inscricao({ aberto }: { aberto: boolean }) {
                   <input
                     id={`sd-${campo}`}
                     className="sd-campo"
-                    type={meta.modo === "email" ? "email" : "text"}
+                    type={meta.modo === "email" ? "email" : meta.modo === "tel" ? "tel" : "text"}
                     inputMode={meta.modo === "numeric" || meta.modo === "tel" ? "numeric" : undefined}
+                    autoComplete={meta.auto}
+                    autoCapitalize={campo === "nome" ? "words" : "off"}
+                    autoCorrect="off"
+                    spellCheck={false}
+                    enterKeyHint={campo === pedir[pedir.length - 1] ? "go" : "next"}
                     value={dados[campo]}
                     placeholder={meta.placeholder}
                     aria-invalid={Boolean(erros[campo])}

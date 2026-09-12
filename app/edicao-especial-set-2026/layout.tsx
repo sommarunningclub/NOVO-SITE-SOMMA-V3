@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Anton, Archivo } from "next/font/google";
 import {
   ABERTURA,
@@ -64,6 +64,29 @@ const jsonLd = {
     availability: "https://schema.org/InStock",
     url: `${SITE_URL}${EVENTO_PATH}#inscricao`,
   },
+};
+
+/**
+ * Viewport da rota.
+ *
+ * `viewport-fit=cover` é o que destrava `env(safe-area-inset-*)`: sem ele o
+ * iOS reserva as faixas do notch e da barra de gestos e a página nunca encosta
+ * na borda do aparelho. Com ele, a capa sangra de ponta a ponta e cada peça
+ * pede seu próprio recuo.
+ *
+ * `themeColor` pinta a barra do Safari. É o detalhe que mais separa "site
+ * aberto no navegador" de "aplicativo": em vez da faixa branca padrão, o topo
+ * recebe o mesmo tinta da capa. Claro e escuro apontam para a mesma cor porque
+ * a capa é escura nos dois casos.
+ */
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#101010" },
+    { media: "(prefers-color-scheme: dark)", color: "#101010" },
+  ],
 };
 
 export const metadata: Metadata = {

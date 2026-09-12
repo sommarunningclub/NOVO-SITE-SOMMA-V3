@@ -19,6 +19,14 @@
   color: var(--sd-tinta);
   font-family: var(--sd-copy), system-ui, sans-serif;
   overflow-x: clip;
+
+  /* No iOS, cada toque pinta um retângulo cinza por cima do elemento. O
+     retorno de toque desta rota é o próprio adesivo afundando (:active), que
+     é mais rápido e combina com a linguagem — o flash do sistema só atrapalha. */
+  -webkit-tap-highlight-color: transparent;
+  /* Sem isto, o rubber-band do Safari puxa a página e mostra o fundo branco do
+     body atrás do creme. Com isto, o elástico para na própria rota. */
+  overscroll-behavior-y: none;
 }
 
 .somma-day-root ::selection {
@@ -144,7 +152,11 @@
   box-shadow: 6px 6px 0 var(--sd-tinta);
   transition: transform 120ms ease, box-shadow 120ms ease;
 }
-.sd-botao:hover { transform: translate(2px, 2px); box-shadow: 4px 4px 0 var(--sd-tinta); }
+/* Ponteiro fino só: no toque o iOS mantém :hover preso depois do tap e o
+   botão fica parecendo travado. */
+@media (hover: hover) and (pointer: fine) {
+  .sd-botao:hover { transform: translate(2px, 2px); box-shadow: 4px 4px 0 var(--sd-tinta); }
+}
 .sd-botao:active { transform: translate(6px, 6px); box-shadow: 0 0 0 var(--sd-tinta); }
 .sd-botao:disabled { opacity: 0.55; transform: none; box-shadow: 6px 6px 0 var(--sd-tinta); cursor: not-allowed; }
 
@@ -178,7 +190,9 @@
   text-transform: uppercase;
   transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease, color 120ms ease;
 }
-.sd-pelotao:hover { transform: translate(-1px, -1px); box-shadow: 5px 5px 0 var(--sd-tinta); }
+@media (hover: hover) and (pointer: fine) {
+  .sd-pelotao:hover { transform: translate(-1px, -1px); box-shadow: 5px 5px 0 var(--sd-tinta); }
+}
 .sd-pelotao[aria-pressed="true"] {
   background: var(--sd-vermelho);
   color: var(--sd-creme);
@@ -320,4 +334,168 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .sd-cue::after { animation: none; }
+}
+
+/* ════ iPhone ════════════════════════════════════════════════════════════════
+   Esta rota é aberta quase inteira no celular, quase sempre pelo Instagram.
+   O que vem abaixo existe para ela se comportar como aplicativo, sem abrir mão
+   da linguagem de adesivo: área segura, retorno de toque, trilho com encaixe e
+   a barra de inscrição sempre à mão. */
+
+/* ── O acento decepado da capa ───────────────────────────────────────────────
+   "É SÓ" saía "E SO" na capa, e só na capa: as outras seções, com a mesma
+   fonte e a mesma entrelinha, mostravam o acento.
+
+   Não era recorte da máscara — com overflow visível o acento continuava
+   sumido — nem falta de glifo: a Anton desenha É, Ó, Ã e Ç sem problema. O
+   que decepa é a caixa de linha. As linhas da capa são as únicas animadas uma
+   a uma pelo GSAP; a camada de composição criada para animá-las recorta na
+   borda da caixa do elemento, e com entrelinha 0.9 essa borda passa por baixo
+   do acento, que na Anton é altíssimo.
+
+   A cura é dar altura à caixa de linha. Testado corpo a corpo: 0.9 e 1.02
+   decepam, 1.15 é o primeiro valor que mostra o acento inteiro. Padding não
+   resolve, porque não muda a caixa de linha.
+
+   Não use `leading-*` do Tailwind aqui: `.sd-display` já define line-height e
+   ganha da utilitária por ordem de origem — foi o que anulou o `leading-[1.02]`
+   escrito no <h1> e deixou o título em 0.9 sem ninguém perceber. */
+.sd-capa h1 {
+  line-height: 1.15;
+}
+.sd-mask {
+  display: block;
+  overflow: hidden;
+}
+
+/* ── Área segura ─────────────────────────────────────────────────────────────
+   Com viewport-fit=cover a página vai até a borda física do aparelho. Estes
+   recuos mantêm o conteúdo longe do notch, da barra de gestos e dos cantos
+   arredondados, e valem zero em qualquer aparelho sem recorte. */
+.sd-capa {
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.sd-seguro-lados {
+  padding-left: max(1.25rem, env(safe-area-inset-left));
+  padding-right: max(1.25rem, env(safe-area-inset-right));
+}
+
+/* ── Retorno de toque ────────────────────────────────────────────────────────
+   Sem o flash do sistema, o retorno passa a ser físico: o adesivo afunda na
+   direção da sombra e a sombra some, como papel pressionado. */
+.sd-toque {
+  transition: transform 90ms ease-out, box-shadow 90ms ease-out, filter 90ms ease-out;
+}
+.sd-toque:active {
+  transform: translate(3px, 3px) scale(0.99);
+  box-shadow: 2px 2px 0 var(--sd-tinta) !important;
+}
+
+/* ── Trilho horizontal ───────────────────────────────────────────────────────
+   No celular, três fotos empilhadas viram mil pixels de rolagem. Em trilho, as
+   mesmas três cabem em uma tela e o encaixe por item dá a cadência de galeria
+   de aplicativo. A barra de rolagem sai: quem usa toque não precisa dela. */
+.sd-trilho {
+  display: flex;
+  gap: 0.875rem;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  /* Sangra até a borda da tela e devolve o recuo por dentro: o trilho encosta
+     no canto, o conteúdo não. */
+  margin-inline: -1.25rem;
+  padding-inline: 1.25rem;
+  padding-bottom: 0.5rem;
+}
+.sd-trilho::-webkit-scrollbar { display: none; }
+.sd-trilho > * {
+  flex: 0 0 78%;
+  scroll-snap-align: center;
+}
+@media (min-width: 640px) {
+  .sd-trilho { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin-inline: 0; padding-inline: 0; overflow: visible; }
+  .sd-trilho > * { flex: initial; }
+}
+
+/* ── Barra de inscrição ──────────────────────────────────────────────────────
+   O formulário fica no fim de uma página longa. Sem isto, quem decide no meio
+   do caminho precisa rolar até o fim para agir. A barra só aparece depois que
+   a capa sai de cena e some quando o próprio formulário está na tela, para não
+   competir com ele. */
+.sd-barra {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 40;
+  padding: 0.75rem max(1rem, env(safe-area-inset-left)) calc(0.75rem + env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-right));
+  background: color-mix(in srgb, var(--sd-creme) 88%, transparent);
+  -webkit-backdrop-filter: saturate(180%) blur(18px);
+  backdrop-filter: saturate(180%) blur(18px);
+  border-top: 3px solid var(--sd-tinta);
+  transform: translateY(110%);
+  transition: transform 280ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+.sd-barra[data-visivel="true"] { transform: translateY(0); }
+@media (prefers-reduced-motion: reduce) {
+  .sd-barra { transition: none; }
+}
+@media (min-width: 768px) {
+  .sd-barra { display: none; }
+}
+
+/* ── Sanfona das perguntas ───────────────────────────────────────────────────
+   Seis perguntas abertas ocupavam quase uma tela e meia de rolagem para
+   responder o que a maioria não perguntou. Fechadas, a lista inteira cabe em
+   uma tela e cada uma abre sob demanda.
+
+   É <details> de propósito, não um acordeão de JavaScript: já vem com estado,
+   teclado, foco e leitor de tela prontos, e o Ctrl+F do navegador continua
+   encontrando o texto de dentro. */
+.sd-sanfona {
+  overflow: hidden;
+}
+.sd-sanfona-topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  /* Alvo de toque de 44pt mesmo na pergunta mais curta. */
+  min-height: 44px;
+  padding: 1.05rem 1.25rem;
+  cursor: pointer;
+  list-style: none;
+  -webkit-tap-highlight-color: transparent;
+}
+/* O triângulo padrão do Safari aparece mesmo com list-style: none. */
+.sd-sanfona-topo::-webkit-details-marker { display: none; }
+.sd-sanfona-seta {
+  flex: none;
+  width: 11px;
+  height: 11px;
+  border-right: 3px solid var(--sd-tinta);
+  border-bottom: 3px solid var(--sd-tinta);
+  transform: rotate(45deg) translate(-2px, -2px);
+  transition: transform 180ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+.sd-sanfona[open] .sd-sanfona-seta {
+  transform: rotate(225deg) translate(-2px, -2px);
+}
+.sd-sanfona-topo:active { background: rgba(16, 16, 16, 0.04); }
+@media (prefers-reduced-motion: reduce) {
+  .sd-sanfona-seta { transition: none; }
+}
+
+/* ── Link de texto como alvo de dedo ─────────────────────────────────────────
+   Um link de 18px de altura é confortável de clicar com o mouse e ruim de
+   acertar com o polegar. O padding leva a área de toque aos 44pt da diretriz
+   da Apple e a margem negativa devolve o espaço, então nada se move na
+   página — cresce só o que o dedo enxerga. */
+.sd-link-toque {
+  display: inline-block;
+  padding-block: 0.8rem;
+  margin-block: -0.8rem;
 }
