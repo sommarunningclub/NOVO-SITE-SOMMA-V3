@@ -1,9 +1,9 @@
 import { SOMMA } from "@/lib/somma-data";
+import { Footer } from "@/components/footer";
 import {
   ABERTURA,
   BEBIDA_HORA,
   BENEFICIOS,
-  CIDADE,
   CRONOGRAMA,
   DATA_CURTA,
   DATA_EXTENSO,
@@ -66,6 +66,7 @@ export default async function EdicaoEspecialSet2026() {
     : STATUS === "inscricoes_abertas";
 
   return (
+    <>
     <main>
       <Rastreio />
       <BarraInscricao />
@@ -372,8 +373,8 @@ export default async function EdicaoEspecialSet2026() {
 
       {/* ══ 09 · Inscrição ═════════════════════════════════════════════════ */}
       <section id="inscricao" className="bg-[var(--sd-amarelo)] px-5 py-8 md:py-24">
-        <div className="mx-auto grid max-w-[1100px] gap-10 md:grid-cols-[0.85fr_1.15fr] md:gap-14">
-          <Entra className="min-w-0">
+        <div className="mx-auto grid max-w-[1100px] gap-10 md:grid-cols-[0.85fr_1.15fr] md:grid-rows-[auto_1fr] md:gap-14">
+          <Entra className="min-w-0 md:col-start-1 md:row-start-1">
             <p className="text-[11px] font-extrabold uppercase tracking-[0.3em] opacity-70">
               09 · Sua vaga
             </p>
@@ -415,8 +416,24 @@ export default async function EdicaoEspecialSet2026() {
             </p>
           </Entra>
 
-          <Entra>
+          {/* No desktop o formulário ocupa a coluna da direita inteira e a foto
+              fecha a coluna da esquerda. No celular a ordem muda de propósito:
+              o formulário vem antes da foto, porque meio milhar de pixels de
+              imagem entre a copy e o campo de CPF empurraria a conversão para
+              baixo. */}
+          <Entra className="md:col-start-2 md:row-span-2 md:row-start-1">
             <Inscricao aberto={aberto} />
+          </Entra>
+
+          <Entra className="md:col-start-1 md:row-start-2">
+            <Foto
+              src="/somma-day/eixao-11.jpg"
+              alt="Participante do SOMMA Club comemorando com o brinde de um parceiro"
+              ratio={4 / 5}
+              parallax={10}
+              legenda="Todo mundo leva alguma coisa"
+              sizes="(max-width: 768px) 100vw, 38vw"
+            />
           </Entra>
         </div>
       </section>
@@ -449,28 +466,26 @@ export default async function EdicaoEspecialSet2026() {
 
       <Letreiro cor="var(--sd-amarelo)" texto="var(--sd-tinta)" />
 
-      {/* ── Rodapé ───────────────────────────────────────────────────────── */}
-      <footer className="mx-auto flex max-w-[1200px] flex-col items-center gap-4 px-5 pt-10 pb-[calc(6.5rem+env(safe-area-inset-bottom))] text-center sm:gap-6 md:pt-14 md:pb-14">
+      {/* ── Fecho ────────────────────────────────────────────────────────
+          O último convite antes do rodapé. Fica fora do <footer> porque é
+          conteúdo da página, não rodapé: quem chega aqui rolando merece o
+          botão à mão, e o rodapé abaixo é o do site, igual ao das outras
+          rotas. */}
+      <section className="mx-auto flex max-w-[1200px] flex-col items-center gap-4 px-5 py-10 text-center sm:gap-6 md:py-14">
         <p className="sd-display text-[clamp(1.6rem,5vw,2.6rem)] leading-none">{MOTE}</p>
         <a
           href="#inscricao"
-          className="sd-botao bg-[var(--sd-vermelho)] px-9 py-5 text-sm font-extrabold uppercase tracking-[0.14em] text-[var(--sd-creme)]"
+          className="sd-botao sd-toque bg-[var(--sd-vermelho)] px-9 py-5 text-sm font-extrabold uppercase tracking-[0.14em] text-[var(--sd-creme)]"
         >
           Garanta sua pulseira
         </a>
-        <p className="text-[12px] font-extrabold uppercase tracking-[0.2em]">SOMMA Club · {CIDADE}</p>
-        <div className="flex flex-wrap justify-center gap-5 text-[12px] font-extrabold uppercase tracking-[0.16em]">
-          <a href={SOMMA.links.instagram} className="sd-link-toque underline decoration-2 underline-offset-4">
-            Instagram
-          </a>
-          <a href="/" className="sd-link-toque underline decoration-2 underline-offset-4">
-            sommaclub.com.br
-          </a>
-          <a href="/check-in" className="sd-link-toque underline decoration-2 underline-offset-4">
-            Check-in do sábado
-          </a>
-        </div>
-      </footer>
+      </section>
     </main>
+
+      {/* Rodapé do site, o mesmo de sommaclub.com.br. */}
+      <div className="sd-rodape-site">
+        <Footer />
+      </div>
+    </>
   );
 }
