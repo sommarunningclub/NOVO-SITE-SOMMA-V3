@@ -499,3 +499,21 @@
   padding-block: 0.8rem;
   margin-block: -0.8rem;
 }
+
+/* ── Rodapé do site dentro da rota ───────────────────────────────────────────
+   A rota tem tipografia própria e `.somma-day-root` passa a Archivo para todo
+   descendente — inclusive para o rodapé compartilhado, que no resto do site é
+   Geist. Aqui ele volta a ser o que é lá fora.
+
+   O fundo repetido não é decoração: a folga que reservamos para a barra de
+   inscrição fixa fica DENTRO do rodapé, e sem ela a faixa sairia creme por
+   baixo do preto. */
+.sd-rodape-site {
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  background: var(--dark-bg, #000);
+}
+@media (max-width: 767px) {
+  .sd-rodape-site {
+    padding-bottom: calc(5rem + env(safe-area-inset-bottom));
+  }
+}
