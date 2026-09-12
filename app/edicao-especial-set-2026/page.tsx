@@ -373,8 +373,8 @@ export default async function EdicaoEspecialSet2026() {
 
       {/* ══ 09 · Inscrição ═════════════════════════════════════════════════ */}
       <section id="inscricao" className="bg-[var(--sd-amarelo)] px-5 py-8 md:py-24">
-        <div className="mx-auto grid max-w-[1100px] gap-10 md:grid-cols-[0.85fr_1.15fr] md:grid-rows-[auto_1fr] md:gap-14">
-          <Entra className="min-w-0 md:col-start-1 md:row-start-1">
+        <div className="mx-auto grid max-w-[1100px] gap-10 md:grid-cols-[0.85fr_1.15fr] md:gap-14">
+          <Entra className="min-w-0 md:col-start-1 md:row-start-2">
             <p className="text-[11px] font-extrabold uppercase tracking-[0.3em] opacity-70">
               09 · Sua vaga
             </p>
@@ -416,16 +416,17 @@ export default async function EdicaoEspecialSet2026() {
             </p>
           </Entra>
 
-          {/* No desktop o formulário ocupa a coluna da direita inteira e a foto
-              fecha a coluna da esquerda. No celular a ordem muda de propósito:
-              o formulário vem antes da foto, porque meio milhar de pixels de
-              imagem entre a copy e o campo de CPF empurraria a conversão para
-              baixo. */}
-          <Entra className="md:col-start-2 md:row-span-2 md:row-start-1">
+          {/* No desktop foto e formulário dividem a primeira linha, com as
+              bordas alinhadas, e o texto desce para baixo da foto. A foto larga
+              a proporção fixa e assume a altura que o formulário tiver —
+              inclusive quando ele cresce nas etapas seguintes. No celular vale
+              a ordem do DOM: texto, formulário, foto. Meio milhar de pixels de
+              imagem antes do campo de CPF empurraria a conversão para baixo. */}
+          <Entra className="md:col-start-2 md:row-start-1">
             <Inscricao aberto={aberto} />
           </Entra>
 
-          <Entra className="md:col-start-1 md:row-start-2">
+          <Entra className="md:col-start-1 md:row-start-1 md:h-full">
             <Foto
               src="/somma-day/eixao-11.jpg"
               alt="Participante do SOMMA Club comemorando com o brinde de um parceiro"
@@ -433,6 +434,7 @@ export default async function EdicaoEspecialSet2026() {
               parallax={10}
               legenda="Todo mundo leva alguma coisa"
               sizes="(max-width: 768px) 100vw, 38vw"
+              className="md:h-full md:!aspect-auto"
             />
           </Entra>
         </div>
