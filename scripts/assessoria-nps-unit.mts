@@ -335,6 +335,43 @@ caso("todo valor do código existe no CHECK da migration", () => {
   }
 });
 
+// ─── Rodadas ────────────────────────────────────────────────────────────────
+const { SLUG_RE, rotuloDoPeriodo, situacaoDaRodada } = await import("../lib/assessoria-nps/rodada");
+
+caso("rótulo do bimestre", () => {
+  assert.equal(rotuloDoPeriodo("2026-B5"), "set–out 2026");
+  assert.equal(rotuloDoPeriodo("2027-B1"), "jan–fev 2027");
+  assert.equal(rotuloDoPeriodo("2026-09"), null, "formato antigo não ganha rótulo");
+  assert.equal(rotuloDoPeriodo(null), null);
+});
+
+caso("situação da rodada pela janela", () => {
+  const rodada = {
+    id: "x",
+    slug: "2026-nov-dez",
+    title: "t",
+    survey_version: "assessoria_nps_v1",
+    reference_period: "2026-B6",
+    status: "active" as const,
+    opens_at: "2026-11-01T10:00:00Z",
+    closes_at: "2026-11-16T02:59:00Z",
+  };
+  assert.equal(situacaoDaRodada(rodada, new Date("2026-10-31T10:00:00Z")).status, "agendada");
+  assert.equal(situacaoDaRodada(rodada, new Date("2026-11-01T10:00:00Z")).status, "ok", "abre no instante exato");
+  assert.equal(situacaoDaRodada(rodada, new Date("2026-11-16T02:59:00Z")).status, "encerrada", "fecha no instante exato");
+  assert.equal(situacaoDaRodada({ ...rodada, closes_at: null }, new Date("2030-01-01T00:00:00Z")).status, "ok");
+  assert.equal(situacaoDaRodada({ ...rodada, status: "draft" }, new Date("2026-11-05T10:00:00Z")).status, "nao_encontrada");
+  assert.equal(situacaoDaRodada({ ...rodada, status: "closed" }, new Date("2026-11-05T10:00:00Z")).status, "encerrada");
+});
+
+caso("formato do código da rodada", () => {
+  assert.ok(SLUG_RE.test("2026-set-out"));
+  assert.ok(SLUG_RE.test("assessoria-nps-2026-09"));
+  assert.ok(!SLUG_RE.test("2026--set"));
+  assert.ok(!SLUG_RE.test("Set-Out"));
+  assert.ok(!SLUG_RE.test("../convite"));
+});
+
 // ─── Resultado ──────────────────────────────────────────────────────────────
 if (falhas.length) {
   console.error(falhas.join("\n\n"));

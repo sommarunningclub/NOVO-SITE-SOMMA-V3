@@ -6,8 +6,10 @@ export interface ConviteInicial {
 }
 
 export type EstadoInicial =
-  | { tipo: "aberta"; campanha: string; convite: ConviteInicial | null }
-  | { tipo: "encerrada" }
+  | { tipo: "aberta"; campanha: string; rotulo: string | null; convite: ConviteInicial | null }
+  | { tipo: "agendada"; abreEm: string | null; rotulo: string | null }
+  | { tipo: "encerrada"; rotulo: string | null }
+  | { tipo: "nao-encontrada" }
   | { tipo: "indisponivel" };
 
 /** O botão do rodapé fica fora do <form>; o atributo `form` liga os dois. */

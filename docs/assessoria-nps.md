@@ -3,6 +3,10 @@
 Pesquisa de experiência dos alunos da Assessoria, com NPS, em
 `https://sommaclub.com.br/assessoria/nps`.
 
+As rodadas (uma a cada dois meses) são criadas e acompanhadas no painel:
+admin.sommaclub.com.br › NPS Assessoria (repositório v0-sistema-somma-de-gestao-l7).
+O site só coleta; relatório, links pessoais e tratativas moram no painel.
+
 Não é anônima: pede nome e sobrenome, e vincula a resposta ao aluno quando é
 possível saber quem é.
 
@@ -10,8 +14,9 @@ possível saber quem é.
 
 | Rota | O que faz |
 | --- | --- |
-| `GET /assessoria/nps` | A pesquisa. Server component lê a campanha ativa e o cookie do convite; o resto é client. `noindex`. |
-| `GET /assessoria/nps/convite/<token>` | Link pessoal. Troca o token por cookie httpOnly (`somma_nps_convite`) e redireciona (303) para a URL limpa. Token inválido cai na pesquisa normal. |
+| `GET /assessoria/nps` | Link geral: abre a rodada publicada cuja janela contém agora. Sem nenhuma no ar, mostra a próxima agendada ou "encerrada". `noindex`. |
+| `GET /assessoria/nps/<slug>` | Link da rodada. Mostra a pesquisa, "ainda não abriu" (com data), "encerrada" ou "link inválido" (inclusive para rascunho). |
+| `GET /assessoria/nps/convite/<token>` | Link pessoal. Troca o token por cookie httpOnly (`somma_nps_convite`) e redireciona (303) para o link da rodada do convite. Token inválido cai no link geral. |
 | `POST /api/assessoria/nps` | Grava a resposta. Rate limit (20 a cada 10 min por IP), limite de 64 KB, zod + regras condicionais, service role. |
 | `DELETE /api/assessoria/nps/convite` | "Responder por outra pessoa neste aparelho": apaga o cookie do convite. |
 
@@ -29,10 +34,12 @@ lib/assessoria-nps/
   nome.ts        caixa, validação e casamento de nomes
   storage.ts     rascunho no localStorage
   analytics.ts   eventos para dataLayer/gtag, sem conteúdo de resposta
-  db.ts          server-only: campanha, convite, casamento por nome, insert
+  rodada.ts      situação da rodada pela janela e rótulo do bimestre (puro)
+  db.ts          server-only: rodada por slug ou atual, convite, casamento por nome, insert
 
 app/assessoria/nps/
-  page.tsx, nps.css, convite/[token]/route.ts
+  layout.tsx (metadata e estilos), page.tsx, [rodada]/page.tsx, convite/[token]/route.ts
+  _lib/estado-inicial.ts   resolve rodada, convite e estado da tela no servidor
   _components/
     NpsSurvey.tsx, SurveyFlow.tsx, useSurvey.ts, survey-api.ts, QuestionRenderer.tsx, types.ts
     screens/  IntroScreen, IdentityScreen, QuestionScreen, StatusScreen
@@ -42,8 +49,9 @@ app/assessoria/nps/
 
 app/api/assessoria/nps/route.ts, app/api/assessoria/nps/convite/route.ts
 supabase/migrations/20260914120000_assessoria_nps.sql
+supabase/migrations/20260914170000_assessoria_nps_rodadas.sql
 scripts/assessoria-nps-unit.mts       testes das regras (npx tsx …)
-scripts/assessoria-nps-convites.mts   gera os links pessoais
+scripts/assessoria-nps-convites.mts   gera os links pessoais (o painel faz o mesmo)
 ```
 
 Para mudar uma pergunta, edite só `survey.ts`. Mudou o sentido, a escala ou as
@@ -53,18 +61,28 @@ tiver um valor que o banco não aceita.
 
 ## Banco
 
-Migration `20260914120000_assessoria_nps.sql`, aplicada no projeto
-`sommarunning_2026`. Não altera nenhuma tabela existente.
+Migrations `20260914120000_assessoria_nps.sql` e `20260914170000_assessoria_nps_rodadas.sql`,
+aplicadas no projeto `sommarunning_2026`. Não alteram nenhuma tabela existente
+fora das `nps_assessoria_*`.
 
 ### `nps_assessoria_campaigns`
 
 Uma rodada da pesquisa. Rodada nova é linha nova; o histórico nunca é sobrescrito.
 
-`id`, `slug` (único), `title`, `survey_version`, `reference_period` (ex.: `2026-09`),
-`status` (`draft`/`active`/`closed`), `opens_at`, `closes_at`, `created_at`, `updated_at`.
+`id`, `slug` (único, é o código do link), `title`, `survey_version`,
+`reference_period` (`2026-B5` = set–out 2026), `status` (`draft`/`active`/`closed`),
+`opens_at`, `closes_at`, `created_by`, `updated_by`, `created_at`, `updated_at`.
 
-Índice único parcial `nps_assessoria_campaigns_uma_ativa`: só uma campanha ativa
-por vez. Primeira rodada: `assessoria-nps-2026-09`, versão `assessoria_nps_v1`.
+Várias rodadas podem estar publicadas (a atual e a próxima agendada), mas a
+restrição de exclusão `nps_assessoria_campaigns_sem_sobreposicao` impede que
+duas rodadas `active` tenham janelas sobrepostas (`closes_at` nulo vale até o
+infinito). Publicada exige `opens_at`. O slug `convite` é reservado.
+
+"Agendada", "no ar" e "encerrada por data" não são gravados: saem de `status` +
+janela, no site (`lib/assessoria-nps/rodada.ts`) e no painel com a mesma regra.
+
+Primeira rodada: slug `assessoria-nps-2026-09` (mantido porque já estava no ar),
+período `2026-B5`. As próximas usam o padrão do painel, ex.: `2026-nov-dez`.
 
 ### `nps_assessoria_invites`
 
@@ -72,7 +90,8 @@ Link pessoal por aluno por rodada.
 
 `id`, `campaign_id`, `token` (único, 24 bytes base64url), `student_asaas_id`,
 `first_name`, `last_name`, `professor_id` (FK `professors`, set null),
-`professor_name`, `opened_at`, `created_at`. Único `(campaign_id, student_asaas_id)`.
+`professor_name`, `opened_at`, `shared_at`, `shared_by`, `created_at`.
+Único `(campaign_id, student_asaas_id)`.
 
 ### `nps_assessoria_responses`
 
@@ -124,9 +143,17 @@ Por rodada: total, promotores, neutros, detratores, NPS, médias por dimensão
 custo benefício, renovação), interesse na semana, seg/qua x ter/qui, períodos e
 tempo médio. `security_invoker = true`.
 
+### `nps_assessoria_followups` e `nps_assessoria_followup_events`
+
+Tratativas do painel. Todo detrator (nota 0 a 6) e todo aluno com 6 ou menos na
+chance de renovar precisa de uma; sem linha = pendente. `followups` guarda o
+estado atual (`status` pending/in_progress/resolved/no_action, `owner_name`,
+`resolved_at`, `updated_by`); `followup_events` é o histórico (mudança de status
+ou anotação, `author`), que só cresce. Apagar a resposta apaga os dois.
+
 ### RLS
 
-Postura da casa: RLS ligado nas três tabelas e **nenhuma policy**. `anon` e
+Postura da casa: RLS ligado em todas as tabelas `nps_assessoria_*` e **nenhuma policy**. `anon` e
 `authenticated` não têm grant nenhum (conferido: a anon key recebe
 `42501 permission denied` para ler e para gravar, inclusive na view). O
 formulário grava pela rota da API, server-side, com `SUPABASE_SERVICE_ROLE_KEY`,
@@ -175,28 +202,23 @@ Eventos no `dataLayer` (GTM) e `gtag`: `nps_survey_opened`, `nps_survey_started`
 
 ## Operação
 
-### Gerar links pessoais
+Tudo pelo painel (NPS Assessoria):
+
+- **Nova rodada:** escolher o bimestre preenche título, código do link e uma
+  janela de 15 dias. Cria como rascunho ou já publicada (agendada até abrir).
+- **Encerrar / reabrir por 7 dias / voltar para rascunho** na tela da rodada.
+- **Divulgação:** link da rodada, um link por canal (`?origem=`) e os links
+  pessoais dos alunos ativos, com copiar, WhatsApp e situação (não enviado,
+  enviado, abriu, respondeu).
+- **Tratativas:** status, responsável e anotações na ficha da resposta.
+- **Respostas:** lista, ficha completa e exportação CSV.
+
+O script continua existindo para uso fora do painel:
 
 ```bash
-npx tsx scripts/assessoria-nps-convites.mts                          # simula e conta
-npx tsx scripts/assessoria-nps-convites.mts --gerar --saida convites.csv
+npx tsx scripts/assessoria-nps-convites.mts --rodada 2026-nov-dez
+npx tsx scripts/assessoria-nps-convites.mts --rodada 2026-nov-dez --gerar --saida convites.csv
 ```
-
-Usa os alunos ativos de `professor_clients`. Rodar de novo cria só os que faltam
-e não troca link de ninguém. O CSV tem dado pessoal: não versionar.
-
-### Abrir nova rodada
-
-```sql
-begin;
-update nps_assessoria_campaigns set status = 'closed', closes_at = now() where status = 'active';
-insert into nps_assessoria_campaigns (slug, title, survey_version, reference_period, status, opens_at)
-values ('assessoria-nps-2027-03', 'NPS da Assessoria Somma · março de 2027', 'assessoria_nps_v1', '2027-03', 'active', now());
-commit;
-```
-
-Encerrar sem abrir outra: só o `update`. A página passa a mostrar "Esta rodada
-da pesquisa foi encerrada".
 
 ## Consultas
 

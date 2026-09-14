@@ -1,8 +1,8 @@
 /**
  * Links pessoais do NPS da Assessoria.
  *
- *   npx tsx scripts/assessoria-nps-convites.mts                     simula: só conta
- *   npx tsx scripts/assessoria-nps-convites.mts --gerar --saida c.csv   grava o que falta e exporta
+ *   npx tsx scripts/assessoria-nps-convites.mts --rodada 2026-set-out                      simula: só conta
+ *   npx tsx scripts/assessoria-nps-convites.mts --rodada 2026-set-out --gerar --saida c.csv   grava e exporta
  *   ... --base http://localhost:3000                                troca o domínio dos links
  *
  * Alunos: `professor_clients` com status active, o mesmo vínculo aluno-professor
@@ -48,13 +48,21 @@ if (gerar && !saida) {
 
 const sb = createClient(url, chave, { auth: { persistSession: false, autoRefreshToken: false } });
 
+// Com rodadas bimestrais pode haver duas publicadas (a atual e a próxima
+// agendada): a rodada é sempre explícita. O painel (NPS Assessoria ›
+// Divulgação) gera os mesmos links sem precisar deste script.
+const rodada = opcao("--rodada");
+if (!rodada) {
+  console.error("Informe a rodada: --rodada <slug>, ex.: --rodada 2026-set-out");
+  process.exit(1);
+}
 const { data: campanha, error: erroCampanha } = await sb
   .from("nps_assessoria_campaigns")
   .select("id, slug")
-  .eq("status", "active")
+  .eq("slug", rodada)
   .maybeSingle();
 if (erroCampanha || !campanha) {
-  console.error("Nenhuma campanha ativa em nps_assessoria_campaigns.", erroCampanha?.message ?? "");
+  console.error(`Rodada ${rodada} não encontrada em nps_assessoria_campaigns.`, erroCampanha?.message ?? "");
   process.exit(1);
 }
 

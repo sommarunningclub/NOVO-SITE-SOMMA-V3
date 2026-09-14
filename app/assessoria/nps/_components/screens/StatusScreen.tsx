@@ -5,41 +5,88 @@ import { useEffect, useRef } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { ArrowRight, RotateCcw } from "lucide-react";
 
-export type VarianteStatus = "enviado" | "ja-respondeu" | "encerrada" | "indisponivel";
+export type VarianteStatus =
+  | "enviado"
+  | "ja-respondeu"
+  | "encerrada"
+  | "agendada"
+  | "nao-encontrada"
+  | "indisponivel";
 
-const CONTEUDO: Record<VarianteStatus, { eyebrow: string; titulo: string; texto: string }> = {
-  enviado: {
-    eyebrow: "Pesquisa enviada",
-    titulo: "Obrigado por ajudar a construir a próxima fase da Assessoria Somma.",
-    texto: "Suas respostas foram registradas.",
-  },
-  "ja-respondeu": {
-    eyebrow: "Tudo certo",
-    titulo: "Você já respondeu esta rodada da pesquisa.",
-    texto: "Suas respostas já estão com a gente. Obrigado por participar.",
-  },
-  encerrada: {
-    eyebrow: "Pesquisa encerrada",
-    titulo: "Esta rodada da pesquisa foi encerrada.",
-    texto: "Obrigado pelo interesse. Avisamos no grupo da assessoria quando abrir a próxima.",
-  },
-  indisponivel: {
-    eyebrow: "Instabilidade",
-    titulo: "Não conseguimos abrir a pesquisa agora.",
-    texto: "Tente de novo em alguns minutos. Se continuar, fale com a equipe da assessoria.",
-  },
-};
+interface Conteudo {
+  eyebrow: string;
+  titulo: string;
+  texto: string;
+}
+
+/** Fuso de Brasília fixo: servidor e navegador escrevem a mesma data. */
+const FORMATO_ABERTURA = new Intl.DateTimeFormat("pt-BR", {
+  day: "numeric",
+  month: "long",
+  hour: "2-digit",
+  minute: "2-digit",
+  timeZone: "America/Sao_Paulo",
+});
+
+function conteudoDa(variante: VarianteStatus, rotulo: string | null, abreEm: string | null): Conteudo {
+  const daRodada = rotulo ? `Rodada ${rotulo}` : null;
+  switch (variante) {
+    case "enviado":
+      return {
+        eyebrow: "Pesquisa enviada",
+        titulo: "Obrigado por ajudar a construir a próxima fase da Assessoria Somma.",
+        texto: "Suas respostas foram registradas.",
+      };
+    case "ja-respondeu":
+      return {
+        eyebrow: "Tudo certo",
+        titulo: "Você já respondeu esta rodada da pesquisa.",
+        texto: "Suas respostas já estão com a gente. Obrigado por participar.",
+      };
+    case "encerrada":
+      return {
+        eyebrow: daRodada ?? "Pesquisa encerrada",
+        titulo: "Esta rodada da pesquisa foi encerrada.",
+        texto: "Obrigado pelo interesse. Avisamos no grupo da assessoria quando abrir a próxima.",
+      };
+    case "agendada":
+      return {
+        eyebrow: daRodada ?? "Em breve",
+        titulo: "Esta pesquisa ainda não abriu.",
+        texto: abreEm
+          ? `Ela abre em ${FORMATO_ABERTURA.format(new Date(abreEm))}. Guarde este link.`
+          : "Ela abre em breve. Guarde este link.",
+      };
+    case "nao-encontrada":
+      return {
+        eyebrow: "Link inválido",
+        titulo: "Não encontramos esta pesquisa.",
+        texto: "Confira o link que você recebeu ou abra a pesquisa que está no ar agora.",
+      };
+    case "indisponivel":
+      return {
+        eyebrow: "Instabilidade",
+        titulo: "Não conseguimos abrir a pesquisa agora.",
+        texto: "Tente de novo em alguns minutos. Se continuar, fale com a equipe da assessoria.",
+      };
+  }
+}
 
 interface StatusScreenProps {
   variante: VarianteStatus;
   nome: string | null;
   focar: boolean;
+  rotulo?: string | null;
+  abreEm?: string | null;
   onOutraPessoa?: () => void;
 }
 
-export function StatusScreen({ variante, nome, focar, onOutraPessoa }: StatusScreenProps) {
+const BOTAO =
+  "flex h-14 items-center justify-center gap-2 rounded-full bg-[#f5f5f4] px-8 text-[16px] font-semibold text-[#0b0b0c] transition hover:bg-white";
+
+export function StatusScreen({ variante, nome, focar, rotulo = null, abreEm = null, onOutraPessoa }: StatusScreenProps) {
   const titulo = useRef<HTMLHeadingElement>(null);
-  const c = CONTEUDO[variante];
+  const c = conteudoDa(variante, rotulo, abreEm);
   const concluida = variante === "enviado" || variante === "ja-respondeu";
 
   useEffect(() => {
@@ -64,19 +111,17 @@ export function StatusScreen({ variante, nome, focar, onOutraPessoa }: StatusScr
 
         <div className="mt-10 flex flex-col items-stretch gap-2 sm:flex-row sm:items-center sm:gap-4">
           {variante === "indisponivel" ? (
-            <button
-              type="button"
-              onClick={() => window.location.reload()}
-              className="flex h-14 items-center justify-center gap-2 rounded-full bg-[#f5f5f4] px-8 text-[16px] font-semibold text-[#0b0b0c] transition hover:bg-white"
-            >
+            <button type="button" onClick={() => window.location.reload()} className={BOTAO}>
               <RotateCcw className="h-4 w-4" aria-hidden="true" />
               Tentar novamente
             </button>
+          ) : variante === "nao-encontrada" ? (
+            <Link href="/assessoria/nps" className={BOTAO}>
+              Abrir a pesquisa atual
+              <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </Link>
           ) : (
-            <Link
-              href="/assessoria"
-              className="flex h-14 items-center justify-center gap-2 rounded-full bg-[#f5f5f4] px-8 text-[16px] font-semibold text-[#0b0b0c] transition hover:bg-white"
-            >
+            <Link href="/assessoria" className={BOTAO}>
               Voltar para a Assessoria
               <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </Link>
