@@ -1,0 +1,33 @@
+/* ─────────────────────────────────────────────────────────────────────────
+   Pesquisa NPS da Assessoria (/assessoria/nps)
+   Só o que o Tailwind não cobre: fundo do documento, seleção e o anti-zoom
+   de campo no iOS. Cores e espaçamentos vivem nas classes dos componentes.
+   ───────────────────────────────────────────────────────────────────────── */
+
+/* O overscroll do iOS mostra o fundo do body, que no site é branco. */
+html:has(.nps-root),
+html:has(.nps-root) body {
+  background: #0b0b0c;
+}
+
+.nps-root {
+  color-scheme: dark;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.nps-root ::selection {
+  background: #ff2c04;
+  color: #0b0b0c;
+}
+
+.nps-num {
+  font-variant-numeric: tabular-nums;
+}
+
+/* iOS dá zoom em campo com fonte menor que 16px. */
+@media (max-width: 639px) {
+  .nps-root input,
+  .nps-root textarea {
+    font-size: 16px;
+  }
+}
