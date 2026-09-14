@@ -50,14 +50,18 @@ app/assessoria/nps/
 app/api/assessoria/nps/route.ts, app/api/assessoria/nps/convite/route.ts
 supabase/migrations/20260914120000_assessoria_nps.sql
 supabase/migrations/20260914170000_assessoria_nps_rodadas.sql
+supabase/migrations/20260914200000_assessoria_nps_professor_e_edicao.sql
 scripts/assessoria-nps-unit.mts       testes das regras (npx tsx …)
 scripts/assessoria-nps-convites.mts   gera os links pessoais (o painel faz o mesmo)
 ```
 
 Para mudar uma pergunta, edite só `survey.ts`. Mudou o sentido, a escala ou as
 alternativas? Suba `SURVEY_VERSION`, ajuste os CHECKs numa migration nova e abra
-uma campanha nova. O teste `scripts/assessoria-nps-unit.mts` falha se o código
-tiver um valor que o banco não aceita.
+uma campanha nova. Pergunta nova que não muda as outras (como
+`declared_professor`) pode entrar na mesma versão, com coluna nula. O teste
+`scripts/assessoria-nps-unit.mts` falha se o código tiver um valor ou uma coluna
+que o banco não tem. Depois de mexer em `survey.ts`, regenere o espelho do painel
+(`lib/nps/questionario.ts` no admin).
 
 ## Banco
 
@@ -100,7 +104,11 @@ Uma linha por envio concluído. Uma coluna por pergunta.
 - Controle: `id`, `campaign_id`, `survey_version`, `client_submission_id`
 - Identificação: `first_name`, `last_name`, `full_name` (gerada), `full_name_normalized`,
   `identification_method` (`invite`/`name_match`/`self_declared`), `invite_id`,
-  `student_asaas_id`, `professor_id`, `professor_name`
+  `student_asaas_id`, `professor_id`, `professor_name` (cadastro: convite, nome
+  reconhecido ou correção no painel)
+- Professor marcado pelo aluno: `declared_professor` (`alexandre_alves`,
+  `joseph_pereira`, `mateus_fonseca`, `unknown` = Não sei). NULL quando o link
+  pessoal já trazia o professor, ou em resposta anterior à pergunta.
 - Notas 0 a 10 (`smallint`): `nps_score`, `renewal_probability`
 - `nps_category` (gerada a partir de `nps_score`): `detractor` 0 a 6, `passive` 7 e 8, `promoter` 9 e 10
 - Escalas 1 a 5 (`smallint`): `overall_quality`, `expectation_delivery`, `teacher_followup`,
@@ -121,6 +129,7 @@ Uma linha por envio concluído. Uma coluna por pergunta.
 - Metadados: `source`, `utm_source`, `utm_medium`, `utm_campaign`, `device_type`
   (`mobile`/`tablet`/`desktop`). Sem IP e sem user agent.
 - Tempo: `started_at`, `submitted_at`, `completion_seconds` (gerada), `created_at`, `updated_at`
+- Correção no painel: `updated_by` (e-mail de quem corrigiu nome, sobrenome ou professor)
 
 **NULL em pergunta condicional quer dizer "não foi exibida"**, não dado faltando.
 CHECKs de coerência garantem isso no banco: quem respondeu `never` no domingo
@@ -171,6 +180,14 @@ que nunca vai ao navegador.
    dashboard.
 3. **Só o nome** (`self_declared`).
 
+**Professor.** O link pessoal já traz o professor do cadastro (`professor_name`)
+e não pergunta. Sem ele, a pesquisa pergunta "Quem é o seu professor?"
+(`declared_professor`), e as perguntas do professor passam a citar o apelido
+("o Ale acompanha sua rotina…", regra em `tituloDaPergunta`). O painel usa o
+cadastro e, sem cadastro, o professor marcado; quando os dois divergem, a rodada
+ganha um ponto de atenção. Uma aba aberta antes de a pergunta existir recebe
+`409 version_mismatch` e, ao recarregar, continua do rascunho.
+
 O site não tem login de aluno, por isso não há preenchimento automático fora do
 link pessoal.
 
@@ -211,7 +228,10 @@ Tudo pelo painel (NPS Assessoria):
   pessoais dos alunos ativos, com copiar, WhatsApp e situação (não enviado,
   enviado, abriu, respondeu).
 - **Tratativas:** status, responsável e anotações na ficha da resposta.
-- **Respostas:** lista, ficha completa e exportação CSV.
+- **Respostas:** lista, ficha completa e exportação CSV. Na lista ou na ficha dá
+  para corrigir nome, sobrenome e professor (grava `updated_by`) e apagar a
+  resposta, que leva junto a tratativa; se veio de link pessoal, o convite volta
+  a aceitar resposta. Notas e textos do aluno não se editam.
 
 O script continua existindo para uso fora do painel:
 
@@ -253,10 +273,16 @@ from nps_assessoria_responses
 group by 1 order by 1;
 ```
 
-Por professor (só respostas vinculadas; `name_match` é inferência):
+Por professor (cadastro e, sem ele, o professor marcado; `name_match` é inferência):
 
 ```sql
-select coalesce(professor_name, '(não identificado)') as professor,
+select coalesce(professor_name,
+                case declared_professor
+                  when 'alexandre_alves' then 'Alexandre Alves'
+                  when 'joseph_pereira' then 'Joseph Pereira'
+                  when 'mateus_fonseca' then 'Mateus Fonseca'
+                end,
+                '(não identificado)') as professor,
        identification_method, count(*) as respostas,
        round(100.0 * (count(*) filter (where nps_category = 'promoter')
                     - count(*) filter (where nps_category = 'detractor')) / count(*), 1) as nps,

@@ -1,7 +1,15 @@
 "use client";
 
 import { useCallback, useEffect, useReducer, useRef } from "react";
-import { QUESTIONS, QUESTION_BY_ID, SURVEY_VERSION, type AnswerKey, type Draft } from "@/lib/assessoria-nps/survey";
+import {
+  QUESTIONS,
+  QUESTION_BY_ID,
+  SURVEY_VERSION,
+  type AnswerKey,
+  type ContextoPesquisa,
+  type Draft,
+  type ProfessorId,
+} from "@/lib/assessoria-nps/survey";
 import {
   erroNaPergunta,
   isScreenKey,
@@ -57,6 +65,8 @@ export interface SurveyState {
   lastName: string;
   prefill: { firstName: string; lastName: string } | null;
   usarConvite: boolean;
+  /** Professor que o link pessoal traz. Só vale enquanto `usarConvite`. */
+  professorDoConvite: ProfessorId | null;
   answers: Draft;
   tela: ScreenKey;
   direcao: 1 | -1;
@@ -85,7 +95,12 @@ type Acao =
   | { type: "outraPessoa" };
 
 // ─── Apoio ──────────────────────────────────────────────────────────────────
-type Contexto = Pick<SurveyState, "answers" | "firstName" | "lastName">;
+type Contexto = Pick<SurveyState, "answers" | "firstName" | "lastName" | "usarConvite" | "professorDoConvite">;
+
+/** O professor do convite só conta enquanto a resposta é do dono do convite. */
+export function contextoDaPesquisa(s: Pick<SurveyState, "usarConvite" | "professorDoConvite">): ContextoPesquisa {
+  return { professorDoConvite: s.usarConvite ? s.professorDoConvite : null };
+}
 
 function nav(s: SurveyState, modo: ModoNav): SurveyState["nav"] {
   return { seq: s.nav.seq + 1, modo };
@@ -117,7 +132,7 @@ const ORDEM = new Map<ScreenKey, number>([
 function telaAlcancavel(alvo: ScreenKey, s: Contexto): ScreenKey {
   const limite = ORDEM.get(alvo) ?? -1;
   let ultima: ScreenKey = "identity";
-  for (const t of sequenciaDeTelas(s.answers)) {
+  for (const t of sequenciaDeTelas(s.answers, contextoDaPesquisa(s))) {
     if ((ORDEM.get(t) ?? -1) > limite) break;
     if (t === alvo) return t;
     if (erroDaTela(t, s)) return t;
@@ -151,6 +166,7 @@ function estadoInicial(convite: ConviteInicial | null): SurveyState {
     lastName: convite?.lastName ?? "",
     prefill: convite ? { firstName: convite.firstName, lastName: convite.lastName } : null,
     usarConvite: Boolean(convite),
+    professorDoConvite: convite?.professor ?? null,
     answers: {},
     tela: "identity",
     direcao: 1,
@@ -187,6 +203,8 @@ function reducer(s: SurveyState, a: Acao): SurveyState {
           answers: salvo.answers,
           firstName: salvo.firstName || s.firstName,
           lastName: salvo.lastName || s.lastName,
+          usarConvite: s.usarConvite,
+          professorDoConvite: s.professorDoConvite,
         };
         const recente = Date.now() - salvo.updatedAt < RETOMADA_DIRETA_MS;
         return {
@@ -255,7 +273,7 @@ function reducer(s: SurveyState, a: Acao): SurveyState {
         if (!jaPediu) return { ...s, mensagem: { campo: q.id, texto: q.encourage, tipo: "incentivo" } };
       }
 
-      const telas = sequenciaDeTelas(s.answers);
+      const telas = sequenciaDeTelas(s.answers, contextoDaPesquisa(s));
       const proxima = telas[telas.indexOf(s.tela) + 1];
       if (proxima) {
         return { ...s, tela: proxima, direcao: 1, mensagem: null, nav: nav(s, "push") };
@@ -267,7 +285,7 @@ function reducer(s: SurveyState, a: Acao): SurveyState {
       if (erroPendente) {
         return { ...s, tela: pendente, direcao: -1, mensagem: erroPendente, nav: nav(s, "push") };
       }
-      const preparo = prepararRespostas(s.answers);
+      const preparo = prepararRespostas(s.answers, contextoDaPesquisa(s));
       if (!preparo.ok) {
         const tela = telaDoCampo(preparo.erro.field) ?? s.tela;
         return {
@@ -283,7 +301,7 @@ function reducer(s: SurveyState, a: Acao): SurveyState {
 
     case "voltar": {
       if (s.fase !== "fluxo" || ocupado) return s;
-      const telas = sequenciaDeTelas(s.answers);
+      const telas = sequenciaDeTelas(s.answers, contextoDaPesquisa(s));
       const i = telas.indexOf(s.tela);
       if (i <= 0) {
         return { ...s, fase: "intro", temRascunho: true, direcao: -1, mensagem: null, nav: nav(s, "replace") };
@@ -305,7 +323,7 @@ function reducer(s: SurveyState, a: Acao): SurveyState {
       }
       if (!isScreenKey(a.chave)) return s;
       const alvo = telaAlcancavel(a.chave, s);
-      const telas = sequenciaDeTelas(s.answers);
+      const telas = sequenciaDeTelas(s.answers, contextoDaPesquisa(s));
       const direcao = s.fase === "fluxo" && telas.indexOf(alvo) < telas.indexOf(s.tela) ? -1 : 1;
       return {
         ...s,
@@ -462,13 +480,13 @@ export function useSurvey({ campanha, convite }: { campanha: string; convite: Co
     const secaoAntes = secaoDaTela(antes);
     if (secaoAntes === secaoDaTela(state.tela) || secoesConcluidas.current.has(secaoAntes)) return;
     secoesConcluidas.current.add(secaoAntes);
-    const secoes = secoesVisiveis(state.answers);
+    const secoes = secoesVisiveis(state.answers, contextoDaPesquisa(state));
     track("nps_step_completed", {
       step_id: secaoAntes,
       step_index: secoes.findIndex((x) => x.id === secaoAntes) + 1,
       steps_total: secoes.length,
     });
-  }, [state.fase, state.tela, state.direcao, state.answers]);
+  }, [state.fase, state.tela, state.direcao, state.answers, state.usarConvite, state.professorDoConvite]);
 
   // 6. Envio. Um por pedido: o reducer só aceita "solicitado" fora de envio.
   useEffect(() => {

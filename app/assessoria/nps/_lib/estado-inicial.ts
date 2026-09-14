@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { getServiceSupabase } from "@/lib/supabase";
 import { SURVEY_VERSION } from "@/lib/assessoria-nps/survey";
 import { rotuloDoPeriodo } from "@/lib/assessoria-nps/rodada";
+import { professorPeloNome } from "@/lib/assessoria-nps/logic";
 import {
   CONVITE_COOKIE,
   buscarCampanhaAtual,
@@ -61,6 +62,7 @@ export async function carregarEstadoInicial(slug?: string): Promise<EstadoInicia
           firstName: conviteDaRodada.first_name,
           lastName: conviteDaRodada.last_name,
           jaRespondeu: await conviteRespondido(sb, conviteDaRodada.id),
+          professor: professorPeloNome(conviteDaRodada.professor_name),
         }
       : null,
   };

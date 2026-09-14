@@ -9,17 +9,24 @@
  * do banco (o envio passaria no navegador e morreria no insert).
  */
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import {
   calcularNps,
   categoriaNps,
   limparTexto,
   perguntasVisiveis,
   prepararRespostas,
+  professorPeloNome,
   secoesVisiveis,
   sequenciaDeTelas,
+  tituloDaPergunta,
 } from "../lib/assessoria-nps/logic";
 import {
+  DECLARED_PROFESSOR,
+  PROFESSORES,
+  QUESTION_BY_ID,
+  SEM_CONTEXTO,
+  type ContextoPesquisa,
   EVENING_TIME,
   MESSAGE_VOLUME,
   MORNING_TIME,
@@ -56,6 +63,7 @@ function completo(): Draft {
     nps_reason: "  Professores atentos  ",
     overall_quality: 5,
     expectation_delivery: 4,
+    declared_professor: "joseph_pereira",
     teacher_followup: 4,
     teacher_understands_goals: 5,
     teacher_whatsapp_access: 4,
@@ -97,14 +105,14 @@ function completo(): Draft {
   };
 }
 
-function preparar(d: Draft) {
-  const r = prepararRespostas(d);
+function preparar(d: Draft, ctx: ContextoPesquisa = SEM_CONTEXTO) {
+  const r = prepararRespostas(d, ctx);
   if (!r.ok) throw new Error(`esperava ok, veio erro em ${r.erro.field}: ${r.erro.message}`);
   return r.respostas;
 }
 
-function erroEm(d: Draft): string {
-  const r = prepararRespostas(d);
+function erroEm(d: Draft, ctx: ContextoPesquisa = SEM_CONTEXTO): string {
+  const r = prepararRespostas(d, ctx);
   if (r.ok) throw new Error("esperava erro, veio ok");
   return r.erro.field;
 }
@@ -127,9 +135,78 @@ caso("antes de responder domingo e semana, o progresso já conta 10 etapas", () 
   assert.equal(erroEm(soNps), "overall_quality", "a obrigatória seguinte continua cobrada");
 });
 
-caso("sequência completa tem identificação + 40 perguntas", () => {
-  assert.equal(sequenciaDeTelas(completo()).length, 41);
+caso("sequência completa tem identificação + 41 perguntas; o link pessoal pula a do professor", () => {
+  assert.equal(sequenciaDeTelas(completo()).length, 42);
   assert.equal(secoesVisiveis(completo()).length, 10);
+  const convite: ContextoPesquisa = { professorDoConvite: "alexandre_alves" };
+  assert.equal(sequenciaDeTelas(completo(), convite).length, 41);
+  assert.ok(!sequenciaDeTelas(completo(), convite).includes("declared_professor"));
+  assert.equal(secoesVisiveis(completo(), convite).length, 10, "a seção do professor continua");
+});
+
+// ─── Professor ──────────────────────────────────────────────────────────────
+caso("sem link pessoal, quem é o professor é obrigatório e só aceita a lista", () => {
+  assert.equal(erroEm({ ...completo(), declared_professor: null }), "declared_professor");
+  assert.equal(erroEm({ ...completo(), declared_professor: "ale" as never }), "declared_professor");
+  assert.equal(preparar({ ...completo(), declared_professor: "unknown" }).declared_professor, "unknown");
+});
+
+caso("com link pessoal, a pergunta não é cobrada e o valor antigo vira NULL", () => {
+  const convite: ContextoPesquisa = { professorDoConvite: "mateus_fonseca" };
+  assert.equal(preparar({ ...completo(), declared_professor: null }, convite).declared_professor, null);
+  assert.equal(preparar(completo(), convite).declared_professor, null, "rascunho de antes do convite não grava");
+});
+
+caso("enunciado cita o professor escolhido ou o do convite", () => {
+  const q = (id: string) => QUESTION_BY_ID.get(id as never)!;
+  assert.equal(
+    tituloDaPergunta(q("teacher_followup"), { declared_professor: "alexandre_alves" }),
+    "Você sente que o Ale acompanha sua rotina de treinos com frequência?"
+  );
+  assert.equal(
+    tituloDaPergunta(q("teacher_support_quality"), {}, { professorDoConvite: "joseph_pereira" }),
+    "Quando você chama o Jojô no privado, sente que recebe atenção e suporte adequados?"
+  );
+  assert.equal(
+    tituloDaPergunta(q("needs_more_feedback"), { declared_professor: "mateus_fonseca" }),
+    "Você sente necessidade de mais feedback do Mateus sobre sua evolução?"
+  );
+  assert.equal(
+    tituloDaPergunta(q("teacher_communication_quality"), { declared_professor: "unknown" }),
+    "Como você avalia a qualidade da comunicação com seu professor?"
+  );
+  assert.equal(
+    tituloDaPergunta(q("needs_more_feedback"), {}),
+    "Você sente necessidade de mais feedback do professor sobre sua evolução?",
+    "sem professor, o texto de antes"
+  );
+  for (const pergunta of QUESTIONS) {
+    for (const d of [{}, { declared_professor: "joseph_pereira" }] as Draft[]) {
+      assert.ok(!tituloDaPergunta(pergunta, d).includes("{"), `marcador sobrando em ${pergunta.id}`);
+    }
+  }
+});
+
+caso("professor do cadastro vira o da pesquisa", () => {
+  assert.equal(professorPeloNome("Joseph pereira"), "joseph_pereira");
+  assert.equal(professorPeloNome("ALEXANDRE ALVES"), "alexandre_alves");
+  assert.equal(professorPeloNome("Mateus Fonseca"), "mateus_fonseca");
+  assert.equal(professorPeloNome("Mateus"), null, "só o primeiro nome não identifica");
+  assert.equal(professorPeloNome("Professor Teste"), null);
+  assert.equal(professorPeloNome(null), null);
+});
+
+caso("lista de professores bate com a pergunta e com o schema", () => {
+  const q = QUESTION_BY_ID.get("declared_professor");
+  assert.ok(q && q.kind === "single");
+  assert.deepEqual(
+    q.options.map((o) => o.value),
+    [...DECLARED_PROFESSOR]
+  );
+  assert.deepEqual(
+    PROFESSORES.map((p) => p.value),
+    DECLARED_PROFESSOR.filter((v) => v !== "unknown")
+  );
 });
 
 // ─── Domingos ───────────────────────────────────────────────────────────────
@@ -312,9 +389,14 @@ caso("schema aceita envio bem formado e recusa o malformado", () => {
 });
 
 // ─── Código x banco ─────────────────────────────────────────────────────────
-caso("todo valor do código existe no CHECK da migration", () => {
-  const sql = readFileSync(new URL("../supabase/migrations/20260914120000_assessoria_nps.sql", import.meta.url), "utf8");
+caso("todo valor e toda coluna do código existem nas migrations", () => {
+  const pasta = new URL("../supabase/migrations/", import.meta.url);
+  const sql = readdirSync(pasta)
+    .filter((f) => f.includes("assessoria_nps"))
+    .map((f) => readFileSync(new URL(f, pasta), "utf8"))
+    .join("\n");
   const listas = {
+    DECLARED_PROFESSOR,
     NEEDS_FEEDBACK,
     MESSAGE_VOLUME,
     WHATSAPP_CONTENT,
@@ -331,7 +413,7 @@ caso("todo valor do código existe no CHECK da migration", () => {
     for (const v of valores) assert.ok(sql.includes(`'${v}'`), `${nome}: '${v}' não aparece na migration`);
   }
   for (const q of QUESTIONS) {
-    assert.ok(new RegExp(`\\n\\s+${q.id} `).test(sql), `coluna ${q.id} não existe na migration`);
+    assert.ok(new RegExp(`(\\n\\s+|add column if not exists )${q.id} `).test(sql), `coluna ${q.id} não existe nas migrations`);
   }
 });
 

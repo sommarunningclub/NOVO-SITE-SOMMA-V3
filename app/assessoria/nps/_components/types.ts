@@ -1,8 +1,12 @@
+import type { ProfessorId } from "@/lib/assessoria-nps/survey";
+
 /** O que a página (server) entrega para a pesquisa (client). */
 export interface ConviteInicial {
   firstName: string;
   lastName: string;
   jaRespondeu: boolean;
+  /** Professor do cadastro, quando é um dos que a pesquisa conhece. Com ele, não se pergunta. */
+  professor: ProfessorId | null;
 }
 
 export type EstadoInicial =

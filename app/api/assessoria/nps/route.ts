@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServiceSupabase } from "@/lib/supabase";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
 import { envioSchema } from "@/lib/assessoria-nps/schema";
-import { prepararRespostas } from "@/lib/assessoria-nps/logic";
-import { SURVEY_VERSION } from "@/lib/assessoria-nps/survey";
+import { prepararRespostas, professorPeloNome } from "@/lib/assessoria-nps/logic";
+import { SURVEY_VERSION, type ContextoPesquisa } from "@/lib/assessoria-nps/survey";
 import { capitalizarNome, erroNoNome, normalizarParaBusca } from "@/lib/assessoria-nps/nome";
 import {
   CONVITE_COOKIE,
@@ -16,7 +16,7 @@ import {
 
 export const dynamic = "force-dynamic";
 
-/** 40 perguntas com as abertas cheias cabem com folga em 64 KB. */
+/** 41 perguntas com as abertas cheias cabem com folga em 64 KB. */
 const LIMITE_BYTES = 64 * 1024;
 /** Mais que isso não é tempo de preenchimento, é rascunho esquecido: não distorce a média. */
 const DURACAO_MAX_MS = 60 * 24 * 60 * 60 * 1000;
@@ -50,6 +50,12 @@ function slug(v: string | undefined): string | null {
 function utm(v: string | undefined): string | null {
   const s = v?.trim().slice(0, 160);
   return s ? s : null;
+}
+
+/** A chave veio no JSON bruto? (o zod não diferencia chave ausente de valor nulo) */
+function campoEnviado(corpo: unknown, campo: string): boolean {
+  const answers = (corpo as { answers?: unknown } | null)?.answers;
+  return typeof answers === "object" && answers !== null && campo in answers;
 }
 
 export async function POST(request: NextRequest) {
@@ -107,13 +113,7 @@ export async function POST(request: NextRequest) {
   const firstName = capitalizarNome(envio.first_name);
   const lastName = capitalizarNome(envio.last_name);
 
-  // 5. Regras condicionais: obrigatória quando exibida, escondida vira NULL.
-  const preparo = prepararRespostas(envio.answers);
-  if (!preparo.ok) {
-    return responder(400, { error: preparo.erro.message, campo: preparo.erro.field });
-  }
-
-  // 6. Banco. A rodada é a do envio (o slug que a página recebeu), e ela
+  // 5. Banco. A rodada é a do envio (o slug que a página recebeu), e ela
   //    precisa estar no ar agora: fechar a janela no painel fecha o envio.
   const sb = getServiceSupabase();
   if (!sb) return responder(503, { error: "A pesquisa está indisponível agora. Tente de novo em alguns minutos." });
@@ -134,7 +134,7 @@ export async function POST(request: NextRequest) {
     return responder(503, { error: "A pesquisa está em manutenção. Tente de novo em alguns minutos." });
   }
 
-  // 7. Quem respondeu: link pessoal da rodada (cookie) > nome inequívoco > só o nome.
+  // 6. Quem respondeu: link pessoal da rodada (cookie) > nome inequívoco > só o nome.
   let identificacao: {
     identification_method: "invite" | "name_match" | "self_declared";
     invite_id: string | null;
@@ -157,6 +157,26 @@ export async function POST(request: NextRequest) {
   } else {
     const aluno = await identificarAlunoPorNome(sb, `${firstName} ${lastName}`);
     if (aluno) identificacao = { identification_method: "name_match", invite_id: null, aluno };
+  }
+
+  // 7. Regras condicionais: obrigatória quando exibida, escondida vira NULL.
+  //    O professor do link pessoal decide se "Quem é o seu professor?" aparece,
+  //    com a mesma regra que a página usou ao abrir.
+  const contexto: ContextoPesquisa = {
+    professorDoConvite:
+      identificacao.identification_method === "invite" ? professorPeloNome(identificacao.aluno?.professor_name) : null,
+  };
+  const preparo = prepararRespostas(envio.answers, contexto);
+  if (!preparo.ok) {
+    // O campo nem veio: aba aberta antes de a pergunta existir, ou convite que
+    // sumiu no meio do caminho. Recarregar mostra a pergunta e mantém o rascunho.
+    if (preparo.erro.field === "declared_professor" && !campoEnviado(corpo, "declared_professor")) {
+      return responder(409, {
+        error: "A pesquisa foi atualizada. Recarregue a página para continuar.",
+        code: "version_mismatch",
+      });
+    }
+    return responder(400, { error: preparo.erro.message, campo: preparo.erro.field });
   }
 
   // 8. Tempo de preenchimento ancorado no relógio do servidor: relógio errado
