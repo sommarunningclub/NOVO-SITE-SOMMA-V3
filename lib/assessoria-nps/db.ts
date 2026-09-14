@@ -1,13 +1,17 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { nomeCasaCom } from "./nome";
+import { SLUG_RE, situacaoDaRodada, type BuscaCampanha, type Campanha } from "./rodada";
+
+export type { BuscaCampanha, Campanha } from "./rodada";
 
 /**
  * Acesso ao banco do NPS da Assessoria.
  *
- * As três tabelas têm RLS ligado e nenhuma policy: anon e authenticated não
- * leem nem escrevem nada. Todo acesso passa por aqui, server-side, com a
- * service role. Schema em `supabase/migrations/20260914120000_assessoria_nps.sql`.
+ * As tabelas têm RLS ligado e nenhuma policy: anon e authenticated não leem
+ * nem escrevem nada. Todo acesso passa por aqui, server-side, com a service
+ * role. Schema em `supabase/migrations/20260914120000_assessoria_nps.sql` e
+ * `20260914170000_assessoria_nps_rodadas.sql`.
  *
  * Nada neste arquivo registra nome ou resposta em log: só código de erro.
  */
@@ -23,45 +27,75 @@ export const CONVITE_COOKIE = "somma_nps_convite";
 export const CONVITE_MAX_AGE = 60 * 60 * 24 * 60;
 export const TOKEN_RE = /^[A-Za-z0-9_-]{32,64}$/;
 
+const COLUNAS_RODADA = "id, slug, title, survey_version, reference_period, status, opens_at, closes_at";
+
 function logErro(contexto: string, err: { code?: string; message?: string } | null | undefined): void {
   console.error(`[assessoria-nps] ${contexto}:`, err?.code ?? "", err?.message ?? "");
 }
 
-// ─── Campanha ───────────────────────────────────────────────────────────────
-export interface Campanha {
-  id: string;
-  slug: string;
-  title: string;
-  survey_version: string;
-  reference_period: string;
-  status: "draft" | "active" | "closed";
-  opens_at: string | null;
-  closes_at: string | null;
-}
+// ─── Rodada ─────────────────────────────────────────────────────────────────
+/** A rodada do link /assessoria/nps/<slug>. */
+export async function buscarCampanhaPorSlug(
+  sb: SupabaseClient,
+  slug: string | null | undefined,
+  agora = new Date()
+): Promise<BuscaCampanha> {
+  if (!slug || slug.length > 80 || !SLUG_RE.test(slug)) return { status: "nao_encontrada" };
 
-export type BuscaCampanha =
-  | { status: "ok"; campanha: Campanha }
-  | { status: "encerrada" }
-  | { status: "indisponivel" };
-
-/** A rodada no ar. Fora da janela `opens_at`/`closes_at` conta como encerrada. */
-export async function buscarCampanhaAtiva(sb: SupabaseClient, agora = new Date()): Promise<BuscaCampanha> {
-  const { data, error } = await sb
-    .from(TB.campaigns)
-    .select("id, slug, title, survey_version, reference_period, status, opens_at, closes_at")
-    .eq("status", "active")
-    .maybeSingle();
-
+  const { data, error } = await sb.from(TB.campaigns).select(COLUNAS_RODADA).eq("slug", slug).maybeSingle();
   if (error) {
-    logErro("buscarCampanhaAtiva", error);
+    logErro("buscarCampanhaPorSlug", error);
     return { status: "indisponivel" };
   }
-  if (!data) return { status: "encerrada" };
+  if (!data) return { status: "nao_encontrada" };
+  return situacaoDaRodada(data as Campanha, agora);
+}
 
-  const campanha = data as Campanha;
-  if (campanha.opens_at && new Date(campanha.opens_at) > agora) return { status: "encerrada" };
-  if (campanha.closes_at && new Date(campanha.closes_at) <= agora) return { status: "encerrada" };
-  return { status: "ok", campanha };
+/**
+ * O link sem código (/assessoria/nps): a rodada publicada cuja janela contém
+ * agora. O banco impede janelas publicadas sobrepostas, então há no máximo uma.
+ * Sem nenhuma no ar, mostra a próxima agendada; sem próxima, encerrada.
+ */
+export async function buscarCampanhaAtual(sb: SupabaseClient, agora = new Date()): Promise<BuscaCampanha> {
+  const iso = agora.toISOString();
+
+  const noAr = await sb
+    .from(TB.campaigns)
+    .select(COLUNAS_RODADA)
+    .eq("status", "active")
+    .lte("opens_at", iso)
+    .or(`closes_at.is.null,closes_at.gt."${iso}"`)
+    .order("opens_at", { ascending: false })
+    .limit(1);
+  if (noAr.error) {
+    logErro("buscarCampanhaAtual", noAr.error);
+    return { status: "indisponivel" };
+  }
+  if (noAr.data?.length) return { status: "ok", campanha: noAr.data[0] as Campanha };
+
+  const proxima = await sb
+    .from(TB.campaigns)
+    .select(COLUNAS_RODADA)
+    .eq("status", "active")
+    .gt("opens_at", iso)
+    .order("opens_at", { ascending: true })
+    .limit(1);
+  if (proxima.error) {
+    logErro("buscarCampanhaAtual (próxima)", proxima.error);
+    return { status: "indisponivel" };
+  }
+  if (proxima.data?.length) return { status: "agendada", campanha: proxima.data[0] as Campanha };
+
+  return { status: "encerrada", campanha: null };
+}
+
+export async function buscarRodadaPorId(sb: SupabaseClient, id: string): Promise<Campanha | null> {
+  const { data, error } = await sb.from(TB.campaigns).select(COLUNAS_RODADA).eq("id", id).maybeSingle();
+  if (error) {
+    logErro("buscarRodadaPorId", error);
+    return null;
+  }
+  return (data as Campanha | null) ?? null;
 }
 
 // ─── Convite ────────────────────────────────────────────────────────────────
@@ -76,17 +110,13 @@ export interface Convite {
   opened_at: string | null;
 }
 
-export async function buscarConvite(
-  sb: SupabaseClient,
-  token: string | undefined | null,
-  campaignId: string
-): Promise<Convite | null> {
+/** Convite pelo token. Quem chama confere se é da rodada em jogo. */
+export async function buscarConvite(sb: SupabaseClient, token: string | undefined | null): Promise<Convite | null> {
   if (!token || !TOKEN_RE.test(token)) return null;
   const { data, error } = await sb
     .from(TB.invites)
     .select("id, campaign_id, student_asaas_id, first_name, last_name, professor_id, professor_name, opened_at")
     .eq("token", token)
-    .eq("campaign_id", campaignId)
     .maybeSingle();
   if (error) {
     logErro("buscarConvite", error);

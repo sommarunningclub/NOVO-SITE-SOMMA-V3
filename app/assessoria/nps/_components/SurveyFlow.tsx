@@ -35,11 +35,12 @@ function variantes(reduzir: boolean): Variants {
 
 interface SurveyFlowProps {
   campanha: string;
+  rotulo: string | null;
   convite: ConviteInicial | null;
 }
 
 /** Orquestra telas, progresso e navegação. O estado mora em `useSurvey`. */
-export function SurveyFlow({ campanha, convite }: SurveyFlowProps) {
+export function SurveyFlow({ campanha, rotulo, convite }: SurveyFlowProps) {
   const survey = useSurvey({ campanha, convite });
   const { state, avancar } = survey;
   const reduzir = useReducedMotion() ?? false;
@@ -62,7 +63,7 @@ export function SurveyFlow({ campanha, convite }: SurveyFlowProps) {
   // Primeira renderização e hidratação não roubam o foco; navegação sim.
   const focar = state.nav.seq > 1;
 
-  const rotulo = ultima
+  const rotuloBotao = ultima
     ? state.envio === "falhou"
       ? "Tentar enviar de novo"
       : "Enviar respostas"
@@ -87,7 +88,7 @@ export function SurveyFlow({ campanha, convite }: SurveyFlowProps) {
         emFluxo ? (
           <SurveyNavigation
             onVoltar={survey.voltar}
-            rotulo={rotulo}
+            rotulo={rotuloBotao}
             form={FORM_ID}
             carregando={enviando}
             destaque={ultima}
@@ -108,6 +109,7 @@ export function SurveyFlow({ campanha, convite }: SurveyFlowProps) {
           {state.fase === "intro" && (
             <IntroScreen
               nome={state.usarConvite ? (state.prefill?.firstName ?? null) : null}
+              rotulo={rotulo}
               temRascunho={state.temRascunho}
               onComecar={survey.comecar}
               onRecomecar={survey.recomecar}

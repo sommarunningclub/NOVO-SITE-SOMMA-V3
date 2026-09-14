@@ -7,7 +7,7 @@ import { SURVEY_VERSION } from "@/lib/assessoria-nps/survey";
 import { capitalizarNome, erroNoNome, normalizarParaBusca } from "@/lib/assessoria-nps/nome";
 import {
   CONVITE_COOKIE,
-  buscarCampanhaAtiva,
+  buscarCampanhaPorSlug,
   buscarConvite,
   identificarAlunoPorNome,
   inserirResposta,
@@ -113,24 +113,28 @@ export async function POST(request: NextRequest) {
     return responder(400, { error: preparo.erro.message, campo: preparo.erro.field });
   }
 
-  // 6. Banco.
+  // 6. Banco. A rodada é a do envio (o slug que a página recebeu), e ela
+  //    precisa estar no ar agora: fechar a janela no painel fecha o envio.
   const sb = getServiceSupabase();
   if (!sb) return responder(503, { error: "A pesquisa está indisponível agora. Tente de novo em alguns minutos." });
 
-  const busca = await buscarCampanhaAtiva(sb);
+  const busca = await buscarCampanhaPorSlug(sb, envio.campaign);
   if (busca.status === "indisponivel") {
     return responder(503, { error: "Não conseguimos registrar agora. Suas respostas continuam salvas neste aparelho." });
   }
-  if (busca.status === "encerrada" || busca.campanha.slug !== envio.campaign) {
+  if (busca.status === "agendada") {
+    return responder(410, { error: "Esta pesquisa ainda não abriu.", code: "closed" });
+  }
+  if (busca.status !== "ok") {
     return responder(410, { error: "Esta rodada da pesquisa foi encerrada.", code: "closed" });
   }
   const campanha = busca.campanha;
   if (campanha.survey_version !== SURVEY_VERSION) {
-    console.error("[assessoria-nps] campanha ativa com survey_version diferente do código:", campanha.slug);
+    console.error("[assessoria-nps] rodada com survey_version diferente do código:", campanha.slug);
     return responder(503, { error: "A pesquisa está em manutenção. Tente de novo em alguns minutos." });
   }
 
-  // 7. Quem respondeu: link pessoal (cookie) > nome inequívoco > só o nome.
+  // 7. Quem respondeu: link pessoal da rodada (cookie) > nome inequívoco > só o nome.
   let identificacao: {
     identification_method: "invite" | "name_match" | "self_declared";
     invite_id: string | null;
@@ -138,11 +142,9 @@ export async function POST(request: NextRequest) {
   } = { identification_method: "self_declared", invite_id: null, aluno: null };
 
   const convite =
-    envio.use_invite === false
-      ? null
-      : await buscarConvite(sb, request.cookies.get(CONVITE_COOKIE)?.value, campanha.id);
+    envio.use_invite === false ? null : await buscarConvite(sb, request.cookies.get(CONVITE_COOKIE)?.value);
 
-  if (convite) {
+  if (convite && convite.campaign_id === campanha.id) {
     identificacao = {
       identification_method: "invite",
       invite_id: convite.id,
@@ -164,6 +166,7 @@ export async function POST(request: NextRequest) {
   const startedAt = new Date(submittedAt.getTime() - duracao);
 
   const origem = envio.attribution ?? {};
+  const conviteUsado = identificacao.identification_method === "invite";
   const linha = {
     campaign_id: campanha.id,
     survey_version: SURVEY_VERSION,
@@ -180,7 +183,7 @@ export async function POST(request: NextRequest) {
 
     ...preparo.respostas,
 
-    source: convite ? "invite" : slug(origem.source) ?? slug(origem.utm_source) ?? "direct",
+    source: conviteUsado ? "invite" : slug(origem.source) ?? slug(origem.utm_source) ?? "direct",
     utm_source: utm(origem.utm_source),
     utm_medium: utm(origem.utm_medium),
     utm_campaign: utm(origem.utm_campaign),

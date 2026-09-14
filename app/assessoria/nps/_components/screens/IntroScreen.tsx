@@ -6,12 +6,14 @@ import { cn } from "@/lib/utils";
 
 interface IntroScreenProps {
   nome: string | null;
+  /** "set–out 2026": diz de qual rodada é o link, útil quando chega outro dois meses depois. */
+  rotulo: string | null;
   temRascunho: boolean;
   onComecar: () => void;
   onRecomecar: () => void;
 }
 
-export function IntroScreen({ nome, temRascunho, onComecar, onRecomecar }: IntroScreenProps) {
+export function IntroScreen({ nome, rotulo, temRascunho, onComecar, onRecomecar }: IntroScreenProps) {
   return (
     <section
       aria-labelledby="nps-intro-titulo"
@@ -31,9 +33,15 @@ export function IntroScreen({ nome, temRascunho, onComecar, onRecomecar }: Intro
           Essa pesquisa vai nos ajudar a entender o que estamos fazendo bem e onde podemos melhorar a experiência da
           Assessoria Somma.
         </p>
-        <p className="mt-6 flex items-center gap-2 text-[14px] text-white/60">
+        <p className="mt-6 flex flex-wrap items-center gap-x-2 gap-y-1 text-[14px] text-white/60">
           <Clock className="h-4 w-4" aria-hidden="true" />
-          Leva poucos minutos.
+          <span>Leva poucos minutos.</span>
+          {rotulo && (
+            <>
+              <span aria-hidden="true">·</span>
+              <span>Rodada {rotulo}</span>
+            </>
+          )}
         </p>
 
         <div className="mt-10 flex flex-col items-stretch gap-2 sm:flex-row sm:items-center sm:gap-4">
