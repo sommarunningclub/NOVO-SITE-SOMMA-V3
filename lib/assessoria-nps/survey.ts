@@ -11,7 +11,9 @@
  *
  * Mudou texto que altera o sentido, alternativa ou ordem de escala? Suba o
  * `SURVEY_VERSION` e crie uma campanha nova. Respostas de versões diferentes
- * não devem ser somadas como se fossem a mesma pergunta.
+ * não devem ser somadas como se fossem a mesma pergunta. Pergunta nova que não
+ * muda as outras (como `declared_professor`) pode entrar na mesma versão, com
+ * coluna nula: nas respostas antigas ela fica NULL, como pergunta não exibida.
  *
  * Módulo puro: roda no cliente e no servidor.
  */
@@ -49,6 +51,26 @@ export const WEEKLY_FREQUENCY = ["once", "twice", "three_plus", "depends_on_sche
 
 export type Period = (typeof PERIODS)[number];
 
+/** "Quem é o seu professor?". `unknown` é "Não sei". */
+export const DECLARED_PROFESSOR = ["alexandre_alves", "joseph_pereira", "mateus_fonseca", "unknown"] as const;
+export type ProfessorId = Exclude<(typeof DECLARED_PROFESSOR)[number], "unknown">;
+
+export interface Professor {
+  value: ProfessorId;
+  /** Igual ao cadastro da gestão (`professors.name`): é por ele que o link pessoal acha o professor. */
+  nome: string;
+  /** Como os alunos chamam: vai no enunciado ("o Ale acompanha sua rotina…"). */
+  apelido: string;
+  rotulo: string;
+}
+
+/** Professores da assessoria, na ordem da pergunta. Professor novo: aqui e no CHECK do banco. */
+export const PROFESSORES: readonly Professor[] = [
+  { value: "alexandre_alves", nome: "Alexandre Alves", apelido: "Ale", rotulo: "Alexandre Alves (Ale)" },
+  { value: "joseph_pereira", nome: "Joseph Pereira", apelido: "Jojô", rotulo: "Joseph Pereira (Jojô)" },
+  { value: "mateus_fonseca", nome: "Mateus Fonseca", apelido: "Mateus", rotulo: "Mateus Fonseca" },
+];
+
 /** Uma resposta completa, com as chaves exatamente iguais às colunas. */
 export interface Answers {
   nps_score: number | null;
@@ -56,6 +78,7 @@ export interface Answers {
   overall_quality: number | null;
   expectation_delivery: number | null;
 
+  declared_professor: (typeof DECLARED_PROFESSOR)[number] | null;
   teacher_followup: number | null;
   teacher_understands_goals: number | null;
   teacher_whatsapp_access: number | null;
@@ -108,6 +131,17 @@ export interface Answers {
 export type AnswerKey = keyof Answers;
 export type Draft = Partial<Answers>;
 
+/**
+ * O que decide a pesquisa além das respostas. Hoje só o professor que o link
+ * pessoal já traz do cadastro: com ele, não se pergunta quem é o professor.
+ * Na tela vem do convite da página; no servidor, do convite do cookie.
+ */
+export interface ContextoPesquisa {
+  professorDoConvite: ProfessorId | null;
+}
+
+export const SEM_CONTEXTO: ContextoPesquisa = { professorDoConvite: null };
+
 // ─── Seções ─────────────────────────────────────────────────────────────────
 export type SectionId =
   | "identificacao"
@@ -148,12 +182,17 @@ export interface Option<V extends string = string> {
 interface QuestionBase {
   id: AnswerKey;
   section: Exclude<SectionId, "identificacao">;
+  /**
+   * Pode citar o professor: `{professor}` vira "o Ale" ou "seu professor", e
+   * `{do_professor}` vira "do Ale" ou "do professor". Na tela, use
+   * `tituloDaPergunta` (logic.ts), nunca este texto cru.
+   */
   title: string;
   helper?: string;
   /** Obrigatória QUANDO exibida. Pergunta escondida nunca é obrigatória. */
   required: boolean;
   /** Ausente = sempre exibida. */
-  showWhen?: (a: Draft) => boolean;
+  showWhen?: (a: Draft, ctx: ContextoPesquisa) => boolean;
 }
 
 /** Escala 0 a 10 (NPS e chance de renovação). */
@@ -221,6 +260,9 @@ export type Question = ScaleQuestion | RatingQuestion | SingleQuestion | MultiQu
 export const frequentaDomingo = (a: Draft) => a.sunday_frequency !== "never";
 
 export const temInteresseNaSemana = (a: Draft) => a.weekday_training_interest !== "no";
+
+/** Link pessoal com professor conhecido já responde "quem é o seu professor". */
+export const semProfessorDoConvite = (_a: Draft, ctx: ContextoPesquisa) => ctx.professorDoConvite == null;
 
 /**
  * Períodos de fato. "Manhã" vira ["morning"]; "mais de um período" vira os
@@ -296,12 +338,21 @@ export const QUESTIONS: readonly Question[] = [
     required: true,
   },
 
-  // Seu professor
+  // Seu professor: quem é vem antes, porque dá nome às perguntas seguintes.
+  {
+    id: "declared_professor",
+    section: "professor",
+    kind: "single",
+    title: "Quem é o seu professor?",
+    options: [...PROFESSORES.map((p) => ({ value: p.value, label: p.rotulo })), { value: "unknown", label: "Não sei" }],
+    required: true,
+    showWhen: semProfessorDoConvite,
+  },
   {
     id: "teacher_followup",
     section: "professor",
     kind: "rating",
-    title: "Você sente que seu professor acompanha sua rotina de treinos com frequência?",
+    title: "Você sente que {professor} acompanha sua rotina de treinos com frequência?",
     labels: FREQUENCIA,
     required: true,
   },
@@ -309,7 +360,7 @@ export const QUESTIONS: readonly Question[] = [
     id: "teacher_understands_goals",
     section: "professor",
     kind: "rating",
-    title: "Você sente que seu professor conhece seus objetivos e acompanha sua evolução?",
+    title: "Você sente que {professor} conhece seus objetivos e acompanha sua evolução?",
     labels: ["Nada", "Pouco", "Razoavelmente", "Bem", "Muito bem"],
     required: true,
   },
@@ -317,7 +368,7 @@ export const QUESTIONS: readonly Question[] = [
     id: "teacher_whatsapp_access",
     section: "professor",
     kind: "rating",
-    title: "Você tem facilidade para conversar individualmente com seu professor pelo WhatsApp quando precisa?",
+    title: "Você tem facilidade para conversar individualmente com {professor} pelo WhatsApp quando precisa?",
     labels: ["Muito difícil", "Difícil", "Razoável", "Fácil", "Muito fácil"],
     required: true,
   },
@@ -325,7 +376,7 @@ export const QUESTIONS: readonly Question[] = [
     id: "teacher_support_quality",
     section: "professor",
     kind: "rating",
-    title: "Quando você chama seu professor no privado, sente que recebe atenção e suporte adequados?",
+    title: "Quando você chama {professor} no privado, sente que recebe atenção e suporte adequados?",
     labels: FREQUENCIA,
     required: true,
   },
@@ -333,7 +384,7 @@ export const QUESTIONS: readonly Question[] = [
     id: "teacher_communication_quality",
     section: "professor",
     kind: "rating",
-    title: "Como você avalia a qualidade da comunicação com seu professor?",
+    title: "Como você avalia a qualidade da comunicação com {professor}?",
     labels: QUALIDADE_A,
     required: true,
   },
@@ -387,7 +438,7 @@ export const QUESTIONS: readonly Question[] = [
     id: "needs_more_feedback",
     section: "treinos",
     kind: "single",
-    title: "Você sente necessidade de mais feedback do professor sobre sua evolução?",
+    title: "Você sente necessidade de mais feedback {do_professor} sobre sua evolução?",
     options: [
       { value: "yes", label: "Sim" },
       { value: "no", label: "Não" },

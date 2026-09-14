@@ -10,6 +10,8 @@ import { MensagemDaTela } from "../ui/MensagemDaTela";
 
 interface QuestionScreenProps {
   pergunta: Question;
+  /** Enunciado já resolvido: cita o professor quando ele é conhecido. */
+  titulo: string;
   answers: Draft;
   mensagem: MensagemTela | null;
   erroEnvio: string | null;
@@ -33,6 +35,7 @@ function atalhoDeEnvio(e: KeyboardEvent<HTMLFormElement>) {
 
 export function QuestionScreen({
   pergunta,
+  titulo: enunciado,
   answers,
   mensagem,
   erroEnvio,
@@ -79,7 +82,7 @@ export function QuestionScreen({
         tabIndex={-1}
         className="text-balance text-[26px] font-semibold leading-[1.16] tracking-[-0.02em] focus:outline-none sm:text-[34px] lg:text-[42px] lg:leading-[1.1]"
       >
-        {pergunta.title}
+        {enunciado}
       </h1>
       {pergunta.helper && (
         <p id={ids.ajuda} className="mt-3 text-[15px] text-white/60">

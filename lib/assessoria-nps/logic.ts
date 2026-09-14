@@ -6,39 +6,71 @@
 
 import {
   PERIODS,
+  PROFESSORES,
   QUESTIONS,
   QUESTION_BY_ID,
   SECTIONS,
+  SEM_CONTEXTO,
   periodosEfetivos,
   temInteresseNaSemana,
   type AnswerKey,
   type Answers,
+  type ContextoPesquisa,
   type Draft,
+  type ProfessorId,
   type Question,
   type Section,
   type SectionId,
 } from "./survey";
+import { nomeCasaCom } from "./nome";
 
 // ─── Visibilidade ───────────────────────────────────────────────────────────
-export function perguntaVisivel(q: Question, a: Draft): boolean {
-  return q.showWhen ? q.showWhen(a) : true;
+export function perguntaVisivel(q: Question, a: Draft, ctx: ContextoPesquisa = SEM_CONTEXTO): boolean {
+  return q.showWhen ? q.showWhen(a, ctx) : true;
 }
 
-export function perguntasVisiveis(a: Draft): Question[] {
-  return QUESTIONS.filter((q) => perguntaVisivel(q, a));
+export function perguntasVisiveis(a: Draft, ctx: ContextoPesquisa = SEM_CONTEXTO): Question[] {
+  return QUESTIONS.filter((q) => perguntaVisivel(q, a, ctx));
 }
 
 /** Identificação sempre; as demais só quando têm pergunta visível. */
-export function secoesVisiveis(a: Draft): Section[] {
-  const comPergunta = new Set<SectionId>(perguntasVisiveis(a).map((q) => q.section));
+export function secoesVisiveis(a: Draft, ctx: ContextoPesquisa = SEM_CONTEXTO): Section[] {
+  const comPergunta = new Set<SectionId>(perguntasVisiveis(a, ctx).map((q) => q.section));
   return SECTIONS.filter((s) => s.id === "identificacao" || comPergunta.has(s.id));
+}
+
+// ─── Professor ──────────────────────────────────────────────────────────────
+/**
+ * Nome do cadastro da gestão (`professors.name`) → professor da pesquisa.
+ * Mesma regra do casamento de aluno: primeiro nome igual e sobrenome presente,
+ * sem acento nem caixa ("Joseph pereira" é o Joseph Pereira).
+ */
+export function professorPeloNome(nome: string | null | undefined): ProfessorId | null {
+  if (!nome) return null;
+  return PROFESSORES.find((p) => nomeCasaCom(p.nome, nome))?.value ?? null;
+}
+
+/** Professor de quem responde: o do link pessoal ou o que a pessoa marcou. */
+export function professorDaPesquisa(a: Draft, ctx: ContextoPesquisa = SEM_CONTEXTO): ProfessorId | null {
+  if (ctx.professorDoConvite) return ctx.professorDoConvite;
+  const marcado = a.declared_professor;
+  return marcado && marcado !== "unknown" ? marcado : null;
+}
+
+/** Enunciado com o professor pelo apelido ("o Ale") quando ele é conhecido; senão "seu professor". */
+export function tituloDaPergunta(q: Question, a: Draft, ctx: ContextoPesquisa = SEM_CONTEXTO): string {
+  if (!q.title.includes("{")) return q.title;
+  const p = PROFESSORES.find((x) => x.value === professorDaPesquisa(a, ctx));
+  return q.title
+    .replace(/\{professor\}/g, p ? `o ${p.apelido}` : "seu professor")
+    .replace(/\{do_professor\}/g, p ? `do ${p.apelido}` : "do professor");
 }
 
 // ─── Telas ──────────────────────────────────────────────────────────────────
 export type ScreenKey = "identity" | AnswerKey;
 
-export function sequenciaDeTelas(a: Draft): ScreenKey[] {
-  return ["identity", ...perguntasVisiveis(a).map((q) => q.id)];
+export function sequenciaDeTelas(a: Draft, ctx: ContextoPesquisa = SEM_CONTEXTO): ScreenKey[] {
+  return ["identity", ...perguntasVisiveis(a, ctx).map((q) => q.id)];
 }
 
 export function secaoDaTela(tela: ScreenKey): SectionId {
@@ -59,9 +91,9 @@ export interface Progresso {
   fracao: number;
 }
 
-export function progressoDaTela(tela: ScreenKey, a: Draft): Progresso {
-  const secoes = secoesVisiveis(a);
-  const telas = sequenciaDeTelas(a);
+export function progressoDaTela(tela: ScreenKey, a: Draft, ctx: ContextoPesquisa = SEM_CONTEXTO): Progresso {
+  const secoes = secoesVisiveis(a, ctx);
+  const telas = sequenciaDeTelas(a, ctx);
   const idSecao = secaoDaTela(tela);
   const idx = Math.max(0, secoes.findIndex((s) => s.id === idSecao));
   const pos = Math.max(0, telas.indexOf(tela));
@@ -187,7 +219,7 @@ export type ResultadoPreparo = { ok: true; respostas: Answers } | { ok: false; e
  * - texto vazio vira NULL;
  * - `available_periods` sai resolvido a partir de `preferred_period`.
  */
-export function prepararRespostas(a: Draft): ResultadoPreparo {
+export function prepararRespostas(a: Draft, ctx: ContextoPesquisa = SEM_CONTEXTO): ResultadoPreparo {
   const r: Record<string, unknown> = {
     whatsapp_content_other: null,
     preferred_weekday_other: null,
@@ -196,7 +228,7 @@ export function prepararRespostas(a: Draft): ResultadoPreparo {
   for (const q of QUESTIONS) r[q.id] = null;
 
   for (const q of QUESTIONS) {
-    if (!perguntaVisivel(q, a)) continue;
+    if (!perguntaVisivel(q, a, ctx)) continue;
     const erro = erroNaPergunta(q, a);
     if (erro) return { ok: false, erro };
 

@@ -3,8 +3,8 @@
 import { useCallback, useEffect, useRef } from "react";
 import { AnimatePresence, motion, useReducedMotion, type Variants } from "framer-motion";
 import { QUESTION_BY_ID } from "@/lib/assessoria-nps/survey";
-import { progressoDaTela, secoesVisiveis, sequenciaDeTelas } from "@/lib/assessoria-nps/logic";
-import { useSurvey } from "./useSurvey";
+import { progressoDaTela, secoesVisiveis, sequenciaDeTelas, tituloDaPergunta } from "@/lib/assessoria-nps/logic";
+import { contextoDaPesquisa, useSurvey } from "./useSurvey";
 import { FORM_ID, type ConviteInicial } from "./types";
 import { SurveyShell } from "./ui/SurveyShell";
 import { SectionRail } from "./ui/SectionRail";
@@ -56,8 +56,9 @@ export function SurveyFlow({ campanha, rotulo, convite }: SurveyFlowProps) {
 
   const emFluxo = state.fase === "fluxo";
   const pergunta = emFluxo && state.tela !== "identity" ? QUESTION_BY_ID.get(state.tela) : undefined;
-  const progresso = progressoDaTela(state.tela, state.answers);
-  const telas = sequenciaDeTelas(state.answers);
+  const ctx = contextoDaPesquisa(state);
+  const progresso = progressoDaTela(state.tela, state.answers, ctx);
+  const telas = sequenciaDeTelas(state.answers, ctx);
   const ultima = emFluxo && telas[telas.length - 1] === state.tela;
   const enviando = state.envio === "solicitado" || state.envio === "enviando";
   // Primeira renderização e hidratação não roubam o foco; navegação sim.
@@ -73,7 +74,7 @@ export function SurveyFlow({ campanha, rotulo, convite }: SurveyFlowProps) {
 
   return (
     <SurveyShell
-      rail={<SectionRail secoes={secoesVisiveis(state.answers)} atual={emFluxo ? progresso.secao.id : null} />}
+      rail={<SectionRail secoes={secoesVisiveis(state.answers, ctx)} atual={emFluxo ? progresso.secao.id : null} />}
       header={
         emFluxo ? (
           <ProgressIndicator
@@ -131,6 +132,7 @@ export function SurveyFlow({ campanha, rotulo, convite }: SurveyFlowProps) {
           {pergunta && (
             <QuestionScreen
               pergunta={pergunta}
+              titulo={tituloDaPergunta(pergunta, state.answers, ctx)}
               answers={state.answers}
               mensagem={state.mensagem}
               erroEnvio={ultima && state.envio === "falhou" ? state.envioErro : null}

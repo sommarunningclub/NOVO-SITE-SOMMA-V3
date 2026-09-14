@@ -1,5 +1,6 @@
 import { z } from "zod";
 import {
+  DECLARED_PROFESSOR,
   EVENING_TIME,
   MESSAGE_VOLUME,
   MORNING_TIME,
@@ -32,6 +33,7 @@ export const answersSchema = z.object({
   overall_quality: nota(1, 5),
   expectation_delivery: nota(1, 5),
 
+  declared_professor: z.enum(DECLARED_PROFESSOR).nullish(),
   teacher_followup: nota(1, 5),
   teacher_understands_goals: nota(1, 5),
   teacher_whatsapp_access: nota(1, 5),
