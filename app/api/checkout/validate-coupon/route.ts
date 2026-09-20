@@ -51,7 +51,7 @@ const COUPONS: Record<string, { type: "PERCENTAGE" | "FIXED"; value: number; des
   "ALE200": { type: "FIXED", value: 20, description: "Desconto de R$ 20,00 - Assinatura por R$ 200", active: true, professor: "Alexandre Alves", planType: "recurring" },
   "ALE180": { type: "FIXED", value: 40, description: "Desconto de R$ 40,00 - Assinatura por R$ 180", active: true, professor: "Alexandre Alves", planType: "recurring" },
 
-  // TESTE do link dedicado do Gabriel (/checkout/gabriel-brito): derruba a
+  // TESTE do link dedicado do Gabriel (sommaclub.com.br/gabriel-brito): derruba a
   // primeira mensalidade para R$ 5,00, o mínimo que o Asaas aceita no cartão.
   // Preso ao professor Gabriel Brito e ao plano Mensal, e `firstMonthOnly`
   // devolve o valor cheio no 2º ciclo — se esquecerem de cancelar o teste, não

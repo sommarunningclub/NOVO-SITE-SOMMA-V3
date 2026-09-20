@@ -5,12 +5,12 @@ import { Check } from "lucide-react"
 import { CheckoutForm, type Professor } from "@/components/checkout-form"
 
 /**
- * Checkout dedicado do professor Gabriel Brito.
+ * Checkout de um link dedicado de professor.
  *
  * O cliente escolhe Mensal, Semestral ou Anual no seletor de cima; o professor
  * não é escolha dele, vem travado no plano. Os preços são os mesmos da página
- * pública — o que este link muda é só o caminho da venda, que fica isolado.
- * Link oficial: sommaclub.com.br/checkout/gabriel-brito
+ * pública — o que estes links mudam é só o caminho da venda, que fica isolado
+ * por professor: sommaclub.com.br/<professor>.
  */
 const PLANOS = [
   {
@@ -22,7 +22,6 @@ const PLANOS = [
     installments: 1,
     type: "recurring" as const,
     pixAutomaticoKey: "mensal" as const,
-    professorFixo: "Gabriel Brito",
   },
   {
     id: "semestral",
@@ -32,7 +31,6 @@ const PLANOS = [
     total: 1200,
     installments: 6,
     type: "installment" as const,
-    professorFixo: "Gabriel Brito",
   },
   {
     id: "anual",
@@ -42,7 +40,6 @@ const PLANOS = [
     total: 2160,
     installments: 12,
     type: "installment" as const,
-    professorFixo: "Gabriel Brito",
   },
 ]
 
@@ -53,9 +50,17 @@ function resumoDoPlano(plan: (typeof PLANOS)[number]): string {
     : `${plan.installments}x R$ ${plan.price}`
 }
 
-export function CheckoutGabrielBrito({ professores }: { professores: Professor[] }) {
+export function CheckoutProfessor({
+  professorFixo,
+  professores,
+}: {
+  /** Nome exato do professor, como está em `professores_curriculo_assessoria`. */
+  professorFixo: string
+  professores: Professor[]
+}) {
   const [planoId, setPlanoId] = useState("mensal")
-  const plan = PLANOS.find((p) => p.id === planoId) ?? PLANOS[0]
+  const plano = PLANOS.find((p) => p.id === planoId) ?? PLANOS[0]
+  const plan = { ...plano, professorFixo }
 
   const seletor = (
     <div className="mb-6 sm:mb-8 lg:mb-10">
