@@ -5,6 +5,7 @@ import {
   type CheckoutSession,
 } from "@/lib/asaas/checkout-session"
 import { precificar } from "@/lib/asaas/checkout-pricing"
+import { registrarUsoDoCupom } from "@/lib/checkout/cupons"
 import { clientIp, rateLimit } from "@/lib/rate-limit"
 
 const ASAAS_API_URL = "https://api.asaas.com/v3"
@@ -109,6 +110,7 @@ export async function POST(request: NextRequest) {
       }
 
       console.log("[Asaas] Assinatura criada:", data.id)
+      await registrarUsoDoCupom(charge.couponCode)
 
       // Cupom de primeira mensalidade (ex.: ANALU): a assinatura nasce com o valor
       // com desconto — a 1ª cobrança já foi gerada e capturada no cartão acima — e
@@ -181,6 +183,7 @@ export async function POST(request: NextRequest) {
       }
 
       console.log("[Asaas] Cobrança parcelada criada:", data.id)
+      await registrarUsoDoCupom(charge.couponCode)
       return NextResponse.json({
         payment: { id: data.id, status: data.status, value: data.value },
         checkoutToken: tokenComCobranca(session, { paymentId: data.id }),
@@ -216,6 +219,7 @@ export async function POST(request: NextRequest) {
     }
 
     console.log("[Asaas] Cobrança PIX criada:", data.id)
+    await registrarUsoDoCupom(charge.couponCode)
     return NextResponse.json({
       payment: { id: data.id, status: data.status, value: data.value },
       checkoutToken: tokenComCobranca(session, { paymentId: data.id }),

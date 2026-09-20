@@ -16,8 +16,9 @@ import type { PlanType } from "./planos"
  * app/api/checkout/validate-coupon/route.ts da GESTÃO (status ACTIVE,
  * expiration_date, usage_limit/usage_count). Os cupons hardcoded abaixo são
  * APENAS fallback para os códigos ativos ainda não migrados ao DB.
- * `firstMonthOnly` só existe nos cupons hardcoded: a tabela da GESTÃO não tem a
- * coluna, então cupom vindo do DB continua valendo em todas as mensalidades.
+ * Desde scripts/add-coupon-rules.sql, a tabela da GESTÃO também guarda as
+ * restrições de professor, tipo de plano e primeira mensalidade — os cupons do
+ * painel valem exatamente as mesmas regras que os hardcoded.
  */
 
 /** Valor mínimo exigido pelo Asaas para cartão de crédito. */
@@ -126,13 +127,16 @@ const COUPONS: Record<string, HardcodedCoupon> = {
 }
 
 async function lookupCouponDB(
-  code: string
+  code: string,
+  contexto: { professor: string; planType: PlanType }
 ): Promise<NormalizedCoupon | { error: string } | null> {
   const supabase = getServiceSupabase()
   if (!supabase) return null // sem DB → cai no fallback
   const { data, error } = await supabase
     .from("coupons")
-    .select("code, type, value, description, status, expiration_date, usage_limit, usage_count")
+    .select(
+      "code, type, value, description, status, expiration_date, usage_limit, usage_count, professor, plan_type, first_month_only"
+    )
     .eq("code", code)
     .single()
   if (error || !data) return null // não está no DB → fallback
@@ -141,11 +145,43 @@ async function lookupCouponDB(
     return { error: "Cupom expirado ou inativo" }
   if (data.usage_limit != null && (data.usage_count ?? 0) >= data.usage_limit)
     return { error: "Cupom esgotado" }
+  // Restrições de professor e de plano: as mesmas do fallback hardcoded. Sem
+  // isto, um cupom migrado para o painel perderia a trava em silêncio — um
+  // "JO150", que só vale com o Joseph, passaria a valer com qualquer professor.
+  if (data.professor && data.professor !== contexto.professor) {
+    return { error: "Cupom inválido" }
+  }
+  if (data.plan_type && data.plan_type !== contexto.planType) {
+    return { error: "Cupom inválido" }
+  }
   return {
     code,
     type: data.type,
     value: Number(data.value),
     description: data.description ?? "Desconto",
+    firstMonthOnly: data.first_month_only === true,
+  }
+}
+
+/**
+ * Conta mais um uso do cupom — é isto que dá sentido ao `usage_limit`.
+ *
+ * Chamada quando a cobrança é criada com sucesso no Asaas, nunca antes: a
+ * tentativa abandonada no meio do cartão não gasta o cupom de ninguém.
+ *
+ * Nunca derruba o checkout. O cliente já pagou quando chegamos aqui; falhar a
+ * contagem é um problema de relatório, não de venda. Cupom que só existe na
+ * lista hardcoded não tem linha no banco e simplesmente não é contado.
+ */
+export async function registrarUsoDoCupom(code: string | null | undefined): Promise<void> {
+  if (!code) return
+  const supabase = getServiceSupabase()
+  if (!supabase) return
+  try {
+    const { error } = await supabase.rpc("increment_coupon_usage", { coupon_code: code })
+    if (error) console.error("[cupons] Falha ao contar uso de", code, error)
+  } catch (err) {
+    console.error("[cupons] Falha ao contar uso de", code, err)
   }
 }
 
@@ -165,7 +201,7 @@ export async function resolveCoupon(
   const code = normalizarCodigoCupom(rawCode)
   if (!code) return { ok: false, error: "Código do cupom não informado", status: 400 }
 
-  const dbResult = await lookupCouponDB(code)
+  const dbResult = await lookupCouponDB(code, contexto)
   if (dbResult && "error" in dbResult) {
     return { ok: false, error: dbResult.error, status: 400 }
   }
