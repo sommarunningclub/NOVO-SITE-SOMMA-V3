@@ -242,7 +242,7 @@ function montarCopy(variante: VarianteSommaDay, saudacao: string): Copy {
         rotuloBloco: "A virada do dia",
         tituloBloco: `PAGODE ÀS ${BEBIDA_HORA.toUpperCase()}`,
         textoBloco:
-          "Mesa, cadeira, chopp, carreteiro e conversa. O evento não acaba quando você cruza a chegada, " +
+          "Mesa, cadeira, chopp e conversa. O evento não acaba quando você cruza a chegada, " +
           "acaba quando a última pessoa vai embora.",
         mostrarCronograma: true,
         botao: "Garantir minha pulseira",
@@ -326,7 +326,7 @@ const CRONOGRAMA_EMAIL = [
   { hora: "07h30", texto: "Concentração e aquecimento, todo mundo junto.", cor: C.vermelho },
   { hora: LARGADA, texto: `Largada dos pelotões de ${PELOTOES_PROSA}.`, cor: C.azul },
   { hora: "09h00", texto: "Ativações, sorteios, recovery, Fit Dance Evolve e café da manhã.", cor: C.azul },
-  { hora: BEBIDA_HORA, texto: "Pagode, chopp, carreteiro e comunidade.", cor: C.amarelo },
+  { hora: BEBIDA_HORA, texto: "Pagode, chopp e comunidade.", cor: C.amarelo },
   { hora: ENCERRAMENTO, texto: "Fim. Até a próxima edição.", cor: CORES.petroleo },
 ] as const;
 
