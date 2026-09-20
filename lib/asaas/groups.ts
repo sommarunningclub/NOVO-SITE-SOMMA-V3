@@ -8,12 +8,14 @@ const GROUP_MAP: Record<string, string> = {
   "matheus fonseca": "Mateus Fonseca", // tolera grafia antiga com "h"
   "alexandre alves": "Alexandre Alves",
   "joseph pereira": "Joseph Pereira",
+  "gabriel brito": "Gabriel Brito",
   // Apelidos usados na planilha de gestão
   "matheus": "Mateus Fonseca",
   "mateus": "Mateus Fonseca",
   "alexandre": "Alexandre Alves",
   "jojo": "Joseph Pereira", // "JôJô" → normalizado para "jojo"
   "joseph": "Joseph Pereira",
+  "gabriel": "Gabriel Brito",
 }
 
 function normalize(value: string): string {
