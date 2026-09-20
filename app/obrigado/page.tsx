@@ -27,6 +27,16 @@ export default function ObrigadoPage() {
           encontros, dicas e viver o Somma de perto.
         </p>
 
+        {/* WhatsApp (grupo atual) */}
+        <button
+          type="button"
+          onClick={abrirGrupo}
+          className="mt-8 flex w-full items-center justify-center gap-2 rounded-full bg-[#25D366] px-6 py-3.5 text-base font-semibold text-white transition-opacity hover:opacity-90"
+        >
+          <MessageCircle className="h-5 w-5" />
+          Entrar no grupo do WhatsApp
+        </button>
+
         {/* Próximos passos */}
         <div className="mt-8 rounded-2xl border border-white/10 bg-white/[0.03] p-6 text-left">
           <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-white/80">Próximos passos</h2>
@@ -47,19 +57,9 @@ export default function ObrigadoPage() {
         {/* Agenda Oficial do Somma (assinatura de calendário) */}
         <AgendaSubscribe />
 
-        {/* WhatsApp (grupo atual) */}
-        <button
-          type="button"
-          onClick={abrirGrupo}
-          className="mt-8 flex w-full items-center justify-center gap-2 rounded-full bg-[#25D366] px-6 py-3.5 text-base font-semibold text-white transition-opacity hover:opacity-90"
-        >
-          <MessageCircle className="h-5 w-5" />
-          Entrar no grupo do WhatsApp
-        </button>
-
         <Link
           href="/"
-          className="mt-3 block w-full rounded-full border border-white/20 px-6 py-3.5 text-base font-semibold text-white transition-colors hover:bg-white/10"
+          className="mt-8 block w-full rounded-full border border-white/20 px-6 py-3.5 text-base font-semibold text-white transition-colors hover:bg-white/10"
         >
           Voltar ao site
         </Link>
