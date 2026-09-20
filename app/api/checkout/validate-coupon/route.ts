@@ -51,6 +51,13 @@ const COUPONS: Record<string, { type: "PERCENTAGE" | "FIXED"; value: number; des
   "ALE200": { type: "FIXED", value: 20, description: "Desconto de R$ 20,00 - Assinatura por R$ 200", active: true, professor: "Alexandre Alves", planType: "recurring" },
   "ALE180": { type: "FIXED", value: 40, description: "Desconto de R$ 40,00 - Assinatura por R$ 180", active: true, professor: "Alexandre Alves", planType: "recurring" },
 
+  // TESTE do link dedicado do Gabriel (/checkout/gabriel-brito): derruba a
+  // primeira mensalidade para R$ 5,00, o mínimo que o Asaas aceita no cartão.
+  // Preso ao professor Gabriel Brito e ao plano Mensal, e `firstMonthOnly`
+  // devolve o valor cheio no 2º ciclo — se esquecerem de cancelar o teste, não
+  // fica uma assinatura de R$ 5 aberta. REMOVER depois de validar a compra.
+  "GB100": { type: "FIXED", value: 215, description: "Teste - 1ª mensalidade por R$ 5,00", active: true, professor: "Gabriel Brito", planType: "recurring", firstMonthOnly: true },
+
   // Cupons Familiares - 10%
   "ALEX10": { type: "PERCENTAGE", value: 10, description: "10% desconto - Familiares", active: true },
   "ANDERSON10": { type: "PERCENTAGE", value: 10, description: "10% desconto - Familiares", active: true },
