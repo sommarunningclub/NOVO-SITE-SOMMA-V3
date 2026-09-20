@@ -29,11 +29,19 @@ interface Plan {
   // Chave do catálogo do servidor (lib/checkout/planos-pix-automatico.ts).
   // Só planos mensais com chave aceitam Pix Automático.
   pixAutomaticoKey?: "mensal" | "mensal-alexandre"
+  /** Link dedicado de um professor: o vínculo não é escolha do cliente. */
+  professorFixo?: string
 }
 
 interface CheckoutFormProps {
   plan: Plan
   initialProfessors: Professor[]
+  /**
+   * Seletor de plano desenhado por quem usa o formulário, exibido acima de
+   * tudo. Só os links dedicados mandam algo aqui: na tela pública o plano vem
+   * da URL e não muda no meio do preenchimento.
+   */
+  planSwitcher?: React.ReactNode
 }
 
 interface CustomerData {
@@ -86,7 +94,7 @@ interface CouponData {
   }
 }
 
-interface Professor {
+export interface Professor {
   id: string
   nome: string
   instagram: string
@@ -132,7 +140,7 @@ function fmtClock(totalSeconds: number) {
   return h > 0 ? `${h}:${mm}:${ss}` : `${mm}:${ss}`
 }
 
-export function CheckoutForm({ plan, initialProfessors }: CheckoutFormProps) {
+export function CheckoutForm({ plan, initialProfessors, planSwitcher }: CheckoutFormProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [pageState, setPageState] = useState<"form" | "processing" | "success" | "error" | "pix">("form")
@@ -141,7 +149,10 @@ export function CheckoutForm({ plan, initialProfessors }: CheckoutFormProps) {
   const [cepError, setCepError] = useState<string | null>(null)
 
   const [professors, setProfessors] = useState<Professor[]>(initialProfessors)
-  const [professor, setProfessor] = useState("")
+  // Nos links dedicados o professor não é escolha do cliente: já entra
+  // selecionado, em vez de deixar o botão de pagar travado esperando um clique
+  // sem alternativa.
+  const [professor, setProfessor] = useState(plan.professorFixo ?? "")
   const welcomeEmailSentRef = useRef(false)
   // Duas respostas de polling sobrepostas podem chegar com active=true antes do
   // stop(): sem guard, o cliente entraria duas vezes na gestão.
@@ -1134,6 +1145,8 @@ export function CheckoutForm({ plan, initialProfessors }: CheckoutFormProps) {
       </div>
 
       <div className="max-w-6xl mx-auto px-3 sm:px-6 py-6 sm:py-8 lg:py-12">
+        {planSwitcher}
+
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6 sm:gap-8 lg:gap-16">
 
           {/* ── LEFT: Form ──────────────────────────────────────────────── */}
@@ -1142,7 +1155,7 @@ export function CheckoutForm({ plan, initialProfessors }: CheckoutFormProps) {
             {/* Professor */}
             <section>
               <h2 className="text-xs sm:text-sm font-medium text-white/50 uppercase tracking-wider mb-3 sm:mb-4">
-                1. Selecione seu professor
+                {plan.professorFixo ? "1. Seu professor" : "1. Selecione seu professor"}
               </h2>
               {professors.length === 0 ? (
                 <div className="flex items-center gap-2 text-white/30 text-sm py-4">
