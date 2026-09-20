@@ -16,7 +16,7 @@ import type { PlanType } from "./planos"
  * app/api/checkout/validate-coupon/route.ts da GESTÃO (status ACTIVE,
  * expiration_date, usage_limit/usage_count). Os cupons hardcoded abaixo são
  * APENAS fallback para os códigos ativos ainda não migrados ao DB.
- * Desde scripts/add-coupon-rules.sql, a tabela da GESTÃO também guarda as
+ * Desde supabase/migrations/20260920223743_coupon_rules.sql, a tabela da GESTÃO também guarda as
  * restrições de professor, tipo de plano e primeira mensalidade — os cupons do
  * painel valem exatamente as mesmas regras que os hardcoded.
  */
