@@ -196,21 +196,38 @@ export function Apresentacao({ bio, professor }: { bio: Bio; professor?: Profess
             <p className="mt-6 text-lg leading-snug text-white sm:text-xl">{bio.chamada}</p>
 
             {/* Os números, contando sozinhos quando aparecem. */}
-            <div className="mt-7 grid grid-cols-3 gap-3">
-              {bio.numeros.map((numero) => (
-                <div
-                  key={numero.label}
-                  className="rounded-2xl border border-white/10 bg-black/40 px-3 py-4 text-center"
-                >
-                  <p className="text-2xl font-semibold text-[#ff4f2d] sm:text-3xl">
-                    <Contador valor={numero.valor} sufixo={numero.sufixo} />
-                  </p>
-                  <p className="mt-1 text-[11px] leading-tight text-white/50 sm:text-xs">
-                    {numero.label}
-                  </p>
-                </div>
-              ))}
-            </div>
+            {bio.numeros && (
+              <div className="mt-7 grid grid-cols-3 gap-3">
+                {bio.numeros.map((numero) => (
+                  <div
+                    key={numero.label}
+                    className="rounded-2xl border border-white/10 bg-black/40 px-3 py-4 text-center"
+                  >
+                    <p className="text-2xl font-semibold text-[#ff4f2d] sm:text-3xl">
+                      <Contador valor={numero.valor} sufixo={numero.sufixo} />
+                    </p>
+                    <p className="mt-1 text-[11px] leading-tight text-white/50 sm:text-xs">
+                      {numero.label}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Nem toda história cabe em prova contada: aqui vão os pilares. */}
+            {bio.destaques && (
+              <div className="mt-7 grid gap-3 sm:grid-cols-3">
+                {bio.destaques.map((destaque) => (
+                  <div
+                    key={destaque.titulo}
+                    className="rounded-2xl border border-white/10 bg-black/40 px-4 py-4"
+                  >
+                    <p className="text-sm font-medium text-[#ff4f2d]">{destaque.titulo}</p>
+                    <p className="mt-1.5 text-xs leading-relaxed text-white/50">{destaque.texto}</p>
+                  </div>
+                ))}
+              </div>
+            )}
 
             <div className="mt-7 space-y-4 text-sm leading-relaxed text-white/60 sm:text-base">
               {bio.paragrafos.map((paragrafo) => (

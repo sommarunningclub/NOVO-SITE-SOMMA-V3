@@ -15,6 +15,12 @@ export interface Numero {
   label: string
 }
 
+/** Quando não há número para exibir, o que sustenta o professor em três pilares. */
+export interface Destaque {
+  titulo: string
+  texto: string
+}
+
 export interface Bio {
   /** Como o professor é chamado no meio do texto e nos botões. */
   primeiroNome: string
@@ -23,7 +29,9 @@ export interface Bio {
   /** Etiquetas curtas embaixo do nome. */
   tags: string[]
   /** Os números que contam a história dele, em destaque. */
-  numeros: Numero[]
+  numeros?: Numero[]
+  /** Alternativa aos números, para quem a história não cabe em provas contadas. */
+  destaques?: Destaque[]
   /** Texto corrido, um parágrafo por item. */
   paragrafos: string[]
 }
@@ -41,6 +49,29 @@ export const BIOS: Record<string, Bio> = {
     paragrafos: [
       "Triatleta amador e ultramaratonista, possui experiência em provas de longa distância, incluindo 6 maratonas, 3 provas de Ironman 70.3 e uma ultramaratona de 52 km.",
       "Trabalho buscando integrar ciência, treinamento e experiência prática para desenvolver performance de forma consistente e sustentável, com atenção à progressão, individualidade e prevenção de lesões.",
+    ],
+  },
+  "Gabriel Brito": {
+    primeiroNome: "Gabriel",
+    chamada: "Corredor e treinador. Estuda o porquê de cada treino antes de te passar ele.",
+    tags: ["Performance", "Individualização", "Fisiologia"],
+    destaques: [
+      {
+        titulo: "Performance",
+        texto: "O treino existe para você correr mais e melhor, não para encher a semana.",
+      },
+      {
+        titulo: "Individualização",
+        texto: "Cada atleta recebe o treino dele, pelo motivo dele.",
+      },
+      {
+        titulo: "Ciência na prática",
+        texto: "Fisiologia estudada a fundo, traduzida no que você faz na rua.",
+      },
+    ],
+    paragrafos: [
+      "Gabriel é corredor e treinador, com uma pegada voltada para performance e individualização.",
+      "Estuda a fundo fisiologia e gosta de entender o porquê de cada treino, buscando transformar ciência em prática para ajudar cada atleta a correr mais e melhor.",
     ],
   },
 }
