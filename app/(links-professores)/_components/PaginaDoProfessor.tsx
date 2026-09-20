@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import { createClient as createAnonClient } from "@supabase/supabase-js"
 import { CheckoutProfessor } from "./CheckoutProfessor"
+import { bioDoProfessor } from "../_lib/bios"
 
 /**
  * Página de um link dedicado de professor.
@@ -62,7 +63,11 @@ export async function PaginaDoProfessor({ nome }: { nome: string }) {
 
   return (
     <main className="bg-black">
-      <CheckoutProfessor professorFixo={nome} professores={professores} />
+      <CheckoutProfessor
+        professorFixo={nome}
+        professores={professores}
+        bio={bioDoProfessor(nome)}
+      />
     </main>
   )
 }
