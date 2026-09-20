@@ -81,6 +81,11 @@ export default async function CheckoutPage({
   const { data: professors, error } = await supabase
     .from("professores_curriculo_assessoria")
     .select("id, nome, instagram, link_foto, telefone")
+    // Sem ordem explícita o Postgres devolve na ordem que quiser, e ela muda
+    // entre acessos. A ordem dos cards é decisão comercial: vem da coluna
+    // `ordem`. Professor novo, ainda sem ordem, cai no fim em ordem alfabética.
+    .order("ordem", { ascending: true, nullsFirst: false })
+    .order("nome", { ascending: true })
 
   if (error) {
     console.error("[CheckoutPage] Supabase error:", JSON.stringify(error))
