@@ -7,8 +7,10 @@ import { createClient as createAnonClient } from "@supabase/supabase-js"
  * Professores que não aparecem na lista desta página.
  *
  * Quem está aqui vende pelo próprio link dedicado (Gabriel Brito ->
- * /checkout/gabriel-brito); deixá-lo também na tela pública faria a mesma venda
- * entrar por dois caminhos diferentes.
+ * sommaclub.com.br/gabriel-brito); deixá-lo também na tela pública faria a mesma
+ * venda entrar por dois caminhos diferentes. Os outros professores têm link
+ * dedicado (/alexandre, /joseph, /mateus) e continuam na lista: o link deles é
+ * um atalho, não o único caminho.
  */
 const PROFESSORES_FORA_DO_CHECKOUT_PUBLICO = ["Gabriel Brito"]
 
