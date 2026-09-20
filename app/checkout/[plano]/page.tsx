@@ -3,6 +3,15 @@ import { redirect } from "next/navigation"
 import { CheckoutForm } from "@/components/checkout-form"
 import { createClient as createAnonClient } from "@supabase/supabase-js"
 
+/**
+ * Professores que não aparecem na lista desta página.
+ *
+ * Quem está aqui vende pelo próprio link dedicado (Gabriel Brito ->
+ * /checkout/gabriel-brito); deixá-lo também na tela pública faria a mesma venda
+ * entrar por dois caminhos diferentes.
+ */
+const PROFESSORES_FORA_DO_CHECKOUT_PUBLICO = ["Gabriel Brito"]
+
 const planData = {
   mensal: {
     name: "Mensal",
@@ -101,8 +110,15 @@ export default async function CheckoutPage({
     )
   }
 
+  const professorsVisiveis = (professors || []).filter(
+    (p) =>
+      !PROFESSORES_FORA_DO_CHECKOUT_PUBLICO.some(
+        (nome) => nome.toLowerCase() === (p.nome || "").trim().toLowerCase()
+      )
+  )
+
   // Ajuste de Instagram do professor Mateus Fonseca (@ e link).
-  const professorsFixed = (professors || []).map((p) =>
+  const professorsFixed = professorsVisiveis.map((p) =>
     (p.nome || "").toLowerCase().includes("mateus fonseca")
       ? { ...p, instagram: "https://www.instagram.com/matfonsecaa/" }
       : p
