@@ -248,12 +248,6 @@ export function PainelCampanhas() {
           Mail pré-carrega o pixel de quem talvez não tenha visto. A régua é aproximação, não fato.
         </p>
         <Link
-          href="/admin/campanhas-somma-day"
-          className="dst-label mt-4 block text-[color:var(--somma)] underline"
-        >
-          Ver campanha SOMMA DAY · SET 2026
-        </Link>
-        <Link
           href="/admin/campanhas-desafio-esteiras"
           className="dst-label mt-4 block text-[color:rgba(242,240,236,0.4)] underline"
         >

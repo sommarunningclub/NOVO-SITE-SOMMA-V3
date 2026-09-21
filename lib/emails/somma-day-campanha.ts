@@ -19,6 +19,19 @@
  *  2. Sem travessão na copy, por pedido de quem assina as campanhas. Onde o
  *     título oficial do evento usaria um, aqui vira ponto ou vírgula.
  *
+ * ┄ Onde esta campanha é operada ┄
+ * Aqui mora só o TEMPLATE. Quem agenda e dispara é o módulo de E-mail
+ * Marketing do admin de gestão (admin.sommaclub.com.br/?section=email), onde as
+ * cinco etapas viraram cinco campanhas `html_custom` agendadas, sobre a base
+ * `base_geral` (view `campanha_base_geral`).
+ *
+ * Nasceu com régua própria no site (`lib/campanhas/regua-somma-day.ts` e
+ * `/admin/campanhas-somma-day`), removida em 20/09/2026 a pedido de quem opera,
+ * junto com a da Talk Run e pelo mesmo motivo: dois painéis agendando a mesma
+ * campanha é a receita para a base receber em dobro. O HTML gerado aqui é
+ * colado no admin com `{{primeiro_nome}}` no lugar do nome (o admin substitui)
+ * e sem `descadastroUrl` (o admin injeta o rodapé).
+ *
  * A identidade é a do próprio SOMMA DAY (creme/vermelho/azul/amarelo da logo),
  * não a da home. É a mesma paleta da LP, então quem clica no e-mail chega numa
  * página que parece o e-mail.
