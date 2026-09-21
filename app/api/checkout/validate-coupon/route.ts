@@ -6,8 +6,11 @@ import { getServiceSupabase } from "@/lib/supabase"
 // app/api/checkout/validate-coupon/route.ts da GESTÃO (status ACTIVE,
 // expiration_date, usage_limit/usage_count). Mantemos os cupons hardcoded
 // abaixo APENAS como fallback para os códigos ativos ainda não migrados ao DB.
-// `firstMonthOnly` só existe nos cupons hardcoded: a tabela da GESTÃO não tem a
-// coluna, então cupom vindo do DB continua valendo em todas as mensalidades.
+// Desde a migration 20260920223743_coupon_rules.sql da GESTÃO, a tabela também
+// guarda `professor`, `plan_type` e `first_month_only`: o cupom do painel vale
+// exatamente as mesmas regras do hardcoded. Como o cupom do DB tem precedência,
+// ler essas colunas é o que impede um JO150 migrado de valer com qualquer
+// professor.
 type NormalizedCoupon = {
   type: "PERCENTAGE" | "FIXED"
   value: number
@@ -15,12 +18,17 @@ type NormalizedCoupon = {
   firstMonthOnly?: boolean
 }
 
-async function lookupCouponDB(code: string): Promise<NormalizedCoupon | { error: string } | null> {
+async function lookupCouponDB(
+  code: string,
+  contexto: { professor: string; planType: string }
+): Promise<NormalizedCoupon | { error: string } | null> {
   const supabase = getServiceSupabase()
   if (!supabase) return null // sem DB → cai no fallback
   const { data, error } = await supabase
     .from("coupons")
-    .select("code, type, value, description, status, expiration_date, usage_limit, usage_count")
+    .select(
+      "code, type, value, description, status, expiration_date, usage_limit, usage_count, professor, plan_type, first_month_only"
+    )
     .eq("code", code)
     .single()
   if (error || !data) return null // não está no DB → fallback
@@ -29,7 +37,15 @@ async function lookupCouponDB(code: string): Promise<NormalizedCoupon | { error:
     return { error: "Cupom expirado ou inativo" }
   if (data.usage_limit != null && (data.usage_count ?? 0) >= data.usage_limit)
     return { error: "Cupom esgotado" }
-  return { type: data.type, value: Number(data.value), description: data.description ?? "Desconto" }
+  // Restrições de professor e de plano: as mesmas do fallback hardcoded abaixo.
+  if (data.professor && data.professor !== contexto.professor) return { error: "Cupom inválido" }
+  if (data.plan_type && data.plan_type !== contexto.planType) return { error: "Cupom inválido" }
+  return {
+    type: data.type,
+    value: Number(data.value),
+    description: data.description ?? "Desconto",
+    firstMonthOnly: data.first_month_only === true,
+  }
 }
 
 // Cupons cadastrados - edite aqui para adicionar/remover cupons
@@ -138,7 +154,7 @@ export async function GET(request: Request) {
 
     // 1) Fonte de verdade: tabela `coupons` (GESTÃO). 2) Fallback: hardcoded.
     let coupon: NormalizedCoupon
-    const dbResult = await lookupCouponDB(code)
+    const dbResult = await lookupCouponDB(code, { professor, planType })
     if (dbResult && "error" in dbResult) {
       return NextResponse.json({ valid: false, error: dbResult.error }, { status: 400 })
     }

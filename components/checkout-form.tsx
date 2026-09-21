@@ -574,6 +574,7 @@ export function CheckoutForm({ plan, initialProfessors, planSwitcher }: Checkout
             customerId: customerResult.id,
             type: "pix",
             pixValue: pixTotalValue,
+            couponCode: couponData?.coupon.code ?? null,
             description: `Somma Assessoria - Plano ${plan.name} PIX | Prof: ${professor} | Camiseta: ${shirtSize}${couponData ? ` | Cupom: ${couponData.coupon.code}` : ""}`,
           }),
         })
@@ -629,6 +630,7 @@ export function CheckoutForm({ plan, initialProfessors, planSwitcher }: Checkout
       const paymentPayload: Record<string, unknown> = {
         customerId: customerResult.id,
         type: plan.type,
+        couponCode: couponData?.coupon.code ?? null,
         description: `Somma Assessoria - Plano ${plan.name} | Prof: ${professor} | Camiseta: ${shirtSize}${couponData ? ` | Cupom: ${couponData.coupon.code}` : ""}`,
         creditCard: {
           holderName: cardData.holderName,
