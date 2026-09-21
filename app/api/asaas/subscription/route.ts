@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
+import { getServiceSupabase } from "@/lib/supabase"
 
 const ASAAS_API_URL = "https://api.asaas.com/v3"
 const ASAAS_API_KEY = process.env.ASAAS_API_KEY
@@ -19,11 +20,35 @@ function friendlyError(data: any): string {
   return data.errors?.[0]?.description || "Erro ao processar pagamento"
 }
 
+/**
+ * Conta mais um uso do cupom na tabela `coupons` da GESTÃO — é isto que dá
+ * sentido ao `usage_limit` do painel. Chamada só depois de a cobrança nascer
+ * no Asaas: tentativa recusada no cartão não gasta o cupom de ninguém.
+ *
+ * Nunca derruba o checkout: o cliente já pagou quando chegamos aqui, então
+ * falha de contagem vira log, não erro de venda. Cupom que só existe na lista
+ * hardcoded do site não tem linha no banco e simplesmente não é contado.
+ */
+async function registrarUsoDoCupom(code: unknown): Promise<void> {
+  const codigo = String(code ?? "").toUpperCase().trim()
+  if (!codigo) return
+  const supabase = getServiceSupabase()
+  if (!supabase) return
+  try {
+    const { error } = await supabase.rpc("increment_coupon_usage", { coupon_code: codigo })
+    if (error) console.error("[cupons] Falha ao contar uso de", codigo, error)
+  } catch (err) {
+    console.error("[cupons] Falha ao contar uso de", codigo, err)
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     const {
       customerId,
+      // Código do cupom aplicado, só para contagem de uso (o valor já vem calculado)
+      couponCode,
       creditCard,
       creditCardHolderInfo,
       remoteIp,
@@ -75,6 +100,7 @@ export async function POST(request: NextRequest) {
       }
 
       console.log("[Asaas] Assinatura criada:", data.id)
+      await registrarUsoDoCupom(couponCode)
 
       // Cupom de primeira mensalidade (ex.: ANALU): a assinatura nasce com o valor
       // com desconto — a 1ª cobrança já foi gerada e capturada no cartão acima — e
@@ -145,6 +171,7 @@ export async function POST(request: NextRequest) {
       }
 
       console.log("[Asaas] Cobrança parcelada criada:", data.id)
+      await registrarUsoDoCupom(couponCode)
       return NextResponse.json({ payment: data, message: "Pagamento processado com sucesso" })
     }
 
@@ -292,6 +319,7 @@ export async function POST(request: NextRequest) {
       }
 
       console.log("[Asaas] Cobrança PIX criada:", data.id)
+      await registrarUsoDoCupom(couponCode)
       return NextResponse.json({ payment: data, message: "Cobrança PIX gerada com sucesso" })
     }
 
