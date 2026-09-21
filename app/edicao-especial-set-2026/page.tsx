@@ -310,7 +310,7 @@ export default async function EdicaoEspecialSet2026() {
               {BENEFICIOS.map((b) => (
                 <div
                   key={b}
-                  className="sd-sticker-creme bg-[var(--sd-vermelho)] px-4 py-3 text-[13px] font-extrabold uppercase tracking-[0.02em] sm:px-5 sm:py-4 sm:text-[15px]"
+                  className="sd-sticker-creme bg-[var(--sd-vermelho)] last:odd:col-span-2 px-4 py-3 text-[13px] font-extrabold uppercase tracking-[0.02em] sm:px-5 sm:py-4 sm:text-[15px]"
                 >
                   {b}
                 </div>

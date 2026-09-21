@@ -140,7 +140,7 @@ export const CRONOGRAMA = [
 export const JORNADA = [
   { titulo: "Corre", texto: "5, 6 ou 8 km. Você escolhe o pelotão na inscrição.", cor: CORES.vermelho },
   { titulo: "Recupera", texto: "Hidratação e recovery assim que cruza a chegada.", cor: CORES.azul },
-  { titulo: "Come", texto: "Café da manhã, água, frutas e carreteiro.", cor: CORES.amarelo },
+  { titulo: "Come", texto: "Café da manhã, água e frutas.", cor: CORES.amarelo },
   { titulo: "Experimenta", texto: "Ativações dos parceiros, Fit Dance Evolve, sorteios e foto.", cor: CORES.petroleo },
   { titulo: "Fica", texto: "Mesa, cadeira e conversa. O evento não acaba na chegada.", cor: CORES.vermelho },
   { titulo: "Celebra", texto: "Pagode e chopp a partir das 10h30.", cor: CORES.azul },
@@ -153,7 +153,6 @@ export const JORNADA = [
 export const BENEFICIOS = [
   "Café da manhã",
   "Água e frutas",
-  "Carreteiro",
   "Chopp e bebidas",
   "Ativações dos parceiros",
   "Sorteios",
