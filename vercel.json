@@ -4,7 +4,6 @@
     { "path": "/api/campanhas-encontro-eixao/cron?etapa=1", "schedule": "40 19 21 8 *" },
     { "path": "/api/campanhas-encontro-eixao/cron?etapa=3", "schedule": "30 22 21 8 *" },
     { "path": "/api/campanhas-encontro-eixao/cron?etapa=2", "schedule": "0 12 22 8 *" },
-    { "path": "/api/campanhas-talk-run/cron", "schedule": "*/5 * * * *" },
     { "path": "/api/campanhas-somma-day/cron", "schedule": "*/5 * * * *" }
   ]
 }

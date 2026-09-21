@@ -4,6 +4,18 @@ import { join } from "node:path";
 /**
  * Campanha da Talk Run 2026 para a base inteira do SOMMA.
  *
+ * ┄ Onde esta campanha é operada ┄
+ * Aqui mora só o TEMPLATE. Quem agenda e dispara é o módulo de E-mail
+ * Marketing do admin de gestão (admin.sommaclub.com.br/?section=email), onde
+ * as sete etapas viraram sete campanhas `html_custom` agendadas, com a base
+ * `talk_run` (view `campanha_talk_run_base`, migration 20260920203000).
+ *
+ * Nasceu com régua própria no site, igual à do Sunset Wine Run, e ela foi
+ * removida em 20/09/2026 a pedido de quem opera: dois painéis agendando a
+ * mesma campanha é a receita para a base receber em dobro. O HTML gerado aqui
+ * é colado no admin, com `{{nome}}` no lugar do nome (o admin substitui) e sem
+ * `descadastroUrl` (o admin injeta o rodapé).
+ *
  * Evento de terceiro (Grupo Talk, venda pela Central da Corrida), não um evento
  * SOMMA. O cabeçalho é um collab, igual ao do Sunset Wine Run: os dois nomes
  * lado a lado, sem fingir que "o SOMMA promove".
