@@ -209,6 +209,19 @@ export function CheckoutForm({ plan, initialProfessors, planSwitcher }: Checkout
   // Cupom que só vale na primeira mensalidade (ex.: ANALU). Só faz sentido na
   // assinatura recorrente — no parcelado o desconto continua valendo por parcela.
   const firstMonthOnly = plan.type === "recurring" && couponData?.coupon.firstMonthOnly === true
+  // O que vai para o registro de uso do cupom na gestão (quem usou, quanto
+  // abateu). Só informação: o valor cobrado já foi calculado acima.
+  const cupomAplicado = (desconto: number) =>
+    couponData
+      ? {
+          code: couponData.coupon.code,
+          desconto: Math.round(desconto * 100) / 100,
+          plano: plan.name,
+          professor,
+          nome: customerData.name,
+          email: customerData.email,
+        }
+      : null
   const isPixAutomatico = paymentMethod === "pix-automatico"
 
   // ─── CEP ─────────────────────────────────────────────────────────────────
@@ -574,7 +587,7 @@ export function CheckoutForm({ plan, initialProfessors, planSwitcher }: Checkout
             customerId: customerResult.id,
             type: "pix",
             pixValue: pixTotalValue,
-            couponCode: couponData?.coupon.code ?? null,
+            cupom: cupomAplicado(plan.total - pixTotalValue),
             description: `Somma Assessoria - Plano ${plan.name} PIX | Prof: ${professor} | Camiseta: ${shirtSize}${couponData ? ` | Cupom: ${couponData.coupon.code}` : ""}`,
           }),
         })
@@ -630,7 +643,7 @@ export function CheckoutForm({ plan, initialProfessors, planSwitcher }: Checkout
       const paymentPayload: Record<string, unknown> = {
         customerId: customerResult.id,
         type: plan.type,
-        couponCode: couponData?.coupon.code ?? null,
+        cupom: cupomAplicado(plan.type === "recurring" ? discountAmount : discountAmount * installments),
         description: `Somma Assessoria - Plano ${plan.name} | Prof: ${professor} | Camiseta: ${shirtSize}${couponData ? ` | Cupom: ${couponData.coupon.code}` : ""}`,
         creditCard: {
           holderName: cardData.holderName,

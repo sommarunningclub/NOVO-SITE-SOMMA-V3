@@ -20,25 +20,69 @@ function friendlyError(data: any): string {
   return data.errors?.[0]?.description || "Erro ao processar pagamento"
 }
 
+/** O que o formulário manda sobre o cupom aplicado, só para o registro de uso. */
+interface CupomAplicado {
+  code: string
+  desconto?: number
+  plano?: string
+  professor?: string
+  nome?: string
+  email?: string
+}
+
+function lerCupom(valor: unknown): CupomAplicado | null {
+  if (!valor || typeof valor !== "object") return null
+  const c = valor as Record<string, unknown>
+  const code = String(c.code ?? "").toUpperCase().trim()
+  if (!code) return null
+  return {
+    code,
+    desconto: typeof c.desconto === "number" && Number.isFinite(c.desconto) ? c.desconto : undefined,
+    plano: typeof c.plano === "string" ? c.plano : undefined,
+    professor: typeof c.professor === "string" ? c.professor : undefined,
+    nome: typeof c.nome === "string" ? c.nome : undefined,
+    email: typeof c.email === "string" ? c.email : undefined,
+  }
+}
+
 /**
- * Conta mais um uso do cupom na tabela `coupons` da GESTÃO — é isto que dá
- * sentido ao `usage_limit` do painel. Chamada só depois de a cobrança nascer
- * no Asaas: tentativa recusada no cartão não gasta o cupom de ninguém.
+ * Registra o uso do cupom na GESTÃO: quem usou, quando, em que plano, com que
+ * professor e quanto abateu. A tabela `coupon_redemptions` tem um trigger que
+ * soma 1 em `coupons.usage_count`, e é isso que dá sentido ao limite de usos
+ * do painel. Chamada só depois de a cobrança nascer no Asaas: tentativa
+ * recusada no cartão não gasta o cupom de ninguém.
  *
  * Nunca derruba o checkout: o cliente já pagou quando chegamos aqui, então
- * falha de contagem vira log, não erro de venda. Cupom que só existe na lista
- * hardcoded do site não tem linha no banco e simplesmente não é contado.
+ * falha de registro vira log, não erro de venda.
  */
-async function registrarUsoDoCupom(code: unknown): Promise<void> {
-  const codigo = String(code ?? "").toUpperCase().trim()
-  if (!codigo) return
+async function registrarUsoDoCupom(
+  cupom: CupomAplicado | null,
+  cobranca: {
+    billing: "recurring" | "installment" | "pix"
+    asaasCustomerId?: string
+    asaasPaymentId?: string
+    asaasSubscriptionId?: string
+  }
+): Promise<void> {
+  if (!cupom) return
   const supabase = getServiceSupabase()
   if (!supabase) return
   try {
-    const { error } = await supabase.rpc("increment_coupon_usage", { coupon_code: codigo })
-    if (error) console.error("[cupons] Falha ao contar uso de", codigo, error)
+    const { error } = await supabase.rpc("register_coupon_redemption", {
+      p_code: cupom.code,
+      p_customer_name: cupom.nome ?? null,
+      p_customer_email: cupom.email ?? null,
+      p_asaas_customer_id: cobranca.asaasCustomerId ?? null,
+      p_asaas_payment_id: cobranca.asaasPaymentId ?? null,
+      p_asaas_subscription_id: cobranca.asaasSubscriptionId ?? null,
+      p_plano: cupom.plano ?? null,
+      p_professor: cupom.professor ?? null,
+      p_billing: cobranca.billing,
+      p_discount: cupom.desconto ?? null,
+    })
+    if (error) console.error("[cupons] Falha ao registrar uso de", cupom.code, error)
   } catch (err) {
-    console.error("[cupons] Falha ao contar uso de", codigo, err)
+    console.error("[cupons] Falha ao registrar uso de", cupom.code, err)
   }
 }
 
@@ -47,8 +91,8 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const {
       customerId,
-      // Código do cupom aplicado, só para contagem de uso (o valor já vem calculado)
-      couponCode,
+      // Cupom aplicado, só para o registro de uso (o valor já vem calculado)
+      cupom: cupomBruto,
       creditCard,
       creditCardHolderInfo,
       remoteIp,
@@ -65,6 +109,7 @@ export async function POST(request: NextRequest) {
       pixValue,
     } = body
 
+    const cupom = lerCupom(cupomBruto)
     const today = new Date().toISOString().split("T")[0]
     const headers = {
       "Content-Type": "application/json",
@@ -100,7 +145,11 @@ export async function POST(request: NextRequest) {
       }
 
       console.log("[Asaas] Assinatura criada:", data.id)
-      await registrarUsoDoCupom(couponCode)
+      await registrarUsoDoCupom(cupom, {
+        billing: "recurring",
+        asaasCustomerId: customerId,
+        asaasSubscriptionId: data.id,
+      })
 
       // Cupom de primeira mensalidade (ex.: ANALU): a assinatura nasce com o valor
       // com desconto — a 1ª cobrança já foi gerada e capturada no cartão acima — e
@@ -171,7 +220,11 @@ export async function POST(request: NextRequest) {
       }
 
       console.log("[Asaas] Cobrança parcelada criada:", data.id)
-      await registrarUsoDoCupom(couponCode)
+      await registrarUsoDoCupom(cupom, {
+        billing: "installment",
+        asaasCustomerId: customerId,
+        asaasPaymentId: data.id,
+      })
       return NextResponse.json({ payment: data, message: "Pagamento processado com sucesso" })
     }
 
@@ -319,7 +372,11 @@ export async function POST(request: NextRequest) {
       }
 
       console.log("[Asaas] Cobrança PIX criada:", data.id)
-      await registrarUsoDoCupom(couponCode)
+      await registrarUsoDoCupom(cupom, {
+        billing: "pix",
+        asaasCustomerId: customerId,
+        asaasPaymentId: data.id,
+      })
       return NextResponse.json({ payment: data, message: "Cobrança PIX gerada com sucesso" })
     }
 
