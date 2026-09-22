@@ -18,6 +18,12 @@ import Image from "next/image"
 import { ParqForm } from "./parq-form"
 import { ContratoCheckbox } from "./contrato-checkbox"
 import { PixAutomaticoOnboarding } from "./pix-automatico-onboarding"
+import {
+  parcelasDisponiveis,
+  totalDoCiclo,
+  totalParcelado,
+  valorDaParcela,
+} from "@/lib/checkout/parcelamento"
 
 interface Plan {
   name: string
@@ -201,11 +207,16 @@ export function CheckoutForm({ plan, initialProfessors, planSwitcher }: Checkout
   const [pixCopied, setPixCopied] = useState(false)
   const [pixPaymentId, setPixPaymentId] = useState<string | null>(null)
 
-  const baseTotalForInstallments = plan.type === "installment" ? (plan.total / plan.installments) * installments : plan.total
   const discountedPrice = couponData ? couponData.calculation.finalValue : plan.price
   const discountAmount = couponData ? couponData.calculation.discount : 0
-  const discountedTotal = couponData ? baseTotalForInstallments - discountAmount * installments : baseTotalForInstallments
-  const pixTotalValue = couponData ? plan.total - couponData.calculation.discount * plan.installments : plan.total
+  // Conta do parcelamento em lib/checkout/parcelamento.ts — as mesmas funções
+  // que a rota de cobrança usa, para a tela não poder discordar da fatura. O
+  // total do ciclo não muda com o nº de parcelas: 1x e 6x custam o mesmo.
+  const cycleTotal = totalDoCiclo(plan, discountAmount)
+  const opcoesParcelas = parcelasDisponiveis(plan, cycleTotal)
+  const parcelaAtual = valorDaParcela(cycleTotal, installments)
+  const discountedTotal = totalParcelado(cycleTotal, installments)
+  const pixTotalValue = cycleTotal
   // Cupom que só vale na primeira mensalidade (ex.: ANALU). Só faz sentido na
   // assinatura recorrente — no parcelado o desconto continua valendo por parcela.
   const firstMonthOnly = plan.type === "recurring" && couponData?.coupon.firstMonthOnly === true
@@ -223,6 +234,15 @@ export function CheckoutForm({ plan, initialProfessors, planSwitcher }: Checkout
         }
       : null
   const isPixAutomatico = paymentMethod === "pix-automatico"
+
+  // O cupom muda o total e, com ele, quais parcelamentos fecham em centavos
+  // exatos. Se a escolha atual sair da lista, cai no parcelamento cheio do
+  // plano — o mesmo que o servidor faz em `ajustarParcelas`.
+  const opcoesParcelasKey = opcoesParcelas.join(",")
+  useEffect(() => {
+    const opcoes = opcoesParcelasKey.split(",").map(Number)
+    if (!opcoes.includes(installments)) setInstallments(opcoes[opcoes.length - 1])
+  }, [opcoesParcelasKey, installments])
 
   // ─── CEP ─────────────────────────────────────────────────────────────────
   const fetchAddressByCep = async (cep: string) => {
@@ -668,8 +688,12 @@ export function CheckoutForm({ plan, initialProfessors, planSwitcher }: Checkout
         // Desconto de primeira mensalidade: a partir do 2º mês volta o valor cheio.
         if (firstMonthOnly) paymentPayload.valueAfterFirstCycle = plan.price
       } else {
+        // O servidor refaz esta conta a partir de `planName` e ignora valores
+        // que não batam com o catálogo dele. Mandamos os dois para a fatura
+        // nascer igual ao que a tela prometeu.
+        paymentPayload.planName = plan.name
         paymentPayload.installmentCount = installments
-        paymentPayload.installmentValue = discountedPrice
+        paymentPayload.installmentValue = parcelaAtual
       }
 
       const paymentRes = await fetch("/api/asaas/subscription", {
@@ -700,6 +724,8 @@ export function CheckoutForm({ plan, initialProfessors, planSwitcher }: Checkout
           tipo_plano: plan.name,
           // Na gestão `valor` é a mensalidade do plano. Com cupom de primeiro mês
           // a mensalidade continua sendo a cheia — o desconto foi só na 1ª cobrança.
+          // Mensalidade contratada, não a parcela escolhida: um Semestral pago
+          // em 1x continua sendo um plano de R$ 200/mês na gestão.
           valor: firstMonthOnly ? plan.price : discountedPrice,
           forma_pagamento: "Cartão de Crédito",
           status_pagamento: "Pago",
@@ -1599,9 +1625,9 @@ export function CheckoutForm({ plan, initialProfessors, planSwitcher }: Checkout
                   onChange={(e) => setInstallments(parseInt(e.target.value))}
                   className={inputClass}
                 >
-                  {Array.from({ length: plan.installments }, (_, i) => i + 1).map((n) => (
+                  {opcoesParcelas.map((n) => (
                     <option key={n} value={n} className="bg-black text-white">
-                      {n}x de R$ {fmtBRL(plan.total / n)}
+                      {n}x de R$ {fmtBRL(valorDaParcela(cycleTotal, n))} · total R$ {fmtBRL(totalParcelado(cycleTotal, n))}
                     </option>
                   ))}
                 </select>
@@ -1673,6 +1699,8 @@ export function CheckoutForm({ plan, initialProfessors, planSwitcher }: Checkout
                 professor={professor}
                 shirtSize={shirtSize}
                 couponData={couponData}
+                installments={installments}
+                parcelaAtual={parcelaAtual}
                 discountedPrice={discountedPrice}
                 discountAmount={discountAmount}
                 discountedTotal={discountedTotal}
@@ -1713,7 +1741,7 @@ export function CheckoutForm({ plan, initialProfessors, planSwitcher }: Checkout
               ) : (
                 <>
                   <Lock className="w-4 h-4" />
-                  Pagar {installments}x de R$ {fmtBRL(discountedPrice)}
+                  Pagar {installments}x de R$ {fmtBRL(parcelaAtual)} · total R$ {fmtBRL(discountedTotal)}
                 </>
               )}
             </button>
@@ -1732,6 +1760,8 @@ export function CheckoutForm({ plan, initialProfessors, planSwitcher }: Checkout
                 professor={professor}
                 shirtSize={shirtSize}
                 couponData={couponData}
+                installments={installments}
+                parcelaAtual={parcelaAtual}
                 discountedPrice={discountedPrice}
                 discountAmount={discountAmount}
                 discountedTotal={discountedTotal}
@@ -1754,6 +1784,8 @@ function OrderSummary({
   professor,
   shirtSize,
   couponData,
+  installments,
+  parcelaAtual,
   discountedPrice,
   discountAmount,
   discountedTotal,
@@ -1765,6 +1797,8 @@ function OrderSummary({
   professor: string
   shirtSize: string
   couponData: CouponData | null
+  installments: number
+  parcelaAtual: number
   discountedPrice: number
   discountAmount: number
   discountedTotal: number
@@ -1784,7 +1818,7 @@ function OrderSummary({
               : "Cobranca mensal recorrente"
             : paymentMethod === "pix"
             ? "PIX à vista · pagamento único"
-            : `${plan.installments}x de R$ ${fmtBRL(plan.price)} sem juros`
+            : `${installments}x de R$ ${fmtBRL(parcelaAtual)} sem juros`
           }
         </p>
       </div>
@@ -1811,11 +1845,13 @@ function OrderSummary({
           <span className="text-white/60">
             {plan.type === "recurring" ? "Valor mensal" : "Valor por parcela"}
           </span>
-          <span className="text-white">R$ {fmtBRL(plan.price)}</span>
+          <span className="text-white">
+            R$ {fmtBRL(plan.type === "installment" ? parcelaAtual : plan.price)}
+          </span>
         </div>
         {plan.type === "installment" && (
           <div className="flex justify-between text-sm">
-            <span className="text-white/60">Total ({plan.installments}x)</span>
+            <span className="text-white/60">Total do plano</span>
             <span className="text-white">R$ {fmtBRL(plan.total)}</span>
           </div>
         )}
@@ -1825,8 +1861,8 @@ function OrderSummary({
               <Tag className="w-3 h-3" /> {couponData.coupon.code}
             </span>
             <span className="text-primary">
-              -R$ {fmtBRL(discountAmount)}
-              {firstMonthOnly ? " no 1º mês" : plan.type === "recurring" ? "/mês" : "/parcela"}
+              -R$ {fmtBRL(plan.type === "installment" ? discountAmount * plan.installments : discountAmount)}
+              {firstMonthOnly ? " no 1º mês" : plan.type === "recurring" ? "/mês" : " no total"}
             </span>
           </div>
         )}
@@ -1864,7 +1900,7 @@ function OrderSummary({
         )}
         {plan.type === "installment" && paymentMethod === "card" && (
           <p className="text-xs text-white/40 mt-1 text-right">
-            em {plan.installments}x de R$ {fmtBRL(discountedPrice)}
+            em {installments}x de R$ {fmtBRL(parcelaAtual)}
           </p>
         )}
         {plan.type === "installment" && paymentMethod === "pix" && (

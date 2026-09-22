@@ -1,4 +1,11 @@
 import { type NextRequest, NextResponse } from "next/server"
+import { calcularDesconto, resolverCupom } from "@/lib/checkout/cupons-servidor"
+import {
+  ajustarParcelas,
+  planoParcelado,
+  totalDoCiclo,
+  valorDaParcela,
+} from "@/lib/checkout/parcelamento"
 import { getServiceSupabase } from "@/lib/supabase"
 
 const ASAAS_API_URL = "https://api.asaas.com/v3"
@@ -102,7 +109,9 @@ export async function POST(request: NextRequest) {
       value,
       // Cupom de primeira mensalidade: valor cheio que volta a valer do 2º mês em diante
       valueAfterFirstCycle,
-      // Plano parcelado
+      // Plano parcelado. `installmentValue` vem da tela só para conferência:
+      // quem manda é o catálogo do servidor, logo abaixo.
+      planName,
       installmentCount,
       installmentValue,
       // PIX à vista
@@ -187,11 +196,51 @@ export async function POST(request: NextRequest) {
 
     // ─── SEMESTRAL / ANUAL: Cobrança parcelada via /payments ────────────
     if (type === "installment") {
+      // O valor da parcela NÃO é o que o navegador mandou.
+      //
+      // Em 22/09/2026 a tela mandava `installmentValue = plan.price` — a
+      // mensalidade — com o nº de parcelas escolhido, e um Semestral fechado em
+      // 1x saía por R$ 200 em vez de R$ 1.200. Aqui o servidor refaz a conta a
+      // partir do próprio catálogo e do cupom que ele mesmo valida: qualquer
+      // erro de tela (ou pedido forjado) esbarra neste bloco.
+      const plano = planoParcelado(planName)
+      if (!plano) {
+        console.error("[Asaas] Plano parcelado desconhecido:", planName)
+        return NextResponse.json({ error: "Plano inválido." }, { status: 400 })
+      }
+
+      let descontoPorMensalidade = 0
+      if (cupom?.code) {
+        const lookup = await resolverCupom(cupom.code, {
+          professor: cupom.professor ?? "",
+          planType: "installment",
+        })
+        if (lookup.ok) {
+          const conta = calcularDesconto(plano.price, lookup.coupon)
+          if (!("error" in conta)) descontoPorMensalidade = conta.discount
+        } else {
+          console.warn("[Asaas] Cupom recusado na cobrança:", cupom.code, lookup.error)
+        }
+      }
+
+      const totalDaCompra = totalDoCiclo(plano, descontoPorMensalidade)
+      const parcelas = ajustarParcelas(plano, totalDaCompra, installmentCount)
+      const valorParcela = valorDaParcela(totalDaCompra, parcelas)
+
+      if (installmentValue !== valorParcela || installmentCount !== parcelas) {
+        console.warn(
+          "[Asaas] Tela pediu",
+          `${installmentCount}x de R$ ${installmentValue}`,
+          "— servidor cobrou",
+          `${parcelas}x de R$ ${valorParcela}`
+        )
+      }
+
       const payload = {
         customer: customerId,
         billingType: "CREDIT_CARD",
-        installmentCount,
-        installmentValue,
+        installmentCount: parcelas,
+        installmentValue: valorParcela,
         dueDate: today,
         description,
         creditCard,
@@ -201,9 +250,10 @@ export async function POST(request: NextRequest) {
 
       console.log("[Asaas] Criando cobrança parcelada:", {
         customerId,
-        installmentCount,
-        installmentValue,
-        total: installmentCount * installmentValue,
+        planName,
+        installmentCount: parcelas,
+        installmentValue: valorParcela,
+        total: parcelas * valorParcela,
       })
 
       const res = await fetch(`${ASAAS_API_URL}/payments`, {
