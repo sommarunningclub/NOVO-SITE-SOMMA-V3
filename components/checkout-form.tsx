@@ -663,7 +663,12 @@ export function CheckoutForm({ plan, initialProfessors, planSwitcher }: Checkout
       const paymentPayload: Record<string, unknown> = {
         customerId: customerResult.id,
         type: plan.type,
-        cupom: cupomAplicado(plan.type === "recurring" ? discountAmount : discountAmount * installments),
+        // Desconto do ciclo inteiro: o cupom abate por mensalidade, e o ciclo
+        // tem `plan.installments` mensalidades — não as parcelas escolhidas.
+        // Em 1x, `discountAmount * installments` registrava 1/6 do abatimento.
+        cupom: cupomAplicado(
+          plan.type === "recurring" ? discountAmount : discountAmount * plan.installments
+        ),
         description: `Somma Assessoria - Plano ${plan.name} | Prof: ${professor} | Camiseta: ${shirtSize}${couponData ? ` | Cupom: ${couponData.coupon.code}` : ""}`,
         creditCard: {
           holderName: cardData.holderName,
