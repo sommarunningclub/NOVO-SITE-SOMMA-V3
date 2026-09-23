@@ -119,7 +119,7 @@ export const CRONOGRAMA = [
   {
     hora: "10h30",
     titulo: "Pagode",
-    texto: "A virada do dia. Pagode, chopp, comida e comunidade até o fim.",
+    texto: "A virada do dia. Pagode, chopp e comunidade até o fim.",
     cor: CORES.amarelo,
   },
   {
