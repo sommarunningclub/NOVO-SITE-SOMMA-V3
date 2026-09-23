@@ -223,7 +223,69 @@ export async function inscrever(
   const participante = (Array.isArray(data) ? data[0] : data) as Participante | null;
   if (!participante) return { ok: false, motivo: "erro" };
 
+  // A gestão lê `checkins`: para quem organiza, a inscrição só existe depois daqui.
+  await espelharNoCheckin(participante, evento);
+
   return { ok: true, participante, jaEstava: participante.ticket_code !== ticketNovo };
+}
+
+/* ─── Espelho na lista de check-in ───────────────────────────────────────── */
+
+/**
+ * A gestão (admin.sommaclub.com.br) e o balcão do dia leem `checkins`, não
+ * `evento_participantes`. Sem este espelho, quem se inscreve pela LP fica
+ * invisível para quem organiza — em 23/09/2026 eram 98 pessoas fora da lista.
+ *
+ * Idempotente por CPF + evento (a mesma regra do /api/checkin, nas duas
+ * grafias do CPF) e nunca derruba a inscrição: a vaga já está gravada quando
+ * chega aqui, o espelho é consequência dela.
+ */
+export async function espelharNoCheckin(
+  participante: Participante,
+  evento: EventoRow
+): Promise<void> {
+  const supabase = getServiceSupabase();
+  if (!supabase) return;
+
+  const cpf = String(participante.cpf ?? "").replace(/\D/g, "");
+  if (cpf.length !== 11) return;
+  const mascarado = `${cpf.slice(0, 3)}.${cpf.slice(3, 6)}.${cpf.slice(6, 9)}-${cpf.slice(9)}`;
+
+  const { data: existente, error: erroBusca } = await supabase
+    .from("checkins")
+    .select("id")
+    .eq("evento_id", evento.id)
+    .in("cpf", [cpf, mascarado])
+    .limit(1);
+  if (erroBusca) {
+    console.error("[somma-day] Erro ao conferir check-in:", erroBusca.message);
+    return;
+  }
+  if (existente && existente.length > 0) return;
+
+  // O formulário da LP não pergunta sexo; se a base já sabe, vai junto.
+  const { data: pessoa } = await supabase
+    .from("cadastro_site")
+    .select("sexo")
+    .eq("id", participante.pessoa_id)
+    .maybeSingle();
+
+  const { error } = await supabase.from("checkins").insert({
+    nome_completo: participante.nome_completo,
+    email: participante.email,
+    telefone: participante.telefone,
+    cpf,
+    sexo: (pessoa as { sexo?: string | null } | null)?.sexo ?? null,
+    pelotao: participante.pelotao,
+    data_do_evento: evento.data_evento ?? "",
+    nome_do_evento: evento.titulo ?? "",
+    evento_id: evento.id,
+    data_hora_checkin: participante.criado_em,
+    validacao_do_checkin: false,
+  });
+  if (error) {
+    console.error("[somma-day] Erro ao espelhar no check-in:", error.message, error.details);
+  }
 }
 
 export async function getParticipantePorToken(token: string): Promise<Participante | null> {
