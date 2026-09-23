@@ -87,6 +87,8 @@ interface CouponData {
     value: number
     description: string
     firstMonthOnly?: boolean
+    /** Marcado no painel como válido também no Pix Automático. */
+    pixAutomatico?: boolean
   }
   calculation: {
     originalValue: number
@@ -220,6 +222,10 @@ export function CheckoutForm({ plan, initialProfessors, planSwitcher }: Checkout
   // Cupom que só vale na primeira mensalidade (ex.: ANALU). Só faz sentido na
   // assinatura recorrente — no parcelado o desconto continua valendo por parcela.
   const firstMonthOnly = plan.type === "recurring" && couponData?.coupon.firstMonthOnly === true
+  // Cupom sem a marcação continua barrado no Pix Automático: lá o valor vem do
+  // catálogo do servidor, e mostrar um preço diferente do que o banco debita
+  // seria pior do que não aceitar o cupom.
+  const cupomBloqueiaPixAuto = !!couponData && couponData.coupon.pixAutomatico !== true
   // O que vai para o registro de uso do cupom na gestão (quem usou, quanto
   // abateu). Só informação: o valor cobrado já foi calculado acima.
   const cupomAplicado = (desconto: number) =>
@@ -277,23 +283,26 @@ export function CheckoutForm({ plan, initialProfessors, planSwitcher }: Checkout
   // ─── Coupon ───────────────────────────────────────────────────────────────
   const validateCoupon = async () => {
     if (!couponCode.trim()) { setCouponError("Digite um cupom"); return }
-    // O Pix Automático cobra o valor fixo do catálogo do servidor e não aceita
-    // desconto. Aplicar o cupom aqui mostraria um preço com desconto na tela e
-    // debitaria o valor cheio na conta do cliente.
-    if (isPixAutomatico) {
-      setCouponError("Cupons não valem no Pix Automático. Escolha cartão de crédito para usar o cupom.")
-      return
-    }
     setIsCouponLoading(true)
     setCouponError(null)
     try {
       const res = await fetch(`/api/checkout/validate-coupon?code=${encodeURIComponent(couponCode)}&value=${plan.price}&professor=${encodeURIComponent(professor)}&planType=${encodeURIComponent(plan.type)}`)
       const data = await res.json()
       if (!data.valid) { setCouponError(data.error || "Cupom invalido"); setCouponData(null); return }
+      // Já no Pix Automático: só entra cupom marcado para ele no painel. Sem
+      // isso a tela mostraria um desconto e o banco debitaria o valor cheio.
+      if (isPixAutomatico && data.coupon?.pixAutomatico !== true) {
+        setCouponError("Este cupom não vale no Pix Automático. Escolha cartão de crédito para usar o cupom.")
+        setCouponData(null)
+        return
+      }
       setCouponData(data)
-      // Se o cliente clicou em Pix Automático enquanto o cupom validava, o
-      // desconto vence: cupom só existe no cartão.
-      setPaymentMethod((atual) => (atual === "pix-automatico" ? "card" : atual))
+      // Cupom liberado para o Pix Automático não tira mais o cliente de lá.
+      // Sem a marcação, o desconto continua vencendo e o pagamento volta para
+      // o cartão, como sempre foi.
+      if (data.coupon?.pixAutomatico !== true) {
+        setPaymentMethod((atual) => (atual === "pix-automatico" ? "card" : atual))
+      }
     } catch {
       setCouponError("Erro ao validar cupom")
     } finally {
@@ -316,9 +325,9 @@ export function CheckoutForm({ plan, initialProfessors, planSwitcher }: Checkout
         return
       }
       setPixAutoLiberado(true)
-      // Se um cupom entrou enquanto a validação estava em voo, o cupom vence:
-      // a liberação fica guardada e o cliente escolhe depois de removê-lo.
-      if (!couponData) setPaymentMethod("pix-automatico")
+      // Só um cupom incompatível segura a seleção: nesse caso a liberação fica
+      // guardada e o cliente escolhe depois de remover o cupom.
+      if (!cupomBloqueiaPixAuto) setPaymentMethod("pix-automatico")
     } catch {
       setTokenErro("Não foi possível validar agora. Tente de novo.")
     } finally {
@@ -560,11 +569,12 @@ export function CheckoutForm({ plan, initialProfessors, planSwitcher }: Checkout
       // 2a. Pix Automático (plano mensal): autorização com QR imediato. O valor
       // sai do catálogo do servidor a partir da chave do plano.
       if (paymentMethod === "pix-automatico" && plan.type === "recurring" && plan.pixAutomaticoKey) {
-        // Trava de segurança: o Pix Automático cobra o valor cheio do catálogo.
-        // Com cupom, a tela mostraria um preço e o banco debitaria outro.
-        if (couponData) {
+        // Trava de segurança: sem a marcação do painel, a tela mostraria um
+        // preço e o banco debitaria outro. Com ela, o desconto é recalculado no
+        // servidor a partir do código — o valor daqui nunca atravessa a rede.
+        if (cupomBloqueiaPixAuto) {
           throw new Error(
-            "Cupons não valem no Pix Automático. Remova o cupom ou finalize com cartão de crédito.",
+            "Este cupom não vale no Pix Automático. Remova o cupom ou finalize com cartão de crédito.",
           )
         }
 
@@ -576,6 +586,7 @@ export function CheckoutForm({ plan, initialProfessors, planSwitcher }: Checkout
             planKey: plan.pixAutomaticoKey,
             professor,
             token: tokenCodigo.trim(),
+            couponCode: couponData?.coupon.code,
           }),
         })
         const autoResult = await autoRes.json()
