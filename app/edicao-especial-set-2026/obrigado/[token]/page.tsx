@@ -211,7 +211,7 @@ export default async function ObrigadoPage({
             {[
               { n: "01", t: "Chegue cedo", d: `A abertura é às ${ABERTURA}. A largada sai às ${LARGADA}.` },
               { n: "02", t: "Credencie-se", d: "Mostre o QR ou o código na entrada do Estacionamento 9." },
-              { n: "03", t: "Pegue a pulseira", d: "É ela que libera comida, bebida, ativações e sorteios." },
+              { n: "03", t: "Pegue a pulseira", d: "É ela que libera café da manhã, bebida, ativações e sorteios." },
             ].map((p, i) => (
               <li
                 key={p.n}
