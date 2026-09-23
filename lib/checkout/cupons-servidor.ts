@@ -24,6 +24,12 @@ type NormalizedCoupon = {
   value: number
   description: string
   firstMonthOnly?: boolean
+  /**
+   * Liberado para o Pix Automático. Só existe nos cupons do painel e o padrão
+   * é `false`: o débito recorrente é autorizado uma vez no app do banco, e um
+   * cupom antigo não pode começar a mexer nesse valor por conta própria.
+   */
+  pixAutomatico?: boolean
 }
 
 async function lookupCouponDB(
@@ -35,7 +41,7 @@ async function lookupCouponDB(
   const { data, error } = await supabase
     .from("coupons")
     .select(
-      "code, type, value, description, status, expiration_date, usage_limit, usage_count, professor, plan_type, first_month_only"
+      "code, type, value, description, status, expiration_date, usage_limit, usage_count, professor, plan_type, first_month_only, pix_automatico"
     )
     .eq("code", code)
     .single()
@@ -53,6 +59,7 @@ async function lookupCouponDB(
     value: Number(data.value),
     description: data.description ?? "Desconto",
     firstMonthOnly: data.first_month_only === true,
+    pixAutomatico: data.pix_automatico === true,
   }
 }
 

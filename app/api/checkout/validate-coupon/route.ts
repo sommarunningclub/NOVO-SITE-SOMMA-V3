@@ -53,6 +53,9 @@ export async function GET(request: Request) {
         value: coupon.value,
         description: coupon.description,
         firstMonthOnly: coupon.firstMonthOnly === true,
+        // A tela decide com isto se o Pix Automático continua disponível com
+        // o cupom aplicado. Quem confere de verdade é a rota da autorização.
+        pixAutomatico: coupon.pixAutomatico === true,
       },
       calculation: {
         originalValue: value,

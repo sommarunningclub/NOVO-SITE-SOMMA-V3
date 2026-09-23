@@ -1,6 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { resolvePlanoPixAutomatico } from "@/lib/checkout/planos-pix-automatico"
 import { consumirToken, conferirToken, devolverToken, mensagemDoMotivo } from "@/lib/pix-automatico/tokens"
+import { calcularDesconto, resolverCupom } from "@/lib/checkout/cupons-servidor"
+import { getServiceSupabase } from "@/lib/supabase"
 
 const ASAAS_API_URL = "https://api.asaas.com/v3"
 const ASAAS_API_KEY = process.env.ASAAS_API_KEY
@@ -11,7 +13,8 @@ const ASAAS_API_KEY = process.env.ASAAS_API_KEY
 // mensalidades acontece sozinho na conta dele.
 //
 // O valor NUNCA vem do cliente: chega só a chave do plano e o preço sai do
-// catálogo do servidor (lib/checkout/planos-pix-automatico.ts).
+// catálogo do servidor (lib/checkout/planos-pix-automatico.ts). Com cupom vale
+// o mesmo: chega o CÓDIGO, e o desconto é recalculado aqui a partir dele.
 
 // Ao contrário do resto da API do Asaas, aqui o campo é "customerId" (e não
 // "customer") e o QR imediato é obrigatório.
@@ -93,9 +96,36 @@ async function qrImediatoPago(conciliationIdentifier: string): Promise<boolean> 
   }
 }
 
+/**
+ * Registra o uso do cupom na GESTÃO, como o cartão já faz. Chamada só depois
+ * de a autorização nascer no Asaas, e nunca derruba o checkout: o cliente está
+ * com o QR na mão, e falha de registro é problema de relatório.
+ */
+async function registrarUsoDoCupom(
+  code: string,
+  dados: { desconto: number; professor?: string; customerId: string; authorizationId?: string },
+): Promise<void> {
+  const supabase = getServiceSupabase()
+  if (!supabase) return
+  try {
+    const { error } = await supabase.rpc("register_coupon_redemption", {
+      p_code: code,
+      p_asaas_customer_id: dados.customerId,
+      p_asaas_subscription_id: dados.authorizationId ?? null,
+      p_plano: "mensal",
+      p_professor: dados.professor ?? null,
+      p_billing: "pix-automatico",
+      p_discount: dados.desconto,
+    })
+    if (error) console.error("[cupons] Falha ao registrar uso de", code, error)
+  } catch (err) {
+    console.error("[cupons] Falha ao registrar uso de", code, err)
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
-    const { customerId, planKey, professor, token } = await request.json()
+    const { customerId, planKey, professor, token, couponCode } = await request.json()
 
     if (!customerId) {
       return NextResponse.json({ error: "customerId é obrigatório" }, { status: 400 })
@@ -112,6 +142,50 @@ export async function POST(request: NextRequest) {
     const conferencia = await conferirToken(token)
     if (!conferencia.ok) {
       return NextResponse.json({ error: mensagemDoMotivo(conferencia.motivo) }, { status: 403 })
+    }
+
+    // ─── Cupom ────────────────────────────────────────────────────────────
+    // Só passa o cupom marcado no painel como válido para Pix Automático. Os
+    // demais seguem recusados: o desconto do cartão nasce numa assinatura que
+    // o site corrige no ciclo seguinte, e aqui o valor é o que o cliente
+    // autoriza no app do banco — não há como voltar atrás depois.
+    let cupomCodigo: string | null = null
+    let valorMensal = plano.valor
+    let valorPrimeiraCobranca = plano.valor
+    let descontoAplicado = 0
+
+    if (typeof couponCode === "string" && couponCode.trim()) {
+      // Pix Automático é sempre o plano mensal: `recurring` no vocabulário das
+      // regras do cupom.
+      const lookup = await resolverCupom(couponCode, {
+        professor: typeof professor === "string" ? professor : "",
+        planType: "recurring",
+      })
+      if (!lookup.ok) {
+        return NextResponse.json({ error: lookup.error }, { status: lookup.status })
+      }
+      if (!lookup.coupon.pixAutomatico) {
+        return NextResponse.json(
+          {
+            error:
+              "Este cupom não vale no Pix Automático. Remova o cupom ou finalize com cartão de crédito.",
+          },
+          { status: 400 },
+        )
+      }
+
+      const conta = calcularDesconto(plano.valor, lookup.coupon)
+      if ("error" in conta) {
+        return NextResponse.json({ error: conta.error }, { status: 400 })
+      }
+
+      cupomCodigo = String(couponCode).toUpperCase().trim()
+      descontoAplicado = conta.discount
+      // `firstMonthOnly` desconta só o QR de hoje; o débito autorizado segue
+      // cheio. Sem a marca, o desconto entra no valor recorrente — e vale para
+      // sempre, porque a autorizacao do banco nao muda depois.
+      valorPrimeiraCobranca = conta.finalValue
+      valorMensal = lookup.coupon.firstMonthOnly ? plano.valor : conta.finalValue
     }
 
     const headers = asaasHeaders()
@@ -133,7 +207,7 @@ export async function POST(request: NextRequest) {
     const payload = {
       customerId,
       frequency: "MONTHLY",
-      value: plano.valor,
+      value: valorMensal,
       startDate,
       // contractId é o identificador do contrato do nosso lado (máx. 35 chars).
       // O Asaas corta em 35 chars e esse texto aparece para o cliente no app
@@ -149,7 +223,7 @@ export async function POST(request: NextRequest) {
         // 24h de validade: se o QR expirar sem pagamento a autorização vai
         // para REFUSED e todo o fluxo precisa ser refeito.
         expirationSeconds: 86400,
-        originalValue: plano.valor,
+        originalValue: valorPrimeiraCobranca,
       },
     }
 
@@ -165,7 +239,9 @@ export async function POST(request: NextRequest) {
     console.log("[Asaas] Criando autorização de Pix Automático:", {
       customerId,
       planKey: planKey ?? "teste",
-      valor: plano.valor,
+      valor: valorMensal,
+      primeiraCobranca: valorPrimeiraCobranca,
+      cupom: cupomCodigo ?? "-",
       professor: professor ?? "-",
       startDate,
     })
@@ -203,6 +279,17 @@ export async function POST(request: NextRequest) {
 
     console.log("[Asaas] Autorização criada:", data.id, "status:", data.status)
 
+    // Depois do QR na mão do cliente, como no cartão: tentativa que morreu
+    // antes daqui não gasta o cupom de ninguém.
+    if (cupomCodigo) {
+      await registrarUsoDoCupom(cupomCodigo, {
+        desconto: descontoAplicado,
+        professor: typeof professor === "string" ? professor : undefined,
+        customerId,
+        authorizationId: data.id,
+      })
+    }
+
     return NextResponse.json({
       authorizationId: data.id,
       status: data.status,
@@ -213,7 +300,13 @@ export async function POST(request: NextRequest) {
       expirationDate: data.immediateQrCode?.expirationDate,
       subscriptionId: data.subscriptionId ?? null,
       startDate,
-      value: plano.valor,
+      // O que a tela mostra: o débito mensal e, quando diferem, o valor do QR
+      // de hoje. Devolver só `plano.valor` faria a tela anunciar o preço cheio
+      // logo depois de aplicar um desconto.
+      value: valorMensal,
+      primeiraCobranca: valorPrimeiraCobranca,
+      cupom: cupomCodigo,
+      desconto: descontoAplicado,
     })
   } catch (error) {
     console.error("[Asaas] Erro no Pix Automático:", error)
