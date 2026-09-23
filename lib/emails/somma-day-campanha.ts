@@ -88,7 +88,7 @@ const EVENTO_LABEL = "SOMMA DAY · EDIÇÃO ESPECIAL SET 2026";
 const LOCAL_LINHA = `${LOCAL}, Parque da Cidade`;
 
 /**
- * "5, 6 ou 8 km", para o meio da frase. `PELOTOES_ROTULO` é "5 KM", feito para
+ * "4, 6 ou 8 km", para o meio da frase. `PELOTOES_ROTULO` é "4 KM", feito para
  * selo e botão; em prosa, caixa alta repetida três vezes grita.
  */
 const PELOTOES_PROSA = (() => {

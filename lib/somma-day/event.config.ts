@@ -75,11 +75,11 @@ export const ESCASSEZ_PUBLICA = "Vagas limitadas";
  * Percursos da experiência, não categorias competitivas. A pessoa escolhe na
  * inscrição. Os ids batem com `eventos.pelotoes` no banco.
  */
-export const PELOTOES = ["5km", "6km", "8km"] as const;
+export const PELOTOES = ["4km", "6km", "8km"] as const;
 export type Pelotao = (typeof PELOTOES)[number];
 
 export const PELOTOES_ROTULO: Record<Pelotao, string> = {
-  "5km": "5 KM",
+  "4km": "4 KM",
   "6km": "6 KM",
   "8km": "8 KM",
 };
@@ -101,7 +101,7 @@ export const CRONOGRAMA = [
   {
     hora: "08h00",
     titulo: "Largada",
-    texto: "Saem os pelotões de 5 km, 6 km e 8 km. Na chegada: hidratação, recovery e DJ.",
+    texto: "Saem os pelotões de 4 km, 6 km e 8 km. Na chegada: hidratação, recovery e DJ.",
     cor: CORES.azul,
   },
   {
@@ -138,7 +138,7 @@ export const CRONOGRAMA = [
 
 /* ─── A jornada, em seis palavras ─────────────────────────────────────────── */
 export const JORNADA = [
-  { titulo: "Corre", texto: "5, 6 ou 8 km. Você escolhe o pelotão na inscrição.", cor: CORES.vermelho },
+  { titulo: "Corre", texto: "4, 6 ou 8 km. Você escolhe o pelotão na inscrição.", cor: CORES.vermelho },
   { titulo: "Recupera", texto: "Hidratação e recovery assim que cruza a chegada.", cor: CORES.azul },
   { titulo: "Come", texto: "Café da manhã, água e frutas.", cor: CORES.amarelo },
   { titulo: "Experimenta", texto: "Ativações dos parceiros, Fit Dance Evolve, sorteios e foto.", cor: CORES.petroleo },
