@@ -101,7 +101,7 @@ export default async function EdicaoEspecialSet2026() {
               },
               {
                 t: "Aberto a todo nível",
-                d: "Tem gente no primeiro 5 km e gente vindo de maratona. O pelotão sai junto e ninguém fica para trás.",
+                d: "Tem gente no primeiro 4 km e gente vindo de maratona. O pelotão sai junto e ninguém fica para trás.",
               },
               {
                 t: "A manhã inteira",
@@ -130,7 +130,7 @@ export default async function EdicaoEspecialSet2026() {
             {[
               ["Data", DATA_EXTENSO.replace("Sábado, ", "Sáb, ")],
               ["Abertura", `${ABERTURA} — credenciamento`],
-              ["Largada", `${LARGADA} — 5, 6 e 8 km`],
+              ["Largada", `${LARGADA} — 4, 6 e 8 km`],
               ["Encerramento", `${ENCERRAMENTO}`],
             ].map(([chave, valor]) => (
               <div key={chave} className="sd-sticker-creme bg-[var(--sd-tinta)] px-6 py-7">
@@ -168,7 +168,7 @@ export default async function EdicaoEspecialSet2026() {
                     {PELOTOES_ROTULO[p]}
                   </span>
                   <span className="text-[12px] font-extrabold uppercase tracking-[0.16em] opacity-80">
-                    {p === "5km" ? "Primeira vez" : p === "6km" ? "O de sempre" : "Pernas prontas"}
+                    {p === "4km" ? "Primeira vez" : p === "6km" ? "O de sempre" : "Pernas prontas"}
                   </span>
                 </div>
               ))}
@@ -395,7 +395,7 @@ export default async function EdicaoEspecialSet2026() {
             <ol className="mt-7 grid gap-3">
               {[
                 ["01", "Informe seu CPF", "Se você já é do Somma, a gente te reconhece."],
-                ["02", "Escolha seu pelotão", "5, 6 ou 8 km. Dá para trocar no dia."],
+                ["02", "Escolha seu pelotão", "4, 6 ou 8 km. Dá para trocar no dia."],
                 ["03", "Receba seu código", "Na tela e no e-mail. Ele vira sua pulseira."],
               ].map(([n, t, d]) => (
                 <li key={n} className="flex gap-3">

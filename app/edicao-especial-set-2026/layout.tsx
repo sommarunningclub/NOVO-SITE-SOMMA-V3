@@ -33,7 +33,7 @@ const archivo = Archivo({
 
 const titulo = EVENTO_TITULO;
 const descricao =
-  "A corrida é só o começo. 26 de setembro, a partir das 7h, no Estacionamento 9 do Parque da Cidade: pelotões de 5, 6 e 8 km, ativações, café da manhã, Fit Dance, sorteios, DJ e pagode. Gratuito, com inscrição e vagas limitadas.";
+  "A corrida é só o começo. 26 de setembro, a partir das 7h, no Estacionamento 9 do Parque da Cidade: pelotões de 4, 6 e 8 km, ativações, café da manhã, Fit Dance, sorteios, DJ e pagode. Gratuito, com inscrição e vagas limitadas.";
 
 /**
  * Schema.org do evento: é o que faz o Google mostrar data, local e preço na
