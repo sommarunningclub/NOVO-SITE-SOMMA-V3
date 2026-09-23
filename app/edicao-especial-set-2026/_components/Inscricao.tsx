@@ -34,6 +34,25 @@ const CAMPOS = {
 type CampoId = keyof typeof CAMPOS;
 const TODOS: CampoId[] = ["nome", "email", "telefone", "nascimento"];
 
+/**
+ * Quatro segundos de tela de carregamento antes de abrir o ticket.
+ *
+ * É espera artificial, de propósito — não mexa achando que é lentidão: quando
+ * esta tela aparece a inscrição JÁ está gravada. Sem ela, o `router.push`
+ * cortava seco para a página do ticket e a inscrição parecia não ter
+ * acontecido. Os passos abaixo dão ao tempo de espera a cara do que o sistema
+ * realmente acabou de fazer.
+ *
+ * Se mudar a duração, mude junto a de `.sd-progresso` no somma-day.css.
+ */
+const ESPERA_TICKET_MS = 4000;
+
+const PASSOS_TICKET = [
+  "Recebendo seus dados…",
+  "Confirmando sua vaga no pelotão…",
+  "Emitindo seu ticket…",
+];
+
 function mascararTelefone(raw: string): string {
   const d = raw.replace(/\D/g, "").slice(0, 11);
   if (d.length <= 2) return d;
@@ -66,6 +85,7 @@ export default function Inscricao({ aberto }: { aberto: boolean }) {
   const [erros, setErros] = useState<Record<string, string>>({});
   const [aviso, setAviso] = useState<string | null>(null);
   const [carregando, setCarregando] = useState(false);
+  const [passoTicket, setPassoTicket] = useState(0);
   const [parceiro, setParceiro] = useState<string | null>(null);
   const topo = useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -74,6 +94,15 @@ export default function Inscricao({ aberto }: { aberto: boolean }) {
     const p = new URLSearchParams(window.location.search).get("parceiro");
     if (p) setParceiro(p.slice(0, 60));
   }, []);
+
+  // Os passos da tela de espera, um por fatia dos 4 segundos.
+  useEffect(() => {
+    if (etapa !== "indo") return;
+    const id = setInterval(() => {
+      setPassoTicket((atual) => Math.min(atual + 1, PASSOS_TICKET.length - 1));
+    }, ESPERA_TICKET_MS / PASSOS_TICKET.length);
+    return () => clearInterval(id);
+  }, [etapa]);
 
   function avancar(proxima: Etapa) {
     setEtapa(proxima);
@@ -185,6 +214,16 @@ export default function Inscricao({ aberto }: { aberto: boolean }) {
 
       rastrear("inscricao_concluida", { pelotao, novo_cadastro: pedir.length === TODOS.length });
       setEtapa("indo");
+      // A página do ticket carrega em segundo plano enquanto a espera roda, para
+      // a troca no fim dos 4 segundos ser instantânea. Num try próprio porque a
+      // inscrição já está gravada aqui: nada daqui para baixo pode cair no
+      // catch e dizer à pessoa que a conexão caiu.
+      try {
+        router.prefetch(d.obrigado_url);
+      } catch {
+        /* prefetch é otimização, não requisito */
+      }
+      await new Promise((resolve) => setTimeout(resolve, ESPERA_TICKET_MS));
       router.push(d.obrigado_url);
     } catch {
       setAviso("Sua conexão caiu no meio do caminho. Tente de novo.");
@@ -219,11 +258,19 @@ export default function Inscricao({ aberto }: { aberto: boolean }) {
 
   if (etapa === "indo") {
     return (
-      <div ref={topo} className="sd-sticker bg-white px-6 py-14 text-center">
+      <div
+        ref={topo}
+        className="sd-sticker bg-white px-6 py-14 text-center"
+        role="status"
+        aria-live="polite"
+      >
         <p className="sd-display text-[clamp(1.8rem,5vw,2.6rem)] leading-none text-[var(--sd-vermelho)]">
           Tá dentro…
         </p>
-        <p className="mt-3 text-[14px] font-semibold">Abrindo seu ticket.</p>
+        <div className="sd-progresso mx-auto mt-6" aria-hidden="true">
+          <span />
+        </div>
+        <p className="mt-4 text-[14px] font-semibold">{PASSOS_TICKET[passoTicket]}</p>
       </div>
     );
   }
