@@ -198,10 +198,14 @@ export default function Inscricao({ aberto }: { aberto: boolean }) {
           return;
         }
         if (d?.campos) {
-          // Faltou algo no cadastro antigo: volta a perguntar, só o que falta.
+          // Faltou algo: volta à etapa de dados. O que já tinha sido pedido
+          // continua na tela — o reenvio só manda os campos em `pedir`, e quem
+          // ainda não está na base não tem de onde o servidor completar o
+          // resto. Perguntar só o que falhou fazia o segundo envio chegar sem
+          // nome, e-mail e nascimento, e voltar com os quatro campos em erro.
           const campos = Object.keys(d.campos).filter((c): c is CampoId => c in CAMPOS);
           if (campos.length > 0) {
-            setPedir(campos);
+            setPedir((atual) => TODOS.filter((c) => atual.includes(c) || campos.includes(c)));
             setErros(d.campos);
             avancar("dados");
             return;
