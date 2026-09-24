@@ -1,6 +1,10 @@
 /**
- * Celular brasileiro sem API — DDD da Anatel + nono dígito + faixa 6–9.
+ * Celular brasileiro sem API — DDD da Anatel + nono dígito 9.
  * Não consulta operadora: só recusa número que não pode existir.
+ *
+ * Não existe regra de "faixa" depois do 9: a Anatel já distribui 9 0xxx a
+ * 9 5xxx (em 24/09/2026 a base do site tinha 31 celulares assim, em 61, 63,
+ * 11 e 81) e a regra antiga barrava gente de verdade na inscrição.
  */
 
 /** DDDs em uso no Brasil (Anatel). 23, 50, 70 etc. não existem. */
@@ -17,13 +21,12 @@ export const DDD_BRASIL = new Set([
   "91", "92", "93", "94", "95", "96", "97", "98", "99",
 ]);
 
-export type MotivoTelefone = "curto" | "ddd" | "fixo" | "faixa" | "invalido";
+export type MotivoTelefone = "curto" | "ddd" | "fixo" | "invalido";
 
 export const TELEFONE_MSG: Record<MotivoTelefone, string> = {
   curto: "Celular precisa ter DDD + 9 dígitos",
   ddd: "DDD inválido",
   fixo: "Use o celular com DDD (WhatsApp)",
-  faixa: "Número de celular inválido",
   invalido: "Telefone inválido — confira o número",
 };
 
@@ -44,7 +47,6 @@ export function checarCelularBR(
 
   if (!DDD_BRASIL.has(d.slice(0, 2))) return { ok: false, motivo: "ddd" };
   if (d[2] !== "9") return { ok: false, motivo: "fixo" };
-  if (!/[6-9]/.test(d[3] ?? "")) return { ok: false, motivo: "faixa" };
 
   const aposNono = d.slice(3);
   if (/^(\d)\1+$/.test(d) || /^(\d)\1+$/.test(aposNono)) {
