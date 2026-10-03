@@ -154,9 +154,37 @@ indexa. Se um dia o status 404 real for exigência, o caminho é remover o
 
 ## Antes de lançar
 
-1. Tokens do canal Headless no ambiente da Vercel.
-2. Produtos ativos e publicados no canal Headless.
-3. Criar na Shopify: coleções `todos` e `archive`, menu `loja-categorias`, o
-   drop e a home.
-4. Aplicar a migration do Drop Access.
-5. Tirar o `noindex`.
+A loja não sobe "para dentro" da Shopify: o código vai para o site (merge na
+`main`, deploy da Vercel) e a Shopify guarda o que ele lê. Os passos, na ordem:
+
+1. **Estrutura na Shopify.** Coleções `drop-001`, `todos`, `regatas`,
+   `croppeds`, `camisetas`, `acessorios` e `archive`, o menu `loja-categorias`,
+   o lookbook, o drop, a home e os campos `somma.*` das peças:
+
+   ```
+   node scripts/loja-shopify-catalogo.mjs            # mostra o plano
+   node scripts/loja-shopify-catalogo.mjs --apply    # aplica
+   ```
+
+   Só acrescenta, e as coleções saem publicadas apenas no canal Headless. A
+   organização (o que é drop, à venda e arquivo) mora em
+   `scripts/loja-curadoria.mjs`, a mesma lista da prévia local.
+2. **Nome, endereço e foto de capa das peças**: o mesmo script com
+   `--renomear --capas --apply`. Mexe em produto que já existe (o nome aparece
+   no PDV), por isso só roda com bandeira e com o OK de quem cuida da loja.
+3. **Ativar as peças** e publicar só no canal Headless: `--ativar --apply`. O
+   plano avisa as peças com estoque sem controle ou negativo.
+4. **Token privado do canal Headless** nas variáveis da Vercel (e no
+   `.env.local`, para testar com a Shopify de verdade antes do merge).
+5. **Migration do Drop Access** aplicada no Supabase.
+6. **Teste de compra** de ponta a ponta, com o checkout da Shopify.
+7. **Merge do PR** e tirar o `noindex` de `app/loja/layout.tsx`.
+
+Pendências que não travam o lançamento, mas precisam de dono:
+
+- A vitrine antiga (`loja.sommaclub.com.br`, tema da Shopify) continua no ar.
+  Depois do lançamento ela deve redirecionar para `/loja`.
+- As coleções antigas `frontpage`, `todos-produtos` e `pdv` estão publicadas no
+  canal Headless. Enquanto estiverem, abrem em `/loja/collections/<handle>`.
+- Na taxonomia da Shopify o "Laranja" é `#FF8A00`, não o laranja da marca. É a
+  cor que aparece no seletor de cores das peças.
