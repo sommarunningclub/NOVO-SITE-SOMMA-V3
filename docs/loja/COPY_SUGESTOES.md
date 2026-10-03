@@ -39,6 +39,7 @@ Estampado nas peças ou no logo:
 | erro geral | A loja tropeçou. Não foi você. Tente de novo em instantes. |
 | sacola vazia | Sacola vazia. |
 | filtro sem resultado | Nenhuma peça com esses filtros. |
+| coleção sem peça nenhuma | Ainda não há peças aqui. |
 | lookbook | `Brasília, 2026` |
 
 O trecho "gratuito e aberto a todos os níveis", o horário e o local vieram do

@@ -257,10 +257,17 @@ export function CollectionView({ products, listName, showCodes = false, insert =
           })}
           {visible.length === 0 ? (
             <div className="lj-empty">
-              <p className="lj-display lj-display--s">Nenhuma peça com esses filtros.</p>
-              <button type="button" className="lj-btn lj-btn--ghost" onClick={() => change(() => setFilters(NO_FILTERS))}>
-                Limpar filtros
-              </button>
+              {products.length === 0 ? (
+                // coleção sem peça nenhuma: não é culpa de filtro, então não oferece limpar
+                <p className="lj-display lj-display--s">Ainda não há peças aqui.</p>
+              ) : (
+                <>
+                  <p className="lj-display lj-display--s">Nenhuma peça com esses filtros.</p>
+                  <button type="button" className="lj-btn lj-btn--ghost" onClick={() => change(() => setFilters(NO_FILTERS))}>
+                    Limpar filtros
+                  </button>
+                </>
+              )}
             </div>
           ) : null}
         </div>
