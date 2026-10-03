@@ -38,3 +38,7 @@ next-env.d.ts
 # vivem em public/desafio-esteiras-evolve/img/. Nada no código aponta para cá;
 # os originais ficam fora do repo para não pesar no build e no deploy.
 public/desafio-esteiras-evolve/imganes-evolve/
+
+# Prévia local do catálogo da loja (scripts/loja-preview-snapshot.mjs) — só
+# desenvolvimento; a loja de verdade lê a Storefront API.
+/.loja-preview/
