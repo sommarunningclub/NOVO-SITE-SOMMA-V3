@@ -15,7 +15,8 @@
  *  2. O que MEXE em produto que já existe só roda com bandeira própria:
  *       --renomear   nome e endereço (handle) das peças, com redirecionamento
  *       --capas      a foto que abre cada peça
- *       --ativar     tira do rascunho e publica só no canal Headless
+ *       --ativar     tira do rascunho, publica no canal Headless e tira da
+ *                    vitrine antiga (canal Online Store, o tema da Shopify)
  *
  * Pode rodar de novo quantas vezes for preciso: o que já está certo é pulado.
  * Sem --apply só mostra o plano.
@@ -84,11 +85,14 @@ if (headless.length !== 1) {
   throw new Error(`esperava um canal Headless e achei ${headless.length}: ${base.publications.nodes.map((p) => p.name).join(", ")}`);
 }
 const CANAL = headless[0];
+// A vitrine antiga (tema da Shopify em loja.sommaclub.com.br). Peça da loja nova não fica nela.
+const VITRINE = base.publications.nodes.find((p) => /^online store$/i.test(p.name.trim())) ?? null;
 const cores = new Map(base.cores.nodes.map((c) => [c.handle, c.id]));
 
 const PRODUTO = `
   id title handle status
   noCanal: publishedOnPublication(publicationId: $canal)
+  naVitrine: publishedOnPublication(publicationId: $vitrine)
   media(first: 1) { nodes { id } }
   variants(first: 50) { nodes { title inventoryQuantity inventoryPolicy inventoryItem { tracked } } }
   drop: metafield(namespace: "somma", key: "drop") { value }
@@ -97,9 +101,11 @@ const PRODUTO = `
   siblings: metafield(namespace: "somma", key: "color_siblings") { value }
   cor: metafield(namespace: "shopify", key: "color-pattern") { value }
 `;
-const lidos = await gql(`query($ids: [ID!]!, $canal: ID!) { nodes(ids: $ids) { ... on Product { ${PRODUTO} } } }`, {
+const lidos = await gql(`query($ids: [ID!]!, $canal: ID!, $vitrine: ID!) { nodes(ids: $ids) { ... on Product { ${PRODUTO} } } }`, {
   ids: CURADORIA.map((p) => gid("Product", p.id)),
   canal: CANAL.id,
+  // sem vitrine antiga instalada, a pergunta repetida sobre o Headless não muda nada
+  vitrine: VITRINE?.id ?? CANAL.id,
 });
 const produtos = new Map();
 for (const [i, node] of lidos.nodes.entries()) {
@@ -341,10 +347,13 @@ await reservado("Foto de capa", "--capas", CAPAS, capas, (item) =>
   ).then((data) => check(data.productReorderMedia, item.texto, "mediaUserErrors")),
 );
 
-// 5c. Ativar e publicar só no canal Headless
+// 5c. Ativar, publicar no canal Headless e tirar da vitrine antiga.
+// Produto em rascunho aparece como fora de todos os canais, mas o vínculo com o
+// canal continua guardado e volta a valer na hora em que o produto é ativado.
+// Por isso não basta publicar no Headless: é preciso tirar da Online Store.
 const ativar = CURADORIA.filter((item) => {
   const p = produtos.get(item.id);
-  return p.status !== "ACTIVE" || !p.noCanal;
+  return p.status !== "ACTIVE" || !p.noCanal || (VITRINE && p.naVitrine);
 }).map((item) => {
   const p = produtos.get(item.id);
   const estoque = p.variants.nodes.reduce((sum, v) => sum + Math.max(v.inventoryQuantity, 0), 0);
@@ -352,14 +361,18 @@ const ativar = CURADORIA.filter((item) => {
   if (p.variants.nodes.some((v) => !v.inventoryItem.tracked)) avisos.push("estoque NÃO controlado: vende sem limite");
   if (p.variants.nodes.some((v) => v.inventoryPolicy === "CONTINUE")) avisos.push("vende mesmo zerado");
   if (p.variants.nodes.some((v) => v.inventoryQuantity < 0)) avisos.push("tem tamanho com estoque negativo");
+  const ativo = p.status === "ACTIVE";
+  const naVitrine = Boolean(VITRINE && p.naVitrine);
+  const fazer = [!ativo && "ativar", !p.noCanal && "publicar no Headless", naVitrine && "tirar da vitrine antiga"].filter(Boolean).join(", ");
   return {
-    texto: `${item.titulo} (${item.grupo}, ${estoque} em estoque)${avisos.length ? ` ⚠ ${avisos.join("; ")}` : ""}`,
+    texto: `${item.titulo} (${item.grupo}, ${estoque} em estoque): ${fazer}${avisos.length ? ` ⚠ ${avisos.join("; ")}` : ""}`,
     id: p.id,
-    ativo: p.status === "ACTIVE",
+    ativo,
     noCanal: p.noCanal,
+    naVitrine,
   };
 });
-await reservado("Ativar e publicar no canal Headless", "--ativar", ATIVAR, ativar, async (item) => {
+await reservado("Ativar, publicar no canal Headless e tirar da vitrine antiga", "--ativar", ATIVAR, ativar, async (item) => {
   if (!item.ativo) {
     const data = await gql(
       `mutation($product: ProductUpdateInput!) { productUpdate(product: $product) { product { id status } userErrors { field message } } }`,
@@ -373,6 +386,13 @@ await reservado("Ativar e publicar no canal Headless", "--ativar", ATIVAR, ativa
       { id: item.id, input: [{ publicationId: CANAL.id }] },
     );
     check(data.publishablePublish, item.texto);
+  }
+  if (item.naVitrine) {
+    const data = await gql(
+      `mutation($id: ID!, $input: [PublicationInput!]!) { publishableUnpublish(id: $id, input: $input) { userErrors { field message } } }`,
+      { id: item.id, input: [{ publicationId: VITRINE.id }] },
+    );
+    check(data.publishableUnpublish, item.texto);
   }
 });
 
