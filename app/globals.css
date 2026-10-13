@@ -87,6 +87,11 @@ body {
   border-radius: 4px;
 }
 
+/* Check-in no Outubro Rosa (/check-in): foco em pink em vez do laranja da marca */
+.outubro-rosa :focus-visible {
+  outline-color: #ff1f8e;
+}
+
 /* Respeitar usuários que preferem menos movimento */
 @media (prefers-reduced-motion: reduce) {
   *,
