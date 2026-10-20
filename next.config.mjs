@@ -16,6 +16,17 @@ const nextConfig = {
       },
     ];
   },
+  // Apresentação BORA Experience (projeto próprio na Vercel, repositório sommarunningclub/bora-experience).
+  // Ela roda com basePath /ppt-somma-bora; aqui o site só encaminha esse caminho para lá.
+  async rewrites() {
+    const bora = process.env.BORA_EXPERIENCE_URL || "https://bora-experience.vercel.app";
+    return {
+      beforeFiles: [
+        { source: "/ppt-somma-bora", destination: `${bora}/ppt-somma-bora` },
+        { source: "/ppt-somma-bora/:path*", destination: `${bora}/ppt-somma-bora/:path*` },
+      ],
+    };
+  },
   images: {
     // AVIF primeiro: ~30-50% menor que WebP na mesma qualidade → alta definição sem pesar.
     formats: ["image/avif", "image/webp"],
