@@ -254,18 +254,17 @@ export default function CheckInPage() {
   // Loading state
   if (loadingEventos) {
     return (
-      <main className="outubro-rosa min-h-screen bg-[#F4C6D3] text-[#4A0F26] flex flex-col">
-        <header className="border-b border-[#EDB4C5] px-3 sm:px-6 py-3 sm:py-4 sticky top-0 z-50 bg-[#F4C6D3]/95 backdrop-blur-sm flex items-center justify-between gap-3">
-          <a href="/" className="inline-flex items-center gap-2 text-[#8A3A5A] hover:text-[#4A0F26] transition-colors text-xs sm:text-sm">
+      <main className="min-h-screen bg-black text-white flex flex-col">
+        <header className="border-b border-zinc-800 px-3 sm:px-6 py-3 sm:py-4 sticky top-0 z-50 bg-black/95 backdrop-blur-sm">
+          <a href="/" className="inline-flex items-center gap-2 text-zinc-400 hover:text-white transition-colors text-xs sm:text-sm">
             <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             Voltar ao site
           </a>
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-[#FF1F8E] text-white text-[10px] sm:text-xs font-bold uppercase tracking-widest px-2.5 sm:px-3 py-1 shadow-lg shadow-[#FF1F8E]/30">🎀 Outubro Rosa</span>
         </header>
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
-            <Loader2 className="w-8 h-8 text-[#E6007E] animate-spin mx-auto mb-4" />
-            <p className="text-[#8A3A5A] text-sm">Carregando eventos...</p>
+            <Loader2 className="w-8 h-8 text-primary animate-spin mx-auto mb-4" />
+            <p className="text-zinc-400 text-sm">Carregando eventos...</p>
           </div>
         </div>
       </main>
@@ -275,22 +274,21 @@ export default function CheckInPage() {
   // Event list
   if (!eventoSelecionado) {
     return (
-      <main className="outubro-rosa min-h-screen bg-[#F4C6D3] text-[#4A0F26] flex flex-col">
-        <header className="border-b border-[#EDB4C5] px-3 sm:px-6 py-3 sm:py-4 sticky top-0 z-50 bg-[#F4C6D3]/95 backdrop-blur-sm flex items-center justify-between gap-3">
-          <a href="/" className="inline-flex items-center gap-2 text-[#8A3A5A] hover:text-[#4A0F26] transition-colors text-xs sm:text-sm">
+      <main className="min-h-screen bg-black text-white flex flex-col">
+        <header className="border-b border-zinc-800 px-3 sm:px-6 py-3 sm:py-4 sticky top-0 z-50 bg-black/95 backdrop-blur-sm">
+          <a href="/" className="inline-flex items-center gap-2 text-zinc-400 hover:text-white transition-colors text-xs sm:text-sm">
             <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             Voltar ao site
           </a>
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-[#FF1F8E] text-white text-[10px] sm:text-xs font-bold uppercase tracking-widest px-2.5 sm:px-3 py-1 shadow-lg shadow-[#FF1F8E]/30">🎀 Outubro Rosa</span>
         </header>
 
         <div className="flex-1 px-3 sm:px-4 py-8 sm:py-14 max-w-2xl mx-auto w-full">
           <div className="text-center mb-10 sm:mb-12">
-            <p className="text-[#E6007E] text-xs font-semibold uppercase tracking-widest mb-2 sm:mb-3">Somma Running Club</p>
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[#4A0F26] leading-tight text-balance">
-              Faça seu <span className="text-[#E6007E]">Check-in</span>
+            <p className="text-primary text-xs font-semibold uppercase tracking-widest mb-2 sm:mb-3">Somma Running Club</p>
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white leading-tight text-balance">
+              Faça seu <span className="text-primary">Check-in</span>
             </h1>
-            <p className="text-[#8A3A5A] text-xs sm:text-sm mt-2 sm:mt-3">
+            <p className="text-zinc-400 text-xs sm:text-sm mt-2 sm:mt-3">
               Selecione o evento para confirmar sua presença
             </p>
           </div>
@@ -298,7 +296,7 @@ export default function CheckInPage() {
           {/* Próximos eventos */}
           {eventosProximos.length > 0 && (
             <div className="mb-8 space-y-3">
-              <p className="text-xs text-[#A3567A] font-semibold uppercase tracking-widest mb-3">
+              <p className="text-xs text-zinc-500 font-semibold uppercase tracking-widest mb-3">
                 {eventosProximos.length === 1 ? 'Proximo evento' : 'Proximos eventos'}
               </p>
               {eventosProximos.map(evento => {
@@ -319,35 +317,35 @@ export default function CheckInPage() {
                       setEventoSelecionado(evento)
                     }
                   }}
-                  className={`w-full text-left rounded-xl border-2 bg-[#FBE3EA] overflow-hidden transition-all duration-200 ${
+                  className={`w-full text-left rounded-xl border-2 bg-zinc-900 overflow-hidden transition-all duration-200 ${
                     isCatcherRun
-                      ? 'border-[#E49FB6] cursor-not-allowed opacity-70'
+                      ? 'border-zinc-700 cursor-not-allowed opacity-70'
                       : lp
-                      ? 'border-[#FF1F8E] hover:bg-[#F8D3DE] cursor-pointer group'
+                      ? 'border-primary hover:bg-zinc-800 cursor-pointer group'
                       : evento.bloqueado
-                      ? 'border-[#E49FB6] cursor-not-allowed opacity-70'
-                      : 'border-[#FF1F8E] hover:bg-[#F8D3DE] cursor-pointer group'
+                      ? 'border-zinc-700 cursor-not-allowed opacity-70'
+                      : 'border-primary hover:bg-zinc-800 cursor-pointer group'
                   }`}
                 >
-                  <div className={`px-4 sm:px-6 py-2 flex items-center justify-between ${isCatcherRun ? 'bg-[#E49FB6]' : lp ? 'bg-[#FF1F8E]' : evento.bloqueado ? 'bg-[#E49FB6]' : 'bg-[#FF1F8E]'}`}>
+                  <div className={`px-4 sm:px-6 py-2 flex items-center justify-between ${isCatcherRun ? 'bg-zinc-700' : lp ? 'bg-primary' : evento.bloqueado ? 'bg-zinc-700' : 'bg-primary'}`}>
                     {isCatcherRun ? (
                       <>
-                        <span className="text-[#6B2240] text-xs font-semibold uppercase tracking-widest flex items-center gap-1.5">
+                        <span className="text-zinc-300 text-xs font-semibold uppercase tracking-widest flex items-center gap-1.5">
                           <Lock className="w-3 h-3" /> Inscrições encerradas
                         </span>
-                        <Lock className="w-3.5 h-3.5 text-[#8A3A5A]" />
+                        <Lock className="w-3.5 h-3.5 text-zinc-400" />
                       </>
                     ) : lp ? (
                       <>
-                        <span className="text-[#4A0F26] text-xs font-semibold uppercase tracking-widest">Página do evento</span>
-                        <ChevronRight className="w-3.5 h-3.5 text-[#4A0F26]" />
+                        <span className="text-white text-xs font-semibold uppercase tracking-widest">Página do evento</span>
+                        <ChevronRight className="w-3.5 h-3.5 text-white" />
                       </>
                     ) : evento.bloqueado ? (
                       <>
-                        <span className="text-[#6B2240] text-xs font-semibold uppercase tracking-widest flex items-center gap-1.5">
+                        <span className="text-zinc-300 text-xs font-semibold uppercase tracking-widest flex items-center gap-1.5">
                           <Lock className="w-3 h-3" /> Check-in em breve
                         </span>
-                        <Lock className="w-3.5 h-3.5 text-[#8A3A5A]" />
+                        <Lock className="w-3.5 h-3.5 text-zinc-400" />
                       </>
                     ) : (
                       <>
@@ -360,8 +358,8 @@ export default function CheckInPage() {
                     {isCatcherRun && (
                       <div className="flex items-start justify-between gap-3 mb-1">
                         <div>
-                          <h3 className="text-[#4A0F26] font-bold text-base sm:text-lg mb-1.5">{evento.titulo}</h3>
-                          <span className="inline-flex items-center gap-1.5 bg-[#EDB4C5] border border-[#E49FB6] text-[#8A3A5A] text-[10px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full">
+                          <h3 className="text-white font-bold text-base sm:text-lg mb-1.5">{evento.titulo}</h3>
+                          <span className="inline-flex items-center gap-1.5 bg-zinc-800 border border-zinc-700 text-zinc-400 text-[10px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full">
                             <Lock className="w-2.5 h-2.5" />
                             Inscrições encerradas
                           </span>
@@ -374,28 +372,28 @@ export default function CheckInPage() {
                       </div>
                     )}
 
-                    {!isCatcherRun && <h3 className="text-[#4A0F26] font-bold text-base sm:text-lg mb-3">{evento.titulo}</h3>}
+                    {!isCatcherRun && <h3 className="text-white font-bold text-base sm:text-lg mb-3">{evento.titulo}</h3>}
                     {evento.descricao && (
-                      <p className="text-[#8A3A5A] text-xs sm:text-sm mb-3 leading-relaxed">{evento.descricao}</p>
+                      <p className="text-zinc-400 text-xs sm:text-sm mb-3 leading-relaxed">{evento.descricao}</p>
                     )}
                     <div className="space-y-2">
-                      <div className="flex items-center gap-2 text-xs sm:text-sm text-[#8A3A5A]">
-                        <Calendar className={`w-3.5 h-3.5 flex-shrink-0 ${evento.bloqueado && !lp ? 'text-[#A3567A]' : 'text-[#E6007E]'}`} />
+                      <div className="flex items-center gap-2 text-xs sm:text-sm text-zinc-400">
+                        <Calendar className={`w-3.5 h-3.5 flex-shrink-0 ${evento.bloqueado && !lp ? 'text-zinc-500' : 'text-primary'}`} />
                         {evento.dataFormatada}
                       </div>
-                      <div className="flex items-center gap-2 text-xs sm:text-sm text-[#8A3A5A]">
-                        <Clock className={`w-3.5 h-3.5 flex-shrink-0 ${evento.bloqueado && !lp ? 'text-[#A3567A]' : 'text-[#E6007E]'}`} />
+                      <div className="flex items-center gap-2 text-xs sm:text-sm text-zinc-400">
+                        <Clock className={`w-3.5 h-3.5 flex-shrink-0 ${evento.bloqueado && !lp ? 'text-zinc-500' : 'text-primary'}`} />
                         {formatarHorario(evento.horarioInicio)}
                       </div>
-                      <div className="flex items-center gap-2 text-xs sm:text-sm text-[#8A3A5A]">
-                        <MapPin className={`w-3.5 h-3.5 flex-shrink-0 ${evento.bloqueado && !lp ? 'text-[#A3567A]' : 'text-[#E6007E]'}`} />
+                      <div className="flex items-center gap-2 text-xs sm:text-sm text-zinc-400">
+                        <MapPin className={`w-3.5 h-3.5 flex-shrink-0 ${evento.bloqueado && !lp ? 'text-zinc-500' : 'text-primary'}`} />
                         {evento.localUrl ? (
                           <a
                             href={evento.localUrl}
                             target="_blank"
                             rel="noopener noreferrer"
                             onClick={e => e.stopPropagation()}
-                            className="hover:text-[#E6007E] underline underline-offset-2 transition-colors"
+                            className="hover:text-orange-400 underline underline-offset-2 transition-colors"
                           >
                             {evento.local}
                           </a>
@@ -405,19 +403,19 @@ export default function CheckInPage() {
                       </div>
                     </div>
                     {isCatcherRun ? (
-                      <div className="mt-4 flex items-center justify-end gap-1.5 text-[#A3567A] text-xs font-semibold">
+                      <div className="mt-4 flex items-center justify-end gap-1.5 text-zinc-500 text-xs font-semibold">
                         <Lock className="w-3 h-3" /> Inscrições encerradas
                       </div>
                     ) : lp ? (
-                      <div className="mt-4 flex items-center justify-end gap-1 text-[#E6007E] text-xs font-semibold group-hover:gap-2 transition-all">
+                      <div className="mt-4 flex items-center justify-end gap-1 text-primary text-xs font-semibold group-hover:gap-2 transition-all">
                         Ver o evento <ChevronRight className="w-3.5 h-3.5" />
                       </div>
                     ) : evento.bloqueado ? (
-                      <div className="mt-4 flex items-center justify-end gap-1.5 text-[#A3567A] text-xs font-semibold">
+                      <div className="mt-4 flex items-center justify-end gap-1.5 text-zinc-500 text-xs font-semibold">
                         <Lock className="w-3 h-3" /> Check-in indisponível no momento
                       </div>
                     ) : (
-                      <div className="mt-4 flex items-center justify-end gap-1 text-[#E6007E] text-xs font-semibold group-hover:gap-2 transition-all">
+                      <div className="mt-4 flex items-center justify-end gap-1 text-primary text-xs font-semibold group-hover:gap-2 transition-all">
                         Fazer check-in <ChevronRight className="w-3.5 h-3.5" />
                       </div>
                     )}
@@ -431,35 +429,35 @@ export default function CheckInPage() {
           {/* Nenhum evento disponível */}
           {eventosProximos.length === 0 && eventosPassados.length === 0 && (
             <div className="text-center py-12">
-              <Calendar className="w-12 h-12 text-[#C98FAE] mx-auto mb-4" />
-              <p className="text-[#8A3A5A] text-sm">Nenhum evento disponível no momento</p>
-              <p className="text-[#B97A98] text-xs mt-1">Fique de olho nas nossas redes sociais</p>
+              <Calendar className="w-12 h-12 text-zinc-700 mx-auto mb-4" />
+              <p className="text-zinc-400 text-sm">Nenhum evento disponível no momento</p>
+              <p className="text-zinc-600 text-xs mt-1">Fique de olho nas nossas redes sociais</p>
             </div>
           )}
 
           {/* Eventos passados */}
           {eventosPassados.length > 0 && (
             <div>
-              <p className="text-xs text-[#A3567A] font-semibold uppercase tracking-widest mb-3">Historico de eventos</p>
+              <p className="text-xs text-zinc-500 font-semibold uppercase tracking-widest mb-3">Historico de eventos</p>
               <div className="space-y-2.5">
                 {eventosPassados.map(evento => (
                   <div
                     key={evento.id}
-                    className="rounded-xl border border-[#EDB4C5] bg-[#FBE3EA]/50 p-4 sm:p-5 opacity-60"
+                    className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4 sm:p-5 opacity-60"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="inline-flex items-center gap-1 text-[#A3567A] text-xs font-medium bg-[#EDB4C5] px-2 py-0.5 rounded-full">
+                          <span className="inline-flex items-center gap-1 text-zinc-500 text-xs font-medium bg-zinc-800 px-2 py-0.5 rounded-full">
                             <Lock className="w-2.5 h-2.5" /> Encerrado
                           </span>
                         </div>
-                        <p className="text-[#4A0F26] font-semibold text-sm">{evento.titulo}</p>
-                        <p className="text-[#A3567A] text-xs mt-1">{evento.dataFormatada}</p>
-                        <p className="text-[#B97A98] text-xs">{evento.local}</p>
+                        <p className="text-white font-semibold text-sm">{evento.titulo}</p>
+                        <p className="text-zinc-500 text-xs mt-1">{evento.dataFormatada}</p>
+                        <p className="text-zinc-600 text-xs">{evento.local}</p>
                       </div>
-                      <div className="w-10 h-10 rounded-lg bg-[#EDB4C5] flex items-center justify-center flex-shrink-0">
-                        <Calendar className="w-4 h-4 text-[#B97A98]" />
+                      <div className="w-10 h-10 rounded-lg bg-zinc-800 flex items-center justify-center flex-shrink-0">
+                        <Calendar className="w-4 h-4 text-zinc-600" />
                       </div>
                     </div>
                   </div>
@@ -473,17 +471,16 @@ export default function CheckInPage() {
   }
 
   return (
-    <main className="outubro-rosa min-h-screen bg-[#F4C6D3] text-[#4A0F26] flex flex-col">
+    <main className="min-h-screen bg-black text-white flex flex-col">
       {/* Header */}
-      <header className="border-b border-[#EDB4C5] px-3 sm:px-6 py-3 sm:py-4 sticky top-0 z-50 bg-[#F4C6D3]/95 backdrop-blur-sm flex items-center justify-between gap-3">
+      <header className="border-b border-zinc-800 px-3 sm:px-6 py-3 sm:py-4 sticky top-0 z-50 bg-black/95 backdrop-blur-sm">
         <button
           onClick={() => { setEventoSelecionado(null); setStep(1) }}
-          className="inline-flex items-center gap-2 text-[#8A3A5A] hover:text-[#4A0F26] transition-colors text-xs sm:text-sm"
+          className="inline-flex items-center gap-2 text-zinc-400 hover:text-white transition-colors text-xs sm:text-sm"
         >
           <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           Voltar aos eventos
         </button>
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-[#FF1F8E] text-white text-[10px] sm:text-xs font-bold uppercase tracking-widest px-2.5 sm:px-3 py-1 shadow-lg shadow-[#FF1F8E]/30">🎀 Outubro Rosa</span>
       </header>
 
       <div className="flex-1 flex items-center justify-center px-3 sm:px-4 py-6 sm:py-12">
@@ -491,11 +488,11 @@ export default function CheckInPage() {
 
           {/* Logo + Título */}
           <div className="text-center mb-8 sm:mb-10">
-            <p className="text-[#E6007E] text-xs font-semibold uppercase tracking-widest mb-2 sm:mb-3">Somma Running Club</p>
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[#4A0F26] leading-tight text-balance">
-              Faça seu <span className="text-[#E6007E]">Check-in</span>
+            <p className="text-primary text-xs font-semibold uppercase tracking-widest mb-2 sm:mb-3">Somma Running Club</p>
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white leading-tight text-balance">
+              Faça seu <span className="text-primary">Check-in</span>
             </h1>
-            <p className="text-[#8A3A5A] text-xs sm:text-sm mt-2 sm:mt-3">
+            <p className="text-zinc-400 text-xs sm:text-sm mt-2 sm:mt-3">
               Confirme sua presença em {totalSteps} passos simples
             </p>
           </div>
@@ -506,26 +503,26 @@ export default function CheckInPage() {
               <div key={i} className="flex-1 flex items-center gap-1 sm:gap-2">
                 <div
                   className={`h-1 sm:h-1.5 flex-1 rounded-full transition-all duration-500 ${
-                    i + 1 <= step ? 'bg-[#FF1F8E]' : 'bg-[#EDB4C5]'
+                    i + 1 <= step ? 'bg-primary' : 'bg-zinc-800'
                   }`}
                 />
               </div>
             ))}
-            <span className="text-xs text-[#A3567A] whitespace-nowrap ml-2">{step}/{totalSteps}</span>
+            <span className="text-xs text-zinc-500 whitespace-nowrap ml-2">{step}/{totalSteps}</span>
           </div>
 
           {/* STEP 1: Evento */}
           {step === 1 && (
             <div className="animate-in fade-in slide-in-from-right-4 duration-400">
               <div className="mb-6 sm:mb-8">
-                <p className="text-xs text-[#E6007E] font-semibold uppercase tracking-widest mb-1 sm:mb-2">Passo 1</p>
-                <h2 className="text-xl sm:text-2xl font-bold text-[#4A0F26] mb-1">Confirme o evento</h2>
-                <p className="text-[#8A3A5A] text-xs sm:text-sm">Verifique os detalhes antes de continuar</p>
+                <p className="text-xs text-primary font-semibold uppercase tracking-widest mb-1 sm:mb-2">Passo 1</p>
+                <h2 className="text-xl sm:text-2xl font-bold text-white mb-1">Confirme o evento</h2>
+                <p className="text-zinc-400 text-xs sm:text-sm">Verifique os detalhes antes de continuar</p>
               </div>
 
-              <div className="rounded-xl sm:rounded-2xl border-2 border-[#FF1F8E] bg-[#FBE3EA] overflow-hidden">
+              <div className="rounded-xl sm:rounded-2xl border-2 border-primary bg-zinc-900 overflow-hidden">
                 {/* Banner */}
-                <div className="bg-gradient-to-br from-[#FF1F8E] to-[#FF6DB8] p-5 sm:p-8 text-center">
+                <div className="bg-gradient-to-br from-primary-hover to-orange-400 p-5 sm:p-8 text-center">
                   <p className="text-white/80 text-xs font-semibold uppercase tracking-widest mb-2">Somma Running Club</p>
                   <h3 className="text-lg sm:text-2xl font-bold leading-tight mb-1 text-white">Corra. Celebre. Repita.</h3>
                   <p className="text-white/80 text-xs sm:text-sm">Uma manhã de movimento, energia e comunidade — com café no final pra recarregar as baterias</p>
@@ -533,49 +530,49 @@ export default function CheckInPage() {
 
                 <div className="p-4 sm:p-6 space-y-3 sm:space-y-4">
                   <div className="flex items-start gap-3 text-xs sm:text-sm">
-                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#FF1F8E]/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#E6007E]" />
+                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary" />
                     </div>
                     <div className="flex-1">
-                      <p className="text-[#8A3A5A] text-xs">Data</p>
-                      <p className="text-[#4A0F26] font-medium text-sm sm:text-base">{eventoSelecionado.dataFormatada}</p>
+                      <p className="text-zinc-400 text-xs">Data</p>
+                      <p className="text-white font-medium text-sm sm:text-base">{eventoSelecionado.dataFormatada}</p>
                     </div>
                   </div>
 
                   <div className="flex items-start gap-3 text-xs sm:text-sm">
-                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#FF1F8E]/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#E6007E]" />
+                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary" />
                     </div>
                     <div className="flex-1">
-                      <p className="text-[#8A3A5A] text-xs">Horário</p>
-                      <p className="text-[#4A0F26] font-medium text-sm sm:text-base">{formatarHorario(eventoSelecionado.horarioInicio)}</p>
+                      <p className="text-zinc-400 text-xs">Horário</p>
+                      <p className="text-white font-medium text-sm sm:text-base">{formatarHorario(eventoSelecionado.horarioInicio)}</p>
                     </div>
                   </div>
 
                   <div className="flex items-start gap-3 text-xs sm:text-sm">
-                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#FF1F8E]/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#E6007E]" />
+                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary" />
                     </div>
                     <div className="flex-1">
-                      <p className="text-[#8A3A5A] text-xs">Local</p>
+                      <p className="text-zinc-400 text-xs">Local</p>
                       {eventoSelecionado.localUrl ? (
                         <a
                           href={eventoSelecionado.localUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-[#4A0F26] font-medium text-sm sm:text-base hover:text-[#E6007E] underline underline-offset-2 transition-colors"
+                          className="text-white font-medium text-sm sm:text-base hover:text-orange-400 underline underline-offset-2 transition-colors"
                         >
                           {eventoSelecionado.local}
                         </a>
                       ) : (
-                        <p className="text-[#4A0F26] font-medium text-sm sm:text-base">{eventoSelecionado.local}</p>
+                        <p className="text-white font-medium text-sm sm:text-base">{eventoSelecionado.local}</p>
                       )}
                     </div>
                   </div>
 
                   {eventoSelecionado.descricao && (
-                    <div className="pt-3 border-t border-[#EDB4C5] mt-3">
-                      <p className="text-[#8A3A5A] text-xs sm:text-sm leading-relaxed">{eventoSelecionado.descricao}</p>
+                    <div className="pt-3 border-t border-zinc-800 mt-3">
+                      <p className="text-zinc-400 text-xs sm:text-sm leading-relaxed">{eventoSelecionado.descricao}</p>
                     </div>
                   )}
                 </div>
@@ -584,7 +581,7 @@ export default function CheckInPage() {
               <div className="mt-6 sm:mt-8">
                 <button
                   onClick={handleNext}
-                  className="w-full bg-[#FF1F8E] hover:bg-[#E6007E] active:bg-[#C70069] text-white font-semibold py-3 sm:py-4 rounded-xl sm:rounded-xl flex items-center justify-center gap-2 transition-all duration-200 hover:shadow-lg hover:shadow-[#FF1F8E]/30 text-sm sm:text-base touch-none"
+                  className="w-full bg-primary hover:bg-orange-400 active:bg-primary-hover text-white font-semibold py-3 sm:py-4 rounded-xl sm:rounded-xl flex items-center justify-center gap-2 transition-all duration-200 hover:shadow-lg hover:shadow-primary/25 text-sm sm:text-base touch-none"
                 >
                   Confirmar e continuar <ArrowRight className="w-4 h-4 sm:w-4 sm:h-4" />
                 </button>
@@ -596,9 +593,9 @@ export default function CheckInPage() {
           {step === 2 && eventoSelecionado?.tipo !== 'personalizado' && (
             <div className="animate-in fade-in slide-in-from-right-4 duration-400">
               <div className="mb-6 sm:mb-8">
-                <p className="text-xs text-[#E6007E] font-semibold uppercase tracking-widest mb-1 sm:mb-2">Passo 2</p>
-                <h2 className="text-xl sm:text-2xl font-bold text-[#4A0F26] mb-1">Escolha seu pelotão</h2>
-                <p className="text-[#8A3A5A] text-xs sm:text-sm">Selecione a distância que mais combina com você</p>
+                <p className="text-xs text-primary font-semibold uppercase tracking-widest mb-1 sm:mb-2">Passo 2</p>
+                <h2 className="text-xl sm:text-2xl font-bold text-white mb-1">Escolha seu pelotão</h2>
+                <p className="text-zinc-400 text-xs sm:text-sm">Selecione a distância que mais combina com você</p>
               </div>
 
               <div className="space-y-2.5 sm:space-y-3">
@@ -608,24 +605,24 @@ export default function CheckInPage() {
                     onClick={() => setFormData(prev => ({ ...prev, peloton: p.id }))}
                     className={`w-full text-left rounded-lg sm:rounded-2xl border-2 p-4 sm:p-5 transition-all duration-200 ${
                       formData.peloton === p.id
-                        ? 'border-[#FF1F8E] bg-[#FF1F8E]/10'
-                        : 'border-[#EDB4C5] bg-[#FBE3EA] hover:border-[#FF1F8E]/60'
+                        ? 'border-primary bg-primary/10'
+                        : 'border-zinc-800 bg-zinc-900 hover:border-zinc-600'
                     }`}
                   >
                     <div className="flex items-center justify-between gap-3">
                       <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
                         <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl flex items-center justify-center text-base sm:text-xl font-bold transition-all flex-shrink-0 ${
-                          formData.peloton === p.id ? 'bg-[#FF1F8E] text-white' : 'bg-[#EDB4C5] text-[#6B2240]'
+                          formData.peloton === p.id ? 'bg-primary text-white' : 'bg-zinc-800 text-zinc-300'
                         }`}>
                           {p.icon}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-[#4A0F26] font-semibold text-sm sm:text-base">{p.label}</p>
-                          <p className="text-[#8A3A5A] text-xs mt-0.5 line-clamp-2">{p.description}</p>
+                          <p className="text-white font-semibold text-sm sm:text-base">{p.label}</p>
+                          <p className="text-zinc-400 text-xs mt-0.5 line-clamp-2">{p.description}</p>
                         </div>
                       </div>
                       <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${
-                        formData.peloton === p.id ? 'border-[#FF1F8E] bg-[#FF1F8E]' : 'border-[#D27E9C]'
+                        formData.peloton === p.id ? 'border-primary bg-primary' : 'border-zinc-600'
                       }`}>
                         {formData.peloton === p.id && <Check className="w-3 h-3 text-white" />}
                       </div>
@@ -637,14 +634,14 @@ export default function CheckInPage() {
               <div className="flex gap-2 sm:gap-3 mt-6 sm:mt-8">
                 <button
                   onClick={handlePrev}
-                  className="flex-1 border border-[#E49FB6] hover:border-[#FF1F8E] text-[#6B2240] hover:text-[#4A0F26] font-semibold py-3 sm:py-4 rounded-lg sm:rounded-xl flex items-center justify-center gap-2 transition-all duration-200 text-xs sm:text-sm touch-none"
+                  className="flex-1 border border-zinc-700 hover:border-zinc-500 text-zinc-300 hover:text-white font-semibold py-3 sm:py-4 rounded-lg sm:rounded-xl flex items-center justify-center gap-2 transition-all duration-200 text-xs sm:text-sm touch-none"
                 >
                   <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Voltar
                 </button>
                 <button
                   onClick={handleNext}
                   disabled={!formData.peloton}
-                  className="flex-1 bg-[#FF1F8E] hover:bg-[#E6007E] disabled:bg-[#EDB4C5] disabled:text-[#B97A98] text-white font-semibold py-3 sm:py-4 rounded-lg sm:rounded-xl flex items-center justify-center gap-2 transition-all duration-200 hover:shadow-lg hover:shadow-[#FF1F8E]/30 disabled:cursor-not-allowed text-xs sm:text-sm touch-none"
+                  className="flex-1 bg-primary hover:bg-orange-400 disabled:bg-zinc-800 disabled:text-zinc-600 text-white font-semibold py-3 sm:py-4 rounded-lg sm:rounded-xl flex items-center justify-center gap-2 transition-all duration-200 hover:shadow-lg hover:shadow-primary/25 disabled:cursor-not-allowed text-xs sm:text-sm touch-none"
                 >
                   Continuar <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 </button>
@@ -656,18 +653,18 @@ export default function CheckInPage() {
           {((step === 3 && eventoSelecionado?.tipo !== 'personalizado') || (step === 2 && eventoSelecionado?.tipo === 'personalizado')) && (
             <div className="animate-in fade-in slide-in-from-right-4 duration-400">
               <div className="mb-6 sm:mb-8">
-                <p className="text-xs text-[#E6007E] font-semibold uppercase tracking-widest mb-1 sm:mb-2">
+                <p className="text-xs text-primary font-semibold uppercase tracking-widest mb-1 sm:mb-2">
                   Passo {eventoSelecionado?.tipo === 'personalizado' ? 2 : 3}
                 </p>
-                <h2 className="text-xl sm:text-2xl font-bold text-[#4A0F26] mb-1">Seus dados</h2>
-                <p className="text-[#8A3A5A] text-xs sm:text-sm">Precisamos de algumas informações para confirmar sua vaga</p>
+                <h2 className="text-xl sm:text-2xl font-bold text-white mb-1">Seus dados</h2>
+                <p className="text-zinc-400 text-xs sm:text-sm">Precisamos de algumas informações para confirmar sua vaga</p>
               </div>
 
               <div className="space-y-3 sm:space-y-4">
                 {/* Nome */}
                 <div>
-                  <label className="block text-xs text-[#8A3A5A] font-medium uppercase tracking-wide mb-1.5 sm:mb-2">
-                    Nome completo <span className="text-[#E6007E]">*</span>
+                  <label className="block text-xs text-zinc-400 font-medium uppercase tracking-wide mb-1.5 sm:mb-2">
+                    Nome completo <span className="text-primary">*</span>
                   </label>
                   <input
                     type="text"
@@ -675,28 +672,28 @@ export default function CheckInPage() {
                     onChange={e => setFormData(prev => ({ ...prev, nome: e.target.value }))}
                     placeholder="Ex: João Silva Santos"
                     autoFocus
-                    className="w-full bg-[#FBE3EA] border-2 border-[#E49FB6] focus:border-[#FF1F8E] text-[#4A0F26] placeholder:text-[#B97A98] rounded-lg sm:rounded-xl px-3.5 sm:px-5 py-3 sm:py-4 text-sm outline-none transition-all duration-200"
+                    className="w-full bg-zinc-900 border-2 border-zinc-700 focus:border-primary text-white placeholder:text-zinc-600 rounded-lg sm:rounded-xl px-3.5 sm:px-5 py-3 sm:py-4 text-sm outline-none transition-all duration-200"
                   />
                 </div>
 
                 {/* Telefone */}
                 <div>
-                  <label className="block text-xs text-[#8A3A5A] font-medium uppercase tracking-wide mb-1.5 sm:mb-2">
-                    Telefone <span className="text-[#E6007E]">*</span>
+                  <label className="block text-xs text-zinc-400 font-medium uppercase tracking-wide mb-1.5 sm:mb-2">
+                    Telefone <span className="text-primary">*</span>
                   </label>
                   <input
                     type="tel"
                     value={formatPhone(formData.telefone)}
                     onChange={e => setFormData(prev => ({ ...prev, telefone: e.target.value.replace(/\D/g, '') }))}
                     placeholder="(61) 99999-9999"
-                    className="w-full bg-[#FBE3EA] border-2 border-[#E49FB6] focus:border-[#FF1F8E] text-[#4A0F26] placeholder:text-[#B97A98] rounded-lg sm:rounded-xl px-3.5 sm:px-5 py-3 sm:py-4 text-sm outline-none transition-all duration-200"
+                    className="w-full bg-zinc-900 border-2 border-zinc-700 focus:border-primary text-white placeholder:text-zinc-600 rounded-lg sm:rounded-xl px-3.5 sm:px-5 py-3 sm:py-4 text-sm outline-none transition-all duration-200"
                   />
                 </div>
 
                 {/* Sexo */}
                 <div>
-                  <label className="block text-xs text-[#8A3A5A] font-medium uppercase tracking-wide mb-1.5 sm:mb-2">
-                    Sexo <span className="text-[#E6007E]">*</span>
+                  <label className="block text-xs text-zinc-400 font-medium uppercase tracking-wide mb-1.5 sm:mb-2">
+                    Sexo <span className="text-primary">*</span>
                   </label>
                   <div className="grid grid-cols-2 gap-2 sm:gap-3">
                     {(['masculino', 'feminino'] as const).map(s => (
@@ -706,8 +703,8 @@ export default function CheckInPage() {
                         onClick={() => setFormData(prev => ({ ...prev, sexo: s }))}
                         className={`py-3 sm:py-4 rounded-lg sm:rounded-xl border-2 font-semibold text-xs sm:text-sm capitalize transition-all duration-200 ${
                           formData.sexo === s
-                            ? 'border-[#FF1F8E] bg-[#FF1F8E]/10 text-[#E6007E]'
-                            : 'border-[#E49FB6] bg-[#FBE3EA] text-[#8A3A5A] hover:border-[#FF1F8E]'
+                            ? 'border-primary bg-primary/10 text-orange-400'
+                            : 'border-zinc-700 bg-zinc-900 text-zinc-400 hover:border-zinc-500'
                         }`}
                       >
                         {s.charAt(0).toUpperCase() + s.slice(1)}
@@ -718,42 +715,42 @@ export default function CheckInPage() {
 
                 {/* Email */}
                 <div>
-                  <label className="block text-xs text-[#8A3A5A] font-medium uppercase tracking-wide mb-1.5 sm:mb-2">
-                    E-mail <span className="text-[#E6007E]">*</span>
+                  <label className="block text-xs text-zinc-400 font-medium uppercase tracking-wide mb-1.5 sm:mb-2">
+                    E-mail <span className="text-primary">*</span>
                   </label>
                   <input
                     type="email"
                     value={formData.email}
                     onChange={e => setFormData(prev => ({ ...prev, email: e.target.value }))}
                     placeholder="seuemail@exemplo.com"
-                    className="w-full bg-[#FBE3EA] border-2 border-[#E49FB6] focus:border-[#FF1F8E] text-[#4A0F26] placeholder:text-[#B97A98] rounded-lg sm:rounded-xl px-3.5 sm:px-5 py-3 sm:py-4 text-sm outline-none transition-all duration-200"
+                    className="w-full bg-zinc-900 border-2 border-zinc-700 focus:border-primary text-white placeholder:text-zinc-600 rounded-lg sm:rounded-xl px-3.5 sm:px-5 py-3 sm:py-4 text-sm outline-none transition-all duration-200"
                   />
                 </div>
 
                 {/* CPF */}
                 <div>
-                  <label className="block text-xs text-[#8A3A5A] font-medium uppercase tracking-wide mb-1.5 sm:mb-2">
-                    CPF <span className="text-[#E6007E]">*</span>
+                  <label className="block text-xs text-zinc-400 font-medium uppercase tracking-wide mb-1.5 sm:mb-2">
+                    CPF <span className="text-primary">*</span>
                   </label>
                   <input
                     type="text"
                     value={formatCPF(formData.cpf)}
                     onChange={e => setFormData(prev => ({ ...prev, cpf: e.target.value.replace(/\D/g, '') }))}
                     placeholder="000.000.000-00"
-                    className="w-full bg-[#FBE3EA] border-2 border-[#E49FB6] focus:border-[#FF1F8E] text-[#4A0F26] placeholder:text-[#B97A98] rounded-lg sm:rounded-xl px-3.5 sm:px-5 py-3 sm:py-4 text-sm outline-none transition-all duration-200 font-mono"
+                    className="w-full bg-zinc-900 border-2 border-zinc-700 focus:border-primary text-white placeholder:text-zinc-600 rounded-lg sm:rounded-xl px-3.5 sm:px-5 py-3 sm:py-4 text-sm outline-none transition-all duration-200 font-mono"
                   />
                 </div>
               </div>
 
               {/* Resumo pelotão */}
               {eventoSelecionado?.tipo !== 'personalizado' && (
-                <div className="mt-5 sm:mt-6 flex items-center gap-3 bg-[#FBE3EA] rounded-lg sm:rounded-xl px-3.5 sm:px-5 py-3 sm:py-4 border border-[#EDB4C5]">
-                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-[#FF1F8E] flex items-center justify-center text-white text-xs sm:text-sm font-bold flex-shrink-0">
+                <div className="mt-5 sm:mt-6 flex items-center gap-3 bg-zinc-900 rounded-lg sm:rounded-xl px-3.5 sm:px-5 py-3 sm:py-4 border border-zinc-800">
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-primary flex items-center justify-center text-white text-xs sm:text-sm font-bold flex-shrink-0">
                     {formData.peloton.replace('km', '')}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs text-[#A3567A]">Pelotão selecionado</p>
-                    <p className="text-[#4A0F26] font-semibold text-xs sm:text-sm">{formData.peloton} — {eventoSelecionado.dataFormatada}</p>
+                    <p className="text-xs text-zinc-500">Pelotão selecionado</p>
+                    <p className="text-white font-semibold text-xs sm:text-sm">{formData.peloton} — {eventoSelecionado.dataFormatada}</p>
                   </div>
                 </div>
               )}
@@ -769,14 +766,14 @@ export default function CheckInPage() {
                 <button
                   onClick={handlePrev}
                   disabled={isLoading}
-                  className="flex-1 border border-[#E49FB6] hover:border-[#FF1F8E] text-[#6B2240] hover:text-[#4A0F26] font-semibold py-3 sm:py-4 rounded-lg sm:rounded-xl flex items-center justify-center gap-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-xs sm:text-sm touch-none"
+                  className="flex-1 border border-zinc-700 hover:border-zinc-500 text-zinc-300 hover:text-white font-semibold py-3 sm:py-4 rounded-lg sm:rounded-xl flex items-center justify-center gap-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-xs sm:text-sm touch-none"
                 >
                   <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Voltar
                 </button>
                 <button
                   onClick={handleSubmit}
                   disabled={!canAdvance() || isLoading}
-                  className="flex-1 bg-[#FF1F8E] hover:bg-[#E6007E] disabled:bg-[#EDB4C5] disabled:text-[#B97A98] text-white font-semibold py-3 sm:py-4 rounded-lg sm:rounded-xl flex items-center justify-center gap-2 transition-all duration-200 hover:shadow-lg hover:shadow-[#FF1F8E]/30 disabled:cursor-not-allowed text-xs sm:text-sm touch-none"
+                  className="flex-1 bg-primary hover:bg-orange-400 disabled:bg-zinc-800 disabled:text-zinc-600 text-white font-semibold py-3 sm:py-4 rounded-lg sm:rounded-xl flex items-center justify-center gap-2 transition-all duration-200 hover:shadow-lg hover:shadow-primary/25 disabled:cursor-not-allowed text-xs sm:text-sm touch-none"
                 >
                   {isLoading ? 'Enviando...' : 'Confirmar'} {!isLoading && <Check className="w-4 h-4 sm:w-4 sm:h-4" />}
                 </button>
