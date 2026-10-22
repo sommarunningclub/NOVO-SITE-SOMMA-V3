@@ -16,14 +16,44 @@ const nextConfig = {
       },
     ];
   },
-  // Apresentação BORA Experience (projeto próprio na Vercel, repositório sommarunningclub/bora-experience).
-  // Ela roda com basePath /ppt-somma-bora; aqui o site só encaminha esse caminho para lá.
+  // Apps próprios na Vercel, cada um com basePath. Aqui o site só encaminha
+  // esses caminhos. /michelob não é catch-all: public/michelob (capa, toolkit)
+  // alimenta os decks /ppt-michelob* e o simulador Ultra Balance.
   async rewrites() {
     const bora = process.env.BORA_EXPERIENCE_URL || "https://bora-experience.vercel.app";
+    const michelob =
+      process.env.MICHELOB_URL || "https://projeto-michelob-2026.vercel.app";
+    const muRotas = [
+      "_next",
+      "api",
+      "admin",
+      "comunidade",
+      "desafio",
+      "entrar",
+      "faq",
+      "meu-passaporte",
+      "meu-perfil",
+      "meus-beneficios",
+      "obrigado",
+      "p",
+      "privacidade",
+      "regulamento",
+      "fotos",
+      "marca",
+    ];
     return {
       beforeFiles: [
         { source: "/ppt-somma-bora", destination: `${bora}/ppt-somma-bora` },
         { source: "/ppt-somma-bora/:path*", destination: `${bora}/ppt-somma-bora/:path*` },
+        { source: "/michelob", destination: `${michelob}/michelob` },
+        { source: "/michelob/icon.svg", destination: `${michelob}/michelob/icon.svg` },
+        ...muRotas.flatMap((r) => [
+          { source: `/michelob/${r}`, destination: `${michelob}/michelob/${r}` },
+          {
+            source: `/michelob/${r}/:path*`,
+            destination: `${michelob}/michelob/${r}/:path*`,
+          },
+        ]),
       ],
     };
   },
