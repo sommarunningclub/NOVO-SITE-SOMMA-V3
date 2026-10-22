@@ -47,6 +47,9 @@ const nextConfig = {
         { source: "/ppt-somma-bora/:path*", destination: `${bora}/ppt-somma-bora/:path*` },
         { source: "/michelob", destination: `${michelob}/michelob` },
         { source: "/michelob/icon.svg", destination: `${michelob}/michelob/icon.svg` },
+        { source: "/michelob/favicon.ico", destination: `${michelob}/michelob/favicon.ico` },
+        { source: "/michelob/apple-icon", destination: `${michelob}/michelob/apple-icon` },
+        { source: "/michelob/apple-icon.png", destination: `${michelob}/michelob/apple-icon.png` },
         ...muRotas.flatMap((r) => [
           { source: `/michelob/${r}`, destination: `${michelob}/michelob/${r}` },
           {
