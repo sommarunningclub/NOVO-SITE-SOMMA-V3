@@ -1,3 +1,5 @@
+import { ASSESSORIA_VENDAS_ABERTAS } from "@/lib/assessoria-status"
+
 const LOGO_HORIZONTAL =
   'https://cdn.shopify.com/s/files/1/0788/1932/8253/files/HORIZONTAL_PRETA_LARANJA.png?v=1772322941'
 
@@ -93,7 +95,7 @@ export function SiteFooter() {
             <ul className="space-y-2 text-sm">
               <li><a href="https://wa.me/5561995372477?text=Ol%C3%A1%2C%20tudo%20bem%3F%20Quero%20saber%20mais%20sobre%20como%20realizar%20um%20evento%20ou%20corrida%20com%20o%20Somma%20Club." target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-orange-500 transition-colors">Somma Eventos</a></li>
               <li><a href="https://wa.me/5561995372477?text=Ol%C3%A1%2C%20tudo%20bem%3F%20Quero%20saber%20mais%20como%20funciona%20a%20contrata%C3%A7%C3%A3o%20de%20m%C3%ADdia%20do%20Somma%20Club." target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-orange-500 transition-colors">Somma Mídia</a></li>
-              <li><a href="https://wa.me/5561995372477?text=Ol%C3%A1%2C%20tudo%20bem%3F%20Quero%20saber%20mais%20sobre%20a%20Assessoria%20Somma%20Club" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-orange-500 transition-colors">Assessoria Somma Club</a></li>
+              {ASSESSORIA_VENDAS_ABERTAS && <li><a href="https://wa.me/5561995372477?text=Ol%C3%A1%2C%20tudo%20bem%3F%20Quero%20saber%20mais%20sobre%20a%20Assessoria%20Somma%20Club" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-orange-500 transition-colors">Assessoria Somma Club</a></li>}
               <li><a href="/insider-conect" className="text-muted-foreground hover:text-orange-500 transition-colors">Insider Conect</a></li>
               <li><a href="/seja-parceiro" className="text-muted-foreground hover:text-orange-500 transition-colors">Acesso Exclusivo Parceiro Somma</a></li>
             </ul>

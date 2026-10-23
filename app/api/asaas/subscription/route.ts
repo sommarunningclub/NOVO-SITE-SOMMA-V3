@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
+import { ASSESSORIA_VENDAS_ABERTAS, respostaVendasFechadas } from "@/lib/assessoria-status"
 import { calcularDesconto, resolverCupom } from "@/lib/checkout/cupons-servidor"
 import {
   ajustarParcelas,
@@ -94,6 +95,7 @@ async function registrarUsoDoCupom(
 }
 
 export async function POST(request: NextRequest) {
+  if (!ASSESSORIA_VENDAS_ABERTAS) return respostaVendasFechadas()
   try {
     const body = await request.json()
     const {

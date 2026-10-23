@@ -27,6 +27,8 @@ import { QualitySeal } from "@/components/ui/award-badge";
 import { SommaPricing } from "@/components/ui/somma-pricing";
 import { Footer } from "@/components/footer";
 import Hyperspeed from "@/components/ui/hyperspeed";
+import { AssessoriaForaDoAr } from "@/components/assessoria-fora-do-ar";
+import { ASSESSORIA_FORA_DO_AR, ASSESSORIA_VENDAS_ABERTAS } from "@/lib/assessoria-status";
 
 const BENEFIT_ICONS: Record<string, typeof Dumbbell> = {
   treino: Dumbbell,
@@ -54,7 +56,7 @@ const HYPERSPEED_FX: any = {
   },
 };
 
-export const metadata: Metadata = {
+const METADATA_LP: Metadata = {
   title: "Assessoria Somma — Corra com acompanhamento de verdade",
   description:
     "Treino personalizado, professores especialistas, comunidade acolhedora e treinos aos domingos. A Assessoria Somma acompanha você de perto, do primeiro passo à performance.",
@@ -69,7 +71,13 @@ export const metadata: Metadata = {
   },
 };
 
+export const metadata: Metadata = ASSESSORIA_VENDAS_ABERTAS
+  ? METADATA_LP
+  : { title: ASSESSORIA_FORA_DO_AR, robots: { index: false, follow: false } };
+
 export default function AssessoriaPage() {
+  if (!ASSESSORIA_VENDAS_ABERTAS) return <AssessoriaForaDoAr />;
+
   return (
     <>
       {/* Header simples */}

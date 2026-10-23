@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
+import { ASSESSORIA_VENDAS_ABERTAS, respostaVendasFechadas } from "@/lib/assessoria-status"
 import { resolvePlanoPixAutomatico } from "@/lib/checkout/planos-pix-automatico"
 import { consumirToken, conferirToken, devolverToken, mensagemDoMotivo } from "@/lib/pix-automatico/tokens"
 import { calcularDesconto, resolverCupom } from "@/lib/checkout/cupons-servidor"
@@ -124,6 +125,7 @@ async function registrarUsoDoCupom(
 }
 
 export async function POST(request: NextRequest) {
+  if (!ASSESSORIA_VENDAS_ABERTAS) return respostaVendasFechadas()
   try {
     const { customerId, planKey, professor, token, couponCode } = await request.json()
 
