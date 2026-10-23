@@ -12,6 +12,7 @@ import { Faq } from "@/components/faq";
 import { SignupSection } from "@/components/signup-section";
 import { Footer } from "@/components/footer";
 import { AgendaPopup } from "@/components/agenda-popup";
+import { ASSESSORIA_VENDAS_ABERTAS } from "@/lib/assessoria-status";
 
 export default function Home() {
   return (
@@ -23,7 +24,7 @@ export default function Home() {
         <About />
         <Location />
         <Paces />
-        <AdvisoryTeaser />
+        {ASSESSORIA_VENDAS_ABERTAS && <AdvisoryTeaser />}
         <Gallery />
         {/* Depoimentos oculto por enquanto (trocar `false` por `true` para reexibir) */}
         {false && <Testimonials />}

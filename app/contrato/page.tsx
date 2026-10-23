@@ -4,6 +4,7 @@ import Image from "next/image";
 import { ArrowLeft } from "lucide-react";
 import { ContratoAssessoria } from "@/components/contrato-assessoria";
 import { Footer } from "@/components/footer";
+import { ASSESSORIA_VENDAS_ABERTAS } from "@/lib/assessoria-status";
 
 export const metadata: Metadata = {
   title: "Contrato de Prestação de Serviços | Assessoria Somma Club",
@@ -20,9 +21,11 @@ export default function ContratoPage() {
           <Link href="/" aria-label="Voltar para a home">
             <Image src="/logo-somma-dark.svg" alt="SOMMA Club" width={120} height={32} className="h-7 w-auto md:h-8" />
           </Link>
-          <Link href="/assessoria" className="inline-flex items-center gap-2 text-sm font-medium text-muted hover:text-primary">
-            <ArrowLeft className="h-4 w-4" /> Assessoria
-          </Link>
+          {ASSESSORIA_VENDAS_ABERTAS && (
+            <Link href="/assessoria" className="inline-flex items-center gap-2 text-sm font-medium text-muted hover:text-primary">
+              <ArrowLeft className="h-4 w-4" /> Assessoria
+            </Link>
+          )}
         </div>
       </header>
 

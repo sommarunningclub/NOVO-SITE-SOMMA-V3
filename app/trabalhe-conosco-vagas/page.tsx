@@ -7,6 +7,7 @@ import { Reveal } from "@/components/reveal";
 import { Footer } from "@/components/footer";
 import Hyperspeed from "@/components/ui/hyperspeed";
 import { VAGAS_ATIVAS } from "./_vagas";
+import { ASSESSORIA_VENDAS_ABERTAS } from "@/lib/assessoria-status";
 import { VagasSection } from "./_vagas-section";
 
 // Mesmo preset visual do hero da /assessoria — mantém as duas páginas na mesma língua.
@@ -176,12 +177,14 @@ export default function TrabalheConoscoPage() {
                 >
                   Ver vagas abertas <ArrowUpRight className="h-4 w-4" />
                 </a>
-                <Link
-                  href="/assessoria"
-                  className="inline-flex items-center justify-center gap-2 rounded-full border border-white/30 px-7 py-3.5 text-base font-semibold text-white transition-colors hover:bg-white/10"
-                >
-                  Conhecer a Assessoria
-                </Link>
+                {ASSESSORIA_VENDAS_ABERTAS && (
+                  <Link
+                    href="/assessoria"
+                    className="inline-flex items-center justify-center gap-2 rounded-full border border-white/30 px-7 py-3.5 text-base font-semibold text-white transition-colors hover:bg-white/10"
+                  >
+                    Conhecer a Assessoria
+                  </Link>
+                )}
               </div>
             </Reveal>
           </div>

@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Menu, X } from "lucide-react";
 import { SOMMA } from "@/lib/somma-data";
 import { cn } from "@/lib/utils";
+import { ASSESSORIA_VENDAS_ABERTAS } from "@/lib/assessoria-status";
 
 const NAV_LINKS = [
   { label: "Comunidade", href: "#sobre" },
@@ -14,7 +15,7 @@ const NAV_LINKS = [
   { label: "Fotos", href: "#fotos" },
   { label: "FAQ", href: "#faq" },
   { label: "Check-in", href: "/check-in" },
-];
+].filter((l) => ASSESSORIA_VENDAS_ABERTAS || l.href !== "#assessoria");
 
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);

@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Instagram, Mail, Phone, MapPin } from "lucide-react";
 import { SOMMA } from "@/lib/somma-data";
+import { ASSESSORIA_VENDAS_ABERTAS } from "@/lib/assessoria-status";
 import { StravaIcon } from "./icons/strava";
 import { TikTokIcon } from "./icons/tiktok";
 
@@ -90,7 +91,7 @@ export function Footer() {
           <ul className="mt-4 space-y-2.5 text-sm text-white/70">
             <li><a href="/seja-parceiro" className="hover:text-primary">Seja um Parceiro Somma Club</a></li>
             <li><a href="/evolve" className="hover:text-primary">Somma &amp; Evolve</a></li>
-            <li><a href="/assessoria" className="hover:text-primary">Assessoria Somma Club</a></li>
+            {ASSESSORIA_VENDAS_ABERTAS && <li><a href="/assessoria" className="hover:text-primary">Assessoria Somma Club</a></li>}
             <li><a href={SOMMA.links.loja} target="_blank" rel="noopener noreferrer" className="hover:text-primary">Loja Somma</a></li>
           </ul>
         </nav>
@@ -101,7 +102,7 @@ export function Footer() {
           <ul className="mt-4 space-y-2.5 text-sm text-white/70">
             <li><a href={WA_EVENTOS} target="_blank" rel="noopener noreferrer" className="hover:text-primary">Somma Eventos</a></li>
             <li><a href={WA_MIDIA} target="_blank" rel="noopener noreferrer" className="hover:text-primary">Somma Mídia</a></li>
-            <li><a href={WA_ASSESSORIA} target="_blank" rel="noopener noreferrer" className="hover:text-primary">Assessoria Somma Club</a></li>
+            {ASSESSORIA_VENDAS_ABERTAS && <li><a href={WA_ASSESSORIA} target="_blank" rel="noopener noreferrer" className="hover:text-primary">Assessoria Somma Club</a></li>}
             <li><a href="/insider-conect" className="hover:text-primary">Insider Conect</a></li>
             <li><a href="/parceiro-somma-club" className="hover:text-primary">Acesso Exclusivo Parceiro Somma</a></li>
             <li><a href="/trabalhe-conosco-vagas" className="hover:text-primary">Trabalhe Conosco</a></li>
