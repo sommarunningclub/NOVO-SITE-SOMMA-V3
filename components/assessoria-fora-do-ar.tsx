@@ -4,8 +4,8 @@ import { ArrowLeft, Lock } from "lucide-react";
 import { ASSESSORIA_FORA_DO_AR } from "@/lib/assessoria-status";
 
 /**
- * Tela única de "Assessoria fora do ar": ocupa /assessoria, o /checkout e os
- * links de professor enquanto `ASSESSORIA_VENDAS_ABERTAS` for `false`.
+ * Tela única de "Assessoria fora do ar": ocupa o /checkout enquanto
+ * `ASSESSORIA_VENDAS_ABERTAS` for `false`.
  */
 export function AssessoriaForaDoAr() {
   return (

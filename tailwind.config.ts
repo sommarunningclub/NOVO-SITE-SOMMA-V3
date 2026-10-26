@@ -19,6 +19,12 @@ const config: Config = {
           text: "#FFFFFF",
         },
         light: "#F5F5F5",
+        // BORA, a assessoria oficial do SOMMA Club (/assessoria e links de
+        // professor). Verde só sobre preto: sobre branco fica ilegível.
+        bora: {
+          DEFAULT: "#CEFF00",
+          2: "#C4DE47",
+        },
         // Paleta do Wings das Atléticas (Wings for Life x Red Bull), usada só
         // em /wings-das-atleticas-2026 e /wings/ranking.
         wfl: {
@@ -37,6 +43,8 @@ const config: Config = {
         // Ultra Balance Challenge: condensada nos títulos, limpa nos textos
         title: ["var(--font-ubc-title)", "var(--font-display)", "sans-serif"],
         copy: ["var(--font-ubc-body)", "var(--font-geist-sans)", "sans-serif"],
+        // BORA: Altone, a família da marca
+        bora: ["var(--font-altone)", "Helvetica Neue", "Arial", "sans-serif"],
       },
       maxWidth: {
         container: "1200px",
