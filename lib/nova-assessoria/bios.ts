@@ -1,9 +1,9 @@
 /**
- * Apresentação de cada professor nos links dedicados.
+ * Apresentação de cada professor no link dele (sommaclub.com.br/<slug>).
  *
- * Só quem está aqui ganha a bio no topo do link; quem não está continua com o
- * checkout direto, como antes. É assim que a bio entra professor a professor,
- * sem depender de mexer no banco e sem quebrar os links já em circulação.
+ * Só quem está aqui ganha bio; quem não está aparece com nome, foto e
+ * Instagram. É assim que a bio entra professor a professor, sem depender de
+ * mexer no banco.
  *
  * A chave é o nome exato em `professores_curriculo_assessoria`.
  */
@@ -74,8 +74,4 @@ export const BIOS: Record<string, Bio> = {
       "Estuda a fundo fisiologia e gosta de entender o porquê de cada treino, buscando transformar ciência em prática para ajudar cada atleta a correr mais e melhor.",
     ],
   },
-}
-
-export function bioDoProfessor(nome: string): Bio | null {
-  return BIOS[nome] ?? null
 }
