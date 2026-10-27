@@ -5,9 +5,8 @@ import { APOIO, CHAMADA, ESCASSEZ_PUBLICA, HORARIO } from "@/lib/dexcomplica-lov
 import { rastrear } from "@/lib/dexcomplica-love-run/analytics";
 import { movimentoReduzido, useGsap } from "@/lib/dexcomplica-love-run/motion";
 import Marcas from "./Marcas";
-import { Pulso } from "./Graficos";
+import { Equalizador, Pulso } from "./Graficos";
 import Letras from "./Letras";
-import PlayerEqualizador from "./PlayerEqualizador";
 import { useMeuIngresso } from "./meuIngresso";
 
 /**
@@ -45,8 +44,8 @@ export default function Capa() {
       <div className="lr-capa__foto">
         <div className="lr-capa__moldura">
           <Image
-            src="/dexcomplica-love-run/fotos/corre-megafone.jpg"
-            alt="Corredora do Somma de regata rosa puxando o pelotão com um megafone no Parque da Cidade"
+            src="/dexcomplica-love-run/fotos/corre-laranja.jpg"
+            alt="Pelotão do Somma de camisetas laranja correndo pelo Parque da Cidade"
             fill
             priority
             sizes="(min-width: 960px) 46vw, 100vw"
@@ -68,7 +67,7 @@ export default function Capa() {
             priority
           />
           <span className="lr-capa__mascara"><span data-capa-linha><Letras texto="Love" /></span></span>
-          <span className="lr-capa__mascara"><span data-capa-linha><Letras texto="Run" /><PlayerEqualizador /></span></span>
+          <span className="lr-capa__mascara"><span data-capa-linha><Letras texto="Run" /><Equalizador className="lr-capa__eq" /></span></span>
         </h1>
 
         <p className="lr-capa__chamada" data-capa-entra>{CHAMADA}</p>

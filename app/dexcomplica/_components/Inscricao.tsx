@@ -18,7 +18,7 @@ type Fase =
   | { tipo: "falha"; mensagem: string }
   | { tipo: "ja_inscrito"; reenviado: boolean }
   | { tipo: "redirecionando" }
-  | { tipo: "celebrando"; url: string }
+  | { tipo: "celebrando"; url: string; jaInscrito: boolean }
   | { tipo: "fechado"; estado: Exclude<EstadoInscricao, "abertas"> };
 
 const UTM_CHAVES = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term"] as const;
@@ -148,14 +148,10 @@ function Formulario({
       if (res.ok && json.ok && typeof json.ingresso_url === "string") {
         rastrear(json.ja_inscrito ? "ja_inscrito" : "inscricao_concluida", { pelotao: v.pelotao });
         lembrarIngresso(json.ingresso_url);
-        if (json.ja_inscrito) {
-          setFase({ tipo: "redirecionando" });
-          router.push(json.ingresso_url);
-        } else {
-          // Inscrição nova e já gravada: 6 s de celebração enquanto o ingresso carrega.
-          router.prefetch(json.ingresso_url);
-          setFase({ tipo: "celebrando", url: json.ingresso_url });
-        }
+        // Gravado no banco: a cena de carregamento vira celebração e leva ao
+        // ingresso, que já vai sendo baixado enquanto ela toca.
+        router.prefetch(json.ingresso_url);
+        setFase({ tipo: "celebrando", url: json.ingresso_url, jaInscrito: Boolean(json.ja_inscrito) });
         return;
       }
       if (json.ja_inscrito) {
@@ -188,7 +184,13 @@ function Formulario({
 
   return (
     <form className="lr-form" onSubmit={enviar} noValidate aria-busy={enviando} onFocus={marcarInicio}>
-      {fase.tipo === "celebrando" ? <Transicao aoTerminar={() => router.push(fase.url)} /> : null}
+      {fase.tipo === "enviando" || fase.tipo === "celebrando" ? (
+        <Transicao
+          fase={fase.tipo === "celebrando" ? "confirmado" : "carregando"}
+          jaInscrito={fase.tipo === "celebrando" && fase.jaInscrito}
+          aoTerminar={() => fase.tipo === "celebrando" && router.push(fase.url)}
+        />
+      ) : null}
       <div ref={resumo} tabIndex={-1} className="lr-form__resumo" role={fase.tipo === "falha" ? "alert" : undefined}>
         {fase.tipo === "erro_validacao" && listaErros.length ? (
           <div className="lr-aviso lr-aviso--erro" role="alert">
