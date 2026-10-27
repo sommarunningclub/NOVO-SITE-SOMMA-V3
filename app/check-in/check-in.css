@@ -1,0 +1,215 @@
+/*
+ * /check-in com cara de app iOS no celular: cores do modo escuro do iOS
+ * (systemBackground, secondarySystemGroupedBackground, separadores), fonte do
+ * sistema e o laranja SOMMA como cor de destaque.
+ */
+.ck {
+  --ck-bg: #000;
+  --ck-cel: #1c1c1e;
+  --ck-cel-2: #2c2c2e;
+  --ck-sep: rgba(84, 84, 88, 0.6);
+  --ck-sec: rgba(235, 235, 245, 0.6);
+  --ck-ter: rgba(235, 235, 245, 0.3);
+  --ck-tint: #ff2c03;
+  --ck-topo: env(safe-area-inset-top, 0px);
+  --ck-base: env(safe-area-inset-bottom, 0px);
+
+  min-height: 100dvh;
+  background: var(--ck-bg);
+  color: #fff;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", var(--font-geist-sans),
+    "Helvetica Neue", Helvetica, Arial, sans-serif;
+  letter-spacing: -0.01em;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ck ::selection { background: rgba(255, 44, 3, 0.4); }
+
+/* Barra de navegação translúcida, como a UINavigationBar */
+.ck-nav {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  padding-top: var(--ck-topo);
+  background: rgba(0, 0, 0, 0.72);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  backdrop-filter: saturate(180%) blur(20px);
+  transition: box-shadow 0.2s ease;
+}
+.ck-nav[data-linha="sim"] { box-shadow: 0 0.5px 0 var(--ck-sep); }
+
+/* Barra de ação fixa no rodapé, acima da barra de início do iPhone */
+.ck-rodape {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 40;
+  padding: 12px 16px calc(12px + var(--ck-base));
+  background: rgba(0, 0, 0, 0.78);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  backdrop-filter: saturate(180%) blur(20px);
+  box-shadow: 0 -0.5px 0 var(--ck-sep);
+}
+.ck-espaco-rodape { height: calc(96px + var(--ck-base)); }
+
+/* Toque: o "afundar" dos controles do iOS, sem o atraso do hover */
+.ck-toque { transition: transform 0.18s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.18s; }
+.ck-toque:active { transform: scale(0.97); }
+@media (hover: hover) {
+  .ck-toque:hover { opacity: 0.92; }
+}
+
+/* Separador das listas agrupadas: começa depois do ícone e some na última linha */
+.ck-linha:not(:last-child) .ck-linha-c { box-shadow: inset 0 -0.5px 0 var(--ck-sep); }
+
+/* Inputs: 17px evita o zoom automático do Safari ao focar */
+.ck input { font-size: 17px; }
+.ck input::placeholder { color: var(--ck-ter); }
+
+/* ---------- ingressos da agenda (lâmina 02 do carrossel de novembro) ---------- */
+.ck-tk {
+  --corte: 74px;
+  --raio-corte: 9px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 96px;
+  border-radius: 18px;
+  text-align: left;
+  color: #fff;
+  background: var(--tk);
+  /* as duas mordidas do canhoto */
+  -webkit-mask:
+    radial-gradient(circle var(--raio-corte) at var(--corte) 0, transparent 97%, #000) top / 100% 51% no-repeat,
+    radial-gradient(circle var(--raio-corte) at var(--corte) 100%, transparent 97%, #000) bottom / 100% 51% no-repeat;
+  mask:
+    radial-gradient(circle var(--raio-corte) at var(--corte) 0, transparent 97%, #000) top / 100% 51% no-repeat,
+    radial-gradient(circle var(--raio-corte) at var(--corte) 100%, transparent 97%, #000) bottom / 100% 51% no-repeat;
+}
+@media (min-width: 640px) {
+  .ck-tk { --corte: 104px; --raio-corte: 12px; min-height: 124px; border-radius: 22px; }
+}
+.ck-tk-dia {
+  width: var(--corte);
+  flex: none;
+  text-align: center;
+  line-height: 1;
+}
+.ck-tk-dia b {
+  display: block;
+  font-size: 40px;
+  font-weight: 800;
+  letter-spacing: -0.05em;
+}
+.ck-tk-dia span {
+  display: block;
+  margin-top: 5px;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.8;
+}
+@media (min-width: 640px) {
+  .ck-tk-dia b { font-size: 56px; }
+  .ck-tk-dia span { font-size: 11px; }
+}
+.ck-tk-txt {
+  flex: 1;
+  min-width: 0;
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 3px;
+  margin: 14px 0;
+  padding: 0 10px 0 14px;
+  border-left: 2px dashed var(--tk-traco, rgba(255, 255, 255, 0.4));
+}
+@media (min-width: 640px) {
+  .ck-tk-txt { padding: 0 16px 0 22px; margin: 20px 0; gap: 5px; }
+}
+.ck-tk-marca {
+  position: relative;
+  width: 52px;
+  height: 52px;
+  flex: none;
+  margin-right: 14px;
+  display: grid;
+  place-items: center;
+}
+@media (min-width: 640px) {
+  .ck-tk-marca { width: 72px; height: 72px; margin-right: 22px; }
+}
+.ck-tk-marca > img { width: 100%; height: 100%; object-fit: contain; }
+.ck-disco {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: #fff;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+/* cadeado no canto da marca: "ainda não liberou" */
+.ck-tk-cadeado {
+  position: absolute;
+  right: -5px;
+  bottom: -3px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #fff;
+  color: #111;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+}
+
+.ck-tk-dex { --tk: #e5321f; }
+.ck-tk-dex .ck-tk-dia b { font-family: var(--font-ck-bagel), sans-serif; font-weight: 400; color: #f2c94c; letter-spacing: -0.02em; }
+
+/* Sobre o fundo preto da página, o ingresso preto da lâmina sumiria: aqui ele
+   vira o painel limão da lâmina 04, com tinta preta. */
+.ck-tk-bora { --tk: #ceff00; --tk-traco: rgba(0, 0, 0, 0.35); color: #000; }
+.ck-tk-bora .ck-tk-dia b { font-family: var(--font-ck-altone), sans-serif; font-weight: 900; font-style: italic; letter-spacing: -0.04em; }
+.ck-tk-bora .ck-logo-bora { height: 0.72em; width: auto; display: inline-block; vertical-align: -0.02em; margin-left: 4px; }
+
+.ck-tk-mu { --tk: #13286b; --tk-traco: rgba(223, 233, 251, 0.35); }
+.ck-tk-mu .ck-tk-dia b { font-family: var(--font-ck-barlow), sans-serif; font-weight: 800; letter-spacing: 0; font-size: 46px; }
+@media (min-width: 640px) {
+  .ck-tk-mu .ck-tk-dia b { font-size: 62px; }
+}
+
+/* 28/11 ainda é segredo: ingresso sem identidade, só a data */
+.ck-tk-surpresa {
+  --tk: linear-gradient(120deg, #2c2c2e 0%, #3a3a3c 45%, #2c2c2e 100%);
+  --tk-traco: rgba(255, 255, 255, 0.25);
+}
+.ck-tk-surpresa .ck-tk-dia b { color: rgba(255, 255, 255, 0.9); }
+
+.ck-fonte-anton { font-family: var(--font-ck-anton), "Impact", sans-serif; }
+
+/* entrada em cascata dos ingressos */
+@keyframes ck-sobe {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
+}
+.ck-sobe { animation: ck-sobe 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+
+@keyframes ck-brilho {
+  0% { background-position: -160% 0; }
+  100% { background-position: 260% 0; }
+}
+.ck-esqueleto {
+  background: linear-gradient(90deg, var(--ck-cel) 0%, var(--ck-cel-2) 50%, var(--ck-cel) 100%) 0 0 / 60% 100% no-repeat,
+    var(--ck-cel);
+  animation: ck-brilho 1.4s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ck-sobe, .ck-esqueleto { animation: none; }
+  .ck-toque { transition: none; }
+}

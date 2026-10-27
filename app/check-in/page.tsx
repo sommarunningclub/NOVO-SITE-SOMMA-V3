@@ -1,8 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowRight, ArrowLeft, Check, MapPin, Clock, Calendar, Lock, ChevronRight, Loader2 } from 'lucide-react'
+import { AnimatePresence, motion } from 'framer-motion'
+import { ArrowUpRight, Calendar, Check, ChevronRight, Clock, Loader2, Lock, MapPin, Users } from 'lucide-react'
+import { Agenda } from './_components/Agenda'
+import { BarraNav, Grupo, IconeQuadrado, Linha, Segmentado } from './_components/ios'
+import { hojeEmBrasilia } from './agenda-novembro'
 
 type FormData = {
   peloton: '' | '4km' | '6km' | '8km'
@@ -29,6 +33,8 @@ type Evento = {
   dataEvento: string
   horarioInicio: string
 }
+
+const MESES_CURTOS = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez']
 
 function formatarData(dataStr: string): string {
   const [year, month, day] = dataStr.split('-').map(Number)
@@ -62,6 +68,37 @@ function lpSegura(url: string | null): string | null {
   }
 }
 
+function cpfValido(cpf: string): boolean {
+  if (!/^\d{11}$/.test(cpf) || /^(\d)\1{10}$/.test(cpf)) return false
+  const digito = (n: number) => {
+    let soma = 0
+    for (let i = 0; i < n; i++) soma += Number(cpf[i]) * (n + 1 - i)
+    const resto = (soma * 10) % 11
+    return resto === 10 ? 0 : resto
+  }
+  return digito(9) === Number(cpf[9]) && digito(10) === Number(cpf[10])
+}
+
+const validar = {
+  nome: (v: string) => v.trim().split(/\s+/).length >= 2,
+  telefone: (v: string) => v.length >= 10 && v.length <= 11,
+  email: (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim()),
+  cpf: cpfValido,
+}
+
+const AVISOS: Record<keyof typeof validar, string> = {
+  nome: 'Escreva nome e sobrenome.',
+  telefone: 'Confira o telefone com DDD.',
+  email: 'Confira o e-mail.',
+  cpf: 'Confira o CPF: os números não batem.',
+}
+
+const pelotons = [
+  { id: '4km' as const, label: 'Ritmo Iniciante', description: "Alterna corrida e caminhada · 1' correndo, 2' caminhando", cor: '#30D158' },
+  { id: '6km' as const, label: 'Ritmo Moderado', description: 'Ritmo constante · Pace aproximado de 6\'30"', cor: '#FFD60A' },
+  { id: '8km' as const, label: 'Ritmo Avançado', description: 'Para corredores experientes · Pace aproximado de 5\'30"', cor: '#FF453A' },
+]
+
 export default function CheckInPage() {
   const router = useRouter()
   const [eventos, setEventos] = useState<Evento[]>([])
@@ -69,8 +106,11 @@ export default function CheckInPage() {
   const [eventoSelecionado, setEventoSelecionado] = useState<Evento | null>(null)
   const totalSteps = eventoSelecionado?.tipo === 'personalizado' ? 2 : 3
   const [step, setStep] = useState(1)
+  const [direcao, setDirecao] = useState(1)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
+  const [tocados, setTocados] = useState<Partial<Record<keyof typeof validar, boolean>>>({})
+  const [tentouEnviar, setTentouEnviar] = useState(false)
   const [formData, setFormData] = useState<FormData>({
     peloton: '',
     nome: '',
@@ -79,6 +119,7 @@ export default function CheckInPage() {
     email: '',
     cpf: '',
   })
+  const hoje = useMemo(() => hojeEmBrasilia(), [])
 
   useEffect(() => {
     async function fetchEventos() {
@@ -97,14 +138,15 @@ export default function CheckInPage() {
             dataFormatada: formatarData(e.data_evento),
             titulo: e.titulo,
             descricao: e.descricao || null,
-            local: e.local || 'Parque da Cidade — Brasília, DF',
+            local: e.local || 'Parque da Cidade, Brasília, DF',
             localUrl: e.local_url || null,
             lpUrl: e.lp_url || null,
             tipo: e.tipo || 'corrida',
             encerrado: e.checkin_status === 'encerrado',
             bloqueado: e.checkin_status === 'bloqueado',
             dataEvento: e.data_evento,
-            horarioInicio: e.horario_inicio || '07:00',
+            // Vazio quando a gestão ainda não confirmou o horário: a linha some.
+            horarioInicio: e.horario_inicio || '',
           })
         }
 
@@ -117,7 +159,7 @@ export default function CheckInPage() {
               dataFormatada: formatarData(e.data_evento),
               titulo: e.titulo,
               descricao: null,
-              local: e.local || 'Parque da Cidade — Brasília, DF',
+              local: e.local || 'Parque da Cidade, Brasília, DF',
               localUrl: null,
               // Histórico é só leitura, não leva a lugar nenhum.
               lpUrl: null,
@@ -125,7 +167,7 @@ export default function CheckInPage() {
               encerrado: e.checkin_status === 'encerrado',
               bloqueado: e.checkin_status === 'bloqueado',
               dataEvento: e.data_evento,
-              horarioInicio: '07:00',
+              horarioInicio: '',
             })
           }
         }
@@ -140,6 +182,33 @@ export default function CheckInPage() {
 
     fetchEventos()
   }, [])
+
+  // O assistente entra no histórico do navegador: o "voltar" do celular (e o
+  // gesto de arrastar da borda no iPhone) volta para a lista em vez de sair.
+  useEffect(() => {
+    const aoVoltar = () => {
+      setEventoSelecionado(null)
+      setStep(1)
+      setError('')
+    }
+    window.addEventListener('popstate', aoVoltar)
+    return () => window.removeEventListener('popstate', aoVoltar)
+  }, [])
+
+  const abrirEvento = (evento: Evento) => {
+    setEventoSelecionado(evento)
+    setStep(1)
+    setDirecao(1)
+    setError('')
+    window.history.pushState({ ...window.history.state, checkinEvento: evento.id }, '')
+    window.scrollTo(0, 0)
+  }
+
+  const irPara = (n: number) => {
+    setDirecao(n > step ? 1 : -1)
+    setStep(n)
+    window.scrollTo(0, 0)
+  }
 
   const formatPhone = (value: string) => {
     const cleaned = value.replace(/\D/g, '').slice(0, 11)
@@ -156,26 +225,37 @@ export default function CheckInPage() {
     return `${cleaned.slice(0, 3)}.${cleaned.slice(3, 6)}.${cleaned.slice(6, 9)}-${cleaned.slice(9)}`
   }
 
+  const dadosOk =
+    validar.nome(formData.nome) &&
+    validar.telefone(formData.telefone) &&
+    validar.email(formData.email) &&
+    validar.cpf(formData.cpf) &&
+    !!formData.sexo
+
+  const passoDados = eventoSelecionado?.tipo === 'personalizado' ? 2 : 3
+
   const canAdvance = () => {
     if (step === 1) return true
-    if (eventoSelecionado?.tipo === 'personalizado') {
-      if (step === 2) return !!(formData.nome && formData.telefone && formData.sexo && formData.email && formData.cpf)
-    } else {
-      if (step === 2) return !!formData.peloton
-      if (step === 3) return !!(formData.nome && formData.telefone && formData.sexo && formData.email && formData.cpf)
-    }
+    if (step === passoDados) return dadosOk
+    if (step === 2) return !!formData.peloton
     return false
   }
 
   const handleNext = () => {
-    if (canAdvance() && step < totalSteps) setStep(step + 1)
+    if (canAdvance() && step < totalSteps) irPara(step + 1)
   }
 
   const handlePrev = () => {
-    if (step > 1) setStep(step - 1)
+    if (step > 1) irPara(step - 1)
+    else window.history.back()
   }
 
   const handleSubmit = async () => {
+    if (!dadosOk || isLoading) {
+      setTocados({ nome: true, telefone: true, email: true, cpf: true })
+      setTentouEnviar(true)
+      return
+    }
     try {
       setIsLoading(true)
       setError('')
@@ -186,8 +266,8 @@ export default function CheckInPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          nome_completo: formData.nome,
-          email: formData.email,
+          nome_completo: formData.nome.trim(),
+          email: formData.email.trim(),
           telefone: formData.telefone,
           cpf: formData.cpf,
           sexo: formData.sexo,
@@ -207,6 +287,7 @@ export default function CheckInPage() {
         throw new Error(errorData.error || 'Erro ao salvar check-in')
       }
 
+      const pelotao = pelotons.find(p => p.id === formData.peloton)
       const params = new URLSearchParams({
         data: eventoSelecionado?.dataFormatada || '',
         evento: eventoSelecionado?.titulo || '',
@@ -215,6 +296,10 @@ export default function CheckInPage() {
         local_url: eventoSelecionado?.localUrl || '',
         descricao: eventoSelecionado?.descricao || '',
       })
+      if (eventoSelecionado?.tipo !== 'personalizado' && pelotao) {
+        params.set('pelotao', pelotao.id)
+        params.set('pelotao_label', pelotao.label)
+      }
       router.push(`/check-in/sucesso?${params.toString()}`)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao enviar formulário')
@@ -224,565 +309,596 @@ export default function CheckInPage() {
     }
   }
 
-  const pelotons = [
-    {
-      id: '4km' as const,
-      label: 'Ritmo Iniciante',
-      description: 'Alterna corrida e caminhada \u2022 1\' correndo, 2\' caminhando',
-      icon: '\uD83D\uDFE2',
-      pace: 'Ritmo leve',
-    },
-    {
-      id: '6km' as const,
-      label: 'Ritmo Moderado',
-      description: 'Ritmo constante \u2022 Pace aproximado de 6\'30"',
-      icon: '\uD83D\uDFE1',
-      pace: 'Ritmo moderado',
-    },
-    {
-      id: '8km' as const,
-      label: 'Ritmo Avançado',
-      description: 'Para corredores experientes \u2022 Pace aproximado de 5\'30"',
-      icon: '\uD83D\uDD34',
-      pace: 'Ritmo intenso',
-    },
-  ]
-
   const eventosProximos = eventos.filter(e => !e.encerrado)
   const eventosPassados = eventos.filter(e => e.encerrado)
+  const datasReais = useMemo(
+    () => new Set(eventos.filter(e => !e.encerrado).map(e => e.dataEvento)),
+    [eventos],
+  )
 
-  // Loading state
-  if (loadingEventos) {
-    return (
-      <main className="min-h-screen bg-black text-white flex flex-col">
-        <header className="border-b border-zinc-800 px-3 sm:px-6 py-3 sm:py-4 sticky top-0 z-50 bg-black/95 backdrop-blur-sm">
-          <a href="/" className="inline-flex items-center gap-2 text-zinc-400 hover:text-white transition-colors text-xs sm:text-sm">
-            <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            Voltar ao site
-          </a>
-        </header>
-        <div className="flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <Loader2 className="w-8 h-8 text-primary animate-spin mx-auto mb-4" />
-            <p className="text-zinc-400 text-sm">Carregando eventos...</p>
-          </div>
-        </div>
-      </main>
-    )
-  }
-
-  // Event list
   if (!eventoSelecionado) {
     return (
-      <main className="min-h-screen bg-black text-white flex flex-col">
-        <header className="border-b border-zinc-800 px-3 sm:px-6 py-3 sm:py-4 sticky top-0 z-50 bg-black/95 backdrop-blur-sm">
-          <a href="/" className="inline-flex items-center gap-2 text-zinc-400 hover:text-white transition-colors text-xs sm:text-sm">
-            <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            Voltar ao site
-          </a>
-        </header>
-
-        <div className="flex-1 px-3 sm:px-4 py-8 sm:py-14 max-w-2xl mx-auto w-full">
-          <div className="text-center mb-10 sm:mb-12">
-            <p className="text-primary text-xs font-semibold uppercase tracking-widest mb-2 sm:mb-3">Somma Running Club</p>
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white leading-tight text-balance">
-              Faça seu <span className="text-primary">Check-in</span>
-            </h1>
-            <p className="text-zinc-400 text-xs sm:text-sm mt-2 sm:mt-3">
-              Selecione o evento para confirmar sua presença
-            </p>
-          </div>
-
-          {/* Próximos eventos */}
-          {eventosProximos.length > 0 && (
-            <div className="mb-8 space-y-3">
-              <p className="text-xs text-zinc-500 font-semibold uppercase tracking-widest mb-3">
-                {eventosProximos.length === 1 ? 'Proximo evento' : 'Proximos eventos'}
-              </p>
-              {eventosProximos.map(evento => {
-                const isCatcherRun = evento.id === 'f139b049-52c8-4028-9ddb-90cfa72af378'
-                // Evento com LP própria não passa pelo wizard: o destino é a LP,
-                // e por isso o status de check-in (inclusive "bloqueado") não vale
-                // para ele — quem controla inscrição ali é a própria página.
-                const lp = lpSegura(evento.lpUrl)
-                return (
-                <div
-                  key={evento.id}
-                  onClick={() => {
-                    if (isCatcherRun) {
-                      return
-                    } else if (lp) {
-                      window.location.href = lp
-                    } else if (!evento.bloqueado) {
-                      setEventoSelecionado(evento)
-                    }
-                  }}
-                  className={`w-full text-left rounded-xl border-2 bg-zinc-900 overflow-hidden transition-all duration-200 ${
-                    isCatcherRun
-                      ? 'border-zinc-700 cursor-not-allowed opacity-70'
-                      : lp
-                      ? 'border-primary hover:bg-zinc-800 cursor-pointer group'
-                      : evento.bloqueado
-                      ? 'border-zinc-700 cursor-not-allowed opacity-70'
-                      : 'border-primary hover:bg-zinc-800 cursor-pointer group'
-                  }`}
-                >
-                  <div className={`px-4 sm:px-6 py-2 flex items-center justify-between ${isCatcherRun ? 'bg-zinc-700' : lp ? 'bg-primary' : evento.bloqueado ? 'bg-zinc-700' : 'bg-primary'}`}>
-                    {isCatcherRun ? (
-                      <>
-                        <span className="text-zinc-300 text-xs font-semibold uppercase tracking-widest flex items-center gap-1.5">
-                          <Lock className="w-3 h-3" /> Inscrições encerradas
-                        </span>
-                        <Lock className="w-3.5 h-3.5 text-zinc-400" />
-                      </>
-                    ) : lp ? (
-                      <>
-                        <span className="text-white text-xs font-semibold uppercase tracking-widest">Página do evento</span>
-                        <ChevronRight className="w-3.5 h-3.5 text-white" />
-                      </>
-                    ) : evento.bloqueado ? (
-                      <>
-                        <span className="text-zinc-300 text-xs font-semibold uppercase tracking-widest flex items-center gap-1.5">
-                          <Lock className="w-3 h-3" /> Check-in em breve
-                        </span>
-                        <Lock className="w-3.5 h-3.5 text-zinc-400" />
-                      </>
-                    ) : (
-                      <>
-                        <span className="text-white text-xs font-semibold uppercase tracking-widest">Check-in aberto</span>
-                        <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
-                      </>
-                    )}
-                  </div>
-                  <div className="p-4 sm:p-6">
-                    {isCatcherRun && (
-                      <div className="flex items-start justify-between gap-3 mb-1">
-                        <div>
-                          <h3 className="text-white font-bold text-base sm:text-lg mb-1.5">{evento.titulo}</h3>
-                          <span className="inline-flex items-center gap-1.5 bg-zinc-800 border border-zinc-700 text-zinc-400 text-[10px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full">
-                            <Lock className="w-2.5 h-2.5" />
-                            Inscrições encerradas
-                          </span>
-                        </div>
-                        <img
-                          src="https://cdn.shopify.com/s/files/1/0788/1932/8253/files/RED_BULL_ED_MOLHADO_LATA_IR_ABERTA_ILUSTRADA_1.png?v=1776108610"
-                          alt="Red Bull"
-                          className="h-20 w-auto object-contain flex-shrink-0 -mt-2 -mr-1 opacity-40 grayscale"
-                        />
-                      </div>
-                    )}
-
-                    {!isCatcherRun && <h3 className="text-white font-bold text-base sm:text-lg mb-3">{evento.titulo}</h3>}
-                    {evento.descricao && (
-                      <p className="text-zinc-400 text-xs sm:text-sm mb-3 leading-relaxed">{evento.descricao}</p>
-                    )}
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2 text-xs sm:text-sm text-zinc-400">
-                        <Calendar className={`w-3.5 h-3.5 flex-shrink-0 ${evento.bloqueado && !lp ? 'text-zinc-500' : 'text-primary'}`} />
-                        {evento.dataFormatada}
-                      </div>
-                      <div className="flex items-center gap-2 text-xs sm:text-sm text-zinc-400">
-                        <Clock className={`w-3.5 h-3.5 flex-shrink-0 ${evento.bloqueado && !lp ? 'text-zinc-500' : 'text-primary'}`} />
-                        {formatarHorario(evento.horarioInicio)}
-                      </div>
-                      <div className="flex items-center gap-2 text-xs sm:text-sm text-zinc-400">
-                        <MapPin className={`w-3.5 h-3.5 flex-shrink-0 ${evento.bloqueado && !lp ? 'text-zinc-500' : 'text-primary'}`} />
-                        {evento.localUrl ? (
-                          <a
-                            href={evento.localUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            onClick={e => e.stopPropagation()}
-                            className="hover:text-orange-400 underline underline-offset-2 transition-colors"
-                          >
-                            {evento.local}
-                          </a>
-                        ) : (
-                          evento.local
-                        )}
-                      </div>
-                    </div>
-                    {isCatcherRun ? (
-                      <div className="mt-4 flex items-center justify-end gap-1.5 text-zinc-500 text-xs font-semibold">
-                        <Lock className="w-3 h-3" /> Inscrições encerradas
-                      </div>
-                    ) : lp ? (
-                      <div className="mt-4 flex items-center justify-end gap-1 text-primary text-xs font-semibold group-hover:gap-2 transition-all">
-                        Ver o evento <ChevronRight className="w-3.5 h-3.5" />
-                      </div>
-                    ) : evento.bloqueado ? (
-                      <div className="mt-4 flex items-center justify-end gap-1.5 text-zinc-500 text-xs font-semibold">
-                        <Lock className="w-3 h-3" /> Check-in indisponível no momento
-                      </div>
-                    ) : (
-                      <div className="mt-4 flex items-center justify-end gap-1 text-primary text-xs font-semibold group-hover:gap-2 transition-all">
-                        Fazer check-in <ChevronRight className="w-3.5 h-3.5" />
-                      </div>
-                    )}
-                  </div>
-                </div>
-                )
-              })}
-            </div>
-          )}
-
-          {/* Nenhum evento disponível */}
-          {eventosProximos.length === 0 && eventosPassados.length === 0 && (
-            <div className="text-center py-12">
-              <Calendar className="w-12 h-12 text-zinc-700 mx-auto mb-4" />
-              <p className="text-zinc-400 text-sm">Nenhum evento disponível no momento</p>
-              <p className="text-zinc-600 text-xs mt-1">Fique de olho nas nossas redes sociais</p>
-            </div>
-          )}
-
-          {/* Eventos passados */}
-          {eventosPassados.length > 0 && (
-            <div>
-              <p className="text-xs text-zinc-500 font-semibold uppercase tracking-widest mb-3">Historico de eventos</p>
-              <div className="space-y-2.5">
-                {eventosPassados.map(evento => (
-                  <div
-                    key={evento.id}
-                    className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4 sm:p-5 opacity-60"
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="inline-flex items-center gap-1 text-zinc-500 text-xs font-medium bg-zinc-800 px-2 py-0.5 rounded-full">
-                            <Lock className="w-2.5 h-2.5" /> Encerrado
-                          </span>
-                        </div>
-                        <p className="text-white font-semibold text-sm">{evento.titulo}</p>
-                        <p className="text-zinc-500 text-xs mt-1">{evento.dataFormatada}</p>
-                        <p className="text-zinc-600 text-xs">{evento.local}</p>
-                      </div>
-                      <div className="w-10 h-10 rounded-lg bg-zinc-800 flex items-center justify-center flex-shrink-0">
-                        <Calendar className="w-4 h-4 text-zinc-600" />
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      </main>
+      <Lista
+        carregando={loadingEventos}
+        proximos={eventosProximos}
+        passados={eventosPassados}
+        hoje={hoje}
+        datasReais={datasReais}
+        onAbrir={abrirEvento}
+      />
     )
   }
 
+  const ev = eventoSelecionado
+  const pelotaoEscolhido = pelotons.find(p => p.id === formData.peloton)
+  const aviso = (campo: keyof typeof validar) =>
+    tocados[campo] && !validar[campo](formData[campo]) ? AVISOS[campo] : null
+  const avisos = (['nome', 'telefone', 'email', 'cpf'] as const).map(aviso).filter(Boolean)
+
   return (
-    <main className="min-h-screen bg-black text-white flex flex-col">
-      {/* Header */}
-      <header className="border-b border-zinc-800 px-3 sm:px-6 py-3 sm:py-4 sticky top-0 z-50 bg-black/95 backdrop-blur-sm">
-        <button
-          onClick={() => { setEventoSelecionado(null); setStep(1) }}
-          className="inline-flex items-center gap-2 text-zinc-400 hover:text-white transition-colors text-xs sm:text-sm"
-        >
-          <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-          Voltar aos eventos
-        </button>
-      </header>
+    <main className="flex min-h-[100dvh] flex-col">
+      <BarraNav
+        voltar={{ rotulo: step === 1 ? 'Eventos' : 'Voltar', onClick: handlePrev }}
+        titulo="Check-in"
+        direita={<span aria-live="polite">{step} de {totalSteps}</span>}
+        linha={false}
+      />
+      {/* Progresso, colado na barra */}
+      <div className="sticky top-[calc(44px+var(--ck-topo))] z-30 h-[3px] bg-white/10" aria-hidden>
+        <motion.div
+          className="h-full bg-[var(--ck-tint)]"
+          initial={false}
+          animate={{ width: `${(step / totalSteps) * 100}%` }}
+          transition={{ type: 'spring', damping: 30, stiffness: 260 }}
+        />
+      </div>
 
-      <div className="flex-1 flex items-center justify-center px-3 sm:px-4 py-6 sm:py-12">
-        <div className="w-full max-w-2xl">
+      <div className="mx-auto w-full max-w-2xl flex-1 overflow-x-hidden px-4 pt-5 sm:px-6 sm:pt-8">
+        <AnimatePresence mode="wait" initial={false} custom={direcao}>
+          <motion.div
+            key={step}
+            custom={direcao}
+            initial={{ opacity: 0, x: direcao * 28 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: direcao * -28 }}
+            transition={{ duration: 0.22, ease: [0.2, 0.8, 0.2, 1] }}
+          >
+            {/* PASSO 1: evento */}
+            {step === 1 && (
+              <>
+                <TituloPasso passo={1} total={totalSteps} titulo="Confirme o evento" apoio="Confira os detalhes antes de continuar." />
 
-          {/* Logo + Título */}
-          <div className="text-center mb-8 sm:mb-10">
-            <p className="text-primary text-xs font-semibold uppercase tracking-widest mb-2 sm:mb-3">Somma Running Club</p>
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white leading-tight text-balance">
-              Faça seu <span className="text-primary">Check-in</span>
-            </h1>
-            <p className="text-zinc-400 text-xs sm:text-sm mt-2 sm:mt-3">
-              Confirme sua presença em {totalSteps} passos simples
-            </p>
-          </div>
-
-          {/* Progress */}
-          <div className="flex items-center gap-1 sm:gap-2 mb-8 sm:mb-10">
-            {Array.from({ length: totalSteps }).map((_, i) => (
-              <div key={i} className="flex-1 flex items-center gap-1 sm:gap-2">
-                <div
-                  className={`h-1 sm:h-1.5 flex-1 rounded-full transition-all duration-500 ${
-                    i + 1 <= step ? 'bg-primary' : 'bg-zinc-800'
-                  }`}
-                />
-              </div>
-            ))}
-            <span className="text-xs text-zinc-500 whitespace-nowrap ml-2">{step}/{totalSteps}</span>
-          </div>
-
-          {/* STEP 1: Evento */}
-          {step === 1 && (
-            <div className="animate-in fade-in slide-in-from-right-4 duration-400">
-              <div className="mb-6 sm:mb-8">
-                <p className="text-xs text-primary font-semibold uppercase tracking-widest mb-1 sm:mb-2">Passo 1</p>
-                <h2 className="text-xl sm:text-2xl font-bold text-white mb-1">Confirme o evento</h2>
-                <p className="text-zinc-400 text-xs sm:text-sm">Verifique os detalhes antes de continuar</p>
-              </div>
-
-              <div className="rounded-xl sm:rounded-2xl border-2 border-primary bg-zinc-900 overflow-hidden">
-                {/* Banner */}
-                <div className="bg-gradient-to-br from-primary-hover to-orange-400 p-5 sm:p-8 text-center">
-                  <p className="text-white/80 text-xs font-semibold uppercase tracking-widest mb-2">Somma Running Club</p>
-                  <h3 className="text-lg sm:text-2xl font-bold leading-tight mb-1 text-white">Corra. Celebre. Repita.</h3>
-                  <p className="text-white/80 text-xs sm:text-sm">Uma manhã de movimento, energia e comunidade — com café no final pra recarregar as baterias</p>
+                <div className="overflow-hidden rounded-[18px] bg-gradient-to-br from-[#FF2C03] via-[#FF4A12] to-[#FF8A1F] p-5 sm:p-7">
+                  <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-white/80">Somma Running Club</p>
+                  <h2 className="mt-1.5 text-[24px] font-bold leading-[1.1] tracking-[-0.03em] text-white sm:text-[30px]">{ev.titulo}</h2>
+                  <p className="mt-2 text-[15px] leading-snug text-white/85">
+                    Corra. Celebre. Repita. Uma manhã de movimento, energia e comunidade, com café no final pra recarregar as baterias.
+                  </p>
                 </div>
 
-                <div className="p-4 sm:p-6 space-y-3 sm:space-y-4">
-                  <div className="flex items-start gap-3 text-xs sm:text-sm">
-                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-zinc-400 text-xs">Data</p>
-                      <p className="text-white font-medium text-sm sm:text-base">{eventoSelecionado.dataFormatada}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3 text-xs sm:text-sm">
-                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-zinc-400 text-xs">Horário</p>
-                      <p className="text-white font-medium text-sm sm:text-base">{formatarHorario(eventoSelecionado.horarioInicio)}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3 text-xs sm:text-sm">
-                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-zinc-400 text-xs">Local</p>
-                      {eventoSelecionado.localUrl ? (
-                        <a
-                          href={eventoSelecionado.localUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-white font-medium text-sm sm:text-base hover:text-orange-400 underline underline-offset-2 transition-colors"
-                        >
-                          {eventoSelecionado.local}
-                        </a>
-                      ) : (
-                        <p className="text-white font-medium text-sm sm:text-base">{eventoSelecionado.local}</p>
-                      )}
-                    </div>
-                  </div>
-
-                  {eventoSelecionado.descricao && (
-                    <div className="pt-3 border-t border-zinc-800 mt-3">
-                      <p className="text-zinc-400 text-xs sm:text-sm leading-relaxed">{eventoSelecionado.descricao}</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="mt-6 sm:mt-8">
-                <button
-                  onClick={handleNext}
-                  className="w-full bg-primary hover:bg-orange-400 active:bg-primary-hover text-white font-semibold py-3 sm:py-4 rounded-xl sm:rounded-xl flex items-center justify-center gap-2 transition-all duration-200 hover:shadow-lg hover:shadow-primary/25 text-sm sm:text-base touch-none"
-                >
-                  Confirmar e continuar <ArrowRight className="w-4 h-4 sm:w-4 sm:h-4" />
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* STEP 2: Pelotão */}
-          {step === 2 && eventoSelecionado?.tipo !== 'personalizado' && (
-            <div className="animate-in fade-in slide-in-from-right-4 duration-400">
-              <div className="mb-6 sm:mb-8">
-                <p className="text-xs text-primary font-semibold uppercase tracking-widest mb-1 sm:mb-2">Passo 2</p>
-                <h2 className="text-xl sm:text-2xl font-bold text-white mb-1">Escolha seu pelotão</h2>
-                <p className="text-zinc-400 text-xs sm:text-sm">Selecione a distância que mais combina com você</p>
-              </div>
-
-              <div className="space-y-2.5 sm:space-y-3">
-                {pelotons.map((p) => (
-                  <button
-                    key={p.id}
-                    onClick={() => setFormData(prev => ({ ...prev, peloton: p.id }))}
-                    className={`w-full text-left rounded-lg sm:rounded-2xl border-2 p-4 sm:p-5 transition-all duration-200 ${
-                      formData.peloton === p.id
-                        ? 'border-primary bg-primary/10'
-                        : 'border-zinc-800 bg-zinc-900 hover:border-zinc-600'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between gap-3">
-                      <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
-                        <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl flex items-center justify-center text-base sm:text-xl font-bold transition-all flex-shrink-0 ${
-                          formData.peloton === p.id ? 'bg-primary text-white' : 'bg-zinc-800 text-zinc-300'
-                        }`}>
-                          {p.icon}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-white font-semibold text-sm sm:text-base">{p.label}</p>
-                          <p className="text-zinc-400 text-xs mt-0.5 line-clamp-2">{p.description}</p>
-                        </div>
-                      </div>
-                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${
-                        formData.peloton === p.id ? 'border-primary bg-primary' : 'border-zinc-600'
-                      }`}>
-                        {formData.peloton === p.id && <Check className="w-3 h-3 text-white" />}
-                      </div>
-                    </div>
-                  </button>
-                ))}
-              </div>
-
-              <div className="flex gap-2 sm:gap-3 mt-6 sm:mt-8">
-                <button
-                  onClick={handlePrev}
-                  className="flex-1 border border-zinc-700 hover:border-zinc-500 text-zinc-300 hover:text-white font-semibold py-3 sm:py-4 rounded-lg sm:rounded-xl flex items-center justify-center gap-2 transition-all duration-200 text-xs sm:text-sm touch-none"
-                >
-                  <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Voltar
-                </button>
-                <button
-                  onClick={handleNext}
-                  disabled={!formData.peloton}
-                  className="flex-1 bg-primary hover:bg-orange-400 disabled:bg-zinc-800 disabled:text-zinc-600 text-white font-semibold py-3 sm:py-4 rounded-lg sm:rounded-xl flex items-center justify-center gap-2 transition-all duration-200 hover:shadow-lg hover:shadow-primary/25 disabled:cursor-not-allowed text-xs sm:text-sm touch-none"
-                >
-                  Continuar <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* STEP 3: Dados pessoais */}
-          {((step === 3 && eventoSelecionado?.tipo !== 'personalizado') || (step === 2 && eventoSelecionado?.tipo === 'personalizado')) && (
-            <div className="animate-in fade-in slide-in-from-right-4 duration-400">
-              <div className="mb-6 sm:mb-8">
-                <p className="text-xs text-primary font-semibold uppercase tracking-widest mb-1 sm:mb-2">
-                  Passo {eventoSelecionado?.tipo === 'personalizado' ? 2 : 3}
-                </p>
-                <h2 className="text-xl sm:text-2xl font-bold text-white mb-1">Seus dados</h2>
-                <p className="text-zinc-400 text-xs sm:text-sm">Precisamos de algumas informações para confirmar sua vaga</p>
-              </div>
-
-              <div className="space-y-3 sm:space-y-4">
-                {/* Nome */}
-                <div>
-                  <label className="block text-xs text-zinc-400 font-medium uppercase tracking-wide mb-1.5 sm:mb-2">
-                    Nome completo <span className="text-primary">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.nome}
-                    onChange={e => setFormData(prev => ({ ...prev, nome: e.target.value }))}
-                    placeholder="Ex: João Silva Santos"
-                    autoFocus
-                    className="w-full bg-zinc-900 border-2 border-zinc-700 focus:border-primary text-white placeholder:text-zinc-600 rounded-lg sm:rounded-xl px-3.5 sm:px-5 py-3 sm:py-4 text-sm outline-none transition-all duration-200"
-                  />
-                </div>
-
-                {/* Telefone */}
-                <div>
-                  <label className="block text-xs text-zinc-400 font-medium uppercase tracking-wide mb-1.5 sm:mb-2">
-                    Telefone <span className="text-primary">*</span>
-                  </label>
-                  <input
-                    type="tel"
-                    value={formatPhone(formData.telefone)}
-                    onChange={e => setFormData(prev => ({ ...prev, telefone: e.target.value.replace(/\D/g, '') }))}
-                    placeholder="(61) 99999-9999"
-                    className="w-full bg-zinc-900 border-2 border-zinc-700 focus:border-primary text-white placeholder:text-zinc-600 rounded-lg sm:rounded-xl px-3.5 sm:px-5 py-3 sm:py-4 text-sm outline-none transition-all duration-200"
-                  />
-                </div>
-
-                {/* Sexo */}
-                <div>
-                  <label className="block text-xs text-zinc-400 font-medium uppercase tracking-wide mb-1.5 sm:mb-2">
-                    Sexo <span className="text-primary">*</span>
-                  </label>
-                  <div className="grid grid-cols-2 gap-2 sm:gap-3">
-                    {(['masculino', 'feminino'] as const).map(s => (
-                      <button
-                        key={s}
-                        type="button"
-                        onClick={() => setFormData(prev => ({ ...prev, sexo: s }))}
-                        className={`py-3 sm:py-4 rounded-lg sm:rounded-xl border-2 font-semibold text-xs sm:text-sm capitalize transition-all duration-200 ${
-                          formData.sexo === s
-                            ? 'border-primary bg-primary/10 text-orange-400'
-                            : 'border-zinc-700 bg-zinc-900 text-zinc-400 hover:border-zinc-500'
-                        }`}
+                <Grupo className="mt-5" rodape={ev.descricao}>
+                  <Linha icone={<IconeQuadrado cor="#FF2C03"><Calendar /></IconeQuadrado>}>
+                    <span className="block text-[13px] text-[var(--ck-sec)]">Data</span>
+                    <span className="block text-[16px]">{ev.dataFormatada}</span>
+                  </Linha>
+                  {ev.horarioInicio ? (
+                    <Linha icone={<IconeQuadrado cor="#FF9F0A"><Clock /></IconeQuadrado>}>
+                      <span className="block text-[13px] text-[var(--ck-sec)]">Horário</span>
+                      <span className="block text-[16px]">{formatarHorario(ev.horarioInicio)}</span>
+                    </Linha>
+                  ) : null}
+                  {ev.localUrl ? (
+                    <a href={ev.localUrl} target="_blank" rel="noopener noreferrer" className="block active:bg-white/10">
+                      <Linha
+                        icone={<IconeQuadrado cor="#30D158"><MapPin /></IconeQuadrado>}
+                        direita={<ArrowUpRight className="h-[18px] w-[18px] text-[var(--ck-ter)]" />}
                       >
-                        {s.charAt(0).toUpperCase() + s.slice(1)}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+                        <span className="block text-[13px] text-[var(--ck-sec)]">Local · abrir no mapa</span>
+                        <span className="block text-[16px]">{ev.local}</span>
+                      </Linha>
+                    </a>
+                  ) : (
+                    <Linha icone={<IconeQuadrado cor="#30D158"><MapPin /></IconeQuadrado>}>
+                      <span className="block text-[13px] text-[var(--ck-sec)]">Local</span>
+                      <span className="block text-[16px]">{ev.local}</span>
+                    </Linha>
+                  )}
+                </Grupo>
+              </>
+            )}
 
-                {/* Email */}
-                <div>
-                  <label className="block text-xs text-zinc-400 font-medium uppercase tracking-wide mb-1.5 sm:mb-2">
-                    E-mail <span className="text-primary">*</span>
-                  </label>
-                  <input
-                    type="email"
-                    value={formData.email}
-                    onChange={e => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                    placeholder="seuemail@exemplo.com"
-                    className="w-full bg-zinc-900 border-2 border-zinc-700 focus:border-primary text-white placeholder:text-zinc-600 rounded-lg sm:rounded-xl px-3.5 sm:px-5 py-3 sm:py-4 text-sm outline-none transition-all duration-200"
-                  />
+            {/* PASSO 2: pelotão */}
+            {step === 2 && ev.tipo !== 'personalizado' && (
+              <>
+                <TituloPasso passo={2} total={totalSteps} titulo="Escolha seu pelotão" apoio="A distância que mais combina com você hoje." />
+                <div role="radiogroup" aria-label="Pelotão">
+                  <Grupo rodape="Na dúvida, comece pelo mais leve. Dá para trocar de pelotão no próximo encontro.">
+                    {pelotons.map(p => {
+                      const ativo = formData.peloton === p.id
+                      return (
+                        <Linha
+                          key={p.id}
+                          onClick={() => setFormData(prev => ({ ...prev, peloton: p.id }))}
+                          selecionada={ativo}
+                          className="py-1"
+                          icone={
+                            <span
+                              className="grid h-11 w-11 shrink-0 place-items-center rounded-[12px] text-[15px] font-bold text-black"
+                              style={{ background: p.cor }}
+                              aria-hidden
+                            >
+                              {p.id.replace('km', '')}
+                              <span className="-mt-1 block text-[9px] font-semibold leading-none">km</span>
+                            </span>
+                          }
+                          direita={
+                            <Check
+                              className={`h-5 w-5 shrink-0 text-[var(--ck-tint)] transition-opacity ${ativo ? 'opacity-100' : 'opacity-0'}`}
+                              strokeWidth={3}
+                            />
+                          }
+                        >
+                          <span className="block text-[17px] font-medium">{p.label}</span>
+                          <span className="mt-0.5 block text-[13px] leading-snug text-[var(--ck-sec)]">{p.description}</span>
+                        </Linha>
+                      )
+                    })}
+                  </Grupo>
                 </div>
+              </>
+            )}
 
-                {/* CPF */}
-                <div>
-                  <label className="block text-xs text-zinc-400 font-medium uppercase tracking-wide mb-1.5 sm:mb-2">
-                    CPF <span className="text-primary">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={formatCPF(formData.cpf)}
-                    onChange={e => setFormData(prev => ({ ...prev, cpf: e.target.value.replace(/\D/g, '') }))}
-                    placeholder="000.000.000-00"
-                    className="w-full bg-zinc-900 border-2 border-zinc-700 focus:border-primary text-white placeholder:text-zinc-600 rounded-lg sm:rounded-xl px-3.5 sm:px-5 py-3 sm:py-4 text-sm outline-none transition-all duration-200 font-mono"
-                  />
-                </div>
-              </div>
-
-              {/* Resumo pelotão */}
-              {eventoSelecionado?.tipo !== 'personalizado' && (
-                <div className="mt-5 sm:mt-6 flex items-center gap-3 bg-zinc-900 rounded-lg sm:rounded-xl px-3.5 sm:px-5 py-3 sm:py-4 border border-zinc-800">
-                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-primary flex items-center justify-center text-white text-xs sm:text-sm font-bold flex-shrink-0">
-                    {formData.peloton.replace('km', '')}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs text-zinc-500">Pelotão selecionado</p>
-                    <p className="text-white font-semibold text-xs sm:text-sm">{formData.peloton} — {eventoSelecionado.dataFormatada}</p>
-                  </div>
-                </div>
-              )}
-
-              {/* Erro */}
-              {error && (
-                <div className="mt-4 sm:mt-6 bg-red-900/20 border border-red-500 rounded-lg sm:rounded-xl px-3.5 sm:px-5 py-3 sm:py-4">
-                  <p className="text-red-400 text-xs sm:text-sm">{error}</p>
-                </div>
-              )}
-
-              <div className="flex gap-2 sm:gap-3 mt-6 sm:mt-8">
-                <button
-                  onClick={handlePrev}
-                  disabled={isLoading}
-                  className="flex-1 border border-zinc-700 hover:border-zinc-500 text-zinc-300 hover:text-white font-semibold py-3 sm:py-4 rounded-lg sm:rounded-xl flex items-center justify-center gap-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-xs sm:text-sm touch-none"
+            {/* PASSO 3 (ou 2, nos eventos personalizados): dados */}
+            {step === passoDados && (
+              <>
+                <TituloPasso passo={passoDados} total={totalSteps} titulo="Seus dados" apoio="Para confirmar sua vaga. Leva menos de um minuto." />
+                <form
+                  id="ck-form"
+                  noValidate
+                  onSubmit={e => {
+                    e.preventDefault()
+                    handleSubmit()
+                  }}
                 >
-                  <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Voltar
-                </button>
-                <button
-                  onClick={handleSubmit}
-                  disabled={!canAdvance() || isLoading}
-                  className="flex-1 bg-primary hover:bg-orange-400 disabled:bg-zinc-800 disabled:text-zinc-600 text-white font-semibold py-3 sm:py-4 rounded-lg sm:rounded-xl flex items-center justify-center gap-2 transition-all duration-200 hover:shadow-lg hover:shadow-primary/25 disabled:cursor-not-allowed text-xs sm:text-sm touch-none"
-                >
-                  {isLoading ? 'Enviando...' : 'Confirmar'} {!isLoading && <Check className="w-4 h-4 sm:w-4 sm:h-4" />}
-                </button>
-              </div>
-            </div>
+                  <Grupo
+                    rodape={
+                      avisos.length > 0 ? (
+                        <span className="text-[#FF453A]" role="alert">{avisos[0]}</span>
+                      ) : (
+                        'Usamos o CPF para identificar sua presença no evento.'
+                      )
+                    }
+                  >
+                    <Campo
+                      rotulo="Nome"
+                      erro={!!aviso('nome')}
+                      input={{
+                        value: formData.nome,
+                        onChange: e => setFormData(prev => ({ ...prev, nome: e.target.value })),
+                        onBlur: () => setTocados(t => ({ ...t, nome: true })),
+                        placeholder: 'Nome completo',
+                        autoComplete: 'name',
+                        autoCapitalize: 'words',
+                        enterKeyHint: 'next',
+                        name: 'name',
+                      }}
+                    />
+                    <Campo
+                      rotulo="Telefone"
+                      erro={!!aviso('telefone')}
+                      input={{
+                        type: 'tel',
+                        inputMode: 'tel',
+                        value: formatPhone(formData.telefone),
+                        onChange: e => setFormData(prev => ({ ...prev, telefone: e.target.value.replace(/\D/g, '').slice(0, 11) })),
+                        onBlur: () => setTocados(t => ({ ...t, telefone: true })),
+                        placeholder: '(61) 99999-9999',
+                        autoComplete: 'tel-national',
+                        enterKeyHint: 'next',
+                        name: 'tel',
+                      }}
+                    />
+                    <Campo
+                      rotulo="E-mail"
+                      erro={!!aviso('email')}
+                      input={{
+                        type: 'email',
+                        inputMode: 'email',
+                        value: formData.email,
+                        onChange: e => setFormData(prev => ({ ...prev, email: e.target.value })),
+                        onBlur: () => setTocados(t => ({ ...t, email: true })),
+                        placeholder: 'voce@email.com',
+                        autoComplete: 'email',
+                        autoCapitalize: 'none',
+                        autoCorrect: 'off',
+                        spellCheck: false,
+                        enterKeyHint: 'next',
+                        name: 'email',
+                      }}
+                    />
+                    <Campo
+                      rotulo="CPF"
+                      erro={!!aviso('cpf')}
+                      input={{
+                        inputMode: 'numeric',
+                        value: formatCPF(formData.cpf),
+                        onChange: e => setFormData(prev => ({ ...prev, cpf: e.target.value.replace(/\D/g, '').slice(0, 11) })),
+                        onBlur: () => setTocados(t => ({ ...t, cpf: true })),
+                        placeholder: '000.000.000-00',
+                        autoComplete: 'off',
+                        enterKeyHint: 'done',
+                        name: 'cpf',
+                        className: 'tabular-nums',
+                      }}
+                    />
+                  </Grupo>
+
+                  <Grupo
+                    className="mt-6"
+                    titulo="Sexo"
+                    rodape={
+                      tentouEnviar && !formData.sexo ? (
+                        <span className="text-[#FF453A]" role="alert">Escolha uma opção.</span>
+                      ) : undefined
+                    }
+                  >
+                    <div className="p-2">
+                      <Segmentado
+                        rotulo="Sexo"
+                        valor={formData.sexo}
+                        onChange={s => setFormData(prev => ({ ...prev, sexo: s }))}
+                        opcoes={[
+                          { valor: 'masculino', rotulo: 'Masculino' },
+                          { valor: 'feminino', rotulo: 'Feminino' },
+                        ]}
+                      />
+                    </div>
+                  </Grupo>
+
+                  {ev.tipo !== 'personalizado' && pelotaoEscolhido ? (
+                    <Grupo className="mt-6" titulo="Resumo">
+                      <Linha
+                        icone={<IconeQuadrado cor={pelotaoEscolhido.cor}><Users className="text-black" /></IconeQuadrado>}
+                        direita={
+                          <button
+                            type="button"
+                            onClick={() => irPara(2)}
+                            className="ck-toque shrink-0 text-[15px] text-[var(--ck-tint)]"
+                          >
+                            Alterar
+                          </button>
+                        }
+                      >
+                        <span className="block text-[16px]">
+                          {pelotaoEscolhido.id.replace('km', ' km')} · {pelotaoEscolhido.label}
+                        </span>
+                        <span className="block truncate text-[13px] text-[var(--ck-sec)]">{ev.dataFormatada}</span>
+                      </Linha>
+                    </Grupo>
+                  ) : null}
+
+                  {error ? (
+                    <div role="alert" className="mt-6 rounded-[12px] bg-[#FF453A]/15 px-4 py-3 text-[15px] leading-snug text-[#FF6961]">
+                      {error}
+                    </div>
+                  ) : null}
+                  {/* Enter no teclado envia */}
+                  <button type="submit" hidden aria-hidden tabIndex={-1} />
+                </form>
+              </>
+            )}
+          </motion.div>
+        </AnimatePresence>
+        <div className="ck-espaco-rodape" />
+      </div>
+
+      <div className="ck-rodape">
+        <div className="mx-auto max-w-2xl">
+          {step === passoDados ? (
+            <button
+              type="submit"
+              form="ck-form"
+              disabled={isLoading}
+              aria-disabled={!dadosOk}
+              className={`ck-toque flex h-[50px] w-full items-center justify-center gap-2 rounded-[14px] text-[17px] font-semibold transition-colors ${
+                dadosOk ? 'bg-[var(--ck-tint)] text-white' : 'bg-white/10 text-white/40'
+              }`}
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="h-5 w-5 animate-spin" /> Enviando
+                </>
+              ) : (
+                <>
+                  Confirmar check-in <Check className="h-5 w-5" strokeWidth={2.6} />
+                </>
+              )}
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={handleNext}
+              disabled={!canAdvance()}
+              className="ck-toque flex h-[50px] w-full items-center justify-center gap-1 rounded-[14px] bg-[var(--ck-tint)] text-[17px] font-semibold text-white transition-colors disabled:bg-white/10 disabled:text-white/40"
+            >
+              {step === 1 ? 'Confirmar e continuar' : 'Continuar'} <ChevronRight className="h-5 w-5" strokeWidth={2.6} />
+            </button>
           )}
-
         </div>
       </div>
     </main>
+  )
+}
+
+function TituloPasso({ passo, total, titulo, apoio }: { passo: number; total: number; titulo: string; apoio: string }) {
+  return (
+    <div className="mb-5 px-1 sm:mb-6">
+      <p className="text-[13px] font-semibold uppercase tracking-[0.06em] text-[var(--ck-tint)]">
+        Passo {passo} de {total}
+      </p>
+      <h1 className="mt-1 text-[28px] font-bold leading-tight tracking-[-0.03em] sm:text-[34px]">{titulo}</h1>
+      <p className="mt-1 text-[15px] text-[var(--ck-sec)]">{apoio}</p>
+    </div>
+  )
+}
+
+function Campo({
+  rotulo,
+  erro,
+  input,
+}: {
+  rotulo: string
+  erro: boolean
+  input: React.InputHTMLAttributes<HTMLInputElement>
+}) {
+  return (
+    <Linha rotulo>
+      <span className="flex items-center gap-3">
+        <span className={`w-[76px] shrink-0 text-[17px] ${erro ? 'text-[#FF453A]' : ''}`}>{rotulo}</span>
+        <input
+          {...input}
+          aria-invalid={erro || undefined}
+          className={`h-7 min-w-0 flex-1 bg-transparent text-white outline-none ${input.className ?? ''}`}
+        />
+      </span>
+    </Linha>
+  )
+}
+
+/* ------------------------------ lista ------------------------------ */
+
+function Lista({
+  carregando,
+  proximos,
+  passados,
+  hoje,
+  datasReais,
+  onAbrir,
+}: {
+  carregando: boolean
+  proximos: Evento[]
+  passados: Evento[]
+  hoje: string
+  datasReais: Set<string>
+  onAbrir: (e: Evento) => void
+}) {
+  // Título grande que, ao sair da tela, passa para a barra (como no iOS).
+  const tituloRef = useRef<HTMLHeadingElement>(null)
+  const [compacto, setCompacto] = useState(false)
+  useEffect(() => {
+    const el = tituloRef.current
+    if (!el) return
+    const obs = new IntersectionObserver(([e]) => setCompacto(!e.isIntersecting), {
+      rootMargin: '-56px 0px 0px 0px',
+    })
+    obs.observe(el)
+    return () => obs.disconnect()
+  }, [])
+
+  const [verHistorico, setVerHistorico] = useState(false)
+  const historicoVisivel = verHistorico ? passados : passados.slice(0, 3)
+
+  return (
+    <main className="flex min-h-[100dvh] flex-col">
+      <BarraNav voltar={{ rotulo: 'Site', href: '/' }} titulo="Check-in" tituloVisivel={compacto} linha={compacto} />
+
+      <div className="mx-auto w-full max-w-2xl flex-1 px-4 pb-[calc(40px+var(--ck-base))] sm:px-6">
+        <div className="pb-2 pt-1 sm:pt-6">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/Logo_Nova_Somma_Branca_Laranja.svg" alt="SOMMA Club" className="mb-3 h-6 w-auto sm:h-7" />
+          <h1 ref={tituloRef} className="text-[34px] font-bold leading-[1.1] tracking-[-0.035em] sm:text-[44px]">
+            Check-in
+          </h1>
+          <p className="mt-1 text-[15px] text-[var(--ck-sec)] sm:text-[17px]">
+            Confirme sua presença nos encontros do SOMMA.
+          </p>
+        </div>
+
+        {/* Abertos agora */}
+        <section aria-labelledby="ck-abertos" className="mt-5">
+          <h2 id="ck-abertos" className="mb-3 px-1 text-[22px] font-bold tracking-[-0.03em] sm:text-[26px]">
+            {proximos.length > 1 ? 'Próximos encontros' : 'Próximo encontro'}
+          </h2>
+          {carregando ? (
+            <div className="ck-esqueleto h-[248px] rounded-[22px]" aria-label="Carregando eventos" role="status" />
+          ) : proximos.length > 0 ? (
+            <div className="flex flex-col gap-3">
+              {proximos.map((e, i) => (
+                <CartaoEvento key={e.id} evento={e} onAbrir={onAbrir} indice={i} />
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-[22px] bg-[var(--ck-cel)] px-5 py-8 text-center">
+              <Calendar className="mx-auto h-8 w-8 text-[var(--ck-ter)]" />
+              <p className="mt-3 text-[17px] font-semibold">Nenhum check-in aberto agora</p>
+              <p className="mt-1 text-[15px] text-[var(--ck-sec)]">Dá uma olhada no que vem por aí.</p>
+            </div>
+          )}
+        </section>
+
+        {carregando ? (
+          <div className="mt-9 space-y-2.5" aria-hidden>
+            <div className="ck-esqueleto h-6 w-52 rounded-md" />
+            {[0, 1, 2, 3].map(i => (
+              <div key={i} className="ck-esqueleto h-[96px] rounded-[18px]" />
+            ))}
+          </div>
+        ) : (
+          <Agenda hoje={hoje} datasReais={datasReais} />
+        )}
+
+        {!carregando && passados.length > 0 ? (
+          <Grupo
+            className="mt-10"
+            titulo="Já aconteceram"
+            rodape={
+              passados.length > 3 ? (
+                <button type="button" onClick={() => setVerHistorico(v => !v)} className="text-[var(--ck-tint)]">
+                  {verHistorico ? 'Mostrar menos' : `Ver todos (${passados.length})`}
+                </button>
+              ) : undefined
+            }
+          >
+            {historicoVisivel.map(e => {
+              const [, m, d] = e.dataEvento.split('-').map(Number)
+              return (
+                <Linha
+                  key={e.id}
+                  icone={
+                    <span className="grid h-[38px] w-[38px] shrink-0 place-items-center rounded-[9px] bg-[var(--ck-cel-2)] text-center leading-none" aria-hidden>
+                      <span>
+                        <span className="block text-[9px] font-semibold uppercase text-[var(--ck-sec)]">{MESES_CURTOS[m - 1]}</span>
+                        <span className="block text-[16px] font-semibold">{String(d).padStart(2, '0')}</span>
+                      </span>
+                    </span>
+                  }
+                  direita={<span className="shrink-0 text-[13px] text-[var(--ck-ter)]">Encerrado</span>}
+                >
+                  <span className="block truncate text-[16px]">{e.titulo}</span>
+                  <span className="block truncate text-[13px] text-[var(--ck-sec)]">{e.local}</span>
+                </Linha>
+              )
+            })}
+          </Grupo>
+        ) : null}
+      </div>
+    </main>
+  )
+}
+
+/** Card de evento real (vem da gestão), no formato de widget. */
+function CartaoEvento({ evento, onAbrir, indice }: { evento: Evento; onAbrir: (e: Evento) => void; indice: number }) {
+  // Evento com LP própria não passa pelo wizard: o destino é a LP, e por isso
+  // o status de check-in (inclusive "bloqueado") não vale para ele: quem
+  // controla inscrição ali é a própria página.
+  const lp = lpSegura(evento.lpUrl)
+  const travado = !lp && evento.bloqueado
+  const [, m, d] = evento.dataEvento.split('-').map(Number)
+
+  const acao = useCallback(() => {
+    if (lp) window.location.href = lp
+    else if (!evento.bloqueado) onAbrir(evento)
+  }, [lp, evento, onAbrir])
+
+  return (
+    <article
+      className={`ck-sobe overflow-hidden rounded-[22px] bg-[var(--ck-cel)] ${travado ? '' : 'cursor-pointer'}`}
+      style={{ animationDelay: `${indice * 60}ms` }}
+      onClick={acao}
+    >
+      <div
+        className={`relative p-4 sm:p-5 ${
+          travado ? 'bg-[var(--ck-cel-2)]' : 'bg-gradient-to-br from-[#FF2C03] via-[#FF4A12] to-[#FF8A1F]'
+        }`}
+      >
+        <span
+          className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[12px] font-semibold ${
+            travado ? 'bg-white/10 text-[var(--ck-sec)]' : 'bg-black/20 text-white'
+          }`}
+        >
+          {travado ? (
+            <>
+              <Lock className="h-3 w-3" /> Check-in em breve
+            </>
+          ) : lp ? (
+            <>Página do evento</>
+          ) : (
+            <>
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-70" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-white" />
+              </span>
+              Check-in aberto
+            </>
+          )}
+        </span>
+        <div className="mt-3 flex items-center gap-3.5">
+          <div className="grid h-[60px] w-[54px] shrink-0 place-items-center rounded-[12px] bg-white text-center leading-none shadow-[0_6px_16px_rgba(0,0,0,0.18)]" aria-hidden>
+            <span>
+              <span className="block text-[11px] font-bold uppercase tracking-[0.04em] text-[#FF2C03]">{MESES_CURTOS[m - 1]}</span>
+              <span className="mt-0.5 block text-[26px] font-bold tracking-[-0.04em] text-black">{String(d).padStart(2, '0')}</span>
+            </span>
+          </div>
+          <h3 className={`text-[20px] font-bold leading-[1.15] tracking-[-0.03em] sm:text-[24px] ${travado ? 'text-white/80' : 'text-white'}`}>
+            {evento.titulo}
+          </h3>
+        </div>
+      </div>
+
+      <div className="px-4 pt-1 sm:px-5">
+        {evento.descricao ? (
+          <p className="pb-1 pt-3 text-[15px] leading-snug text-[var(--ck-sec)]">{evento.descricao}</p>
+        ) : null}
+        <ul className="divide-y divide-[var(--ck-sep)] text-[15px]">
+          <li className="flex items-center gap-2.5 py-2.5">
+            <Calendar className="h-4 w-4 shrink-0 text-[var(--ck-sec)]" /> {evento.dataFormatada}
+          </li>
+          {evento.horarioInicio ? (
+            <li className="flex items-center gap-2.5 py-2.5">
+              <Clock className="h-4 w-4 shrink-0 text-[var(--ck-sec)]" /> {formatarHorario(evento.horarioInicio)}
+            </li>
+          ) : null}
+          <li className="flex items-center gap-2.5 py-2.5">
+            <MapPin className="h-4 w-4 shrink-0 text-[var(--ck-sec)]" />
+            {evento.localUrl ? (
+              <a
+                href={evento.localUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={e => e.stopPropagation()}
+                className="min-w-0 truncate underline decoration-white/30 underline-offset-2"
+              >
+                {evento.local}
+              </a>
+            ) : (
+              <span className="min-w-0 truncate">{evento.local}</span>
+            )}
+          </li>
+        </ul>
+      </div>
+
+      <div className="p-4 pt-2 sm:p-5 sm:pt-2">
+        {travado ? (
+          <button
+            type="button"
+            disabled
+            className="flex h-[50px] w-full items-center justify-center gap-2 rounded-[14px] bg-white/10 text-[17px] font-semibold text-white/40"
+          >
+            <Lock className="h-4 w-4" /> Check-in indisponível no momento
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={e => {
+              e.stopPropagation()
+              acao()
+            }}
+            className="ck-toque flex h-[50px] w-full items-center justify-center gap-1 rounded-[14px] bg-white text-[17px] font-semibold text-black outline-none focus-visible:ring-2 focus-visible:ring-[var(--ck-tint)]"
+          >
+            {lp ? 'Ver o evento' : 'Fazer check-in'} <ChevronRight className="h-5 w-5" strokeWidth={2.6} />
+          </button>
+        )}
+      </div>
+    </article>
   )
 }
