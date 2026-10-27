@@ -17,5 +17,11 @@ export const viewport: Viewport = {
 }
 
 export default function Layout({ children }: { children: React.ReactNode }) {
-  return <div className="insider-app">{children}</div>
+  return (
+    <div className="insider-app">
+      {/* O body do site é branco: sem isso, o "quique" do scroll no iOS mostra branco. */}
+      <style>{"html,body{background:#000}"}</style>
+      {children}
+    </div>
+  )
 }

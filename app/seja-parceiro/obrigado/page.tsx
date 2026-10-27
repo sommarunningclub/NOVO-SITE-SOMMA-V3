@@ -11,6 +11,8 @@ export const metadata: Metadata = {
 export default function SejaParceiroObrigadoPage() {
   return (
     <main className="flex min-h-screen items-center justify-center bg-ink p-6 text-white">
+      {/* O body do site é branco: sem isso, o "quique" do scroll no iOS mostra branco. */}
+      <style>{"html,body{background:#0a0a0a}"}</style>
       <div className="w-full max-w-md text-center">
         {/* Ícone */}
         <div className="mb-8 flex justify-center">

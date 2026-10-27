@@ -37,6 +37,8 @@ export const metadata: Metadata = {
 export default function Page() {
   return (
     <div className={`${display.variable} ${body.variable}`}>
+      {/* O body do site é branco: sem isso, o "quique" do scroll no iOS mostra branco. */}
+      <style>{"html,body{background:#000}"}</style>
       <ShakeoutClient />
     </div>
   )

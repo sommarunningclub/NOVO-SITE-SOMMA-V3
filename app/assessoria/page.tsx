@@ -40,6 +40,8 @@ const PASSOS = [
 export default function AssessoriaPage() {
   return (
     <main className={`${altone.variable} min-h-screen overflow-x-hidden bg-black text-white`}>
+      {/* O body do site é branco: sem isso, o "quique" do scroll no iOS mostra branco. */}
+      <style>{"html,body{background:#000}"}</style>
       <RegistrarVisita pagina="assessoria" />
 
       {/* Abertura */}

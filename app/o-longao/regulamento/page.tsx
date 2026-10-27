@@ -192,6 +192,8 @@ const SECOES: readonly Secao[] = [
 export default function RegulamentoPage() {
   return (
     <main>
+      {/* A página termina no papel claro: o "quique" do fim do scroll também. */}
+      <style>{"html,body{background:#f2f0ec}"}</style>
       <header className="border-b border-[var(--line)]">
         <div className="lgo-wrap flex items-center justify-between gap-4">
           <Link

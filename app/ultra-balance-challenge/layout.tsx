@@ -30,5 +30,11 @@ export const viewport: Viewport = {
 };
 
 export default function UltraBalanceChallengeLayout({ children }: { children: React.ReactNode }) {
-  return <div className={`${title.variable} ${body.variable} font-copy`}>{children}</div>;
+  return (
+    <div className={`${title.variable} ${body.variable} font-copy`}>
+      {/* O body do site é branco: sem isso, o "quique" do scroll no iOS mostra branco. */}
+      <style>{"html,body{background:#111C4E}"}</style>
+      {children}
+    </div>
+  );
 }
