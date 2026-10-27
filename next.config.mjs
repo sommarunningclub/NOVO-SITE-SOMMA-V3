@@ -9,6 +9,12 @@ const nextConfig = {
   // permanente fica gravado no navegador do cliente e não se desfaz.
   async redirects() {
     return [
+      // A LP do Love Run nasceu em /dexcomplica-love-run e foi publicada em
+      // /dexcomplica. Só as páginas redirecionam: as imagens continuam em
+      // /dexcomplica-love-run/... (public), então nada de curinga aqui.
+      { source: "/dexcomplica-love-run", destination: "/dexcomplica", permanent: false },
+      { source: "/dexcomplica-love-run/ingresso/:token", destination: "/dexcomplica/ingresso/:token", permanent: false },
+      { source: "/dexcomplica-love-run/agenda.ics", destination: "/dexcomplica/agenda.ics", permanent: false },
       {
         source: "/checkout/gabriel-brito",
         destination: "/gabriel-brito",
