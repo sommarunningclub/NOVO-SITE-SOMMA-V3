@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
 import { camposComErro, inscricaoSchema } from "@/lib/dexcomplica-love-run/schema";
-import { estadoDaInscricao, pelotoesValidos } from "@/lib/dexcomplica-love-run/estado";
+import { estadoDaInscricao, liberado, pelotoesValidos } from "@/lib/dexcomplica-love-run/estado";
 import { contarInscritos, getEvento, getParticipacao, inscrever, type Participante } from "@/lib/dexcomplica-love-run/db";
 import { caminhoIngresso } from "@/lib/dexcomplica-love-run/ticket";
+import { MODO_TESTE } from "@/lib/dexcomplica-love-run/event.config";
 import { enviarIngresso } from "@/lib/emails/dexcomplica-love-run-ingresso";
 
 export const dynamic = "force-dynamic";
@@ -70,11 +71,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: MENSAGEM_ESTADO.em_breve, estado: "em_breve" }, { status: 409 });
     }
 
+    // Evento ainda não liberado: ninguém entra, nem quem "já estaria" dentro.
+    if (!liberado(evento) && !MODO_TESTE) {
+      return NextResponse.json({ error: MENSAGEM_ESTADO.em_breve, estado: "em_breve" }, { status: 409 });
+    }
+
     // Antes do estado: quem já está dentro recupera o ingresso mesmo com o evento esgotado.
     const existente = await getParticipacao(evento.id, dados.cpf);
     if (existente) return responderJaInscrito(existente, dados.email, dados.cpf);
 
-    const { estado, pendencias } = estadoDaInscricao(evento, await contarInscritos(evento.id));
+    const { estado, pendencias } = estadoDaInscricao(evento, await contarInscritos(evento.id), { teste: MODO_TESTE });
     if (estado !== "abertas") {
       if (pendencias.length) console.warn("[love-run] Inscrição recusada, pendente:", pendencias.join(", "));
       return NextResponse.json({ error: MENSAGEM_ESTADO[estado], estado }, { status: 409 });

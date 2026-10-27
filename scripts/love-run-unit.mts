@@ -7,7 +7,7 @@
  * (nunca sem pelotão oficial e teto de vagas), o que conta como CPF/nome/
  * e-mail válidos, e o formato do código do ingresso que o balcão digita.
  */
-import { estadoDaInscricao, pelotoesValidos, rotuloPelotao } from "../lib/dexcomplica-love-run/estado";
+import { estadoDaInscricao, liberado, pelotoesValidos, rotuloPelotao } from "../lib/dexcomplica-love-run/estado";
 import { inscricaoSchema, mascararCpf, recuperarSchema } from "../lib/dexcomplica-love-run/schema";
 
 let ok = 0, bad = 0;
@@ -28,6 +28,9 @@ t("encerrado pela gestão → encerradas", estadoDaInscricao({ ...aberto, checki
 t("evento_encerrado → encerradas", estadoDaInscricao({ ...aberto, evento_encerrado: true }, 0).estado === "encerradas");
 t("bloqueado antes de receber gente → em breve", estadoDaInscricao({ ...aberto, checkin_status: "bloqueado" }, 0).estado === "em_breve");
 t("bloqueado depois de receber gente → encerradas", estadoDaInscricao({ ...aberto, checkin_status: "bloqueado" }, 5).estado === "encerradas");
+t("oculto (não liberado) → em breve, mesmo aberto", estadoDaInscricao({ ...aberto, oculto_no_checkin_publico: true }, 0).estado === "em_breve");
+t("oculto em evento de teste → segue o estado normal", estadoDaInscricao({ ...aberto, oculto_no_checkin_publico: true }, 0, { teste: true }).estado === "abertas");
+t("liberado só sem ocultar", liberado(aberto) && !liberado({ ...aberto, oculto_no_checkin_publico: true }) && !liberado(null));
 t("pendências listadas", estadoDaInscricao({ ...aberto, pelotoes: [], capacidade: null }, 0).pendencias.length === 2);
 
 console.log("Pelotões");
