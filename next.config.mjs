@@ -20,6 +20,20 @@ const nextConfig = {
         destination: "/gabriel-brito",
         permanent: false,
       },
+      // Eventos que já passaram, fora do ar desde 27/10/2026 a pedido do Alex.
+      // O código das páginas continua no repo: para religar uma, basta apagar
+      // a linha dela. Só as páginas públicas saem; os links pessoais (ticket do
+      // Desafio, que o admin abre, e obrigado/credencial do SOMMA DAY, que
+      // foram por e-mail) continuam funcionando.
+      ...[
+        "/desafios-das-esteiras-evolve",
+        "/desafios-das-esteiras-evolve/inscricao",
+        "/desafios-das-esteiras-evolve/meu-cadastro",
+        "/edicao-especial-set-2026",
+        "/shakeout-centauro-somma-rj",
+        "/wings-das-atleticas-2026",
+        "/wings/ranking",
+      ].map((source) => ({ source, destination: "/", permanent: false })),
     ];
   },
   // Apps próprios na Vercel, cada um com basePath. Aqui o site só encaminha
