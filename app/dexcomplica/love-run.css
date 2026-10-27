@@ -847,3 +847,24 @@ html:has(.lr-root) { scroll-behavior: smooth; scroll-padding-top: 76px; }
   .lr-foto img, .lr-lista-exp li, .lr-lista-exp__n, .lr-local__cartao { transition: none; }
   .lr-foto:hover img, .lr-lista-exp li:hover .lr-lista-exp__n, .lr-local__cartao:hover { transform: none; }
 }
+
+/* ═══ Senha (antes da liberação) ═════════════════════════════════════════ */
+.lr-senha {
+  min-height: 100svh; display: grid; place-items: center; color: var(--branco);
+  padding: calc(32px + env(safe-area-inset-top)) var(--gutter) calc(32px + env(safe-area-inset-bottom));
+  background: radial-gradient(90% 60% at 50% 30%, rgba(231, 58, 40, 0.35), transparent 65%), var(--tinta);
+}
+.lr-senha__caixa { width: 100%; max-width: 400px; display: grid; justify-items: center; gap: 14px; text-align: center; }
+.lr-senha__coracao { width: 132px; height: auto; transform: rotate(-8deg); filter: drop-shadow(0 16px 26px rgba(0, 0, 0, 0.5)); }
+.lr-senha__logo { width: min(80vw, 320px); height: auto; }
+.lr-senha__titulo { margin: 4px 0 0; font-family: var(--f-display); font-weight: 400; text-transform: uppercase; font-size: 54px; line-height: 0.95; }
+.lr-senha__titulo span { display: block; color: var(--vermelho); font-size: 0.6em; }
+.lr-senha__texto { margin: 0; color: #ddd7cf; max-width: 32ch; }
+.lr-senha__form { display: flex; gap: 10px; width: 100%; margin-top: 6px; }
+.lr-root .lr-senha__form input {
+  flex: 1; min-width: 0; min-height: 54px; padding: 0 18px; border-radius: 999px; border: 2px solid transparent;
+  background: var(--branco); color: var(--tinta); font: inherit; font-size: 18px; letter-spacing: 0.2em; text-align: center;
+}
+.lr-root .lr-senha__form input:focus-visible { outline: none; border-color: var(--amarelo); box-shadow: 0 0 0 4px rgba(242, 194, 48, 0.3); }
+.lr-root .lr-senha__form input[aria-invalid="true"] { border-color: var(--rosa); }
+.lr-senha__erro { margin: 0; color: var(--rosa); font-weight: 700; }
