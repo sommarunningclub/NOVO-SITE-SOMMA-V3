@@ -196,7 +196,7 @@ export function Dashboard({ cadastros, erro }: { cadastros: Cadastro[]; erro?: s
   });
   const maiorProva = Math.max(1, ...porProva.map((p) => p.total));
   // Quilômetros que a assessoria vai correr no Rio, somando todo mundo.
-  const KM: Record<ProvaRio["id"], number> = { "5k": 5, "10k": 10, "21k": 21.1, "42k": 42.2, desafio_63k: 63.3 };
+  const KM: Record<ProvaRio["id"], number> = { "5k": 5, "10k": 10, "21k": 21.1, "42k": 42.2 };
   const kmTotal = Math.round(cadastros.reduce((s, c) => s + KM[c.prova], 0));
 
   const filtrados = useMemo(() => {
