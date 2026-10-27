@@ -17,7 +17,6 @@ import { movimentoReduzido, useGsap } from "@/lib/dexcomplica-love-run/motion";
 import { lembrarIngresso } from "../../_components/meuIngresso";
 import { Equalizador } from "../../_components/Graficos";
 import AdicionarAgenda from "../../_components/AdicionarAgenda";
-import PlayerSom from "../../_components/PlayerSom";
 import Interacoes from "../../_components/Interacoes";
 import { desenharIngresso } from "./imagem";
 
@@ -118,7 +117,6 @@ export default function Ingresso({ nome, pelotao, codigo, qr, presenteEm, novo, 
 
   return (
     <main ref={ref} className="lr-ing">
-      <PlayerSom className="lr-som--flutuante" />
       <Interacoes />
       <div className="lr-ing__topo">
         <p className="lr-eyebrow lr-eyebrow--claro">{novo ? "Inscrição confirmada" : EVENTO_NOME}</p>

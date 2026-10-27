@@ -4,7 +4,6 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import { rastrear } from "@/lib/dexcomplica-love-run/analytics";
 import { useMeuIngresso } from "./meuIngresso";
-import PlayerSom from "./PlayerSom";
 
 const LINKS = [
   ["#corre", "O corre"],
@@ -49,7 +48,6 @@ export default function Cabecalho() {
         </nav>
 
         <div className="lr-cab__acoes">
-          <PlayerSom />
           {ingresso ? (
             <a href={ingresso} className="lr-cab__ingresso">Meu ingresso</a>
           ) : null}

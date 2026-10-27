@@ -17,8 +17,8 @@ import { movimentoReduzido } from "@/lib/dexcomplica-love-run/motion";
  * - `[data-tag]`      (etiquetas do after): balança e troca de cor.
  * - `.lr-letreiro`    pausa no hover/toque.
  *
- * Com movimento reduzido nada disso roda (o que é útil, como a mochila e o
- * som, vive nos próprios componentes e continua funcionando).
+ * Com movimento reduzido nada disso roda (o que é útil, como a mochila, vive
+ * no próprio componente e continua funcionando).
  */
 const CORES = ["#E73A28", "#FF85A1", "#F2C230", "#FFFFFF"];
 
