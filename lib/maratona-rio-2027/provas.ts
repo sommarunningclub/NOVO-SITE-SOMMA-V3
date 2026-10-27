@@ -4,9 +4,13 @@
  *
  * O `id` é o que vai para o banco (`maratona_rio_2027_intencoes.prova`, com
  * CHECK). Distância nova exige entrada aqui e uma migration trocando o CHECK.
+ *
+ * O Desafio Cidade Maravilhosa (`desafio_63k`, 21 km no sábado + 42 km no
+ * domingo) saiu do formulário em 27/10/2026, sem ninguém inscrito nele. O
+ * CHECK do banco ainda aceita o valor; para religar, basta voltar a entrada.
  */
 export interface ProvaRio {
-  id: "5k" | "10k" | "21k" | "42k" | "desafio_63k";
+  id: "5k" | "10k" | "21k" | "42k";
   nome: string;
   distancia: string;
   detalhe?: string;
@@ -17,12 +21,6 @@ export const PROVAS_RIO: ProvaRio[] = [
   { id: "10k", nome: "10 km", distancia: "10 km" },
   { id: "21k", nome: "Meia Maratona", distancia: "21 km" },
   { id: "42k", nome: "Maratona", distancia: "42 km" },
-  {
-    id: "desafio_63k",
-    nome: "Desafio Cidade Maravilhosa",
-    distancia: "63 km",
-    detalhe: "21 km no sábado + 42 km no domingo",
-  },
 ];
 
 export function provaValida(id: unknown): id is ProvaRio["id"] {
