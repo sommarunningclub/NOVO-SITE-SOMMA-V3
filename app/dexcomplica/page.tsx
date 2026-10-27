@@ -1,5 +1,4 @@
 import Image from "next/image";
-import { redirect } from "next/navigation";
 import {
   AFTER,
   DATA_CURTA,
@@ -25,6 +24,8 @@ import VideoFesta from "./_components/VideoFesta";
 import MapaLocais from "./_components/MapaLocais";
 import Inscricao from "./_components/Inscricao";
 import BarraCta from "./_components/BarraCta";
+import TelaSenha from "./_components/TelaSenha";
+import { acessoLoveRun } from "@/lib/dexcomplica-love-run/acesso";
 import Rastreio from "./_components/Rastreio";
 import Marcas from "./_components/Marcas";
 import { Pulso } from "./_components/Graficos";
@@ -33,15 +34,20 @@ import Interacoes from "./_components/Interacoes";
 import Mochila from "./_components/Mochila";
 import Letras from "./_components/Letras";
 
-/** Estado da inscrição fresco o bastante; a rota de inscrição confere de novo no banco. */
-export const revalidate = 30;
+/**
+ * Dinâmica: antes da liberação a página depende do cookie da senha. A rota de
+ * inscrição confere o estado de novo no banco de qualquer forma.
+ */
+export const dynamic = "force-dynamic";
 
 const F = "/dexcomplica-love-run/fotos";
 
-export default async function LoveRunPage() {
+export default async function LoveRunPage({ searchParams }: { searchParams: Promise<{ erro?: string }> }) {
   const evento = await getEvento();
-  // Até o Alex liberar (evento oculto no /check-in), a página não abre para ninguém.
-  if (!liberado(evento) && !MODO_TESTE) redirect("/check-in");
+  // Até o Alex liberar (evento oculto no /check-in), só entra quem tem a senha.
+  if (!liberado(evento) && !MODO_TESTE && !(await acessoLoveRun.temAcesso())) {
+    return <TelaSenha erro={(await searchParams).erro} />;
+  }
   const inscritos = evento ? await contarInscritos(evento.id) : 0;
   const { estado } = estadoDaInscricao(evento, inscritos, { teste: MODO_TESTE });
   const pelotoes = pelotoesValidos(evento?.pelotoes);
