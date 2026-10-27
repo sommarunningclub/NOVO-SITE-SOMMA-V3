@@ -20,7 +20,7 @@ export async function GET() {
     // Próximos eventos (futuros ou abertos/bloqueados, excluindo encerrados e ocultos)
     const { data: upcoming, error: upErr } = await supabase
       .from('eventos')
-      .select('id, titulo, data_evento, horario_inicio, local, local_url, lp_url, tipo, checkin_status, pelotoes, descricao')
+      .select('id, titulo, slug, data_evento, horario_inicio, local, local_url, lp_url, tipo, checkin_status, pelotoes, descricao')
       .or(`data_evento.gt.${today},checkin_status.eq.aberto,checkin_status.eq.bloqueado`)
       .neq('checkin_status', 'encerrado')
       .eq('oculto_no_checkin_publico', false)
@@ -37,7 +37,7 @@ export async function GET() {
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
     const { data: historico, error: histErr } = await supabase
       .from('eventos')
-      .select('id, titulo, data_evento, local, checkin_status')
+      .select('id, titulo, slug, data_evento, local, checkin_status')
       .eq('checkin_status', 'encerrado')
       .eq('oculto_no_checkin_publico', false)
       .gte('data_evento', thirtyDaysAgo)
