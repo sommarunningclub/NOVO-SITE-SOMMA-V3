@@ -113,16 +113,18 @@
 /*
   Tipografia que preenche a linha: cada linha declara o próprio comprimento em
   `--len` e o tamanho sai da divisão da largura disponível. Mesmo contrato do
-  sistema irmão (`.dst-fit`): nowrap faz parte do contrato, uma linha declarada
-  é uma linha renderizada.
+  sistema irmão (`.dst-fit`): uma linha declarada é uma linha renderizada
+  enquanto o tamanho calculado ficar acima do piso. No celular, frase longa bate
+  no piso antes de caber; aí ela quebra (balanceada pelo `.lgo-display`) em vez
+  de sair cortada pela máscara. `--word` baixa o piso quando nem a maior palavra
+  cabe sozinha.
 */
 .lgo-fit {
   font-size: clamp(
-    var(--fit-min, 1.05rem),
+    min(var(--fit-min, 1.05rem), calc(var(--avail, 90vw) / (var(--word, 10) * 0.9))),
     calc(var(--avail, 90vw) / (var(--len, 10) * 0.9)),
     var(--fit-max, 9.5rem)
   );
-  white-space: nowrap;
 }
 
 @media (min-width: 768px) {

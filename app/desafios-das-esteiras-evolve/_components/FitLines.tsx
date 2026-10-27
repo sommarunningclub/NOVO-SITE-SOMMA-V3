@@ -5,7 +5,9 @@ import type { CSSProperties } from "react";
  *
  * Cada linha vira uma janela `.dst-mask` (para o reveal do GSAP) e informa ao
  * CSS quantos caracteres tem, via `--len`. O tamanho da fonte sai daí — uma
- * linha curta cresce, uma longa encolhe, e nenhuma transborda. Ver `.dst-fit`
+ * linha curta cresce, uma longa encolhe. Quando o piso (`min`) não deixa a
+ * linha caber numa só, ela quebra em vez de transbordar; `--word` (a maior
+ * palavra) baixa o piso se nem a palavra sozinha couber. Ver `.dst-fit`
  * em evento.css.
  */
 export interface FitLinesProps {
@@ -40,7 +42,11 @@ export function FitLines({ linhas, maskClass = "", className = "", max, min, ava
           <span
             key={`${texto}-${i}`}
             className={`dst-mask dst-fit ${maskClass} ${extra?.className ?? ""}`}
-            style={{ ["--len" as string]: texto.length, ...extra?.style }}
+            style={{
+              ["--len" as string]: texto.length,
+              ["--word" as string]: maiorPalavra(texto),
+              ...extra?.style,
+            }}
           >
             <span>{texto}</span>
           </span>
@@ -48,4 +54,8 @@ export function FitLines({ linhas, maskClass = "", className = "", max, min, ava
       })}
     </span>
   );
+}
+
+function maiorPalavra(texto: string) {
+  return Math.max(...texto.split(/\s+/).map((palavra) => palavra.length));
 }

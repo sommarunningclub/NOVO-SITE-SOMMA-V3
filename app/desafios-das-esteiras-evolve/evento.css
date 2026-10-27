@@ -104,17 +104,17 @@
   acentos e para a fonte de fallback enquanto a web font carrega. `--fit-max`
   segura o crescimento em telas largas.
 
-  `nowrap` é parte do contrato: cada linha declarada é uma linha renderizada, e
-  o tamanho já garante que ela cabe. Sem isso, uma quebra automática mudaria o
-  comprimento real e o cálculo deixaria de valer.
+  Cada linha declarada é uma linha renderizada enquanto o tamanho calculado
+  ficar acima de `--fit-min`. No celular, frase longa bate no piso antes de
+  caber; aí ela quebra (balanceada pelo `.dst-display`) em vez de sair cortada
+  pela máscara. `--word` baixa o piso quando nem a maior palavra cabe sozinha.
 */
 .dst-fit {
   font-size: clamp(
-    var(--fit-min, 1.05rem),
+    min(var(--fit-min, 1.05rem), calc(var(--avail, 90vw) / (var(--word, 10) * 0.90))),
     calc(var(--avail, 90vw) / (var(--len, 10) * 0.90)),
     var(--fit-max, 9.5rem)
   );
-  white-space: nowrap;
 }
 
 /*
