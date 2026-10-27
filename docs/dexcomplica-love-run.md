@@ -16,6 +16,14 @@ Nada novo de infraestrutura: a LP usa as mesmas tabelas e a mesma função do SO
 
 Ingresso: `/dexcomplica/ingresso/<token>` (token aleatório de 32 bytes; noindex; sem Referer). O QR contém essa URL. O leitor da gestão (módulo Check-in → **Ler ingresso**) aceita o QR ou o código digitado e marca presença em `evento_participantes` (status `presente`) e em `checkins` (`validacao_do_checkin`). O botão Presente/Ausente da lista também reflete na inscrição.
 
+## Liberação (interruptor único)
+
+Enquanto `eventos.oculto_no_checkin_publico = true` na linha do evento, o Love Run **não está liberado**:
+o card real some do `/check-in` (lá aparece só a vitrine da Agenda de novembro, que não leva à LP),
+`/dexcomplica` redireciona para `/check-in` e a API recusa inscrição. Para liberar, desligar o
+`oculto_no_checkin_publico`: o card real volta ao `/check-in`, a vitrine de 07/11 sai e a LP abre (em até 30 s).
+Estado em 27/10/2026: oculto, a pedido do Alex.
+
 ## Para abrir as inscrições
 
 A LP só aceita inscrição quando TODAS as condições valem (senão mostra "em breve"):

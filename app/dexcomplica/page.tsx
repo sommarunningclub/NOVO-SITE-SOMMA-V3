@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { redirect } from "next/navigation";
 import {
   AFTER,
   DATA_CURTA,
@@ -9,12 +10,13 @@ import {
   INSTAGRAM_SOMMA,
   LOCAL_AFTER,
   LOCAL_CORRE,
+  MODO_TESTE,
   PERCURSO,
   POLITICA_PRIVACIDADE,
   urlComoChegar,
 } from "@/lib/dexcomplica-love-run/event.config";
 import { contarInscritos, getEvento } from "@/lib/dexcomplica-love-run/db";
-import { estadoDaInscricao, pelotoesValidos, rotuloPelotao } from "@/lib/dexcomplica-love-run/estado";
+import { estadoDaInscricao, liberado, pelotoesValidos, rotuloPelotao } from "@/lib/dexcomplica-love-run/estado";
 import Cabecalho from "./_components/Cabecalho";
 import Capa from "./_components/Capa";
 import Letreiro from "./_components/Letreiro";
@@ -38,8 +40,10 @@ const F = "/dexcomplica-love-run/fotos";
 
 export default async function LoveRunPage() {
   const evento = await getEvento();
+  // Até o Alex liberar (evento oculto no /check-in), a página não abre para ninguém.
+  if (!liberado(evento) && !MODO_TESTE) redirect("/check-in");
   const inscritos = evento ? await contarInscritos(evento.id) : 0;
-  const { estado } = estadoDaInscricao(evento, inscritos);
+  const { estado } = estadoDaInscricao(evento, inscritos, { teste: MODO_TESTE });
   const pelotoes = pelotoesValidos(evento?.pelotoes);
 
   return (

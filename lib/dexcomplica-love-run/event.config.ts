@@ -25,6 +25,9 @@ export const EVENTO_SLUG_OFICIAL = "dexcomplica-love-run";
  */
 export const EVENTO_SLUG =
   (process.env.NODE_ENV !== "production" && process.env.LOVE_RUN_EVENTO_SLUG) || EVENTO_SLUG_OFICIAL;
+
+/** Rodando contra um evento de teste (só fora de produção): a trava de liberação não se aplica. */
+export const MODO_TESTE = EVENTO_SLUG !== EVENTO_SLUG_OFICIAL;
 /** Endereço público da LP (o slug do banco continua `dexcomplica-love-run`). */
 export const EVENTO_PATH = "/dexcomplica";
 export const SITE_URL = "https://sommaclub.com.br";

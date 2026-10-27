@@ -6,6 +6,8 @@ export interface EventoOperacional {
   evento_encerrado: boolean | null;
   pelotoes: string[] | null;
   capacidade?: number | null;
+  /** Enquanto true, o evento não foi liberado: some do /check-in e a LP fica fechada. */
+  oculto_no_checkin_publico?: boolean | null;
 }
 
 export interface Estado {
@@ -21,8 +23,13 @@ export interface Estado {
  * teto de vagas no banco: sem pelotão oficial a pessoa escolheria uma opção
  * inventada, e sem teto não há "vagas limitadas" de verdade.
  */
-export function estadoDaInscricao(evento: EventoOperacional | null, inscritos: number): Estado {
+export function estadoDaInscricao(
+  evento: EventoOperacional | null,
+  inscritos: number,
+  opcoes: { teste?: boolean } = {}
+): Estado {
   if (!evento) return { estado: "em_breve", pendencias: ["evento não cadastrado em public.eventos"] };
+  if (!liberado(evento) && !opcoes.teste) return { estado: "em_breve", pendencias: ["evento não liberado (oculto)"] };
 
   if (evento.evento_encerrado === true || evento.checkin_status === "encerrado") {
     return { estado: "encerradas", pendencias: [] };
@@ -41,6 +48,16 @@ export function estadoDaInscricao(evento: EventoOperacional | null, inscritos: n
   if (pendencias.length > 0) return { estado: "em_breve", pendencias };
   if (capacidade !== null && inscritos >= capacidade) return { estado: "esgotado", pendencias: [] };
   return { estado: "abertas", pendencias: [] };
+}
+
+/**
+ * Liberação do evento: um interruptor só. Enquanto `oculto_no_checkin_publico`
+ * estiver ligado, o card real fica fora do /check-in (lá aparece só a vitrine
+ * da agenda de novembro), a LP redireciona para o /check-in e a inscrição é
+ * recusada. Desligar libera tudo junto.
+ */
+export function liberado(evento: EventoOperacional | null): boolean {
+  return !!evento && evento.oculto_no_checkin_publico !== true;
 }
 
 export function pelotoesValidos(pelotoes: string[] | null | undefined): string[] {
