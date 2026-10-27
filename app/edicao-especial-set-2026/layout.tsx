@@ -118,6 +118,8 @@ export default function SommaDayLayout({ children }: { children: React.ReactNode
       data-cidade={CIDADE}
       data-horario={`${ABERTURA}-${ENCERRAMENTO}`}
     >
+      {/* O body do site é branco: sem isso, o "quique" do scroll no iOS mostra branco. */}
+      <style>{"html,body{background:#101010}"}</style>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

@@ -127,6 +127,8 @@ const jsonLd = {
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <div className={`lgo ${sans.variable} ${mono.variable}`}>
+      {/* O body do site é branco: sem isso, o "quique" do scroll no iOS mostra branco. */}
+      <style>{"html,body{background:#050508}"}</style>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

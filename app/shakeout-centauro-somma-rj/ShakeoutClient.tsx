@@ -22,7 +22,6 @@ const DopaMap = dynamic(() => import('@/components/shakeout/dopa-map').then((m) 
 /* ── Assets ── */
 const LOGO_SOMMA = '/Logo_Nova_Somma_Branca_Laranja.svg'
 const LOGO_DOPA = 'https://seekdopa.com/cdn/shop/files/DOPA_Logo_Cinza_Original.png?v=1728398053&width=600'
-const BG_HERO = '/marcos-vinicius-do-vale-yeEsrY5kzL8-unsplash.jpg'
 const IMG_GIFT = 'https://images.unsplash.com/photo-1607344645866-009c320b63e0?auto=format&fit=crop&w=1000&q=80'
 
 const ENDERECO = 'Rua Piragibe Frota Aguiar, 7, Copacabana, Rio de Janeiro'
@@ -110,12 +109,6 @@ export function ShakeoutClient() {
           scrollTrigger: { trigger: el, start: 'top 88%' },
         })
       })
-      // parallax da imagem da hero
-      gsap.to('[data-hero-bg]', {
-        yPercent: 22,
-        ease: 'none',
-        scrollTrigger: { trigger: '[data-hero]', start: 'top top', end: 'bottom top', scrub: true },
-      })
     }, rootRef)
 
     return () => {
@@ -179,7 +172,6 @@ export function ShakeoutClient() {
 
       {/* ===== HERO ===== */}
       <section id="topo" data-hero className="relative isolate flex min-h-[100svh] items-center overflow-hidden">
-        <img data-hero-bg src={BG_HERO} alt="Rio de Janeiro" aria-hidden className="absolute inset-0 -z-20 h-[120%] w-full object-cover grayscale" />
         <div className="absolute inset-0 -z-10 bg-[linear-gradient(100deg,rgba(0,0,0,0.96)_0%,rgba(0,0,0,0.86)_38%,rgba(0,0,0,0.4)_100%)]" />
         <div className="mx-auto w-full max-w-7xl px-5 pt-28 pb-20 md:px-6">
           <div className="max-w-2xl">

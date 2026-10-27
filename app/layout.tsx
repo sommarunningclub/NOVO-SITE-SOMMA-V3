@@ -34,6 +34,7 @@ export const metadata: Metadata = {
       "+5.000 membros. Gratuito. Todo sábado, às 7h, no Parque da Cidade, em Brasília.",
   },
   alternates: { canonical: "/" },
+  appleWebApp: { capable: true, title: "SOMMA", statusBarStyle: "default" },
 };
 
 const jsonLd = {

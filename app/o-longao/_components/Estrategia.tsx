@@ -63,7 +63,7 @@ export function Estrategia() {
               >
                 {String(i + 1).padStart(2, "0")}
               </span>
-              <h3 className="lgo-display mt-4 text-[clamp(3rem,12vw,5.8rem)]">{pilar.titulo}</h3>
+              <h3 className="lgo-display mt-4 text-[clamp(2.25rem,12vw,5.8rem)] md:text-[clamp(2.25rem,6vw,5.8rem)]">{pilar.titulo}</h3>
               <p className="mt-4 max-w-[36ch] text-[0.95rem] leading-relaxed text-[color:rgba(5,5,8,0.68)] md:mb-8">
                 {pilar.texto}
               </p>
@@ -79,7 +79,7 @@ export function Estrategia() {
 
         {/* Fecho: a tese da prova, com a última frase em laranja de largada */}
         <div className="est-fecho-bloco mt-16 border-t border-[color:var(--line-dark)] pt-10 md:mt-24 md:pt-14">
-          <p className="lgo-display max-w-[20ch] text-[clamp(2.2rem,7vw,5rem)]">
+          <p className="lgo-display max-w-[20ch] text-[clamp(1.25rem,6.8vw,5rem)]">
             {SENTENCAS_FECHO.map((sentenca, i) => (
               <span key={sentenca} className="lgo-mask est-fecho">
                 <span

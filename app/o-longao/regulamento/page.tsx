@@ -192,6 +192,8 @@ const SECOES: readonly Secao[] = [
 export default function RegulamentoPage() {
   return (
     <main>
+      {/* A página termina no papel claro: o "quique" do fim do scroll também. */}
+      <style>{"html,body{background:#f2f0ec}"}</style>
       <header className="border-b border-[var(--line)]">
         <div className="lgo-wrap flex items-center justify-between gap-4">
           <Link
@@ -209,7 +211,7 @@ export default function RegulamentoPage() {
       <div className="lgo-paper">
         <div className="lgo-wrap py-16 sm:py-24">
           <div className="max-w-3xl">
-            <h1 className="lgo-display text-[clamp(2.75rem,11vw,6rem)]">
+            <h1 className="lgo-display text-[clamp(1.75rem,9vw,6rem)]">
               REGULAMENTO
             </h1>
             <p className="lgo-label mt-6 max-w-xl leading-[1.7] text-[var(--evolve)]">
