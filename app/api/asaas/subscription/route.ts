@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { ASSESSORIA_VENDAS_ABERTAS, respostaVendasFechadas } from "@/lib/assessoria-status"
+import { respostaVendasFechadas, vendaAberta } from "@/lib/assessoria-status"
 import { calcularDesconto, resolverCupom } from "@/lib/checkout/cupons-servidor"
 import {
   ajustarParcelas,
@@ -95,9 +95,10 @@ async function registrarUsoDoCupom(
 }
 
 export async function POST(request: NextRequest) {
-  if (!ASSESSORIA_VENDAS_ABERTAS) return respostaVendasFechadas()
   try {
     const body = await request.json()
+    // Só decide a trava de vendas fechadas (lib/assessoria-status).
+    if (!vendaAberta(body.professor)) return respostaVendasFechadas()
     const {
       customerId,
       // Cupom aplicado, só para o registro de uso (o valor já vem calculado)

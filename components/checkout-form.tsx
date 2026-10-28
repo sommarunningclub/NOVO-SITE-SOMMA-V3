@@ -616,6 +616,7 @@ export function CheckoutForm({ plan, initialProfessors, planSwitcher }: Checkout
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             customerId: customerResult.id,
+            professor,
             type: "pix",
             pixValue: pixTotalValue,
             cupom: cupomAplicado(plan.total - pixTotalValue),
@@ -673,6 +674,7 @@ export function CheckoutForm({ plan, initialProfessors, planSwitcher }: Checkout
 
       const paymentPayload: Record<string, unknown> = {
         customerId: customerResult.id,
+        professor,
         type: plan.type,
         // Desconto do ciclo inteiro: o cupom abate por mensalidade, e o ciclo
         // tem `plan.installments` mensalidades — não as parcelas escolhidas.
