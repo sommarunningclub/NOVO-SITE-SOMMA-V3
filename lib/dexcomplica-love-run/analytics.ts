@@ -20,6 +20,7 @@ export type EventoLoveRun =
   | "festa_saiba_mais"
   | "evento_compartilhado"
   | "calendario_adicionado"
+  | "trilha_tocada"
   | "recuperacao_solicitada";
 
 type Props = Record<string, string | number | boolean | null>;

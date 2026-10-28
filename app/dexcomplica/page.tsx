@@ -19,6 +19,7 @@ import { estadoDaInscricao, liberado, pelotoesValidos, rotuloPelotao } from "@/l
 import Cabecalho from "./_components/Cabecalho";
 import Capa from "./_components/Capa";
 import Letreiro from "./_components/Letreiro";
+import Trilha from "./_components/Trilha";
 import Revelar from "./_components/Revelar";
 import VideoFesta from "./_components/VideoFesta";
 import MapaLocais from "./_components/MapaLocais";
@@ -64,6 +65,8 @@ export default async function LoveRunPage({ searchParams }: { searchParams: Prom
         <Capa />
 
         <Letreiro />
+
+        <Trilha />
 
         {/* ── A experiência ─────────────────────────────────────────── */}
         <section id="experiencia" className="lr-sec lr-sec--papel" aria-labelledby="t-experiencia">

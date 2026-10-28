@@ -868,3 +868,22 @@ html:has(.lr-root) { scroll-behavior: smooth; scroll-padding-top: 76px; }
 .lr-root .lr-senha__form input:focus-visible { outline: none; border-color: var(--amarelo); box-shadow: 0 0 0 4px rgba(242, 194, 48, 0.3); }
 .lr-root .lr-senha__form input[aria-invalid="true"] { border-color: var(--rosa); }
 .lr-senha__erro { margin: 0; color: var(--rosa); font-weight: 700; }
+
+/* ─── Trilha (player do Spotify) ─────────────────────────────────────────── */
+.lr-trilha { background: var(--tinta); color: var(--branco); padding: 56px 0 44px; }
+.lr-trilha__grid { display: grid; gap: 20px; align-items: center; }
+.lr-trilha__titulo { margin: 0; font-family: var(--f-display); font-weight: 400; text-transform: uppercase; font-size: clamp(40px, 6vw, 64px); line-height: 0.95; }
+.lr-trilha__faixa { margin: 8px 0 0; color: var(--cinza-claro); font-weight: 700; }
+.lr-trilha__eq { height: 14px; margin-left: 6px; }
+.lr-trilha__player {
+  min-height: 152px; border-radius: 14px; overflow: hidden; background: #1a1918;
+  box-shadow: 0 0 0 2px rgba(255, 133, 161, 0.35), 0 24px 50px -24px rgba(231, 58, 40, 0.6);
+}
+.lr-trilha__player iframe { display: block; border: 0; border-radius: 14px; }
+.lr-trilha__reserva {
+  display: grid; place-items: center; height: 152px; color: var(--branco); font-weight: 800; text-decoration: underline;
+  text-underline-offset: 4px; text-decoration-color: var(--rosa);
+}
+@media (min-width: 960px) {
+  .lr-trilha__grid { grid-template-columns: 0.8fr 1.2fr; gap: 56px; }
+}
