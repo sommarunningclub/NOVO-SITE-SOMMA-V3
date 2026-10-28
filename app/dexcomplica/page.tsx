@@ -320,7 +320,12 @@ export default async function LoveRunPage({ searchParams }: { searchParams: Prom
                   "Onde fica meu ingresso?",
                   "Ele aparece na tela assim que a inscrição é confirmada e também vai para o seu e-mail. Perdeu? Use “Recuperar meu ingresso” na inscrição: enviamos de novo para o e-mail cadastrado.",
                 ],
-                ["Qual é o horário?", "Vamos divulgar aqui e no @somma.club assim que estiver confirmado."],
+                [
+                  "Qual é o horário?",
+                  HORARIO.concentracao
+                    ? `A concentração é às ${HORARIO.concentracao}, no Estacionamento 1 do Parque da Cidade. Chegue com antecedência para o check-in.`
+                    : "Vamos divulgar aqui e no @somma.club assim que estiver confirmado.",
+                ],
                 [
                   "Como funciona a condição especial da festa?",
                   "Ela é para quem estiver presente no corre. Percentual, regras e forma de entrega serão informados em breve.",

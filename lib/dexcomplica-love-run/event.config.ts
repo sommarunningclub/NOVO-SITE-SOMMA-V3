@@ -60,12 +60,9 @@ export const DATA_CURTA = "07.11";
 export const DATA_EXTENSO = "Sábado, 7 de novembro";
 export const DATA_EXTENSO_ANO = "Sábado, 7 de novembro de 2026";
 
-/**
- * PENDENTE. O contrato com a Monu fala em 7h, mas o horário não foi
- * confirmado para divulgação. Preencher "07h00" etc. quando vier.
- */
+/** Concentração confirmada pelo Alex em 28/10/2026. Largada: PENDENTE. */
 export const HORARIO: { concentracao: string | null; largada: string | null } = {
-  concentracao: null,
+  concentracao: "06h30",
   largada: null,
 };
 
