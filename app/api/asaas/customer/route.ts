@@ -1,15 +1,15 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { ASSESSORIA_VENDAS_ABERTAS, respostaVendasFechadas } from "@/lib/assessoria-status"
+import { respostaVendasFechadas, vendaAberta } from "@/lib/assessoria-status"
 import { resolveGroupName } from "@/lib/asaas/groups"
 
 const ASAAS_API_URL = "https://api.asaas.com/v3"
 const ASAAS_API_KEY = process.env.ASAAS_API_KEY
 
 export async function POST(request: NextRequest) {
-  if (!ASSESSORIA_VENDAS_ABERTAS) return respostaVendasFechadas()
   try {
     const body = await request.json()
     const { name, email, cpfCnpj, phone, postalCode, addressNumber, professor } = body
+    if (!vendaAberta(professor)) return respostaVendasFechadas()
 
     // Vincula o cliente ao grupo do professor escolhido (se reconhecido)
     const groupName = resolveGroupName(professor)

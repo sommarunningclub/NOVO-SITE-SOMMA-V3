@@ -12,8 +12,9 @@ import { PROFESSORES_BORA } from "@/lib/nova-assessoria/professores"
  * Link de um professor BORA (sommaclub.com.br/<professor>), o que vai na bio
  * do Instagram dele.
  *
- * Os quatro links são a mesma tela com o professor trocado, então ela mora
- * aqui e cada rota só diz de quem é. Não há mais checkout: o botão abre o
+ * Os links são a mesma tela com o professor trocado, então ela mora aqui e
+ * cada rota só diz de quem é. O /alexandre é a exceção: lá segue o checkout
+ * dos planos (alexandre/page.tsx). Aqui não há checkout: o botão abre o
  * contato (nome e WhatsApp) e leva direto para o WhatsApp deste professor,
  * sem passar pelo rodízio de /assessoria. Visita e contato ficam registrados
  * com a página `bio-<slug>`.
