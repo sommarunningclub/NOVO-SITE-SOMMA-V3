@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { isValidCPF } from "@/lib/cpf";
+import { checarCelularBR, normalizarTelefoneBR, TELEFONE_MSG } from "@/lib/telefone";
 
 export const soDigitos = (v: unknown) => String(v ?? "").replace(/\D/g, "");
 
@@ -25,6 +26,23 @@ export const emailSchema = z
   .toLowerCase()
   .max(160, "E-mail muito longo")
   .email("E-mail inválido");
+
+/** Celular com DDD (WhatsApp), só dígitos: é o que a gestão vê na lista de check-in. */
+export const telefoneSchema = z
+  .string({ message: "Informe seu WhatsApp com DDD" })
+  .transform(normalizarTelefoneBR)
+  .superRefine((v, ctx) => {
+    const r = checarCelularBR(v);
+    if (!r.ok) ctx.addIssue({ code: "custom", message: TELEFONE_MSG[r.motivo] });
+  });
+
+/** (61) 99999-9999 enquanto digita. */
+export function mascararTelefone(v: string): string {
+  const d = soDigitos(v).slice(0, 11);
+  if (d.length <= 2) return d.length ? `(${d}` : "";
+  if (d.length <= 7) return `(${d.slice(0, 2)}) ${d.slice(2)}`;
+  return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
+}
 
 /** Mesmos valores do /check-in e de `cadastro_site.sexo`. */
 export const SEXOS = ["feminino", "masculino"] as const;
@@ -53,6 +71,7 @@ export const inscricaoSchema = z.object({
   nome: nomeSchema,
   email: emailSchema,
   cpf: cpfSchema,
+  telefone: telefoneSchema,
   sexo: sexoSchema,
   pelotao: z.string({ message: "Escolha seu pelotão" }).trim().min(1, "Escolha seu pelotão").max(40),
   marketing: z.boolean().optional().default(false),

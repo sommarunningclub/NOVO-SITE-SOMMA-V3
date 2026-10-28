@@ -122,7 +122,7 @@ export async function inscrever(dados: Inscricao, evento: EventoRow): Promise<Re
     p_cpf: dados.cpf,
     p_nome: dados.nome,
     p_email: dados.email,
-    p_telefone: null,
+    p_telefone: dados.telefone,
     p_ticket_code: ticketNovo,
     p_ticket_token: gerarTicketToken(),
     p_sexo: dados.sexo,
