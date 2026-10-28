@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { EstadoInscricao } from "@/lib/dexcomplica-love-run/event.config";
+import { ESCASSEZ_PUBLICA, type EstadoInscricao } from "@/lib/dexcomplica-love-run/event.config";
 import { rastrear } from "@/lib/dexcomplica-love-run/analytics";
 
 /**
@@ -35,7 +35,7 @@ export default function BarraCta({ estado }: { estado: EstadoInscricao }) {
     <div className="lr-barra" data-visivel={visivel} aria-hidden={!visivel}>
       <div>
         <strong>Love Run · 07.11</strong>
-        <span>Gratuito · vagas limitadas</span>
+        <span>Gratuito · {ESCASSEZ_PUBLICA.toLowerCase()}</span>
       </div>
       <a
         href="#inscricao"

@@ -127,6 +127,7 @@ const pessoa = (cpf, n, extra = {}) => ({
   nome: `Teste Love Run ${sufixo(n)}`,
   email: `love-run-${n}-${cpf.slice(-4)}@${DOMINIO}`,
   cpf,
+  telefone: `6199${String(1000000 + n * 7919).slice(-7)}`,
   sexo: n % 2 ? "feminino" : "masculino",
   pelotao: "teste-a",
   ...extra,
@@ -171,6 +172,7 @@ async function testar() {
   t("1 linha em evento_participantes, status inscrito", l.p.length === 1 && l.p[0].status === "inscrito");
   t("código no formato DLR-XXXXXX", /^DLR-[2-9A-HJ-NP-Z]{6}$/.test(l.p[0]?.ticket_code ?? ""), l.p[0]?.ticket_code);
   t("sexo e opt-in no metadata", l.p[0]?.metadata?.sexo === "feminino" && l.p[0]?.metadata?.marketing_optin === true);
+  t("telefone gravado na inscrição e na lista da gestão", /^\d{11}$/.test(l.p[0]?.telefone ?? "") && l.c[0]?.telefone === l.p[0]?.telefone);
   t("espelhada em checkins (lista da gestão), pendente", l.c.length === 1 && l.c[0].validacao_do_checkin === false && l.c[0].pelotao === "teste-a");
   const { data: cad } = await sb.from("cadastro_site").select("id, sexo, email").eq("cpf_digits", A).maybeSingle();
   t("pessoa criada em cadastro_site", cad && cad.id === l.p[0].pessoa_id && cad.sexo === "feminino");

@@ -5,6 +5,7 @@ import {
   DATA_EXTENSO_ANO,
   EVENTO_NOME,
   EVENTO_URL,
+  GRUPO_WHATSAPP,
   HORARIO,
   LOCAL_AFTER,
   LOCAL_CORRE,
@@ -13,7 +14,7 @@ import {
 import { rotuloPelotao } from "@/lib/dexcomplica-love-run/estado";
 import { urlGoogleAgenda } from "@/lib/dexcomplica-love-run/agenda";
 import { qrPng, urlIngresso } from "@/lib/dexcomplica-love-run/ticket";
-import { bloco, botao, casca, esc, eyebrow, letreiro, linkSeta, mochila, p, passe, selos, TEXTO, titulo } from "./dexcomplica-love-run-layout";
+import { bloco, botao, casca, esc, eyebrow, grupoWhatsapp, letreiro, linkSeta, mochila, p, passe, selos, TEXTO, titulo } from "./dexcomplica-love-run-layout";
 
 const QR_CID = "love-run-qr";
 
@@ -79,6 +80,7 @@ export function renderIngressoEmail(d: {
         `Adicionar à agenda: <a href="${esc(urlGoogleAgenda(d.url))}" style="color:${CORES.rosa};font-weight:800">Google Agenda</a> · <a href="${esc(EVENTO_URL)}/agenda.ics" style="color:${CORES.rosa};font-weight:800">Apple ou Outlook</a></div>`,
       { padTop: 10 }
     ),
+    grupoWhatsapp(),
     mochila(),
     bloco(
       eyebrow("Depois do corre", CORES.amarelo) +
@@ -114,6 +116,8 @@ export function renderIngressoTexto(d: { nome: string; ticketCode: string; url: 
     `Adicionar à agenda (Apple/Outlook): ${EVENTO_URL}/agenda.ics`,
     "",
     "Apresente o QR Code ou o código no check-in.",
+    "",
+    `Entre no grupo do evento no WhatsApp (novidades e informações): ${GRUPO_WHATSAPP.url}`,
     "",
     "Somma Club × Dexcomplica · produção Monu",
   ]

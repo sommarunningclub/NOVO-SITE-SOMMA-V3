@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { isValidCPF } from "@/lib/cpf";
+import { checarCelularBR, normalizarTelefoneBR, TELEFONE_MSG } from "@/lib/telefone";
 
 export const soDigitos = (v: unknown) => String(v ?? "").replace(/\D/g, "");
 
@@ -25,6 +26,23 @@ export const emailSchema = z
   .toLowerCase()
   .max(160, "E-mail muito longo")
   .email("E-mail inválido");
+
+/** Celular com DDD (WhatsApp), só dígitos: é o que a gestão vê na lista de check-in. */
+export const telefoneSchema = z
+  .string({ message: "Informe seu WhatsApp com DDD" })
+  .transform(normalizarTelefoneBR)
+  .superRefine((v, ctx) => {
+    const r = checarCelularBR(v);
+    if (!r.ok) ctx.addIssue({ code: "custom", message: TELEFONE_MSG[r.motivo] });
+  });
+
+/** (61) 99999-9999 enquanto digita. */
+export function mascararTelefone(v: string): string {
+  const d = soDigitos(v).slice(0, 11);
+  if (d.length <= 2) return d.length ? `(${d}` : "";
+  if (d.length <= 7) return `(${d.slice(0, 2)}) ${d.slice(2)}`;
+  return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
+}
 
 /** Mesmos valores do /check-in e de `cadastro_site.sexo`. */
 export const SEXOS = ["feminino", "masculino"] as const;
@@ -53,6 +71,7 @@ export const inscricaoSchema = z.object({
   nome: nomeSchema,
   email: emailSchema,
   cpf: cpfSchema,
+  telefone: telefoneSchema,
   sexo: sexoSchema,
   pelotao: z.string({ message: "Escolha seu pelotão" }).trim().min(1, "Escolha seu pelotão").max(40),
   marketing: z.boolean().optional().default(false),
@@ -80,4 +99,27 @@ export function camposComErro(issues: { path: PropertyKey[]; message: string }[]
     if (!campos[campo]) campos[campo] = issue.message;
   }
   return campos;
+}
+
+/**
+ * Erros comuns de domínio (em 28/10/2026 entrou um "@gmaill.com" e o ingresso
+ * não chegou). Só sugere: quem decide é a pessoa.
+ */
+const DOMINIOS_ERRADOS: Record<string, string> = {
+  "gmaill.com": "gmail.com", "gmial.com": "gmail.com", "gmai.com": "gmail.com", "gmal.com": "gmail.com",
+  "gamil.com": "gmail.com", "gnail.com": "gmail.com", "gmail.co": "gmail.com", "gmail.con": "gmail.com",
+  "gmail.cm": "gmail.com", "gmail.om": "gmail.com", "gmail.com.br": "gmail.com", "gmeil.com": "gmail.com",
+  "hotmial.com": "hotmail.com", "hotmai.com": "hotmail.com", "hotmal.com": "hotmail.com", "hotmil.com": "hotmail.com",
+  "hotnail.com": "hotmail.com", "hotmail.con": "hotmail.com", "hotmail.co": "hotmail.com", "hotmaill.com": "hotmail.com",
+  "outlok.com": "outlook.com", "outllok.com": "outlook.com", "outlook.con": "outlook.com", "outloo.com": "outlook.com",
+  "yaho.com": "yahoo.com", "yahoo.con": "yahoo.com", "yahooo.com": "yahoo.com", "yahoo.com.b": "yahoo.com.br",
+  "iclod.com": "icloud.com", "icoud.com": "icloud.com", "icloud.con": "icloud.com", "icloud.co": "icloud.com",
+};
+
+export function sugestaoEmail(email: string): string | null {
+  const v = String(email ?? "").trim().toLowerCase();
+  const m = v.match(/^([^@\s]+)@([^@\s]+)$/);
+  if (!m) return null;
+  const certo = DOMINIOS_ERRADOS[m[2]] ?? (m[2].endsWith(".con") ? m[2].slice(0, -4) + ".com" : null);
+  return certo ? `${m[1]}@${certo}` : null;
 }

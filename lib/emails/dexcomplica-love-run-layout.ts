@@ -1,4 +1,4 @@
-import { CORES, EVENTO_URL, LEVAR, SITE_URL } from "@/lib/dexcomplica-love-run/event.config";
+import { CORES, EVENTO_URL, GRUPO_WHATSAPP, LEVAR, SITE_URL } from "@/lib/dexcomplica-love-run/event.config";
 
 /**
  * Blocos dos e-mails do Love Run, na linguagem da LP: fundo tinta, abertura
@@ -88,9 +88,9 @@ export function selos(itens: { t: string; cor: "amarelo" | "rosa" | "vermelho" }
 }
 
 /** Pílula com a sombra deslocada dos botões da LP (borda inferior escura). */
-export function botao(texto: string, url: string, cor: "vermelho" | "branco" | "amarelo" = "vermelho"): string {
-  const fundo = { vermelho: CORES.vermelho, branco: "#ffffff", amarelo: CORES.amarelo }[cor];
-  const letra = cor === "vermelho" ? "#ffffff" : CORES.tinta;
+export function botao(texto: string, url: string, cor: "vermelho" | "branco" | "amarelo" | "whatsapp" = "vermelho"): string {
+  const fundo = { vermelho: CORES.vermelho, branco: "#ffffff", amarelo: CORES.amarelo, whatsapp: "#25D366" }[cor];
+  const letra = cor === "vermelho" ? "#ffffff" : cor === "whatsapp" ? "#0b3d1f" : CORES.tinta;
   return `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:8px 0 6px"><tr><td bgcolor="${fundo}" style="background:${fundo};border-radius:999px;border-bottom:5px solid rgba(0,0,0,0.45)">
     <a href="${esc(url)}" style="display:inline-block;padding:16px 30px;font-family:${TEXTO};font-size:17px;font-weight:800;color:${letra};text-decoration:none;border-radius:999px">${texto}</a>
   </td></tr></table>`;
@@ -139,6 +139,17 @@ export function peito(linhas: [string, string][]): string {
       )
       .join("")}
   </table>`;
+}
+
+/** Convite para o grupo do evento no WhatsApp (onde saem as novidades). */
+export function grupoWhatsapp(): string {
+  return bloco(
+    eyebrow("Grupo do evento", "#25D366") +
+      titulo("Entra no grupo", "#ffffff", "do Love Run.", CORES.amarelo) +
+      p(`É no grupo <strong style="color:#ffffff">${GRUPO_WHATSAPP.nome}</strong> do WhatsApp que vamos passar as novidades e as informações do corre. Entra agora para não perder nada.`) +
+      botao("Entrar no grupo do WhatsApp", GRUPO_WHATSAPP.url, "whatsapp"),
+    { fundo: "#123d27" }
+  );
 }
 
 /** "Na mochila" em bloco amarelo com corações, como na seção do after. */

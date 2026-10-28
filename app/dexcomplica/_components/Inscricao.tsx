@@ -4,7 +4,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { EstadoInscricao } from "@/lib/dexcomplica-love-run/event.config";
 import { INSTAGRAM_SOMMA, POLITICA_PRIVACIDADE } from "@/lib/dexcomplica-love-run/event.config";
-import { camposComErro, inscricaoSchema, mascararCpf, recuperarSchema, SEXO_ROTULO, SEXOS } from "@/lib/dexcomplica-love-run/schema";
+import { camposComErro, inscricaoSchema, mascararCpf, mascararTelefone, recuperarSchema, SEXO_ROTULO, SEXOS, sugestaoEmail } from "@/lib/dexcomplica-love-run/schema";
 import { rastrear } from "@/lib/dexcomplica-love-run/analytics";
 import { lembrarIngresso } from "./meuIngresso";
 import Transicao from "./Transicao";
@@ -100,7 +100,7 @@ function Formulario({
   const resumo = useRef<HTMLDivElement>(null);
   const iniciou = useRef(false);
   const enviandoRef = useRef(false);
-  const [v, setV] = useState({ nome: "", email: "", cpf: "", sexo: "", pelotao: "", marketing: false });
+  const [v, setV] = useState({ nome: "", email: "", telefone: "", cpf: "", sexo: "", pelotao: "", marketing: false });
   const [erros, setErros] = useState<Record<string, string>>({});
 
   const enviando = fase.tipo === "enviando" || fase.tipo === "redirecionando" || fase.tipo === "celebrando";
@@ -240,6 +240,32 @@ function Formulario({
           onChange={(e) => set("email")(e.target.value)}
           aria-invalid={Boolean(erros.email)}
           aria-describedby={[`${id}-email-dica`, erroDe("email")].filter(Boolean).join(" ")}
+          required
+        />
+        {sugestaoEmail(v.email) ? (
+          <p className="lr-campo__sugestao" role="status">
+            Você quis dizer <strong>{sugestaoEmail(v.email)}</strong>?{" "}
+            <button type="button" onClick={() => set("email")(sugestaoEmail(v.email) ?? v.email)}>
+              Corrigir
+            </button>
+          </p>
+        ) : null}
+      </Campo>
+
+      <Campo id={`${id}-telefone`} rotulo="WhatsApp com DDD" erro={erros.telefone} erroId={erroDe("telefone")}>
+        <input
+          id={`${id}-telefone`}
+          name="telefone"
+          type="tel"
+          inputMode="tel"
+          autoComplete="tel-national"
+          placeholder="(61) 99999-9999"
+          enterKeyHint="next"
+          maxLength={15}
+          value={v.telefone}
+          onChange={(e) => set("telefone")(mascararTelefone(e.target.value))}
+          aria-invalid={Boolean(erros.telefone)}
+          aria-describedby={erroDe("telefone")}
           required
         />
       </Campo>

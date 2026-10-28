@@ -21,6 +21,8 @@ export type EventoLoveRun =
   | "evento_compartilhado"
   | "calendario_adicionado"
   | "trilha_tocada"
+  | "grupo_convite_visto"
+  | "grupo_whatsapp_clicado"
   | "recuperacao_solicitada";
 
 type Props = Record<string, string | number | boolean | null>;

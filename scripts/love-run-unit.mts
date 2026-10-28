@@ -8,7 +8,7 @@
  * e-mail válidos, e o formato do código do ingresso que o balcão digita.
  */
 import { estadoDaInscricao, liberado, pelotoesValidos, rotuloPelotao } from "../lib/dexcomplica-love-run/estado";
-import { inscricaoSchema, mascararCpf, recuperarSchema } from "../lib/dexcomplica-love-run/schema";
+import { inscricaoSchema, mascararCpf, mascararTelefone, recuperarSchema, sugestaoEmail } from "../lib/dexcomplica-love-run/schema";
 
 let ok = 0, bad = 0;
 const t = (n: string, c: boolean, d: unknown = "") => { c ? (ok++, console.log("  ✓", n)) : (bad++, console.log("  ✗", n, d)); };
@@ -40,7 +40,7 @@ t("rótulo 2.5km → 2,5 km", rotuloPelotao("2.5km") === "2,5 km");
 t("rótulo livre passa como veio", rotuloPelotao("Caminhada") === "Caminhada");
 
 console.log("Formulário");
-const base = { nome: "Maria Fernanda Silva", email: "Maria@Exemplo.com ", cpf: "529.982.247-25", sexo: "feminino", pelotao: "5km" };
+const base = { nome: "Maria Fernanda Silva", email: "Maria@Exemplo.com ", telefone: "(61) 99812-3456", cpf: "529.982.247-25", sexo: "feminino", pelotao: "5km" };
 const r = inscricaoSchema.safeParse(base);
 t("dados válidos passam", r.success);
 t("CPF sai sem máscara", r.success && r.data.cpf === "52998224725");
@@ -54,6 +54,11 @@ t("nome com número é recusado", !inscricaoSchema.safeParse({ ...base, nome: "M
 t("e-mail inválido é recusado", !inscricaoSchema.safeParse({ ...base, email: "maria@" }).success);
 t("sexo fora da convenção é recusado", !inscricaoSchema.safeParse({ ...base, sexo: "M" }).success);
 t("sem pelotão é recusado", !inscricaoSchema.safeParse({ ...base, pelotao: "" }).success);
+t("telefone sai só com dígitos", r.success && r.data.telefone === "61998123456");
+t("sem telefone é recusado", !inscricaoSchema.safeParse({ ...base, telefone: "" }).success);
+t("telefone fixo é recusado", !inscricaoSchema.safeParse({ ...base, telefone: "(61) 3333-4444" }).success);
+t("DDD inválido é recusado", !inscricaoSchema.safeParse({ ...base, telefone: "(20) 99812-3456" }).success);
+t("máscara do telefone", mascararTelefone("61998123456") === "(61) 99812-3456" && mascararTelefone("619") === "(61) 9");
 t("campos faltando são recusados", !inscricaoSchema.safeParse({ cpf: base.cpf }).success);
 t("recuperação aceita só CPF válido", recuperarSchema.safeParse({ cpf: "52998224725" }).success && !recuperarSchema.safeParse({ cpf: "123" }).success);
 
@@ -61,6 +66,13 @@ console.log("Máscara de CPF");
 t("máscara completa", mascararCpf("52998224725") === "529.982.247-25");
 t("máscara parcial", mascararCpf("5299") === "529.9");
 t("ignora letras e excesso", mascararCpf("529a98224725999") === "529.982.247-25");
+
+console.log("Sugestão de e-mail");
+t("gmaill.com → gmail.com", sugestaoEmail("Ana@Gmaill.com") === "ana@gmail.com");
+t("hotmail.con → hotmail.com", sugestaoEmail("joao@hotmail.con") === "joao@hotmail.com");
+t(".con genérico → .com", sugestaoEmail("x@empresa.con") === "x@empresa.com");
+t("e-mail certo não sugere nada", sugestaoEmail("ana@gmail.com") === null && sugestaoEmail("ana@empresa.com.br") === null);
+t("incompleto não sugere", sugestaoEmail("ana@") === null && sugestaoEmail("ana") === null);
 
 console.log(`\n${ok} ok, ${bad} falha(s)`);
 process.exit(bad ? 1 : 0);
