@@ -9,6 +9,7 @@ import {
   INSTAGRAM_SOMMA,
   LOCAL_CORRE,
   SITE_URL,
+  VAGAS,
 } from "@/lib/dexcomplica-love-run/event.config";
 import "./love-run.css";
 
@@ -22,7 +23,7 @@ const archivo = Archivo({ subsets: ["latin"], variable: "--lr-copy", display: "s
 const bagel = Bagel_Fat_One({ subsets: ["latin"], weight: "400", variable: "--lr-fun", display: "swap" });
 
 const titulo = `${EVENTO_NOME} · Somma Club × Dexcomplica`;
-const descricao = `Desapega, desilude e vem correr. Sábado, 7 de novembro, no Estacionamento 1 do Parque da Cidade: ${APOIO.charAt(0).toLowerCase()}${APOIO.slice(1)} Gratuito, vagas limitadas.`;
+const descricao = `Desapega, desilude e vem correr. Sábado, 7 de novembro, no Estacionamento 1 do Parque da Cidade: ${APOIO.charAt(0).toLowerCase()}${APOIO.slice(1)} Gratuito, só ${VAGAS} vagas.`;
 
 const jsonLd = {
   "@context": "https://schema.org",

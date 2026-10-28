@@ -11,7 +11,7 @@ import {
   SITE_URL,
   urlComoChegar,
 } from "@/lib/dexcomplica-love-run/event.config";
-import { bloco, botao, casca, eyebrow, letreiro, linkSeta, mochila, p, peito, selos, titulo } from "./dexcomplica-love-run-layout";
+import { bloco, botao, casca, eyebrow, grupoWhatsapp, letreiro, linkSeta, mochila, p, peito, selos, titulo } from "./dexcomplica-love-run-layout";
 
 /**
  * E-mails para a BASE de inscritos do Love Run, disparados pelo módulo de
@@ -97,6 +97,7 @@ export const CAMPANHAS: TemplateCampanha[] = [
               botao("Abrir meu ingresso", URL_MEU_INGRESSO, "branco"),
             { fundo: CORES.vermelho }
           ),
+          grupoWhatsapp(),
           mochila(),
         ].join(""),
       }),
@@ -125,6 +126,7 @@ export const CAMPANHAS: TemplateCampanha[] = [
               comoChegar(),
             { padBottom: 40 }
           ),
+          grupoWhatsapp(),
           mochila(),
           bloco(
             eyebrow("Dica de check-in", CORES.amarelo) +

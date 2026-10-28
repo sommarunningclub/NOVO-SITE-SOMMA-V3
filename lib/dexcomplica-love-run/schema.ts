@@ -81,3 +81,26 @@ export function camposComErro(issues: { path: PropertyKey[]; message: string }[]
   }
   return campos;
 }
+
+/**
+ * Erros comuns de domínio (em 28/10/2026 entrou um "@gmaill.com" e o ingresso
+ * não chegou). Só sugere: quem decide é a pessoa.
+ */
+const DOMINIOS_ERRADOS: Record<string, string> = {
+  "gmaill.com": "gmail.com", "gmial.com": "gmail.com", "gmai.com": "gmail.com", "gmal.com": "gmail.com",
+  "gamil.com": "gmail.com", "gnail.com": "gmail.com", "gmail.co": "gmail.com", "gmail.con": "gmail.com",
+  "gmail.cm": "gmail.com", "gmail.om": "gmail.com", "gmail.com.br": "gmail.com", "gmeil.com": "gmail.com",
+  "hotmial.com": "hotmail.com", "hotmai.com": "hotmail.com", "hotmal.com": "hotmail.com", "hotmil.com": "hotmail.com",
+  "hotnail.com": "hotmail.com", "hotmail.con": "hotmail.com", "hotmail.co": "hotmail.com", "hotmaill.com": "hotmail.com",
+  "outlok.com": "outlook.com", "outllok.com": "outlook.com", "outlook.con": "outlook.com", "outloo.com": "outlook.com",
+  "yaho.com": "yahoo.com", "yahoo.con": "yahoo.com", "yahooo.com": "yahoo.com", "yahoo.com.b": "yahoo.com.br",
+  "iclod.com": "icloud.com", "icoud.com": "icloud.com", "icloud.con": "icloud.com", "icloud.co": "icloud.com",
+};
+
+export function sugestaoEmail(email: string): string | null {
+  const v = String(email ?? "").trim().toLowerCase();
+  const m = v.match(/^([^@\s]+)@([^@\s]+)$/);
+  if (!m) return null;
+  const certo = DOMINIOS_ERRADOS[m[2]] ?? (m[2].endsWith(".con") ? m[2].slice(0, -4) + ".com" : null);
+  return certo ? `${m[1]}@${certo}` : null;
+}

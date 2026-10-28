@@ -8,7 +8,7 @@
  * e-mail válidos, e o formato do código do ingresso que o balcão digita.
  */
 import { estadoDaInscricao, liberado, pelotoesValidos, rotuloPelotao } from "../lib/dexcomplica-love-run/estado";
-import { inscricaoSchema, mascararCpf, recuperarSchema } from "../lib/dexcomplica-love-run/schema";
+import { inscricaoSchema, mascararCpf, recuperarSchema, sugestaoEmail } from "../lib/dexcomplica-love-run/schema";
 
 let ok = 0, bad = 0;
 const t = (n: string, c: boolean, d: unknown = "") => { c ? (ok++, console.log("  ✓", n)) : (bad++, console.log("  ✗", n, d)); };
@@ -61,6 +61,13 @@ console.log("Máscara de CPF");
 t("máscara completa", mascararCpf("52998224725") === "529.982.247-25");
 t("máscara parcial", mascararCpf("5299") === "529.9");
 t("ignora letras e excesso", mascararCpf("529a98224725999") === "529.982.247-25");
+
+console.log("Sugestão de e-mail");
+t("gmaill.com → gmail.com", sugestaoEmail("Ana@Gmaill.com") === "ana@gmail.com");
+t("hotmail.con → hotmail.com", sugestaoEmail("joao@hotmail.con") === "joao@hotmail.com");
+t(".con genérico → .com", sugestaoEmail("x@empresa.con") === "x@empresa.com");
+t("e-mail certo não sugere nada", sugestaoEmail("ana@gmail.com") === null && sugestaoEmail("ana@empresa.com.br") === null);
+t("incompleto não sugere", sugestaoEmail("ana@") === null && sugestaoEmail("ana") === null);
 
 console.log(`\n${ok} ok, ${bad} falha(s)`);
 process.exit(bad ? 1 : 0);

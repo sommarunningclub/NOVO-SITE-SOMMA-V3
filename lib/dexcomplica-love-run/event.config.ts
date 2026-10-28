@@ -183,4 +183,15 @@ export const POLITICA_PRIVACIDADE = "/politica-de-privacidade";
 /* ─── Estado da inscrição ─────────────────────────────────────────────────── */
 export type EstadoInscricao = "em_breve" | "abertas" | "esgotado" | "encerradas";
 
-export const ESCASSEZ_PUBLICA = "Vagas limitadas";
+/**
+ * Vagas divulgadas (pedido do Alex em 28/10/2026: deixar claro que são 500).
+ * O teto que a inscrição obedece é `eventos.capacidade` no banco: mudar os dois juntos.
+ */
+export const VAGAS = 500;
+export const ESCASSEZ_PUBLICA = `Só ${VAGAS} vagas`;
+
+/** Grupo do evento no WhatsApp: onde saem as novidades e informações. */
+export const GRUPO_WHATSAPP = {
+  nome: "Corre do Lovezinho",
+  url: "https://chat.whatsapp.com/Ete0hJXmutSDXHKiD3dpn5",
+} as const;

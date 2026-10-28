@@ -3,7 +3,7 @@ import {
   AFTER,
   DATA_CURTA,
   DATA_EXTENSO,
-  ESCASSEZ_PUBLICA,
+  VAGAS,
   FESTA,
   HORARIO,
   INSTAGRAM_SOMMA,
@@ -157,6 +157,10 @@ export default async function LoveRunPage({ searchParams }: { searchParams: Prom
                 <dd>{HORARIO.largada ?? <span className="lr-embreve">Em breve</span>}</dd>
               </div>
               <div className="lr-peito__largo">
+                <dt>Vagas</dt>
+                <dd>Limitadas: só {VAGAS}, gratuitas</dd>
+              </div>
+              <div className="lr-peito__largo">
                 <dt>Pelotões</dt>
                 <dd>
                   {pelotoes.length > 0 ? (
@@ -296,7 +300,7 @@ export default async function LoveRunPage({ searchParams }: { searchParams: Prom
                 Garanta sua vaga.
               </h2>
               <p className="lr-lead lr-lead--claro" data-revelar>
-                Gratuito. {ESCASSEZ_PUBLICA}. Seu ingresso com QR Code sai na hora, na tela e no seu e-mail.
+                Gratuito e com vagas limitadas: são só {VAGAS} lugares neste corre. Seu ingresso com QR Code sai na hora, na tela e no seu e-mail.
               </p>
               <ul className="lr-insc__fatos" data-revelar>
                 <li>{DATA_EXTENSO}</li>
@@ -315,7 +319,7 @@ export default async function LoveRunPage({ searchParams }: { searchParams: Prom
             </h2>
             <div className="lr-faq__lista">
               {[
-                ["A inscrição é paga?", "Não. A inscrição é gratuita, mas as vagas são limitadas."],
+                ["A inscrição é paga?", `Não. A inscrição é gratuita, mas as vagas são limitadas: são só ${VAGAS} para este corre.`],
                 [
                   "Onde fica meu ingresso?",
                   "Ele aparece na tela assim que a inscrição é confirmada e também vai para o seu e-mail. Perdeu? Use “Recuperar meu ingresso” na inscrição: enviamos de novo para o e-mail cadastrado.",

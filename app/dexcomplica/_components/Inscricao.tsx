@@ -4,7 +4,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { EstadoInscricao } from "@/lib/dexcomplica-love-run/event.config";
 import { INSTAGRAM_SOMMA, POLITICA_PRIVACIDADE } from "@/lib/dexcomplica-love-run/event.config";
-import { camposComErro, inscricaoSchema, mascararCpf, recuperarSchema, SEXO_ROTULO, SEXOS } from "@/lib/dexcomplica-love-run/schema";
+import { camposComErro, inscricaoSchema, mascararCpf, recuperarSchema, SEXO_ROTULO, SEXOS, sugestaoEmail } from "@/lib/dexcomplica-love-run/schema";
 import { rastrear } from "@/lib/dexcomplica-love-run/analytics";
 import { lembrarIngresso } from "./meuIngresso";
 import Transicao from "./Transicao";
@@ -242,6 +242,14 @@ function Formulario({
           aria-describedby={[`${id}-email-dica`, erroDe("email")].filter(Boolean).join(" ")}
           required
         />
+        {sugestaoEmail(v.email) ? (
+          <p className="lr-campo__sugestao" role="status">
+            Você quis dizer <strong>{sugestaoEmail(v.email)}</strong>?{" "}
+            <button type="button" onClick={() => set("email")(sugestaoEmail(v.email) ?? v.email)}>
+              Corrigir
+            </button>
+          </p>
+        ) : null}
       </Campo>
 
       <Campo id={`${id}-cpf`} rotulo="CPF" erro={erros.cpf} erroId={erroDe("cpf")}>

@@ -11,6 +11,8 @@ import {
   LOCAL_AFTER,
   LOCAL_CORRE,
   urlComoChegar,
+  GRUPO_WHATSAPP,
+  VAGAS,
 } from "@/lib/dexcomplica-love-run/event.config";
 import { rastrear } from "@/lib/dexcomplica-love-run/analytics";
 import { movimentoReduzido, useGsap } from "@/lib/dexcomplica-love-run/motion";
@@ -19,6 +21,7 @@ import { Equalizador } from "../../_components/Graficos";
 import AdicionarAgenda from "../../_components/AdicionarAgenda";
 import Interacoes from "../../_components/Interacoes";
 import { desenharIngresso } from "./imagem";
+import GrupoWhatsapp, { IconeWhatsapp } from "./GrupoWhatsapp";
 
 interface Props {
   nome: string;
@@ -102,7 +105,7 @@ export default function Ingresso({ nome, pelotao, codigo, qr, presenteEm, novo, 
   };
 
   const compartilharEvento = async () => {
-    const dados = { title: EVENTO_NOME, text: "Bora no Dexcomplica Love Run? Gratuito, vagas limitadas.", url: EVENTO_URL };
+    const dados = { title: EVENTO_NOME, text: `Bora no Dexcomplica Love Run? Gratuito, só ${VAGAS} vagas.`, url: EVENTO_URL };
     try {
       if (navigator.share) await navigator.share(dados);
       else {
@@ -118,6 +121,7 @@ export default function Ingresso({ nome, pelotao, codigo, qr, presenteEm, novo, 
   return (
     <main ref={ref} className="lr-ing">
       <Interacoes />
+      <GrupoWhatsapp />
       <div className="lr-ing__topo">
         <p className="lr-eyebrow lr-eyebrow--claro">{novo ? "Inscrição confirmada" : EVENTO_NOME}</p>
         <h1 className="lr-ing__titulo">
@@ -190,6 +194,16 @@ export default function Ingresso({ nome, pelotao, codigo, qr, presenteEm, novo, 
       </div>
 
       <div className="lr-ing__acoes" data-entra>
+        <a
+          className="lr-btn lr-btn--whatsapp"
+          href={GRUPO_WHATSAPP.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={() => rastrear("grupo_whatsapp_clicado", { origem: "ingresso" })}
+        >
+          <IconeWhatsapp className="lr-btn__icone" />
+          Grupo do evento no WhatsApp
+        </a>
         <button type="button" className="lr-btn lr-btn--vermelho" onClick={salvarImagem} disabled={salvando}>
           {salvando ? "Gerando imagem…" : "Salvar ingresso"}
         </button>
