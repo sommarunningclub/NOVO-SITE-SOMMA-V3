@@ -167,6 +167,18 @@ export const FESTA = {
   beneficio: null as string | null,
 };
 
+/* ─── Trilha ──────────────────────────────────────────────────────────────── */
+/**
+ * Música da página, pelo player oficial do Spotify (o áudio não pode ser
+ * baixado de lá). O player só toca quando a pessoa aperta play, usa o volume
+ * do aparelho e, para quem não está logado no Spotify, toca uma prévia de 30 s.
+ */
+export const TRILHA = {
+  titulo: "Pela Última Vez (Ao Vivo)",
+  artistas: "Grupo Menos É Mais e NATTAN",
+  spotifyId: "6B7ot6Wlqf7zt3FCkYl2FJ",
+} as const;
+
 /* ─── Marcas e redes ──────────────────────────────────────────────────────── */
 export const INSTAGRAM_SOMMA = "https://www.instagram.com/somma.club/";
 export const POLITICA_PRIVACIDADE = "/politica-de-privacidade";
