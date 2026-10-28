@@ -18,11 +18,12 @@ const TOKEN_EXEMPLO = "previa_previa_previa_previa_previa_previa_x";
  *   /dev/love-run            → ingresso (recém-inscrito)
  *   /dev/love-run?presente=1 → ingresso com check-in feito
  *   /dev/love-run?tela=email → e-mail de confirmação
+ *   /dev/love-run?semtelefone=1 → ingresso com o cartão "Falta seu WhatsApp"
  */
 export default async function LoveRunPreview({
   searchParams,
 }: {
-  searchParams: Promise<{ tela?: string; presente?: string }>;
+  searchParams: Promise<{ tela?: string; presente?: string; semtelefone?: string }>;
 }) {
   if (process.env.NODE_ENV === "production") notFound();
   const q = await searchParams;
@@ -48,6 +49,8 @@ export default async function LoveRunPreview({
         presenteEm={q.presente === "1" ? new Date().toISOString() : null}
         novo={q.presente !== "1"}
         emailEnviado
+        token={TOKEN_EXEMPLO}
+        semTelefone={q.semtelefone === "1"}
       />
     </LoveRunLayout>
   );

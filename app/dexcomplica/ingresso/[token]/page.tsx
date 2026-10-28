@@ -42,6 +42,8 @@ export default async function IngressoPage({
       qr={await qrSvg(token)}
       presenteEm={p.status === "presente" ? p.checkin_em : null}
       novo={q.novo === "1"}
+      token={token}
+      semTelefone={!p.telefone}
       emailEnviado={q.email === "1"}
     />
   );

@@ -22,6 +22,7 @@ import AdicionarAgenda from "../../_components/AdicionarAgenda";
 import Interacoes from "../../_components/Interacoes";
 import { desenharIngresso } from "./imagem";
 import GrupoWhatsapp, { IconeWhatsapp } from "./GrupoWhatsapp";
+import CompletarWhatsapp from "./CompletarWhatsapp";
 
 interface Props {
   nome: string;
@@ -31,12 +32,15 @@ interface Props {
   presenteEm: string | null;
   novo: boolean;
   emailEnviado: boolean;
+  /** Só para o cartão "Falta seu WhatsApp" (inscrições antigas, sem telefone). */
+  token?: string;
+  semTelefone?: boolean;
 }
 
 const hora = (iso: string) =>
   new Date(iso).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo" });
 
-export default function Ingresso({ nome, pelotao, codigo, qr, presenteEm, novo, emailEnviado }: Props) {
+export default function Ingresso({ nome, pelotao, codigo, qr, presenteEm, novo, emailEnviado, token, semTelefone }: Props) {
   const [aviso, setAviso] = useState("");
   const [salvando, setSalvando] = useState(false);
   const qrRef = useRef<HTMLDivElement>(null);
@@ -192,6 +196,8 @@ export default function Ingresso({ nome, pelotao, codigo, qr, presenteEm, novo, 
           </div>
         </article>
       </div>
+
+      {semTelefone && token ? <CompletarWhatsapp token={token} /> : null}
 
       <div className="lr-ing__acoes" data-entra>
         <a

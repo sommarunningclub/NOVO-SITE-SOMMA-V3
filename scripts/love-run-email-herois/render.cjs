@@ -11,13 +11,15 @@ const HEROIS = [
   { id: "reenvio", foto: "corre-aquecimento.jpg", t: "Seu|ingresso.", s: "Sáb · 07.11|Guarda bem" },
   { id: "informacoes", foto: "corre-trio.jpg", t: "Tá tudo|confirmado.", s: "Sáb · 07.11|Salva aí", tam: 170 },
   { id: "vespera", foto: "corre-pelotao.jpg", t: "É|amanhã!", s: "Sáb · 07.11|Separa o tênis" },
+  { id: "grupo", foto: "corre-bandeira.jpg", t: "Entra no|grupo!", s: "Sáb · 07.11|Corre do Lovezinho" },
   { id: "pos-corre", foto: "dex-mascote-abraco.jpg", t: "Obrigado|por correr.", s: "Só pra quem foi|Festa Dexcomplica", tam: 168 },
 ];
 (async () => {
   const b = await chromium.launch({ channel: "chrome" });
   const p = await b.newPage({ viewport: { width: 1200, height: 1100 } });
   const raiz = path.join(__dirname, "../..");
-  for (const h of HEROIS) {
+  const so = process.argv[2];
+  for (const h of HEROIS.filter((x) => !so || x.id === so)) {
     const q = new URLSearchParams({ foto: h.foto, t: h.t, s: h.s, ...(h.tam ? { tam: String(h.tam) } : {}) });
     await p.goto(`file://${__dirname}/heroi.html?${q}`, { waitUntil: "networkidle" });
     await p.evaluate(() => document.fonts.ready);

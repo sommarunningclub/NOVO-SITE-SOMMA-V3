@@ -932,3 +932,20 @@ html:has(.lr-root) { scroll-behavior: smooth; scroll-padding-top: 76px; }
   background: none; border: 0; padding: 2px 4px; color: var(--branco); font: inherit; font-weight: 800; cursor: pointer;
   text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--amarelo);
 }
+
+/* ─── Completar WhatsApp (inscrições antigas) ────────────────────────────── */
+.lr-completar {
+  width: 100%; max-width: 420px; margin: 0; padding: 18px; border-radius: 20px; text-align: left;
+  background: #123d27; border: 2px solid #25d366; color: var(--branco); display: grid; gap: 8px;
+}
+.lr-completar__titulo { margin: 0; font-family: var(--f-display); text-transform: uppercase; font-size: 28px; line-height: 1; }
+.lr-completar__texto { margin: 0; color: #cfe9d8; font-size: 14.5px; }
+.lr-completar__linha { display: flex; gap: 8px; }
+.lr-root .lr-completar input {
+  flex: 1; min-width: 0; min-height: 50px; padding: 0 16px; border-radius: 999px; border: 2px solid transparent;
+  background: var(--branco); color: var(--tinta); font: inherit; font-size: 17px;
+}
+.lr-root .lr-completar input:focus-visible { outline: none; border-color: var(--amarelo); }
+.lr-completar .lr-btn { min-height: 50px; padding: 0 20px; }
+.lr-completar__erro { margin: 0; color: var(--rosa); font-weight: 700; font-size: 14px; }
+.lr-completar--ok { display: flex; align-items: center; gap: 10px; font-weight: 800; color: #25d366; background: #123d27; }

@@ -178,6 +178,19 @@ async function testar() {
   t("pessoa criada em cadastro_site", cad && cad.id === l.p[0].pessoa_id && cad.sexo === "feminino");
   const codigoA = l.p[0].ticket_code;
 
+  console.log("Completar WhatsApp (inscrições antigas)");
+  const telA = l.p[0].telefone;
+  await sb.from("evento_participantes").update({ telefone: null }).eq("id", l.p[0].id);
+  await sb.from("checkins").update({ telefone: null }).eq("evento_id", ev.id).eq("cpf", A);
+  const wInvalido = await post("whatsapp", { token: tokenA, telefone: "6133334444" });
+  t("fixo é recusado (422)", wInvalido.status === 422, wInvalido.status);
+  const w = await post("whatsapp", { token: tokenA, telefone: telA });
+  let lw = await linhas(ev.id, A);
+  t("completa na inscrição e na lista da gestão", w.status === 200 && lw.p[0].telefone === telA && lw.c[0].telefone === telA, w.json);
+  const w2 = await post("whatsapp", { token: tokenA, telefone: "61991112222" });
+  lw = await linhas(ev.id, A);
+  t("não troca número já preenchido", w2.json.ja_tinha === true && lw.p[0].telefone === telA);
+
   console.log("Duplicidade");
   r = await post("inscricao", pessoa(A, 1));
   t("mesmo CPF + mesmo e-mail → mesmo ingresso (200)", r.status === 200 && r.json.ja_inscrito && r.json.ingresso_url === urlA, r);
