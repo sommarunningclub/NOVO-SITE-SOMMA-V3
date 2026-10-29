@@ -12,7 +12,6 @@ import {
   LOCAL_CORRE,
   urlComoChegar,
   GRUPO_WHATSAPP,
-  VAGAS,
 } from "@/lib/dexcomplica-love-run/event.config";
 import { rastrear } from "@/lib/dexcomplica-love-run/analytics";
 import { movimentoReduzido, useGsap } from "@/lib/dexcomplica-love-run/motion";
@@ -109,7 +108,7 @@ export default function Ingresso({ nome, pelotao, codigo, qr, presenteEm, novo, 
   };
 
   const compartilharEvento = async () => {
-    const dados = { title: EVENTO_NOME, text: `Bora no Dexcomplica Love Run? Gratuito, só ${VAGAS} vagas.`, url: EVENTO_URL };
+    const dados = { title: EVENTO_NOME, text: "Bora no Dexcomplica Love Run? Gratuito, vagas limitadas.", url: EVENTO_URL };
     try {
       if (navigator.share) await navigator.share(dados);
       else {
