@@ -184,11 +184,11 @@ export const POLITICA_PRIVACIDADE = "/politica-de-privacidade";
 export type EstadoInscricao = "em_breve" | "abertas" | "esgotado" | "encerradas";
 
 /**
- * Vagas divulgadas (pedido do Alex em 28/10/2026: deixar claro que são 500).
- * O teto que a inscrição obedece é `eventos.capacidade` no banco: mudar os dois juntos.
+ * Escassez na comunicação: "vagas limitadas", sem número (pedido do Alex em
+ * 29/10/2026). O teto real fica só no banco (`eventos.capacidade`): é ele que
+ * fecha a inscrição e faz a página mostrar "esgotado".
  */
-export const VAGAS = 500;
-export const ESCASSEZ_PUBLICA = `Só ${VAGAS} vagas`;
+export const ESCASSEZ_PUBLICA = "Vagas limitadas";
 
 /** Grupo do evento no WhatsApp: onde saem as novidades e informações. */
 export const GRUPO_WHATSAPP = {
