@@ -44,3 +44,10 @@ export async function POST(req: Request) {
   res.cookies.set(COOKIE, tokenDeAcesso(parceiro), COOKIE_OPTS);
   return res;
 }
+
+/** Sair: o cookie é apagado com o mesmo path em que foi gravado. */
+export async function DELETE() {
+  const res = NextResponse.json({ ok: true });
+  res.cookies.set(COOKIE, "", { ...COOKIE_OPTS, maxAge: 0 });
+  return res;
+}
