@@ -231,6 +231,17 @@ export function Painel({
     return () => clearInterval(id);
   }, [router]);
 
+  // Depois de apagar o cookie, o refresh faz o servidor devolver a tela do código.
+  const [saindo, setSaindo] = useState(false);
+  async function sair() {
+    setSaindo(true);
+    try {
+      await fetch("/api/parceiro-somma-club/auth", { method: "DELETE" });
+    } finally {
+      router.refresh();
+    }
+  }
+
   const data = formatarData(evento?.dataEvento ?? null);
 
   return (
@@ -250,7 +261,17 @@ export function Painel({
           </span>
         </header>
 
-        <p className="mt-10 text-sm text-white/50">Olá, {parceiro}.</p>
+        <div className="mt-10 flex items-center justify-between gap-4">
+          <p className="text-sm text-white/50">Olá, {parceiro}.</p>
+          <button
+            type="button"
+            onClick={sair}
+            disabled={saindo}
+            className="rounded-lg border border-white/15 px-3 py-1.5 text-xs font-medium text-white/60 transition-colors hover:border-white/30 hover:text-white disabled:opacity-40"
+          >
+            {saindo ? "Saindo..." : "Sair"}
+          </button>
+        </div>
 
         {evento ? (
           <>
