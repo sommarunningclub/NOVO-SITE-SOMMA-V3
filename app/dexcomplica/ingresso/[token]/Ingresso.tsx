@@ -7,6 +7,7 @@ import {
   DATA_EXTENSO,
   EVENTO_NOME,
   EVENTO_URL,
+  CONCENTRACAO_A_PARTIR,
   HORARIO,
   LOCAL_AFTER,
   LOCAL_CORRE,
@@ -170,7 +171,7 @@ export default function Ingresso({ nome, pelotao, codigo, qr, presenteEm, novo, 
               {HORARIO.concentracao ? (
                 <div>
                   <dt>Concentração</dt>
-                  <dd>{HORARIO.concentracao}</dd>
+                  <dd>A partir das {HORARIO.concentracao}</dd>
                 </div>
               ) : null}
               <div>
@@ -238,7 +239,7 @@ export default function Ingresso({ nome, pelotao, codigo, qr, presenteEm, novo, 
         <h2>Antes do corre</h2>
         <ul>
           <li>
-            <strong>Horário:</strong> {HORARIO.concentracao ? `concentração às ${HORARIO.concentracao}.` : "vamos divulgar no @somma.club e na página do evento."}
+            <strong>Horário:</strong> {HORARIO.concentracao ? `concentração ${CONCENTRACAO_A_PARTIR}.` : "vamos divulgar no @somma.club e na página do evento."}
           </li>
           <li>
             <strong>After no {LOCAL_AFTER.nome}:</strong> leve roupa de banho e uma segunda roupa. Tem ducha e vestiários.
