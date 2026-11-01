@@ -4,6 +4,7 @@ import {
   DATA_EXTENSO,
   EVENTO_URL,
   FESTA,
+  CONCENTRACAO_A_PARTIR,
   HORARIO,
   LOCAL_AFTER,
   LOCAL_CORRE,
@@ -47,7 +48,7 @@ export interface TemplateCampanha {
 
 const horario = () =>
   HORARIO.concentracao
-    ? `Concentração às ${HORARIO.concentracao}${HORARIO.largada ? `, largada às ${HORARIO.largada}` : ""}`
+    ? `Concentração ${CONCENTRACAO_A_PARTIR}${HORARIO.largada ? `, largada às ${HORARIO.largada}` : ""}`
     : A_CONFIRMAR("horário de concentração e largada");
 const percurso = () => (PERCURSO ? PERCURSO.descricao : A_CONFIRMAR("percurso e distâncias dos pelotões"));
 const after = () =>

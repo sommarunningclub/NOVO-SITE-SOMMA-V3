@@ -6,7 +6,7 @@ import {
   EVENTO_NOME,
   EVENTO_URL,
   GRUPO_WHATSAPP,
-  HORARIO,
+  CONCENTRACAO_A_PARTIR,
   LOCAL_AFTER,
   LOCAL_CORRE,
   urlComoChegar,
@@ -51,7 +51,7 @@ export function renderIngressoEmail(d: {
 }): string {
   const nome = esc(primeiro(d.nome));
   const dados: [string, string][] = [
-    ["Data", esc(DATA_EXTENSO_ANO) + (HORARIO.concentracao ? ` · ${esc(HORARIO.concentracao)}` : "")],
+    ["Data", esc(DATA_EXTENSO_ANO) + (CONCENTRACAO_A_PARTIR ? ` · concentração ${esc(CONCENTRACAO_A_PARTIR)}` : "")],
     ["Local", esc(LOCAL_CORRE.nome)],
     ...(d.pelotao ? ([["Pelotão", esc(rotuloPelotao(d.pelotao))]] as [string, string][]) : []),
   ];

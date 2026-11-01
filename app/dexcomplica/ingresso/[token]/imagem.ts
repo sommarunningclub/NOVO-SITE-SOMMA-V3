@@ -1,6 +1,6 @@
 "use client";
 
-import { DATA_EXTENSO, EVENTO_NOME, HORARIO, LOCAL_CORRE } from "@/lib/dexcomplica-love-run/event.config";
+import { CONCENTRACAO_A_PARTIR, DATA_EXTENSO, EVENTO_NOME, LOCAL_CORRE } from "@/lib/dexcomplica-love-run/event.config";
 
 /**
  * O ingresso como imagem 1080×1920 (tamanho de stories: fica bem na galeria
@@ -101,7 +101,7 @@ export async function desenharIngresso(d: {
   ctx.fillText(d.nome.toUpperCase(), x, py + 476 + tam + 6);
 
   const linhas: [string, string][] = [
-    ["DATA", DATA_EXTENSO + (HORARIO.concentracao ? ` · ${HORARIO.concentracao}` : "")],
+    ["DATA", DATA_EXTENSO + (CONCENTRACAO_A_PARTIR ? ` · ${CONCENTRACAO_A_PARTIR}` : "")],
     ["LOCAL", LOCAL_CORRE.nome],
     ["PELOTÃO", d.pelotao ?? "—"],
   ];

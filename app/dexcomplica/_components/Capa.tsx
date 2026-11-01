@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { APOIO, CHAMADA, ESCASSEZ_PUBLICA, HORARIO } from "@/lib/dexcomplica-love-run/event.config";
+import { APOIO, CHAMADA, CONCENTRACAO_A_PARTIR, ESCASSEZ_PUBLICA } from "@/lib/dexcomplica-love-run/event.config";
 import { rastrear } from "@/lib/dexcomplica-love-run/analytics";
 import { movimentoReduzido, useGsap } from "@/lib/dexcomplica-love-run/motion";
 import Marcas from "./Marcas";
@@ -74,7 +74,7 @@ export default function Capa() {
         <p className="lr-capa__apoio" data-capa-entra>{APOIO}</p>
 
         <ul className="lr-capa__fatos" aria-label="Informações do evento">
-          <li data-capa-entra><strong>Sábado, 7 de novembro</strong>{HORARIO.concentracao ? ` · ${HORARIO.concentracao}` : ""}</li>
+          <li data-capa-entra><strong>Sábado, 7 de novembro</strong>{CONCENTRACAO_A_PARTIR ? ` · ${CONCENTRACAO_A_PARTIR}` : ""}</li>
           <li data-capa-entra>Parque da Cidade, Estacionamento 1</li>
           <li data-capa-entra className="lr-selo lr-selo--amarelo">Inscrição gratuita</li>
           <li data-capa-entra className="lr-selo lr-selo--rosa">{ESCASSEZ_PUBLICA}</li>

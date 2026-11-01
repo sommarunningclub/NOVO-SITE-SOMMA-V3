@@ -60,11 +60,17 @@ export const DATA_CURTA = "07.11";
 export const DATA_EXTENSO = "Sábado, 7 de novembro";
 export const DATA_EXTENSO_ANO = "Sábado, 7 de novembro de 2026";
 
-/** Concentração confirmada pelo Alex em 28/10/2026. Largada: PENDENTE. */
+/**
+ * Concentração: 06h30 confirmada em 28/10/2026, trocada pelo Alex em 01/11
+ * para "a partir das 07h" e, no mesmo dia, para 07h30. Largada: PENDENTE.
+ */
 export const HORARIO: { concentracao: string | null; largada: string | null } = {
-  concentracao: "06h30",
+  concentracao: "07h30",
   largada: null,
 };
+
+/** "a partir das 07h30", para as frases; null enquanto não houver horário. */
+export const CONCENTRACAO_A_PARTIR = HORARIO.concentracao ? `a partir das ${HORARIO.concentracao}` : null;
 
 /* ─── Onde ────────────────────────────────────────────────────────────────── */
 export interface Ponto {

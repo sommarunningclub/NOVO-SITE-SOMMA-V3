@@ -4,6 +4,7 @@ import {
   DATA_CURTA,
   DATA_EXTENSO,
   FESTA,
+  CONCENTRACAO_A_PARTIR,
   HORARIO,
   INSTAGRAM_SOMMA,
   LOCAL_AFTER,
@@ -149,7 +150,7 @@ export default async function LoveRunPage({ searchParams }: { searchParams: Prom
               </div>
               <div>
                 <dt>Concentração</dt>
-                <dd>{HORARIO.concentracao ?? <span className="lr-embreve">Em breve</span>}</dd>
+                <dd>{CONCENTRACAO_A_PARTIR ? `A partir das ${HORARIO.concentracao}` : <span className="lr-embreve">Em breve</span>}</dd>
               </div>
               <div>
                 <dt>Largada</dt>
@@ -326,7 +327,7 @@ export default async function LoveRunPage({ searchParams }: { searchParams: Prom
                 [
                   "Qual é o horário?",
                   HORARIO.concentracao
-                    ? `A concentração é às ${HORARIO.concentracao}, no Estacionamento 1 do Parque da Cidade. Chegue com antecedência para o check-in.`
+                    ? `A concentração é ${CONCENTRACAO_A_PARTIR}, no Estacionamento 1 do Parque da Cidade. Chegue com antecedência para o check-in.`
                     : "Vamos divulgar aqui e no @somma.club assim que estiver confirmado.",
                 ],
                 [
