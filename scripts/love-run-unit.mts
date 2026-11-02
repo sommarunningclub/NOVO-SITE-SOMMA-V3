@@ -8,7 +8,9 @@
  * e-mail válidos, e o formato do código do ingresso que o balcão digita.
  */
 import { estadoDaInscricao, liberado, pelotoesValidos, rotuloPelotao } from "../lib/dexcomplica-love-run/estado";
-import { inscricaoSchema, mascararCpf, mascararTelefone, recuperarSchema, sugestaoEmail } from "../lib/dexcomplica-love-run/schema";
+import { prazoTransferenciaPassou } from "../lib/dexcomplica-love-run/event.config";
+import { inscricaoSchema, mascararCpf, mascararTelefone, perfilAcessoSchema, recuperarSchema, sugestaoEmail, transferenciaSchema } from "../lib/dexcomplica-love-run/schema";
+import { cpfsAnteriores, destinoDaTransferencia, emailsIguais, parseTransferencias, transferenciaDestaOrigem } from "../lib/dexcomplica-love-run/transferencia";
 
 let ok = 0, bad = 0;
 const t = (n: string, c: boolean, d: unknown = "") => { c ? (ok++, console.log("  ✓", n)) : (bad++, console.log("  ✗", n, d)); };
@@ -61,11 +63,34 @@ t("DDD inválido é recusado", !inscricaoSchema.safeParse({ ...base, telefone: "
 t("máscara do telefone", mascararTelefone("61998123456") === "(61) 99812-3456" && mascararTelefone("619") === "(61) 9");
 t("campos faltando são recusados", !inscricaoSchema.safeParse({ cpf: base.cpf }).success);
 t("recuperação aceita só CPF válido", recuperarSchema.safeParse({ cpf: "52998224725" }).success && !recuperarSchema.safeParse({ cpf: "123" }).success);
+t("perfil exige CPF e e-mail", perfilAcessoSchema.safeParse({ cpf: "52998224725", email: "maria@exemplo.com" }).success);
+t("perfil recusa e-mail errado", !perfilAcessoSchema.safeParse({ cpf: "52998224725", email: "maria@" }).success);
+t("perfil recusa sem e-mail", !perfilAcessoSchema.safeParse({ cpf: "52998224725" }).success);
+t("transferência reusa o schema da inscrição", transferenciaSchema.safeParse(base).success);
+t("transferência recusa CPF inválido", !transferenciaSchema.safeParse({ ...base, cpf: "111.111.111-11" }).success);
+
+console.log("Prazo de transferência");
+t("antes de 07/11 06:30 ainda pode", !prazoTransferenciaPassou(new Date("2026-11-07T06:29:00-03:00")));
+t("depois de 07/11 06:30 encerra", prazoTransferenciaPassou(new Date("2026-11-07T06:30:01-03:00")));
 
 console.log("Máscara de CPF");
 t("máscara completa", mascararCpf("52998224725") === "529.982.247-25");
 t("máscara parcial", mascararCpf("5299") === "529.9");
 t("ignora letras e excesso", mascararCpf("529a98224725999") === "529.982.247-25");
+
+console.log("Histórico de transferência");
+const hist = parseTransferencias({
+  transferencias: [
+    { em: "2026-11-01T12:00:00Z", cpf_origem: "529.982.247-25", cpf_destino: "11144477735" },
+    { em: "2026-11-02T12:00:00Z", cpf_origem: "11144477735", email_origem: "B@Ex.com", nome_destino: "Ana Souza", email_destino: "ana@ex.com", cpf_destino: "390.533.447-05" },
+  ],
+});
+t("lê duas saídas e normaliza CPF/e-mail", hist.length === 2 && hist[0].cpf_origem === "52998224725" && hist[1].email_origem === "b@ex.com");
+t("acha a última saída daquele CPF", transferenciaDestaOrigem(hist, "529.982.247-25")?.cpf_destino === "11144477735");
+t("destino usa nome gravado", destinoDaTransferencia(hist[1], { nome: "Outro", email: "x@y.com" }, true).nome === "Ana Souza");
+t("destino cai no titular atual se a ficha antiga só tinha CPF", destinoDaTransferencia(hist[0], { nome: "Alex", email: "a@b.com" }, true).nome === "Alex");
+t("cpfs anteriores junta o array e o histórico", JSON.stringify(cpfsAnteriores({ cpfs_anteriores: ["52998224725"], transferencias: hist })) === '["52998224725","11144477735"]');
+t("e-mails iguais ignoram caixa", emailsIguais(" Ana@Ex.com ", "ana@ex.com") && !emailsIguais("", "") && !emailsIguais("a@b.com", "c@d.com"));
 
 console.log("Sugestão de e-mail");
 t("gmaill.com → gmail.com", sugestaoEmail("Ana@Gmaill.com") === "ana@gmail.com");

@@ -16,6 +16,14 @@ Nada novo de infraestrutura: a LP usa as mesmas tabelas e a mesma função do SO
 
 Ingresso: `/dexcomplica/ingresso/<token>` (token aleatório de 32 bytes; noindex; sem Referer). O QR contém essa URL. O leitor da gestão (módulo Check-in → **Ler ingresso**) aceita o QR ou o código digitado e marca presença em `evento_participantes` (status `presente`) e em `checkins` (`validacao_do_checkin`). O botão Presente/Ausente da lista também reflete na inscrição.
 
+## Perfil e transferência
+
+Na LP, o bloco `#meu-ingresso` pede CPF + e-mail da inscrição. Se bater, abre o perfil (nome, pelotão, `DLR-XXXXXX`, link do QR) e o formulário para passar a vaga — os mesmos campos da ficha. Sem o e-mail em mãos, o atalho reenvia só com o CPF (comportamento antigo).
+
+A transferência **não cria vaga nova**: atualiza a mesma linha em `evento_participantes`, regenera o `ticket_token` (QR/link antigos 404) e mantém o `ticket_code`. O destinatário recebe o e-mail com o QR. Quem transferiu vai para `/dexcomplica/transferido` (o QR antigo some do aparelho). Se a pessoa acessar de novo com o CPF e o e-mail de origem, a mesma página confirma que a vaga não é mais dela. Recusa se o destino já está inscrito, se já fez check-in, ou depois das 06h30 do sábado 07/11.
+
+Rotas: `POST /api/dexcomplica-love-run/perfil` (token assinado de 20 min) e `POST /api/dexcomplica-love-run/transferir`.
+
 ## Liberação (interruptor único)
 
 Enquanto `eventos.oculto_no_checkin_publico = true` na linha do evento, o Love Run **não está liberado**:
@@ -64,4 +72,4 @@ Prévia local do ingresso e do e-mail (só em dev): `/dev/love-run`, `/dev/love-
 
 ## Métricas (GTM/dataLayer, prefixo `love_run_`)
 
-`lp_visualizada`, `cta_clicado`, `formulario_iniciado`, `inscricao_concluida`, `inscricao_erro`, `ja_inscrito`, `ingresso_visualizado`, `ingresso_salvo`, `codigo_copiado`, `como_chegar`, `festa_saiba_mais`, `evento_compartilhado`, `recuperacao_solicitada`. Nenhum dado pessoal sobe (filtro em `lib/dexcomplica-love-run/analytics.ts`).
+`lp_visualizada`, `cta_clicado`, `formulario_iniciado`, `inscricao_concluida`, `inscricao_erro`, `ja_inscrito`, `ingresso_visualizado`, `ingresso_salvo`, `codigo_copiado`, `como_chegar`, `festa_saiba_mais`, `evento_compartilhado`, `recuperacao_solicitada`, `perfil_acessado`, `transferencia_iniciada`, `transferencia_concluida`, `transferencia_erro`, `transferencia_pagina`. Nenhum dado pessoal sobe (filtro em `lib/dexcomplica-love-run/analytics.ts`).

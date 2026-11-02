@@ -1,9 +1,15 @@
 import "server-only";
 import { getServiceSupabase } from "@/lib/supabase";
-import { EVENTO_SLUG } from "./event.config";
-import type { EventoOperacional } from "./estado";
+import { EVENTO_SLUG, prazoTransferenciaPassou } from "./event.config";
+import { pelotoesValidos, type EventoOperacional } from "./estado";
 import type { Inscricao } from "./schema";
 import { gerarTicketCode, gerarTicketToken } from "./ticket";
+import {
+  cpfsAnteriores,
+  destinoDaTransferencia,
+  parseTransferencias,
+  transferenciaDestaOrigem,
+} from "./transferencia";
 
 /**
  * Persistência do Love Run, toda em estruturas que já existem no Somma:
@@ -103,6 +109,293 @@ export async function getEventoPorId(id: string): Promise<EventoRow | null> {
   if (!supabase) return null;
   const { data } = await supabase.from("eventos").select("*").eq("id", id).maybeSingle();
   return (data as EventoRow) ?? null;
+}
+
+export async function getParticipantePorId(id: string): Promise<Participante | null> {
+  const supabase = getServiceSupabase();
+  if (!supabase) return null;
+  const { data, error } = await supabase.from(TABELA).select("*").eq("id", id).maybeSingle();
+  if (error) {
+    console.error("[love-run] Erro ao buscar inscrição:", error.message);
+    return null;
+  }
+  return (data as Participante) ?? null;
+}
+
+function cpfMascarado(cpf: string): string {
+  const d = cpf.replace(/\D/g, "");
+  return `${d.slice(0, 3)}.${d.slice(3, 6)}.${d.slice(6, 9)}-${d.slice(9)}`;
+}
+
+export type ReciboOrigem = {
+  emailOrigem: string | null;
+  paraNome: string;
+  paraEmail: string | null;
+};
+
+/**
+ * Quem já passou a vaga: a inscrição agora está no CPF do novo titular, mas
+ * o CPF antigo ficou no histórico da metadata. E-mail de origem vem do
+ * registro (transferências novas) ou do cadastro_site (as antigas só tinham CPF).
+ */
+export async function getTransferenciaPorCpfOrigem(eventoId: string, cpf: string): Promise<ReciboOrigem | null> {
+  const supabase = getServiceSupabase();
+  if (!supabase) return null;
+  const d = cpf.replace(/\D/g, "");
+  if (d.length !== 11) return null;
+  const mascarado = cpfMascarado(d);
+
+  const tentar = async (filtro: Record<string, unknown>) => {
+    const { data, error } = await supabase
+      .from(TABELA)
+      .select("nome_completo, email, metadata")
+      .eq("evento_id", eventoId)
+      .contains("metadata", filtro)
+      .limit(1);
+    if (error) {
+      console.error("[love-run] Erro ao buscar transferência por origem:", error.message);
+      return null;
+    }
+    return data?.[0] ?? null;
+  };
+
+  const linha =
+    (await tentar({ cpfs_anteriores: [d] })) ||
+    (await tentar({ transferencias: [{ cpf_origem: d }] })) ||
+    (await tentar({ transferencias: [{ cpf_origem: mascarado }] }));
+  if (!linha) return null;
+
+  const lista = parseTransferencias(linha.metadata);
+  const registro = transferenciaDestaOrigem(lista, d);
+  if (!registro) return null;
+
+  let emailOrigem = registro.email_origem ?? null;
+  if (!emailOrigem) emailOrigem = await emailCadastroPorCpf(d);
+
+  const destino = destinoDaTransferencia(
+    registro,
+    { nome: linha.nome_completo, email: linha.email },
+    lista[lista.length - 1] === registro
+  );
+
+  return { emailOrigem, paraNome: destino.nome, paraEmail: destino.email };
+}
+
+async function emailCadastroPorCpf(cpf: string): Promise<string | null> {
+  const supabase = getServiceSupabase();
+  if (!supabase) return null;
+  const d = cpf.replace(/\D/g, "");
+  const { data, error } = await supabase
+    .from("cadastro_site")
+    .select("email")
+    .in("cpf", [d, cpfMascarado(d)])
+    .limit(1);
+  if (error) {
+    console.error("[love-run] Erro ao buscar e-mail do cadastro na transferência:", error.message);
+    return null;
+  }
+  const email = (data?.[0]?.email ?? "").trim().toLowerCase();
+  return email || null;
+}
+
+export type MotivoTransferencia =
+  | "sem_banco"
+  | "nao_encontrada"
+  | "presente"
+  | "cancelado"
+  | "mesmo_cpf"
+  | "destino_inscrito"
+  | "prazo"
+  | "pelotao"
+  | "erro";
+
+export type ResultadoTransferencia =
+  | { ok: true; participante: Participante; anterior: { nome: string; cpf: string; email: string | null } }
+  | { ok: false; motivo: MotivoTransferencia };
+
+/**
+ * Passa a vaga para outra pessoa. A inscrição é a MESMA linha: o teto de
+ * vagas não se mexe (o evento está esgotado). O que muda de verdade:
+ *  - o titular (pessoa, CPF, e-mail, telefone, sexo, pelotão);
+ *  - o `ticket_token`, então o QR e o link antigos deixam de abrir.
+ *
+ * O `ticket_code` (DLR-XXXXXX) fica: é o que o balcão já tem na lista.
+ */
+export async function transferirIngresso(
+  participacaoId: string,
+  novo: Inscricao,
+  evento: EventoRow
+): Promise<ResultadoTransferencia> {
+  const supabase = getServiceSupabase();
+  if (!supabase) return { ok: false, motivo: "sem_banco" };
+
+  if (prazoTransferenciaPassou()) return { ok: false, motivo: "prazo" };
+
+  const atual = await getParticipantePorId(participacaoId);
+  if (!atual || atual.evento_id !== evento.id) return { ok: false, motivo: "nao_encontrada" };
+  if (atual.status === "presente") return { ok: false, motivo: "presente" };
+  if (atual.status === "cancelado") return { ok: false, motivo: "cancelado" };
+  if (atual.cpf === novo.cpf) return { ok: false, motivo: "mesmo_cpf" };
+
+  if (!pelotoesValidos(evento.pelotoes).includes(novo.pelotao)) {
+    return { ok: false, motivo: "pelotao" };
+  }
+
+  const { data: destino, error: erroDestino } = await supabase
+    .from(TABELA)
+    .select("id")
+    .eq("evento_id", evento.id)
+    .eq("cpf", novo.cpf)
+    .maybeSingle();
+  if (erroDestino) {
+    console.error("[love-run] Erro ao conferir destino:", erroDestino.message);
+    return { ok: false, motivo: "erro" };
+  }
+  if (destino && destino.id !== atual.id) return { ok: false, motivo: "destino_inscrito" };
+
+  const { data: pessoaId, error: erroPessoa } = await supabase.rpc("upsert_pessoa_por_cpf", {
+    p_cpf: novo.cpf,
+    p_nome: novo.nome,
+    p_email: novo.email,
+    p_whatsapp: novo.telefone,
+    p_sexo: novo.sexo,
+    p_nascimento: null,
+    p_cep: null,
+    p_atualizar: false,
+  });
+  if (erroPessoa || pessoaId == null) {
+    console.error("[love-run] Erro ao upsert pessoa na transferência:", erroPessoa?.message);
+    return { ok: false, motivo: "erro" };
+  }
+
+  const { data: conflitoPessoa } = await supabase
+    .from(TABELA)
+    .select("id")
+    .eq("evento_id", evento.id)
+    .eq("pessoa_id", pessoaId)
+    .neq("id", atual.id)
+    .maybeSingle();
+  if (conflitoPessoa) return { ok: false, motivo: "destino_inscrito" };
+
+  const metaAtual = atual.metadata && typeof atual.metadata === "object" ? atual.metadata : {};
+  const historico = Array.isArray(metaAtual.transferencias) ? [...metaAtual.transferencias] : [];
+  historico.push({
+    em: new Date().toISOString(),
+    cpf_origem: atual.cpf,
+    email_origem: (atual.email ?? "").trim().toLowerCase() || null,
+    nome_origem: atual.nome_completo,
+    cpf_destino: novo.cpf,
+    email_destino: novo.email,
+    nome_destino: novo.nome,
+  });
+  const anteriores = [...cpfsAnteriores(metaAtual), atual.cpf.replace(/\D/g, "")].filter(
+    (c, i, a) => c.length === 11 && a.indexOf(c) === i
+  );
+
+  const novoToken = gerarTicketToken();
+  const { data: atualizado, error } = await supabase
+    .from(TABELA)
+    .update({
+      pessoa_id: pessoaId,
+      cpf: novo.cpf,
+      nome_completo: novo.nome,
+      email: novo.email,
+      telefone: novo.telefone,
+      pelotao: novo.pelotao,
+      ticket_token: novoToken,
+      metadata: {
+        ...metaAtual,
+        sexo: novo.sexo,
+        marketing_optin: novo.marketing === true,
+        transferencias: historico,
+        cpfs_anteriores: anteriores,
+      },
+    })
+    .eq("id", atual.id)
+    .eq("ticket_token", atual.ticket_token)
+    .in("status", ["inscrito", "confirmado"])
+    .select("*")
+    .maybeSingle();
+
+  if (error) {
+    if (error.code === "23505") return { ok: false, motivo: "destino_inscrito" };
+    console.error("[love-run] Transferência falhou:", error.message);
+    return { ok: false, motivo: "erro" };
+  }
+  if (!atualizado) {
+    // Check-in bateu na mesma janela, ou o token já tinha virado.
+    const deNovo = await getParticipantePorId(atual.id);
+    if (deNovo?.status === "presente") return { ok: false, motivo: "presente" };
+    return { ok: false, motivo: "nao_encontrada" };
+  }
+
+  const participante = atualizado as Participante;
+  await atualizarCheckinTransferencia(evento, atual.cpf, {
+    nome: novo.nome,
+    email: novo.email,
+    telefone: novo.telefone,
+    cpf: novo.cpf,
+    sexo: novo.sexo,
+    pelotao: novo.pelotao,
+  });
+
+  return {
+    ok: true,
+    participante,
+    anterior: { nome: atual.nome_completo, cpf: atual.cpf, email: atual.email },
+  };
+}
+
+async function atualizarCheckinTransferencia(
+  evento: EventoRow,
+  cpfAntigo: string,
+  novo: { nome: string; email: string; telefone: string; cpf: string; sexo: string; pelotao: string }
+): Promise<void> {
+  const supabase = getServiceSupabase();
+  if (!supabase) return;
+  const antigo = cpfAntigo.replace(/\D/g, "");
+  if (antigo.length !== 11) return;
+
+  const { data: linhas, error: erroBusca } = await supabase
+    .from("checkins")
+    .select("id")
+    .eq("evento_id", evento.id)
+    .in("cpf", [antigo, cpfMascarado(antigo)]);
+  if (erroBusca) {
+    console.error("[love-run] Erro ao achar check-in da transferência:", erroBusca.message);
+    return;
+  }
+
+  const payload = {
+    nome_completo: novo.nome,
+    email: novo.email,
+    telefone: novo.telefone,
+    cpf: novo.cpf,
+    sexo: novo.sexo,
+    pelotao: novo.pelotao,
+    validacao_do_checkin: false,
+  };
+
+  if (linhas && linhas.length > 0) {
+    const { error } = await supabase
+      .from("checkins")
+      .update(payload)
+      .in(
+        "id",
+        linhas.map((l) => l.id)
+      );
+    if (error) console.error("[love-run] Erro ao atualizar check-in na transferência:", error.message);
+    return;
+  }
+
+  const { error } = await supabase.from("checkins").insert({
+    ...payload,
+    data_do_evento: evento.data_evento,
+    nome_do_evento: evento.titulo ?? "",
+    evento_id: evento.id,
+    data_hora_checkin: new Date().toISOString(),
+  });
+  if (error) console.error("[love-run] Erro ao espelhar check-in na transferência:", error.message);
 }
 
 export type ResultadoInscricao =

@@ -24,7 +24,12 @@ export type EventoLoveRun =
   | "grupo_convite_visto"
   | "grupo_whatsapp_clicado"
   | "whatsapp_completado"
-  | "recuperacao_solicitada";
+  | "recuperacao_solicitada"
+  | "perfil_acessado"
+  | "transferencia_iniciada"
+  | "transferencia_concluida"
+  | "transferencia_erro"
+  | "transferencia_pagina";
 
 type Props = Record<string, string | number | boolean | null>;
 

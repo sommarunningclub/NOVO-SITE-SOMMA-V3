@@ -7,11 +7,11 @@ export default function IngressoNaoEncontrado() {
         <p className="lr-eyebrow lr-eyebrow--claro">Dexcomplica Love Run</p>
         <h1 className="lr-h2 lr-h2--claro">Ingresso não encontrado.</h1>
         <p className="lr-lead lr-lead--claro">
-          O link pode estar incompleto ou a inscrição foi cancelada. Na página do evento você pode pedir o ingresso de novo
-          pelo CPF: ele chega no e-mail usado na inscrição.
+          O link pode estar incompleto, o ingresso foi transferido ou a inscrição foi cancelada. Na página do evento, acesse
+          com CPF e e-mail da inscrição — ou peça o reenvio só com o CPF.
         </p>
-        <Link href="/dexcomplica#inscricao" className="lr-btn lr-btn--vermelho">
-          Recuperar meu ingresso
+        <Link href="/dexcomplica#meu-ingresso" className="lr-btn lr-btn--vermelho">
+          Acessar meu ingresso
         </Link>
       </div>
     </main>
