@@ -74,6 +74,10 @@ function iniciaisInsider(nome: string) {
 
 function formatDate(d: string) {
   if (!d) return '—'
+  // Coluna `date` ("2026-11-07"): new Date() leria como meia-noite UTC e
+  // voltaria um dia no fuso de Brasília.
+  const soData = /^(\d{4})-(\d{2})-(\d{2})$/.exec(d)
+  if (soData) return `${soData[3]}/${soData[2]}/${soData[1]}`
   const date = new Date(d)
   return date.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' })
 }

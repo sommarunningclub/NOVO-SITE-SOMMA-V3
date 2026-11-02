@@ -19,6 +19,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Dados incompletos.' }, { status: 400 })
     }
 
+    // Evento com inscrição pela própria página (Love Run): a vaga, o ingresso e
+    // o QR vivem em `evento_participantes`. Trocar só a linha de `checkins`
+    // deixaria o QR com a pessoa antiga, então a manual fica fora.
+    const { count: daPagina } = await supabase
+      .from('evento_participantes')
+      .select('id', { count: 'exact', head: true })
+      .eq('evento_id', evento_id)
+    if (daPagina) {
+      return NextResponse.json(
+        { error: 'Neste evento a transferência é feita pela página do evento, em "Acessar meu ingresso", para o ingresso e o QR Code irem junto.' },
+        { status: 409 }
+      )
+    }
+
     const { nome, email, telefone, cpf, sexo, pelotao } = dados_novo
     if (!nome || !email || !telefone || !cpf || !sexo) {
       return NextResponse.json(
