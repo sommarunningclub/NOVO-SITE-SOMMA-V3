@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireInsiderAuth } from '@/lib/auth/insider'
 import { getServiceSupabase } from '@/lib/supabase'
+import { bateBusca, transferenciasDasInscricoes } from '@/lib/transferencias/inscricoes'
 
 export const dynamic = 'force-dynamic'
 
@@ -33,12 +34,18 @@ export async function GET(req: NextRequest) {
 
     const { data, error } = await query
 
-    if (error) {
-      console.error('[transferencias/listar] erro:', error)
-      return NextResponse.json({ transferencias: [] }, { status: 200 })
-    }
+    if (error) console.error('[transferencias/listar] erro:', error)
 
-    return NextResponse.json({ transferencias: data || [] })
+    // Eventos com inscrição pela própria página (Love Run) guardam a
+    // transferência na inscrição, não na tabela: entram junto na lista.
+    const daPagina = eventoId
+      ? (await transferenciasDasInscricoes(supabase, eventoId)).filter((t) => bateBusca(t, busca))
+      : []
+
+    const transferencias = [...(error ? [] : data || []), ...daPagina].sort((a, b) =>
+      String(b.created_at).localeCompare(String(a.created_at))
+    )
+    return NextResponse.json({ transferencias })
   } catch (err) {
     console.error('[transferencias/listar] erro:', err)
     return NextResponse.json({ transferencias: [] })
