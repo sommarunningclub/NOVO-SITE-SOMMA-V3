@@ -349,7 +349,8 @@ export async function transferirIngresso(
 async function atualizarCheckinTransferencia(
   evento: EventoRow,
   cpfAntigo: string,
-  novo: { nome: string; email: string; telefone: string; cpf: string; sexo: string; pelotao: string }
+  novo: { nome: string; email: string; telefone: string; cpf: string; sexo: string; pelotao: string },
+  opcoes: { manterValidacao?: boolean } = {}
 ): Promise<void> {
   const supabase = getServiceSupabase();
   if (!supabase) return;
@@ -373,7 +374,7 @@ async function atualizarCheckinTransferencia(
     cpf: novo.cpf,
     sexo: novo.sexo,
     pelotao: novo.pelotao,
-    validacao_do_checkin: false,
+    ...(opcoes.manterValidacao ? {} : { validacao_do_checkin: false }),
   };
 
   if (linhas && linhas.length > 0) {
@@ -396,6 +397,209 @@ async function atualizarCheckinTransferencia(
     data_hora_checkin: new Date().toISOString(),
   });
   if (error) console.error("[love-run] Erro ao espelhar check-in na transferência:", error.message);
+}
+
+/* ─── Insider Connect: editar e desfazer a última transferência ─────────── */
+
+export type MotivoAjusteTransferencia =
+  | "sem_banco"
+  | "nao_encontrada"
+  | "nao_e_a_ultima"
+  | "presente"
+  | "cancelado"
+  | "cpf_inscrito"
+  | "sem_dados_origem"
+  | "pelotao"
+  | "erro";
+
+export type ResultadoAjusteTransferencia =
+  | { ok: true; participante: Participante; reenviarPara: string | null }
+  | { ok: false; motivo: MotivoAjusteTransferencia };
+
+/** `"<id da inscrição>:<posição no histórico>"`, como a lista do Insider monta. */
+function lerIdTransferencia(id: string): { participacaoId: string; indice: number } | null {
+  const m = /^([0-9a-f-]{36}):(\d+)$/i.exec(id.trim());
+  return m ? { participacaoId: m[1], indice: Number(m[2]) } : null;
+}
+
+async function carregarUltimaTransferencia(id: string, evento: EventoRow) {
+  const ref = lerIdTransferencia(id);
+  if (!ref) return { erro: "nao_encontrada" as const };
+  const atual = await getParticipantePorId(ref.participacaoId);
+  if (!atual || atual.evento_id !== evento.id) return { erro: "nao_encontrada" as const };
+  const meta = atual.metadata && typeof atual.metadata === "object" ? atual.metadata : {};
+  const bruto = Array.isArray(meta.transferencias) ? [...(meta.transferencias as unknown[])] : [];
+  if (!bruto.length || ref.indice >= bruto.length) return { erro: "nao_encontrada" as const };
+  // Só a última mexe no titular atual; as anteriores já viraram história.
+  if (ref.indice !== bruto.length - 1) return { erro: "nao_e_a_ultima" as const };
+  const registro = parseTransferencias({ transferencias: [bruto[ref.indice]] })[0];
+  if (!registro) return { erro: "nao_encontrada" as const };
+  return { atual, meta, bruto, registro };
+}
+
+async function cpfJaInscritoEmOutra(evento: EventoRow, cpf: string, participacaoId: string): Promise<boolean | null> {
+  const supabase = getServiceSupabase();
+  if (!supabase) return null;
+  const { data, error } = await supabase
+    .from(TABELA)
+    .select("id")
+    .eq("evento_id", evento.id)
+    .eq("cpf", cpf)
+    .neq("id", participacaoId)
+    .limit(1);
+  if (error) return null;
+  return (data ?? []).length > 0;
+}
+
+/**
+ * Desfaz a última transferência: a vaga volta para quem passou, com QR novo
+ * (o de quem recebeu deixa de abrir) e a lista de check-in volta para ele. O
+ * registro sai do histórico e vai para `transferencias_desfeitas`, com quem
+ * desfez. O pelotão fica o atual: a transferência não guardava o antigo.
+ * Nome, e-mail, WhatsApp e sexo de quem passou vêm do registro ou, nas
+ * primeiras transferências (só CPF), do cadastro de pessoas.
+ */
+export async function desfazerTransferencia(
+  id: string,
+  evento: EventoRow,
+  porQuem: string
+): Promise<ResultadoAjusteTransferencia> {
+  const supabase = getServiceSupabase();
+  if (!supabase) return { ok: false, motivo: "sem_banco" };
+  const c = await carregarUltimaTransferencia(id, evento);
+  if ("erro" in c) return { ok: false, motivo: c.erro! };
+  const { atual, meta, bruto, registro } = c;
+  if (atual.status === "presente") return { ok: false, motivo: "presente" };
+  if (atual.status === "cancelado") return { ok: false, motivo: "cancelado" };
+
+  const conflito = await cpfJaInscritoEmOutra(evento, registro.cpf_origem, atual.id);
+  if (conflito === null) return { ok: false, motivo: "erro" };
+  if (conflito) return { ok: false, motivo: "cpf_inscrito" };
+
+  const { data: pessoa } = await supabase
+    .from("cadastro_site")
+    .select("id, nome_completo, email, whatsapp, sexo")
+    .eq("cpf_digits", registro.cpf_origem)
+    .maybeSingle();
+  const nome = registro.nome_origem || pessoa?.nome_completo || "";
+  const email = (registro.email_origem || pessoa?.email || "").trim().toLowerCase();
+  if (!nome || !email || !pessoa?.id) return { ok: false, motivo: "sem_dados_origem" };
+  const telefone = String(pessoa.whatsapp ?? "").trim() || null;
+  const sexoCad = String(pessoa.sexo ?? "").trim().toLowerCase();
+  const sexo = sexoCad.startsWith("f") ? "feminino" : sexoCad.startsWith("m") ? "masculino" : (meta.sexo as string) ?? null;
+
+  const desfeitas = Array.isArray(meta.transferencias_desfeitas) ? [...(meta.transferencias_desfeitas as unknown[])] : [];
+  desfeitas.push({ ...(bruto[bruto.length - 1] as object), desfeita_em: new Date().toISOString(), desfeita_por: porQuem });
+  const historico = bruto.slice(0, -1);
+  const anteriores = cpfsAnteriores({ cpfs_anteriores: meta.cpfs_anteriores, transferencias: historico }).filter(
+    (cpf) => cpf !== registro.cpf_origem
+  );
+
+  const cpfAtual = atual.cpf;
+  const { data: atualizado, error } = await supabase
+    .from(TABELA)
+    .update({
+      pessoa_id: pessoa.id,
+      cpf: registro.cpf_origem,
+      nome_completo: nome,
+      email,
+      telefone,
+      ticket_token: gerarTicketToken(),
+      metadata: { ...meta, sexo, transferencias: historico, cpfs_anteriores: anteriores, transferencias_desfeitas: desfeitas },
+    })
+    .eq("id", atual.id)
+    .eq("ticket_token", atual.ticket_token)
+    .in("status", ["inscrito", "confirmado"])
+    .select("*")
+    .maybeSingle();
+  if (error) {
+    if (error.code === "23505") return { ok: false, motivo: "cpf_inscrito" };
+    console.error("[love-run] Desfazer transferência falhou:", error.message);
+    return { ok: false, motivo: "erro" };
+  }
+  if (!atualizado) return { ok: false, motivo: "presente" };
+
+  await atualizarCheckinTransferencia(evento, cpfAtual, {
+    nome,
+    email,
+    telefone: telefone ?? "",
+    cpf: registro.cpf_origem,
+    sexo: sexo ?? "",
+    pelotao: atual.pelotao ?? "",
+  });
+  return { ok: true, participante: atualizado as Participante, reenviarPara: email };
+}
+
+/**
+ * Corrige os dados de quem recebeu a vaga (o titular atual) e o registro da
+ * transferência. O QR não muda. Mudou o e-mail: o ingresso vai de novo para
+ * o novo endereço. Vale também depois do check-in, sem desfazer a validação.
+ */
+export async function editarTitularTransferido(
+  id: string,
+  dados: Omit<Inscricao, "utm" | "marketing">,
+  evento: EventoRow
+): Promise<ResultadoAjusteTransferencia> {
+  const supabase = getServiceSupabase();
+  if (!supabase) return { ok: false, motivo: "sem_banco" };
+  const c = await carregarUltimaTransferencia(id, evento);
+  if ("erro" in c) return { ok: false, motivo: c.erro! };
+  const { atual, meta, bruto } = c;
+  if (atual.status === "cancelado") return { ok: false, motivo: "cancelado" };
+  if (!pelotoesValidos(evento.pelotoes).includes(dados.pelotao)) return { ok: false, motivo: "pelotao" };
+
+  let pessoaId: number = atual.pessoa_id;
+  if (dados.cpf !== atual.cpf) {
+    const conflito = await cpfJaInscritoEmOutra(evento, dados.cpf, atual.id);
+    if (conflito === null) return { ok: false, motivo: "erro" };
+    if (conflito) return { ok: false, motivo: "cpf_inscrito" };
+    const { data: novaPessoa, error: erroPessoa } = await supabase.rpc("upsert_pessoa_por_cpf", {
+      p_cpf: dados.cpf,
+      p_nome: dados.nome,
+      p_email: dados.email,
+      p_whatsapp: dados.telefone,
+      p_sexo: dados.sexo,
+      p_nascimento: null,
+      p_cep: null,
+      p_atualizar: false,
+    });
+    if (erroPessoa || novaPessoa == null) return { ok: false, motivo: "erro" };
+    pessoaId = novaPessoa as number;
+  }
+
+  const historico = [...bruto];
+  historico[historico.length - 1] = {
+    ...(historico[historico.length - 1] as object),
+    cpf_destino: dados.cpf,
+    nome_destino: dados.nome,
+    email_destino: dados.email,
+    editada_em: new Date().toISOString(),
+  };
+
+  const { data: atualizado, error } = await supabase
+    .from(TABELA)
+    .update({
+      pessoa_id: pessoaId,
+      cpf: dados.cpf,
+      nome_completo: dados.nome,
+      email: dados.email,
+      telefone: dados.telefone,
+      pelotao: dados.pelotao,
+      metadata: { ...meta, sexo: dados.sexo, transferencias: historico },
+    })
+    .eq("id", atual.id)
+    .select("*")
+    .maybeSingle();
+  if (error) {
+    if (error.code === "23505") return { ok: false, motivo: "cpf_inscrito" };
+    console.error("[love-run] Editar titular falhou:", error.message);
+    return { ok: false, motivo: "erro" };
+  }
+  if (!atualizado) return { ok: false, motivo: "nao_encontrada" };
+
+  await atualizarCheckinTransferencia(evento, atual.cpf, { ...dados }, { manterValidacao: true });
+  const mudouEmail = (atual.email ?? "").trim().toLowerCase() !== dados.email;
+  return { ok: true, participante: atualizado as Participante, reenviarPara: mudouEmail ? dados.email : null };
 }
 
 export type ResultadoInscricao =

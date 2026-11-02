@@ -25,6 +25,10 @@ export interface TransferenciaLista {
   origem: "usuario" | "admin";
   admin_user_id: string | null;
   created_at: string;
+  /** Só a última de cada vaga: é ela que define o titular atual. */
+  editavel?: boolean;
+  /** Dados atuais de quem recebeu, para o formulário de edição. */
+  titular?: { telefone: string; sexo: string; pelotao: string; presente: boolean };
 }
 
 export async function transferenciasDasInscricoes(
@@ -33,7 +37,7 @@ export async function transferenciasDasInscricoes(
 ): Promise<TransferenciaLista[]> {
   const { data, error } = await supabase
     .from("evento_participantes")
-    .select("id, nome_completo, email, metadata")
+    .select("id, nome_completo, email, telefone, pelotao, status, metadata")
     .eq("evento_id", eventoId)
     .not("metadata->transferencias", "is", null);
   if (error || !data?.length) return [];
@@ -57,6 +61,17 @@ export async function transferenciasDasInscricoes(
         origem: "usuario",
         admin_user_id: null,
         created_at: t.em,
+        ...(i === lista.length - 1 && p.status !== "cancelado"
+          ? {
+              editavel: true,
+              titular: {
+                telefone: p.telefone ?? "",
+                sexo: String((p.metadata as { sexo?: unknown } | null)?.sexo ?? ""),
+                pelotao: p.pelotao ?? "",
+                presente: p.status === "presente",
+              },
+            }
+          : {}),
       });
     });
   }

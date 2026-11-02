@@ -5,7 +5,7 @@ import {
   Search, LogOut, Users, ClipboardList, CheckSquare,
   MessageCircle, Check, X, ShieldCheck, ChevronRight,
   ArrowLeft, Loader2, RefreshCw, Lock, ChevronDown,
-  Trophy, Dices, Filter, Clock, Repeat, Plus, Eye, EyeOff, UserCircle,
+  Trophy, Dices, Filter, Clock, Repeat, Plus, Eye, EyeOff, UserCircle, Pencil, Trash2,
 } from 'lucide-react'
 import PerfilInsiderView from '@/components/insider/PerfilInsider'
 import type { ParticipanteSorteio } from '@/lib/sorteio/types'
@@ -656,6 +656,9 @@ type Transferencia = {
   origem: 'usuario' | 'admin'
   admin_user_id: string | null
   created_at: string
+  /** Transferência feita pela página do evento, a mais recente da vaga. */
+  editavel?: boolean
+  titular?: { telefone: string; sexo: string; pelotao: string; presente: boolean }
 }
 
 type CheckinBusca = {
@@ -677,6 +680,10 @@ function ModuloTransferencias({ insiderNome }: { insiderNome: string }) {
   const [busca, setBusca] = useState('')
   const [loading, setLoading] = useState(false)
   const [showModal, setShowModal] = useState(false)
+  const [editando, setEditando] = useState<Transferencia | null>(null)
+  const [excluindo, setExcluindo] = useState<Transferencia | null>(null)
+  const [pelotoesEvento, setPelotoesEvento] = useState<string[]>([])
+  const [aviso, setAviso] = useState('')
   const [habilitada, setHabilitada] = useState<boolean | null>(null)
   const [togglando, setTogglando] = useState(false)
   const [encerrado, setEncerrado] = useState<boolean | null>(null)
@@ -762,6 +769,7 @@ function ModuloTransferencias({ insiderNome }: { insiderNome: string }) {
       const res = await insiderFetch(`/api/transferencias/listar?${params}`)
       const data = await res.json()
       setTransferencias(data.transferencias || [])
+      setPelotoesEvento(data.pelotoes || [])
     } catch (e) {
       console.error('[transferencias] erro listar:', e)
     } finally {
@@ -856,7 +864,15 @@ function ModuloTransferencias({ insiderNome }: { insiderNome: string }) {
         <div className="py-12 flex justify-center">
           <Loader2 className="w-6 h-6 text-[#ff2c03] animate-spin" />
         </div>
-      ) : transferencias.length === 0 ? (
+      ) : null}
+
+      {aviso && (
+        <div role="status" className="bg-green-500/10 border border-green-500/30 px-3 py-2 rounded-lg">
+          <p className="text-green-400 text-xs">{aviso}</p>
+        </div>
+      )}
+
+      {loading ? null : transferencias.length === 0 ? (
         <div className="py-12 text-center text-zinc-500 text-sm">
           Nenhuma transferência registrada neste evento.
         </div>
@@ -872,7 +888,27 @@ function ModuloTransferencias({ insiderNome }: { insiderNome: string }) {
                 }`}>
                   {t.origem === 'admin' ? 'Manual (Insider)' : 'Pelo usuário'}
                 </span>
-                <span className="text-zinc-600 text-xs">{formatDateTime(t.created_at)}</span>
+                <div className="flex items-center gap-3">
+                  <span className="text-zinc-600 text-xs">{formatDateTime(t.created_at)}</span>
+                  {t.editavel && (
+                    <>
+                      <button
+                        onClick={() => { setAviso(''); setEditando(t) }}
+                        className="flex items-center gap-1 text-xs text-zinc-400 hover:text-white"
+                        aria-label={`Editar transferência para ${t.nome_destino}`}
+                      >
+                        <Pencil className="w-3.5 h-3.5" /> Editar
+                      </button>
+                      <button
+                        onClick={() => { setAviso(''); setExcluindo(t) }}
+                        className="flex items-center gap-1 text-xs text-zinc-400 hover:text-red-400"
+                        aria-label={`Excluir transferência para ${t.nome_destino}`}
+                      >
+                        <Trash2 className="w-3.5 h-3.5" /> Excluir
+                      </button>
+                    </>
+                  )}
+                </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
@@ -894,6 +930,31 @@ function ModuloTransferencias({ insiderNome }: { insiderNome: string }) {
         </div>
       )}
 
+      {editando && (
+        <ModalEditarTransferencia
+          transferencia={editando}
+          pelotoes={pelotoesEvento}
+          onClose={() => setEditando(null)}
+          onSuccess={(msg) => {
+            setEditando(null)
+            setAviso(msg)
+            carregarTransferencias()
+          }}
+        />
+      )}
+
+      {excluindo && (
+        <ModalExcluirTransferencia
+          transferencia={excluindo}
+          onClose={() => setExcluindo(null)}
+          onSuccess={(msg) => {
+            setExcluindo(null)
+            setAviso(msg)
+            carregarTransferencias()
+          }}
+        />
+      )}
+
       {showModal && (
         <ModalTransferenciaManual
           eventoId={selectedEventoId}
@@ -905,6 +966,228 @@ function ModuloTransferencias({ insiderNome }: { insiderNome: string }) {
           }}
         />
       )}
+    </div>
+  )
+}
+
+// ─── Transferências da página do evento: editar e excluir (desfazer) ─────────
+
+function CabecalhoModal({ rotulo, titulo, onClose }: { rotulo: string; titulo: string; onClose: () => void }) {
+  return (
+    <div className="sticky top-0 bg-zinc-950 border-b border-zinc-800 px-5 py-4 flex items-center justify-between">
+      <div>
+        <p className="text-[#ff2c03] text-[10px] font-semibold uppercase tracking-widest">{rotulo}</p>
+        <p className="text-white text-sm font-semibold mt-0.5">{titulo}</p>
+      </div>
+      <button onClick={onClose} className="p-1.5 text-zinc-500 hover:text-white" aria-label="Fechar">
+        <X className="w-5 h-5" />
+      </button>
+    </div>
+  )
+}
+
+const rotuloPelotaoInsider = (v: string) => v.replace(/^(\d+(?:[.,]\d+)?)\s*km$/i, '$1 km')
+
+function ModalEditarTransferencia({
+  transferencia: t,
+  pelotoes,
+  onClose,
+  onSuccess,
+}: {
+  transferencia: Transferencia
+  pelotoes: string[]
+  onClose: () => void
+  onSuccess: (msg: string) => void
+}) {
+  const [dados, setDados] = useState({
+    nome: t.nome_destino,
+    cpf: t.cpf_destino,
+    email: t.email_destino,
+    telefone: t.titular?.telefone ?? '',
+    sexo: t.titular?.sexo ?? '',
+    pelotao: t.titular?.pelotao ?? '',
+  })
+  const [salvando, setSalvando] = useState(false)
+  const [erro, setErro] = useState('')
+
+  const salvar = async () => {
+    setSalvando(true)
+    setErro('')
+    try {
+      const res = await insiderFetch('/api/transferencias/pagina', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: t.id, dados }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setErro(data.error || 'Não foi possível salvar.')
+        return
+      }
+      onSuccess(
+        data.email_enviado
+          ? `Dados de ${data.titular} atualizados. O ingresso foi enviado para o novo e-mail.`
+          : `Dados de ${data.titular} atualizados.`
+      )
+    } catch {
+      setErro('Sem conexão. Tente de novo.')
+    } finally {
+      setSalvando(false)
+    }
+  }
+
+  const campo = 'w-full bg-zinc-900 border border-zinc-700 focus:border-[#ff2c03] text-white rounded-xl px-3 py-2.5 text-sm outline-none'
+  const rotulo = 'block text-xs text-zinc-400 uppercase tracking-wider mb-1.5'
+
+  return (
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4">
+      <div className="w-full max-w-lg bg-zinc-950 border border-zinc-800 rounded-t-2xl sm:rounded-2xl max-h-[92vh] overflow-y-auto">
+        <CabecalhoModal rotulo="Editar transferência" titulo="Dados de quem recebeu a vaga" onClose={onClose} />
+        <div className="p-5 space-y-3">
+          <p className="text-zinc-500 text-xs leading-relaxed">
+            Corrige a inscrição, o ingresso e a lista de check-in. O QR Code continua o mesmo; se o e-mail mudar, o ingresso vai de novo para o endereço novo.
+          </p>
+          <div>
+            <label htmlFor="ed-nome" className={rotulo}>Nome completo</label>
+            <input id="ed-nome" type="text" value={dados.nome} onChange={e => setDados(p => ({ ...p, nome: e.target.value }))} className={campo} />
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label htmlFor="ed-cpf" className={rotulo}>CPF</label>
+              <input id="ed-cpf" type="text" inputMode="numeric" value={formatCPF(dados.cpf)} onChange={e => setDados(p => ({ ...p, cpf: e.target.value.replace(/\D/g, '').slice(0, 11) }))} className={`${campo} font-mono`} />
+            </div>
+            <div>
+              <label htmlFor="ed-tel" className={rotulo}>WhatsApp</label>
+              <input id="ed-tel" type="tel" value={dados.telefone} onChange={e => setDados(p => ({ ...p, telefone: e.target.value }))} placeholder="(61) 99999-9999" className={campo} />
+            </div>
+          </div>
+          <div>
+            <label htmlFor="ed-email" className={rotulo}>E-mail</label>
+            <input id="ed-email" type="email" value={dados.email} onChange={e => setDados(p => ({ ...p, email: e.target.value }))} className={campo} />
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label htmlFor="ed-sexo" className={rotulo}>Sexo</label>
+              <select id="ed-sexo" value={dados.sexo} onChange={e => setDados(p => ({ ...p, sexo: e.target.value }))} className={campo}>
+                <option value="">—</option>
+                <option value="feminino">Feminino</option>
+                <option value="masculino">Masculino</option>
+              </select>
+            </div>
+            <div>
+              <label htmlFor="ed-pelotao" className={rotulo}>Pelotão</label>
+              <select id="ed-pelotao" value={dados.pelotao} onChange={e => setDados(p => ({ ...p, pelotao: e.target.value }))} className={campo}>
+                <option value="">—</option>
+                {pelotoes.map(pl => <option key={pl} value={pl}>{rotuloPelotaoInsider(pl)}</option>)}
+              </select>
+            </div>
+          </div>
+
+          {erro && (
+            <div role="alert" className="bg-red-900/20 border border-red-500/30 px-3 py-2 rounded-lg">
+              <p className="text-red-400 text-xs">{erro}</p>
+            </div>
+          )}
+
+          <div className="flex gap-2 pt-2">
+            <button onClick={onClose} disabled={salvando} className="px-4 py-3 border border-zinc-700 text-zinc-400 text-sm font-semibold rounded-xl disabled:opacity-50">
+              Cancelar
+            </button>
+            <button
+              onClick={salvar}
+              disabled={salvando}
+              className="flex-1 bg-[#ff2c03] hover:bg-[#cc2402] disabled:opacity-60 text-white font-semibold text-sm py-3 rounded-xl flex items-center justify-center gap-2"
+            >
+              {salvando ? <><Loader2 className="w-4 h-4 animate-spin" /> Salvando...</> : <><Check className="w-4 h-4" /> Salvar</>}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function ModalExcluirTransferencia({
+  transferencia: t,
+  onClose,
+  onSuccess,
+}: {
+  transferencia: Transferencia
+  onClose: () => void
+  onSuccess: (msg: string) => void
+}) {
+  const [salvando, setSalvando] = useState(false)
+  const [erro, setErro] = useState('')
+  const presente = !!t.titular?.presente
+
+  const excluir = async () => {
+    setSalvando(true)
+    setErro('')
+    try {
+      const res = await insiderFetch('/api/transferencias/pagina', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: t.id }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setErro(data.error || 'Não foi possível desfazer.')
+        return
+      }
+      onSuccess(
+        data.email_enviado
+          ? `Transferência desfeita. A vaga voltou para ${data.titular}, que recebeu o ingresso novo por e-mail.`
+          : `Transferência desfeita. A vaga voltou para ${data.titular}. O e-mail com o ingresso não saiu: reenvie pela página do evento.`
+      )
+    } catch {
+      setErro('Sem conexão. Tente de novo.')
+    } finally {
+      setSalvando(false)
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4">
+      <div className="w-full max-w-lg bg-zinc-950 border border-zinc-800 rounded-t-2xl sm:rounded-2xl max-h-[92vh] overflow-y-auto">
+        <CabecalhoModal rotulo="Excluir transferência" titulo="Desfazer e devolver a vaga" onClose={onClose} />
+        <div className="p-5 space-y-4">
+          {presente ? (
+            <p className="text-zinc-300 text-sm leading-relaxed">
+              <strong className="text-white">{t.nome_destino}</strong> já fez o check-in com este ingresso. A transferência não pode mais ser desfeita.
+            </p>
+          ) : (
+            <>
+              <p className="text-zinc-300 text-sm leading-relaxed">
+                A vaga volta para <strong className="text-white">{t.nome_origem || formatCPF(t.cpf_origem)}</strong>, que recebe um ingresso com QR Code novo por e-mail. O ingresso de <strong className="text-white">{t.nome_destino}</strong> deixa de valer e a lista de check-in volta para o nome original.
+              </p>
+              <p className="text-zinc-500 text-xs leading-relaxed">
+                O pelotão fica o atual ({rotuloPelotaoInsider(t.titular?.pelotao || '—')}). {t.nome_destino} não é avisado por e-mail.
+              </p>
+            </>
+          )}
+
+          {erro && (
+            <div role="alert" className="bg-red-900/20 border border-red-500/30 px-3 py-2 rounded-lg">
+              <p className="text-red-400 text-xs">{erro}</p>
+            </div>
+          )}
+
+          <div className="flex gap-2 pt-1">
+            <button onClick={onClose} disabled={salvando} className="px-4 py-3 border border-zinc-700 text-zinc-400 text-sm font-semibold rounded-xl disabled:opacity-50">
+              {presente ? 'Fechar' : 'Cancelar'}
+            </button>
+            {!presente && (
+              <button
+                onClick={excluir}
+                disabled={salvando}
+                className="flex-1 bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white font-semibold text-sm py-3 rounded-xl flex items-center justify-center gap-2"
+              >
+                {salvando ? <><Loader2 className="w-4 h-4 animate-spin" /> Desfazendo...</> : <><Trash2 className="w-4 h-4" /> Desfazer transferência</>}
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
