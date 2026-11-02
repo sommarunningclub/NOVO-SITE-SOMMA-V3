@@ -2,6 +2,7 @@
  * Leva para o módulo de E-mail do admin (admin.sommaclub.com.br/?section=email)
  * os e-mails do Love Run que saíram pelo site, e não pelas campanhas da gestão:
  *   - "É treinão, não é prova" (script love-run-treinao.mts, 02/11/2026)
+ *   - "Não vai poder ir? Passa sua vaga" (script love-run-como-transferir.mts)
  *   - a confirmação de inscrição com o ingresso (automática, a cada inscrição)
  *
  *   npx tsx --conditions=react-server scripts/love-run-campanhas-admin.mts           # só mostra os números
@@ -20,6 +21,7 @@ import { createClient } from "@supabase/supabase-js";
 import { EVENTO_URL } from "../lib/dexcomplica-love-run/event.config";
 import { qrSvg } from "../lib/dexcomplica-love-run/ticket";
 import { ASSUNTO_TREINAO, renderTreinao } from "../lib/emails/dexcomplica-love-run-treinao";
+import { ASSUNTO_COMO_TRANSFERIR, renderComoTransferir } from "../lib/emails/dexcomplica-love-run-como-transferir";
 import { assunto as assuntoIngresso, renderIngressoEmail } from "../lib/emails/dexcomplica-love-run-ingresso";
 
 const EVENTO = "052dec12-4e69-4df8-a824-28937a80fd5e";
@@ -100,6 +102,12 @@ const CAMPANHAS = [
     subject: ASSUNTO_TREINAO,
     preheader: "Sem kit, sem número de peito, sem cronômetro. É todo mundo correndo junto, de graça.",
     html: renderTreinao({ nome: "{{primeiro_nome}}", urlIngresso: EVENTO_URL }),
+  },
+  {
+    nome: "Love Run · Como transferir o ingresso",
+    subject: ASSUNTO_COMO_TRANSFERIR,
+    preheader: "Em 4 passos, direto pelo site, até as 06h30 do sábado.",
+    html: renderComoTransferir({ nome: "{{primeiro_nome}}", urlIngresso: EVENTO_URL }),
   },
   {
     nome: "Love Run · Confirmação de inscrição (automático)",
