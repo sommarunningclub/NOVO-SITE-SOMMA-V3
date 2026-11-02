@@ -2,6 +2,8 @@
 
 LP: `sommaclub.com.br/dexcomplica` (slug no banco: `dexcomplica-love-run`; `/dexcomplica-love-run` redireciona). Realização Somma Club e Dexcomplica, produção Monu.
 
+O Love Run é **treinão em grupo, não prova**: sem kit, número de peito, chip, cronômetro ou pódio. O recado mora em `TREINAO` no config, na seção `#treinao` da LP e no FAQ.
+
 ## Como se conecta ao Somma
 
 Nada novo de infraestrutura: a LP usa as mesmas tabelas e a mesma função do SOMMA DAY.

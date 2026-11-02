@@ -138,6 +138,7 @@ html:has(.lr-root) { scroll-behavior: smooth; scroll-padding-top: 76px; }
 }
 .lr-selo--amarelo { background: var(--amarelo); transform: rotate(-3deg); }
 .lr-selo--rosa { background: var(--rosa); transform: rotate(2deg); }
+.lr-selo--branco { background: var(--branco); transform: rotate(-2deg); }
 
 /* ─── Marcas ─────────────────────────────────────────────────────────────── */
 .lr-marcas { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 18px 34px; }
@@ -312,6 +313,32 @@ html:has(.lr-root) { scroll-behavior: smooth; scroll-padding-top: 76px; }
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 .lr-sec > .lr-wrap { position: relative; }
+
+/* ─── Treinão, não prova ─────────────────────────────────────────────────── */
+.lr-treinao { display: grid; gap: 36px; }
+.lr-treinao__texto .lr-h2 { max-width: 14ch; }
+.lr-treinao__nao {
+  background: var(--amarelo); color: var(--tinta);
+  border-radius: 26px; padding: clamp(20px, 3vw, 30px);
+  box-shadow: var(--sombra-adesivo);
+}
+.lr-treinao__nao h3 {
+  font-family: var(--f-display); font-weight: 400; text-transform: uppercase;
+  font-size: clamp(32px, 4vw, 44px); line-height: 0.95; margin: 0 0 12px;
+}
+.lr-treinao__nao ul { list-style: none; padding: 0; margin: 0; }
+.lr-treinao__nao li {
+  display: grid; grid-template-columns: 28px 1fr; gap: 12px; align-items: start;
+  padding: 12px 0; border-top: 2px solid var(--tinta); font-size: 14.5px; color: #3a3326;
+}
+.lr-treinao__nao li:last-child { border-bottom: 2px solid var(--tinta); }
+.lr-treinao__nao li > span:first-child {
+  font-weight: 800; font-size: 22px; color: var(--vermelho); line-height: 1.2;
+}
+.lr-treinao__nao strong { display: block; font-size: 17px; color: var(--tinta); }
+@media (min-width: 960px) {
+  .lr-treinao { grid-template-columns: 1.05fr 0.95fr; align-items: center; gap: 72px; }
+}
 
 /* ─── Experiência ────────────────────────────────────────────────────────── */
 .lr-exp { display: grid; gap: 56px; }

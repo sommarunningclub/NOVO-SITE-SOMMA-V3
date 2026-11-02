@@ -40,6 +40,30 @@ export const CHAMADA = "Desapega, desilude e vem correr.";
 export const APOIO =
   "Um corre diferente, com muita música, ativações e um after para continuar a experiência.";
 
+/**
+ * Recado do e-mail de 02/11/2026: o Love Run é treinão em grupo, não prova.
+ * A LP e o FAQ repetem as mesmas frases para ninguém achar que tem kit,
+ * número de peito, cronômetro ou pódio.
+ */
+export const TREINAO = {
+  selo: "É treinão, não é prova",
+  eyebrow: "Recado importante",
+  titulo: "É treinão.",
+  tituloDestaque: "Não é prova.",
+  lead:
+    "O Dexcomplica Love Run não é uma prova de corrida. É um treinão em grupo, gratuito, pra correr junto com a galera, com música, ativações e o after no Oscarito.",
+  naoTemTitulo: "O que não tem",
+  naoTem: [
+    ["Kit de corrida", "Sem camiseta, sacola ou retirada de kit."],
+    ["Número de peito", "Ninguém precisa prender número na roupa."],
+    ["Chip e cronômetro", "Não tem tempo oficial nem resultado."],
+    ["Pódio e premiação", "Ninguém compete com ninguém."],
+  ] as const,
+  oQueTemTitulo: "O que tem",
+  oQueTem:
+    "Corre junto, no seu ritmo. Você escolheu 4, 6 ou 8 km na inscrição. É só chegar, fazer o check-in com o QR Code do seu ingresso e correr com o seu pelotão.",
+} as const;
+
 /** Prefixo do código do ingresso (DLR-8F4X29). O leitor da gestão aceita qualquer prefixo de 2 a 4 letras. */
 export const PREFIXO_TICKET = "DLR";
 
