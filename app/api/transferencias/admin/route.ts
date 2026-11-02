@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { sexoValido, SEXO_OBRIGATORIO_MSG } from '@/lib/sexo'
 import { requireInsiderAuth } from '@/lib/auth/insider'
 import { getServiceSupabase } from '@/lib/supabase'
 
@@ -33,12 +34,16 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { nome, email, telefone, cpf, sexo, pelotao } = dados_novo
-    if (!nome || !email || !telefone || !cpf || !sexo) {
+    const { nome, email, telefone, cpf, sexo: sexoBruto, pelotao } = dados_novo
+    if (!nome || !email || !telefone || !cpf) {
       return NextResponse.json(
         { error: 'Preencha todos os dados do novo titular.' },
         { status: 400 }
       )
+    }
+    const sexo = sexoValido(sexoBruto)
+    if (!sexo) {
+      return NextResponse.json({ error: SEXO_OBRIGATORIO_MSG }, { status: 400 })
     }
 
     const cpfDestinoLimpo = String(cpf).replace(/\D/g, '')
