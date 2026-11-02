@@ -103,6 +103,8 @@ html:has(.lr-root) { scroll-behavior: smooth; scroll-padding-top: 76px; }
 .lr-btn:disabled { opacity: 0.75; cursor: progress; transform: none; }
 .lr-btn--vermelho { --bg: var(--vermelho); }
 .lr-btn--vermelho:hover { --bg: var(--mascote); }
+.lr-btn--amarelo { --bg: var(--amarelo); --fg: var(--tinta); }
+.lr-btn--amarelo:hover { --bg: #ffd24a; }
 .lr-btn--branco { --bg: var(--branco); --fg: var(--tinta); }
 .lr-btn--tinta { --bg: var(--tinta); --fg: var(--branco); }
 .lr-btn--contorno { --bg: transparent; --fg: var(--branco); border-color: rgba(255, 255, 255, 0.55); box-shadow: none; }
@@ -542,6 +544,22 @@ html:has(.lr-root) { scroll-behavior: smooth; scroll-padding-top: 76px; }
 .lr-recuperar__linha input { flex: 1; min-width: 0; }
 .lr-recuperar__linha .lr-btn { min-height: 54px; }
 
+.lr-perfil { margin-top: 16px; display: grid; gap: 16px; }
+.lr-perfil__acesso { gap: 14px; }
+.lr-perfil__ficha {
+  display: grid; gap: 8px; justify-items: start;
+  padding: 16px 18px; border-radius: 16px; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12);
+}
+.lr-perfil__nome { margin: 0; font-weight: 800; font-size: 18px; }
+.lr-perfil__meta { margin: 0 0 6px; font-size: 14.5px; color: var(--cinza-claro); }
+.lr-perfil__atalho {
+  background: none; border: 0; padding: 0; color: var(--cinza-claro); font: inherit; font-size: 13.5px;
+  text-align: left; cursor: pointer; text-decoration: underline; text-underline-offset: 3px;
+}
+.lr-transferir { display: grid; gap: 12px; padding-top: 8px; }
+.lr-transferir .lr-btn--amarelo { min-height: 54px; }
+.lr-transferir__form { margin-top: 4px; }
+
 /* ─── Dúvidas ────────────────────────────────────────────────────────────── */
 .lr-faq { display: grid; gap: 30px; }
 .lr-faq__lista { display: grid; }
@@ -599,6 +617,23 @@ html:has(.lr-root) { scroll-behavior: smooth; scroll-padding-top: 76px; }
 }
 .lr-ing--vazio { align-content: center; }
 .lr-ing--vazio .lr-btn { margin-top: 8px; }
+
+.lr-ing--transferido { align-content: start; }
+.lr-recibo {
+  width: 100%; max-width: 560px;
+  display: grid; gap: 12px; justify-items: start;
+  padding: 22px 22px 20px; border-radius: 22px;
+  background: rgba(242, 194, 48, 0.1); border: 2px solid var(--amarelo); color: #fff3cf;
+}
+.lr-recibo p { margin: 0; font-size: 16px; line-height: 1.5; }
+.lr-recibo strong { color: var(--branco); }
+.lr-recibo__icone {
+  width: 52px; height: 52px; display: grid; place-items: center;
+  border-radius: 50%; background: var(--amarelo); color: var(--tinta);
+}
+.lr-recibo__icone svg { width: 26px; height: 26px; }
+.lr-ing--transferido .lr-ing__info { padding-top: 8px; }
+.lr-ing--transferido .lr-btn { margin-top: 6px; }
 
 .lr-ing__palco { position: relative; width: 100%; max-width: 420px; }
 .lr-coracoes { position: absolute; inset: 0; pointer-events: none; z-index: 0; }

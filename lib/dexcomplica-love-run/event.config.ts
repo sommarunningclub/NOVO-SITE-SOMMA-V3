@@ -32,6 +32,7 @@ export const MODO_TESTE = EVENTO_SLUG !== EVENTO_SLUG_OFICIAL;
 export const EVENTO_PATH = "/dexcomplica";
 export const SITE_URL = "https://sommaclub.com.br";
 export const EVENTO_URL = `${SITE_URL}${EVENTO_PATH}`;
+export const CAMINHO_TRANSFERIDO = `${EVENTO_PATH}/transferido`;
 
 export const EVENTO_NOME = "Dexcomplica Love Run";
 export const BORDAO = "Desapega, desilude... Dexcomplica!";
@@ -59,6 +60,16 @@ export const DATA_ISO = "2026-11-07";
 export const DATA_CURTA = "07.11";
 export const DATA_EXTENSO = "Sábado, 7 de novembro";
 export const DATA_EXTENSO_ANO = "Sábado, 7 de novembro de 2026";
+
+/**
+ * Transferências encerram às 06:30 do dia do evento (horário de Brasília),
+ * o mesmo corte do Catcher Run: o balcão já está montando a lista.
+ */
+export const TRANSFERENCIA_LIMITE = `${DATA_ISO}T06:30:00-03:00`;
+
+export function prazoTransferenciaPassou(agora: Date = new Date()): boolean {
+  return agora.getTime() > new Date(TRANSFERENCIA_LIMITE).getTime();
+}
 
 /**
  * Concentração: 06h30 confirmada em 28/10/2026, trocada pelo Alex em 01/11

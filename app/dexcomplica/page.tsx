@@ -322,7 +322,7 @@ export default async function LoveRunPage({ searchParams }: { searchParams: Prom
                 ["A inscrição é paga?", "Não. A inscrição é gratuita, mas as vagas são limitadas: quando acabarem, a inscrição fecha."],
                 [
                   "Onde fica meu ingresso?",
-                  "Ele aparece na tela assim que a inscrição é confirmada e também vai para o seu e-mail. Perdeu? Use “Recuperar meu ingresso” na inscrição: enviamos de novo para o e-mail cadastrado.",
+                  "Ele aparece na tela assim que a inscrição é confirmada e também vai para o seu e-mail. Perdeu? Em “Acessar meu ingresso” na inscrição, confirme CPF e e-mail para abrir o QR ou transferir a vaga. Sem o e-mail em mãos, dá para reenviar só com o CPF.",
                 ],
                 [
                   "Qual é o horário?",
@@ -333,6 +333,10 @@ export default async function LoveRunPage({ searchParams }: { searchParams: Prom
                 [
                   "Como funciona a condição especial da festa?",
                   "Ela é para quem estiver presente no corre. Percentual, regras e forma de entrega serão informados em breve.",
+                ],
+                [
+                  "Posso transferir meu ingresso?",
+                  "Sim, até 06h30 do sábado. Acesse com o CPF e o e-mail da inscrição, preencha os dados de quem vai no seu lugar (os mesmos da ficha) e o QR antigo deixa de valer. O novo titular recebe o ingresso no e-mail. Se você já transferiu, o acesso com os mesmos dados confirma que a vaga não é mais sua.",
                 ],
                 ["O que levar para o after?", "Roupa de banho e uma segunda roupa: o Oscarito tem ducha e vestiários."],
               ].map(([p, r]) => (

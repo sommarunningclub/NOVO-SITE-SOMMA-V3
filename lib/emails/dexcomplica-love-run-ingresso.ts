@@ -26,11 +26,14 @@ export interface IngressoEmail {
   pelotao: string | null;
   /** Reenvio (recuperação ou segunda tentativa): o assunto não pode parecer inscrição nova. */
   reenvio?: boolean;
+  /** Nome de quem transferiu a vaga. Muda assunto e copy; o QR antigo deixou de valer. */
+  transferidoDe?: string | null;
 }
 
 const primeiro = (nome: string) => nome.trim().split(/\s+/)[0] || nome;
 
-export function assunto(reenvio = false): string {
+export function assunto(reenvio = false, transferido = false): string {
+  if (transferido) return "Um ingresso do Dexcomplica Love Run foi transferido para você";
   return reenvio ? "Seu ingresso do Dexcomplica Love Run" : "Você está dentro: seu ingresso do Dexcomplica Love Run";
 }
 
@@ -46,25 +49,40 @@ export function renderIngressoEmail(d: {
   pelotao: string | null;
   qrSrc: string;
   reenvio?: boolean;
+  transferidoDe?: string | null;
   /** Origem das imagens; a prévia local passa "" para servir do próprio dev. */
   base?: string;
 }): string {
   const nome = esc(primeiro(d.nome));
+  const de = d.transferidoDe ? esc(primeiro(d.transferidoDe)) : "";
   const dados: [string, string][] = [
     ["Data", esc(DATA_EXTENSO_ANO) + (CONCENTRACAO_A_PARTIR ? ` · concentração ${esc(CONCENTRACAO_A_PARTIR)}` : "")],
     ["Local", esc(LOCAL_CORRE.nome)],
     ...(d.pelotao ? ([["Pelotão", esc(rotuloPelotao(d.pelotao))]] as [string, string][]) : []),
   ];
+  const abertura = d.transferidoDe
+    ? {
+        eyebrow: "Ingresso transferido",
+        titulo: titulo(`${nome}, este ingresso`, "#ffffff", "agora é seu."),
+        texto: `${de} transferiu o ingresso do Dexcomplica Love Run para você. O QR anterior deixou de valer. Este é o único que vale no check-in.`,
+      }
+    : d.reenvio
+      ? {
+          eyebrow: "Seu ingresso, de novo",
+          titulo: titulo(`${nome}, aqui está`, "#ffffff", "seu ingresso."),
+          texto: "Pediram o seu ingresso do Dexcomplica Love Run e ele veio direto para este e-mail. Guarda bem: é ele que você mostra no check-in.",
+        }
+      : {
+          eyebrow: "Vaga garantida",
+          titulo: titulo(`${nome}, seu coração`, "#ffffff", "já está no ritmo."),
+          texto: "Agora é só preparar o tênis e vir viver o Dexcomplica Love Run com a gente. Seu ingresso está aqui embaixo e também no link.",
+        };
   const corpo = [
     letreiro(),
     bloco(
-      eyebrow(d.reenvio ? "Seu ingresso, de novo" : "Vaga garantida") +
-        titulo(d.reenvio ? `${nome}, aqui está` : `${nome}, seu coração`, "#ffffff", d.reenvio ? "seu ingresso." : "já está no ritmo.") +
-        p(
-          d.reenvio
-            ? "Pediram o seu ingresso do Dexcomplica Love Run e ele veio direto para este e-mail. Guarda bem: é ele que você mostra no check-in."
-            : "Agora é só preparar o tênis e vir viver o Dexcomplica Love Run com a gente. Seu ingresso está aqui embaixo e também no link."
-        ) +
+      eyebrow(abertura.eyebrow) +
+        abertura.titulo +
+        p(abertura.texto) +
         selos([
           { t: "Sáb · 07.11", cor: "amarelo" },
           { t: "Gratuito", cor: "rosa" },
@@ -93,17 +111,30 @@ export function renderIngressoEmail(d: {
 
   return casca({
     base: d.base,
-    preheader: d.reenvio ? "Seu QR Code e o código de check-in." : "Seu ingresso com QR Code está aqui. Sábado, 7 de novembro.",
-    heroi: d.reenvio
+    preheader: d.transferidoDe
+      ? "Alguém transferiu um ingresso do Dexcomplica Love Run para você. O QR anterior não vale mais."
+      : d.reenvio
+        ? "Seu QR Code e o código de check-in."
+        : "Seu ingresso com QR Code está aqui. Sábado, 7 de novembro.",
+    heroi: d.reenvio && !d.transferidoDe
       ? { arquivo: "reenvio.jpg", alt: "Seu ingresso. Dexcomplica Love Run, sábado 07.11" }
       : { arquivo: "confirmacao.jpg", alt: "Você está dentro. Dexcomplica Love Run, sábado 07.11" },
     corpo,
   });
 }
 
-export function renderIngressoTexto(d: { nome: string; ticketCode: string; url: string; pelotao: string | null }): string {
+export function renderIngressoTexto(d: {
+  nome: string;
+  ticketCode: string;
+  url: string;
+  pelotao: string | null;
+  transferidoDe?: string | null;
+}): string {
+  const abertura = d.transferidoDe
+    ? `${primeiro(d.transferidoDe)} transferiu um ingresso do ${EVENTO_NOME} para você. O QR anterior deixou de valer.`
+    : `Oi, ${primeiro(d.nome)}! Você está dentro do ${EVENTO_NOME}.`;
   return [
-    `Oi, ${primeiro(d.nome)}! Você está dentro do ${EVENTO_NOME}.`,
+    abertura,
     "",
     DATA_EXTENSO_ANO,
     LOCAL_CORRE.nome,
@@ -135,10 +166,11 @@ export async function enviarIngresso(input: IngressoEmail): Promise<{ ok: boolea
   }
   try {
     const url = urlIngresso(input.ticketToken);
+    const transferido = Boolean(input.transferidoDe);
     const { error } = await resend.emails.send({
       from,
       to: input.email,
-      subject: assunto(input.reenvio),
+      subject: assunto(input.reenvio, transferido),
       html: renderIngressoEmail({
         nome: input.nome,
         ticketCode: input.ticketCode,
@@ -146,8 +178,15 @@ export async function enviarIngresso(input: IngressoEmail): Promise<{ ok: boolea
         pelotao: input.pelotao,
         qrSrc: `cid:${QR_CID}`,
         reenvio: input.reenvio,
+        transferidoDe: input.transferidoDe,
       }),
-      text: renderIngressoTexto({ nome: input.nome, ticketCode: input.ticketCode, url, pelotao: input.pelotao }),
+      text: renderIngressoTexto({
+        nome: input.nome,
+        ticketCode: input.ticketCode,
+        url,
+        pelotao: input.pelotao,
+        transferidoDe: input.transferidoDe,
+      }),
       attachments: [
         { filename: `ingresso-${input.ticketCode}.png`, content: await qrPng(input.ticketToken), contentId: QR_CID },
       ],

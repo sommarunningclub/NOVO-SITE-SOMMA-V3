@@ -80,6 +80,15 @@ export const inscricaoSchema = z.object({
 
 export const recuperarSchema = z.object({ cpf: cpfSchema });
 
+/** Acesso ao perfil: CPF e e-mail têm que ser os da inscrição. */
+export const perfilAcessoSchema = z.object({
+  cpf: cpfSchema,
+  email: emailSchema,
+});
+
+/** Destinatário da transferência: os mesmos campos da inscrição, sem UTM. */
+export const transferenciaSchema = inscricaoSchema.omit({ utm: true });
+
 export type InscricaoInput = z.input<typeof inscricaoSchema>;
 export type Inscricao = z.output<typeof inscricaoSchema>;
 
