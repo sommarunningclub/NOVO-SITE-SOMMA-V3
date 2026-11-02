@@ -2,10 +2,19 @@
  * Leva para o módulo de E-mail do admin (admin.sommaclub.com.br/?section=email)
  * os e-mails do Love Run que saíram pelo site, e não pelas campanhas da gestão:
  *   - "É treinão, não é prova" (script love-run-treinao.mts, 02/11/2026)
+ *   - "Não vai poder ir? Passa sua vaga" (script love-run-como-transferir.mts)
  *   - a confirmação de inscrição com o ingresso (automática, a cada inscrição)
  *
  *   npx tsx --conditions=react-server scripts/love-run-campanhas-admin.mts           # só mostra os números
  *   npx tsx --conditions=react-server scripts/love-run-campanhas-admin.mts --gravar  # grava/atualiza no admin
+ *   npx tsx --conditions=react-server scripts/love-run-campanhas-admin.mts --agendar-lembrete  # cria o lembrete da transferência
+ *
+ * --agendar-lembrete: cria no admin a campanha "lembrete" da transferência,
+ * 'agendada' para 24 h depois do último e-mail do 1º envio, para os mesmos
+ * destinatários menos quem devolveu. Quem abriu ou clicou o 1º sai na hora do
+ * disparo (`excluir_abertos_de`, resolvido pelo cron do admin com as aberturas
+ * que o webhook registra). Como a campanha é a mesma para todos, o link do
+ * ingresso vira o "Acessar meu ingresso" da LP (CPF + e-mail).
  *
  * Cada campanha entra como 'enviada' (o disparador da gestão só envia
  * 'enviando', então nada sai de novo). Um destinatário por e-mail, como a
@@ -20,6 +29,7 @@ import { createClient } from "@supabase/supabase-js";
 import { EVENTO_URL } from "../lib/dexcomplica-love-run/event.config";
 import { qrSvg } from "../lib/dexcomplica-love-run/ticket";
 import { ASSUNTO_TREINAO, renderTreinao } from "../lib/emails/dexcomplica-love-run-treinao";
+import { ASSUNTO_COMO_TRANSFERIR, ASSUNTO_LEMBRETE_TRANSFERIR, renderComoTransferir } from "../lib/emails/dexcomplica-love-run-como-transferir";
 import { assunto as assuntoIngresso, renderIngressoEmail } from "../lib/emails/dexcomplica-love-run-ingresso";
 
 const EVENTO = "052dec12-4e69-4df8-a824-28937a80fd5e";
@@ -102,6 +112,12 @@ const CAMPANHAS = [
     html: renderTreinao({ nome: "{{primeiro_nome}}", urlIngresso: EVENTO_URL }),
   },
   {
+    nome: "Love Run · Como transferir o ingresso",
+    subject: ASSUNTO_COMO_TRANSFERIR,
+    preheader: "Em 4 passos, direto pelo site, até as 06h30 do sábado.",
+    html: renderComoTransferir({ nome: "{{primeiro_nome}}", urlIngresso: EVENTO_URL }),
+  },
+  {
     nome: "Love Run · Confirmação de inscrição (automático)",
     subject: assuntoIngresso(false),
     preheader: null,
@@ -177,4 +193,40 @@ for (const c of CAMPANHAS) {
     if (error) throw new Error(error.message);
   }
   console.log(`  ✓ gravada no admin (${existente ? "atualizada" : "nova"})`);
+}
+
+if (process.argv.includes("--agendar-lembrete")) {
+  const NOME = "Love Run · Como transferir o ingresso (lembrete, quem não abriu)";
+  const { data: primeiro } = await sb
+    .from("email_campaigns")
+    .select("id, finished_at")
+    .eq("nome", "Love Run · Como transferir o ingresso")
+    .maybeSingle();
+  if (!primeiro?.finished_at) throw new Error("Grave o 1º envio no admin antes (--gravar).");
+  const { data: ja } = await sb.from("email_campaigns").select("id, status, scheduled_at").eq("nome", NOME).maybeSingle();
+  if (ja) {
+    console.log(`\nLembrete já existe no admin: ${ja.status}, ${ja.scheduled_at}. Nada a fazer.`);
+    process.exit(0);
+  }
+  const { data: dest, error: e0 } = await sb
+    .from("email_campaign_recipients")
+    .select("email, nome, status")
+    .eq("campaign_id", primeiro.id);
+  if (e0 || !dest) throw new Error(e0?.message ?? "sem destinatários");
+  const individuais = dest.filter((r) => !["bounce", "spam", "falha"].includes(r.status)).map((r) => ({ email: r.email, nome: r.nome }));
+  const quando = new Date(new Date(primeiro.finished_at).getTime() + 24 * 60 * 60 * 1000).toISOString();
+  const { error } = await sb.from("email_campaigns").insert({
+    nome: NOME,
+    status: "agendada",
+    template_key: "html_custom",
+    subject: ASSUNTO_LEMBRETE_TRANSFERIR,
+    preheader: "Em 4 passos, direto pelo site, até as 06h30 do sábado.",
+    content: { html: renderComoTransferir({ nome: "{{primeiro_nome}}", urlIngresso: `${EVENTO_URL}#meu-ingresso` }) },
+    audience: { bases: [], individuais, excluir_abertos_de: [primeiro.id] },
+    scheduled_at: quando,
+    total_recipients: 0,
+  });
+  if (error) throw new Error(error.message);
+  const abriram = dest.filter((r) => ["aberto", "clicado"].includes(r.status)).length;
+  console.log(`\n✓ Lembrete agendado no admin para ${quando}: ${individuais.length} na lista, ${abriram} já abriram e saem no disparo.`);
 }

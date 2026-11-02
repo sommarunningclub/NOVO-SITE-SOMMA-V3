@@ -14,6 +14,7 @@ const HEROIS = [
   { id: "grupo", foto: "corre-bandeira.jpg", t: "Entra no|grupo!", s: "Sáb · 07.11|Corre do Lovezinho" },
   { id: "pos-corre", foto: "dex-mascote-abraco.jpg", t: "Obrigado|por correr.", s: "Só pra quem foi|Festa Dexcomplica", tam: 168 },
   { id: "treinao", foto: "corre-laranja.jpg", t: "É treinão,|não é prova.", s: "Sáb · 07.11|Bora junto", tam: 160 },
+  { id: "transferir", foto: "corre-trio.jpg", t: "Não vai|poder ir?", s: "Sáb · 07.11|Passa a vaga", tam: 170 },
 ];
 (async () => {
   const b = await chromium.launch({ channel: "chrome" });
