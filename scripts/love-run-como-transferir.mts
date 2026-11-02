@@ -10,8 +10,8 @@
  * O 2º envio (lembrete, assunto diferente) só roda 24 h depois do 1º e só
  * para quem recebeu e não abriu nem clicou: quem devolveu ou foi suprimido
  * fica fora, e quem transferiu a vaga depois também (o e-mail mudou). Não
- * sai depois do prazo da transferência. É chamado pelo launchd do Mac
- * (scripts/love-run-lembrete-launchd.sh).
+ * sai depois do prazo da transferência. Fica como reserva: o lembrete oficial
+ * é a campanha agendada no admin (love-run-campanhas-admin.mts --agendar-lembrete).
  * Um e-mail por inscrição (cada uma tem o seu link de ingresso), então quem
  * inscreveu mais de uma pessoa com o mesmo e-mail recebe um por ingresso.
  * Guarda quem já recebeu em ~/.cache/love-run-como-transferir.json: rodar de novo
@@ -133,6 +133,13 @@ const primeiro = lerLog(LOG);
 const arquivo = lembrete ? LOG_LEMBRETE : LOG;
 const enviados = lembrete ? lerLog(LOG_LEMBRETE) : primeiro;
 let alvo = linhas.filter((p) => p.email && !enviados[p.id]);
+
+if (lembrete && !args.includes("--sem-admin")) {
+  // O lembrete oficial é a campanha agendada no admin (scripts/love-run-campanhas-admin.mts
+  // --agendar-lembrete), que tira quem abriu na hora do disparo. Rodar este também mandaria em dobro.
+  console.log("O lembrete sai pela campanha agendada no admin. Para mandar por aqui mesmo assim, use --sem-admin.");
+  process.exit(0);
+}
 
 if (lembrete) {
   const datas = Object.values(primeiro).map((r) => r.em).sort();
