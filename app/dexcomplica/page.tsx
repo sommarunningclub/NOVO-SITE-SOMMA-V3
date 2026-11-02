@@ -12,6 +12,7 @@ import {
   MODO_TESTE,
   PERCURSO,
   POLITICA_PRIVACIDADE,
+  TREINAO,
   urlComoChegar,
 } from "@/lib/dexcomplica-love-run/event.config";
 import { contarInscritos, getEvento } from "@/lib/dexcomplica-love-run/db";
@@ -67,6 +68,38 @@ export default async function LoveRunPage({ searchParams }: { searchParams: Prom
         <Letreiro />
 
         <Trilha />
+
+        {/* ── Treinão, não prova (mesmo recado do e-mail de 02/11) ── */}
+        <section id="treinao" className="lr-sec lr-sec--tinta" aria-labelledby="t-treinao">
+          <div className="lr-wrap lr-treinao">
+            <div className="lr-treinao__texto">
+              <p className="lr-eyebrow lr-eyebrow--claro" data-revelar>{TREINAO.eyebrow}</p>
+              <h2 id="t-treinao" className="lr-h2 lr-h2--claro" data-revelar>
+                {TREINAO.titulo} <span className="lr-marca-texto">{TREINAO.tituloDestaque}</span>
+              </h2>
+              <p className="lr-lead lr-lead--claro" data-revelar>
+                {TREINAO.lead}
+              </p>
+              <p className="lr-nota lr-nota--claro" data-revelar>
+                {TREINAO.oQueTem}
+              </p>
+            </div>
+            <div className="lr-treinao__nao" data-revelar>
+              <h3>{TREINAO.naoTemTitulo}</h3>
+              <ul>
+                {TREINAO.naoTem.map(([item, detalhe]) => (
+                  <li key={item}>
+                    <span aria-hidden="true">✕</span>
+                    <span>
+                      <strong>{item}</strong>
+                      {detalhe}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </section>
 
         {/* ── A experiência ─────────────────────────────────────────── */}
         <section id="experiencia" className="lr-sec lr-sec--papel" aria-labelledby="t-experiencia">
@@ -319,6 +352,10 @@ export default async function LoveRunPage({ searchParams }: { searchParams: Prom
             </h2>
             <div className="lr-faq__lista">
               {[
+                [
+                  "É uma prova de corrida?",
+                  "Não. É um treinão em grupo, gratuito. Sem kit, sem número de peito, sem chip, sem cronômetro e sem pódio. Você chega, faz o check-in com o QR e corre no seu pelotão, no seu ritmo.",
+                ],
                 ["A inscrição é paga?", "Não. A inscrição é gratuita, mas as vagas são limitadas: quando acabarem, a inscrição fecha."],
                 [
                   "Onde fica meu ingresso?",

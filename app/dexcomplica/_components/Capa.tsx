@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { APOIO, CHAMADA, CONCENTRACAO_A_PARTIR, ESCASSEZ_PUBLICA } from "@/lib/dexcomplica-love-run/event.config";
+import { APOIO, CHAMADA, CONCENTRACAO_A_PARTIR, ESCASSEZ_PUBLICA, TREINAO } from "@/lib/dexcomplica-love-run/event.config";
 import { rastrear } from "@/lib/dexcomplica-love-run/analytics";
 import { movimentoReduzido, useGsap } from "@/lib/dexcomplica-love-run/motion";
 import Marcas from "./Marcas";
@@ -78,6 +78,7 @@ export default function Capa() {
           <li data-capa-entra>Parque da Cidade, Estacionamento 1</li>
           <li data-capa-entra className="lr-selo lr-selo--amarelo">Inscrição gratuita</li>
           <li data-capa-entra className="lr-selo lr-selo--rosa">{ESCASSEZ_PUBLICA}</li>
+          <li data-capa-entra className="lr-selo lr-selo--branco">{TREINAO.selo}</li>
         </ul>
 
         <div className="lr-capa__ctas" data-capa-entra>
