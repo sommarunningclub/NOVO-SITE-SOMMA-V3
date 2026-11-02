@@ -21,7 +21,7 @@ import { createClient } from "@supabase/supabase-js";
 import { EVENTO_URL } from "../lib/dexcomplica-love-run/event.config";
 import { qrSvg } from "../lib/dexcomplica-love-run/ticket";
 import { ASSUNTO_TREINAO, renderTreinao } from "../lib/emails/dexcomplica-love-run-treinao";
-import { ASSUNTO_COMO_TRANSFERIR, renderComoTransferir } from "../lib/emails/dexcomplica-love-run-como-transferir";
+import { ASSUNTO_COMO_TRANSFERIR, ASSUNTO_LEMBRETE_TRANSFERIR, renderComoTransferir } from "../lib/emails/dexcomplica-love-run-como-transferir";
 import { assunto as assuntoIngresso, renderIngressoEmail } from "../lib/emails/dexcomplica-love-run-ingresso";
 
 const EVENTO = "052dec12-4e69-4df8-a824-28937a80fd5e";
@@ -106,6 +106,12 @@ const CAMPANHAS = [
   {
     nome: "Love Run · Como transferir o ingresso",
     subject: ASSUNTO_COMO_TRANSFERIR,
+    preheader: "Em 4 passos, direto pelo site, até as 06h30 do sábado.",
+    html: renderComoTransferir({ nome: "{{primeiro_nome}}", urlIngresso: EVENTO_URL }),
+  },
+  {
+    nome: "Love Run · Como transferir o ingresso (lembrete, quem não abriu)",
+    subject: ASSUNTO_LEMBRETE_TRANSFERIR,
     preheader: "Em 4 passos, direto pelo site, até as 06h30 do sábado.",
     html: renderComoTransferir({ nome: "{{primeiro_nome}}", urlIngresso: EVENTO_URL }),
   },

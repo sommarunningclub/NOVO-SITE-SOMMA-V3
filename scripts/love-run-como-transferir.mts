@@ -26,12 +26,11 @@ import { Resend } from "resend";
 import { createClient } from "@supabase/supabase-js";
 import { SITE_URL, prazoTransferenciaPassou } from "../lib/dexcomplica-love-run/event.config";
 import { urlIngresso } from "../lib/dexcomplica-love-run/ticket";
-import { ASSUNTO_COMO_TRANSFERIR, renderComoTransferir, textoComoTransferir } from "../lib/emails/dexcomplica-love-run-como-transferir";
+import { ASSUNTO_COMO_TRANSFERIR, ASSUNTO_LEMBRETE_TRANSFERIR, renderComoTransferir, textoComoTransferir } from "../lib/emails/dexcomplica-love-run-como-transferir";
 
 const EVENTO = "052dec12-4e69-4df8-a824-28937a80fd5e";
 const LOG = join(homedir(), ".cache", "love-run-como-transferir.json");
 const LOG_LEMBRETE = join(homedir(), ".cache", "love-run-como-transferir-lembrete.json");
-const ASSUNTO_LEMBRETE = "Lembrete: não vai poder ir ao Love Run? Dá para passar sua vaga";
 const DIA_MS = 24 * 60 * 60 * 1000;
 
 /** participante → e-mail na Resend e quando saiu. */
@@ -175,7 +174,7 @@ mkdirSync(join(homedir(), ".cache"), { recursive: true });
 let ok = 0, falhas = 0;
 for (const p of alvo) {
   const r = lembrete
-    ? await mandar(p.email!, p.nome_completo, p.ticket_token, ASSUNTO_LEMBRETE, "love-run-como-transferir-lembrete")
+    ? await mandar(p.email!, p.nome_completo, p.ticket_token, ASSUNTO_LEMBRETE_TRANSFERIR, "love-run-como-transferir-lembrete")
     : await mandar(p.email!, p.nome_completo, p.ticket_token);
   if ("erro" in r) {
     falhas++;

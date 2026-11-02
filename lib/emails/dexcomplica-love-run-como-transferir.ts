@@ -10,6 +10,8 @@ import { DISPLAY, TEXTO, bloco, botao, casca, esc, eyebrow, letreiro, linkSeta, 
  * Personalizado por pessoa (link do ingresso), então sai por script.
  */
 export const ASSUNTO_COMO_TRANSFERIR = "Love Run: não vai poder ir? Passa sua vaga pra alguém";
+/** 2º envio, 24 h depois, só para quem não abriu o 1º: mesmo conteúdo, outro assunto. */
+export const ASSUNTO_LEMBRETE_TRANSFERIR = "Lembrete: não vai poder ir ao Love Run? Dá para passar sua vaga";
 
 const PASSOS: [string, string][] = [
   ["Acesse o seu ingresso", "Na página do Love Run, vá em <strong>Acessar meu ingresso</strong>. O botão aqui embaixo já leva direto para lá."],
