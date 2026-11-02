@@ -4,6 +4,7 @@ import { envioSchema, formatarNascimento, inscricaoSchema } from "@/lib/somma-da
 import { getEvento, getPessoaPorCpf, inscrever, type EventoRow } from "@/lib/somma-day/db";
 import { urlObrigado } from "@/lib/somma-day/ticket";
 import { enviarSommaDayTicket } from "@/lib/emails/somma-day-ticket";
+import { sexoValido } from "@/lib/sexo";
 
 export const dynamic = "force-dynamic";
 
@@ -63,6 +64,8 @@ export async function POST(request: NextRequest) {
       email: envio.data.email?.trim() || pessoa?.email || "",
       telefone: envio.data.telefone?.trim() || pessoa?.whatsapp || "",
       nascimento: envio.data.nascimento?.trim() || formatarNascimento(pessoa?.data_nascimento ?? ""),
+      // Sexo é obrigatório: vem da tela ou do cadastro; sem ele a inscrição volta.
+      sexo: sexoValido(envio.data.sexo) ?? sexoValido(pessoa?.sexo) ?? "",
       parceiro: envio.data.parceiro ?? null,
       utm: envio.data.utm,
     };

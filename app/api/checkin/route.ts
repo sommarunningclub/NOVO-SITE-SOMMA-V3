@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServiceSupabase } from '@/lib/supabase'
+import { sexoValido, SEXO_OBRIGATORIO_MSG } from '@/lib/sexo'
 
 export const dynamic = 'force-dynamic'
 
@@ -16,7 +17,7 @@ export async function POST(request: NextRequest) {
       email,
       telefone,
       cpf,
-      sexo,
+      sexo: sexoBruto,
       pelotao,
       data_do_evento,
       nome_do_evento,
@@ -24,11 +25,17 @@ export async function POST(request: NextRequest) {
     } = body
 
     // Validação básica
-    if (!nome_completo || !email || !telefone || !cpf || !sexo) {
+    if (!nome_completo || !email || !telefone || !cpf) {
       return NextResponse.json(
         { error: 'Campos obrigatórios faltando' },
         { status: 400 }
       )
+    }
+
+    // Sem sexo válido não há check-in.
+    const sexo = sexoValido(sexoBruto)
+    if (!sexo) {
+      return NextResponse.json({ error: SEXO_OBRIGATORIO_MSG }, { status: 400 })
     }
 
     // Verificar duplicidade: mesmo CPF + mesmo evento

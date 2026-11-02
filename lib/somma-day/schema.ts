@@ -100,6 +100,7 @@ export const envioSchema = z.object({
   email: z.string().optional(),
   telefone: z.string().optional(),
   nascimento: z.string().optional(),
+  sexo: z.string().optional(),
   parceiro: z.string().trim().max(60).nullish(),
   utm: utmSchema.optional(),
 });
@@ -115,13 +116,14 @@ export const inscricaoSchema = z.object({
   email: emailSchema,
   telefone: telefoneSchema,
   nascimento: nascimentoSchema,
+  sexo: sexoSchema,
   pelotao: pelotaoSchema,
   parceiro: z.string().trim().max(60).nullish(),
   utm: utmSchema.optional(),
 });
 
 /** Campos que o cadastro precisa ter para a inscrição valer. */
-export const CAMPOS_OBRIGATORIOS = ["nome", "email", "telefone", "nascimento"] as const;
+export const CAMPOS_OBRIGATORIOS = ["nome", "email", "telefone", "nascimento", "sexo"] as const;
 export type CampoObrigatorio = (typeof CAMPOS_OBRIGATORIOS)[number];
 
 export type EnvioInput = z.input<typeof envioSchema>;

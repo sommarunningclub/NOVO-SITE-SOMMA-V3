@@ -29,10 +29,17 @@ const CAMPOS = {
   email: { rotulo: "E-mail", placeholder: "voce@email.com", modo: "email", auto: "email" },
   telefone: { rotulo: "WhatsApp", placeholder: "(61) 90000-0000", modo: "tel", auto: "tel-national" },
   nascimento: { rotulo: "Nascimento", placeholder: "dd/mm/aaaa", modo: "numeric", auto: "off" },
+  // Obrigatório em todo check-in do site. É escolha, não digitação: dois botões.
+  sexo: { rotulo: "Sexo", placeholder: "", modo: "escolha", auto: "sex" },
 } as const;
 
+const OPCOES_SEXO = [
+  { valor: "feminino", rotulo: "Feminino" },
+  { valor: "masculino", rotulo: "Masculino" },
+] as const;
+
 type CampoId = keyof typeof CAMPOS;
-const TODOS: CampoId[] = ["nome", "email", "telefone", "nascimento"];
+const TODOS: CampoId[] = ["nome", "email", "telefone", "nascimento", "sexo"];
 
 /**
  * Quatro segundos de tela de carregamento antes de abrir o ticket.
@@ -79,7 +86,7 @@ export default function Inscricao({ aberto }: { aberto: boolean }) {
   const [primeiroNome, setPrimeiroNome] = useState<string | null>(null);
   const [pedir, setPedir] = useState<CampoId[]>([]);
   const [dados, setDados] = useState<Record<CampoId, string>>({
-    nome: "", email: "", telefone: "", nascimento: "",
+    nome: "", email: "", telefone: "", nascimento: "", sexo: "",
   });
   const [pelotao, setPelotao] = useState<Pelotao | "">("");
   const [erros, setErros] = useState<Record<string, string>>({});
@@ -160,7 +167,7 @@ export default function Inscricao({ aberto }: { aberto: boolean }) {
     e.preventDefault();
     const faltou: Record<string, string> = {};
     for (const campo of pedir) {
-      if (!dados[campo].trim()) faltou[campo] = "Preencha este campo";
+      if (!dados[campo].trim()) faltou[campo] = CAMPOS[campo].modo === "escolha" ? "Escolha uma opção" : "Preencha este campo";
     }
     if (Object.keys(faltou).length > 0) {
       setErros(faltou);
@@ -345,6 +352,30 @@ export default function Inscricao({ aberto }: { aberto: boolean }) {
             {pedir.map((campo) => {
               const meta = CAMPOS[campo];
               const largo = campo === "nome";
+              if (meta.modo === "escolha") {
+                return (
+                  <div key={campo} className="sm:col-span-2" role="group" aria-labelledby={`sd-${campo}`}>
+                    <p className="sd-rotulo" id={`sd-${campo}`}>{meta.rotulo}</p>
+                    <div className="grid grid-cols-2 gap-3">
+                      {OPCOES_SEXO.map((o) => (
+                        <button
+                          key={o.valor}
+                          type="button"
+                          aria-pressed={dados[campo] === o.valor}
+                          onClick={() => {
+                            setDados((d) => ({ ...d, [campo]: o.valor }));
+                            setErros((x) => (x[campo] ? { ...x, [campo]: "" } : x));
+                          }}
+                          className="sd-pelotao"
+                        >
+                          {o.rotulo}
+                        </button>
+                      ))}
+                    </div>
+                    {erros[campo] && <p className="sd-erro">{erros[campo]}</p>}
+                  </div>
+                );
+              }
               return (
                 <div key={campo} className={largo ? "sm:col-span-2" : undefined}>
                   <label className="sd-rotulo" htmlFor={`sd-${campo}`}>{meta.rotulo}</label>
@@ -357,7 +388,7 @@ export default function Inscricao({ aberto }: { aberto: boolean }) {
                     autoCapitalize={campo === "nome" ? "words" : "off"}
                     autoCorrect="off"
                     spellCheck={false}
-                    enterKeyHint={campo === pedir[pedir.length - 1] ? "go" : "next"}
+                    enterKeyHint={campo === pedir.filter((c) => CAMPOS[c].modo !== "escolha").at(-1) ? "go" : "next"}
                     value={dados[campo]}
                     placeholder={meta.placeholder}
                     aria-invalid={Boolean(erros[campo])}

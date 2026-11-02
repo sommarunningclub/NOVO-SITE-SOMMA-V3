@@ -1,4 +1,5 @@
 import "server-only";
+import { sexoValido, type Sexo } from "@/lib/sexo";
 import { getServiceSupabase } from "@/lib/supabase";
 import { CAPACIDADE_INTERNA, EVENTO_SLUG, type Pelotao } from "./event.config";
 import { gerarTicketCode, gerarTicketToken } from "./ticket";
@@ -85,6 +86,7 @@ export interface Pessoa {
   email: string | null;
   whatsapp: string | null;
   data_nascimento: string | null;
+  sexo: string | null;
 }
 
 export interface Identificacao {
@@ -117,7 +119,7 @@ export async function identificarPorCpf(
 
   const { data: pessoa, error } = await supabase
     .from("cadastro_site")
-    .select("id, nome_completo, email, whatsapp, data_nascimento")
+    .select("id, nome_completo, email, whatsapp, data_nascimento, sexo")
     .eq("cpf_digits", cpf)
     .maybeSingle();
 
@@ -133,6 +135,9 @@ export async function identificarPorCpf(
   if (VAZIO(p.email)) faltando.push("email");
   if (VAZIO(p.whatsapp)) faltando.push("telefone");
   if (VAZIO(p.data_nascimento)) faltando.push("nascimento");
+  // Sexo é obrigatório no check-in: cadastro antigo sem ele (ou com valor fora
+  // do padrão) responde na tela antes do pelotão.
+  if (!sexoValido(p.sexo)) faltando.push("sexo");
 
   let jaInscrito: Identificacao["jaInscrito"] = null;
   if (eventoId) {
@@ -166,7 +171,7 @@ export async function getPessoaPorCpf(cpf: string): Promise<Pessoa | null> {
   if (!supabase) return null;
   const { data } = await supabase
     .from("cadastro_site")
-    .select("id, nome_completo, email, whatsapp, data_nascimento")
+    .select("id, nome_completo, email, whatsapp, data_nascimento, sexo")
     .eq("cpf_digits", cpf)
     .maybeSingle();
   return (data as Pessoa) ?? null;
@@ -200,7 +205,7 @@ export async function inscrever(
     p_telefone: dados.telefone,
     p_ticket_code: ticketNovo,
     p_ticket_token: gerarTicketToken(),
-    p_sexo: null,
+    p_sexo: dados.sexo,
     p_nascimento: dados.nascimento,
     p_pelotao: dados.pelotao,
     p_categoria: null,
@@ -208,7 +213,9 @@ export async function inscrever(
     p_parceiro_slug: dados.parceiro ?? null,
     p_lote: null,
     p_utm: dados.utm ?? {},
-    p_metadata: {},
+    // `evento_participantes` não tem coluna de sexo: vai no metadata também,
+    // que é de onde a gestão lê quando cria a linha em `checkins`.
+    p_metadata: { sexo: dados.sexo },
     // O teto é aplicado no banco, sob advisory lock: contar aqui e inserir
     // depois deixaria duas inscrições simultâneas furarem o limite juntas.
     p_capacidade: CAPACIDADE_INTERNA,
@@ -224,7 +231,7 @@ export async function inscrever(
   if (!participante) return { ok: false, motivo: "erro" };
 
   // A gestão lê `checkins`: para quem organiza, a inscrição só existe depois daqui.
-  await espelharNoCheckin(participante, evento);
+  await espelharNoCheckin(participante, evento, dados.sexo);
 
   return { ok: true, participante, jaEstava: participante.ticket_code !== ticketNovo };
 }
@@ -242,7 +249,8 @@ export async function inscrever(
  */
 export async function espelharNoCheckin(
   participante: Participante,
-  evento: EventoRow
+  evento: EventoRow,
+  sexo: Sexo
 ): Promise<void> {
   const supabase = getServiceSupabase();
   if (!supabase) return;
@@ -263,19 +271,12 @@ export async function espelharNoCheckin(
   }
   if (existente && existente.length > 0) return;
 
-  // O formulário da LP não pergunta sexo; se a base já sabe, vai junto.
-  const { data: pessoa } = await supabase
-    .from("cadastro_site")
-    .select("sexo")
-    .eq("id", participante.pessoa_id)
-    .maybeSingle();
-
   const { error } = await supabase.from("checkins").insert({
     nome_completo: participante.nome_completo,
     email: participante.email,
     telefone: participante.telefone,
     cpf,
-    sexo: (pessoa as { sexo?: string | null } | null)?.sexo ?? null,
+    sexo,
     pelotao: participante.pelotao,
     data_do_evento: evento.data_evento ?? "",
     nome_do_evento: evento.titulo ?? "",
