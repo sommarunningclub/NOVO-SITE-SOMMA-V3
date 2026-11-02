@@ -45,7 +45,13 @@ export async function GET(req: NextRequest) {
     const transferencias = [...(error ? [] : data || []), ...daPagina].sort((a, b) =>
       String(b.created_at).localeCompare(String(a.created_at))
     )
-    return NextResponse.json({ transferencias })
+    // Pelotões do evento: o formulário de edição só oferece os que existem.
+    let pelotoes: string[] = []
+    if (daPagina.length) {
+      const { data: ev } = await supabase.from('eventos').select('pelotoes').eq('id', eventoId).maybeSingle()
+      pelotoes = Array.isArray(ev?.pelotoes) ? ev.pelotoes.map(String) : []
+    }
+    return NextResponse.json({ transferencias, pelotoes })
   } catch (err) {
     console.error('[transferencias/listar] erro:', err)
     return NextResponse.json({ transferencias: [] })
