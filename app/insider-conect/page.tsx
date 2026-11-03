@@ -132,10 +132,60 @@ function EventoSelector({
 
 // ─── Tela de Login ────────────────────────────────────────────────────────────
 
+type CadastroMfa = { qr: string; otpauth: string; segredo: string }
+
 function LoginScreen({ onLogin }: { onLogin: (insider: Insider) => void }) {
   const [cpf, setCpf] = useState('')
   const [loading, setLoading] = useState(false)
   const [erro, setErro] = useState('')
+  // Depois do CPF: 'setup' no primeiro acesso (cadastrar o Google Authenticator)
+  // ou 'verify' nos seguintes (só o código).
+  const [etapa, setEtapa] = useState<'cpf' | 'setup' | 'verify'>('cpf')
+  const [nome, setNome] = useState('')
+  const [cadastro, setCadastro] = useState<CadastroMfa | null>(null)
+  const [codigo, setCodigo] = useState('')
+  const [copiado, setCopiado] = useState(false)
+
+  function voltarParaCpf() {
+    setEtapa('cpf')
+    setCadastro(null)
+    setCodigo('')
+    setCopiado(false)
+  }
+
+  async function enviarCodigo(valor: string) {
+    if (valor.length !== 6 || loading) return
+    setErro('')
+    setLoading(true)
+    try {
+      const res = await insiderFetch('/api/insider/mfa', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ codigo: valor }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setErro(data.error || 'Código inválido.')
+        setCodigo('')
+        if (data.reiniciar) voltarParaCpf()
+        return
+      }
+      onLogin(data.insider)
+    } catch {
+      setErro('Erro de conexão. Tente novamente.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function copiarChave() {
+    if (!cadastro) return
+    try {
+      await navigator.clipboard.writeText(cadastro.segredo.replace(/\s/g, ''))
+      setCopiado(true)
+      setTimeout(() => setCopiado(false), 2000)
+    } catch { /* sem permissão de clipboard: a chave segue visível na tela */ }
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -149,7 +199,14 @@ function LoginScreen({ onLogin }: { onLogin: (insider: Insider) => void }) {
       })
       const data = await res.json()
       if (!res.ok) { setErro(data.error || 'Acesso negado.'); return }
-      onLogin(data.insider)
+      setNome(data.nome || '')
+      setCodigo('')
+      if (data.step === 'setup') {
+        setCadastro({ qr: data.qr, otpauth: data.otpauth, segredo: data.segredo })
+        setEtapa('setup')
+      } else {
+        setEtapa('verify')
+      }
     } catch {
       setErro('Erro de conexão. Tente novamente.')
     } finally {
@@ -157,8 +214,57 @@ function LoginScreen({ onLogin }: { onLogin: (insider: Insider) => void }) {
     }
   }
 
+  const campoCodigo = (
+    <input
+      type="text"
+      inputMode="numeric"
+      autoComplete="one-time-code"
+      pattern="[0-9]*"
+      value={codigo}
+      onChange={e => {
+        const v = e.target.value.replace(/\D/g, '').slice(0, 6)
+        setCodigo(v)
+        if (v.length === 6) enviarCodigo(v)
+      }}
+      placeholder="000000"
+      maxLength={6}
+      autoFocus
+      disabled={loading}
+      aria-label="Código de 6 dígitos do Google Authenticator"
+      className="w-full bg-zinc-900/80 backdrop-blur-sm border-2 border-zinc-700 focus:border-[#ff2c03] text-white placeholder:text-zinc-700 rounded-xl px-4 py-3.5 text-2xl tracking-[0.5em] text-center outline-none transition-all font-mono disabled:opacity-60"
+    />
+  )
+
+  const caixaErro = erro && (
+    <div className="flex items-center gap-2 bg-red-900/20 border border-red-500/40 rounded-lg px-3.5 py-2.5">
+      <Lock className="w-3.5 h-3.5 text-red-400 flex-shrink-0" />
+      <p className="text-red-400 text-xs">{erro}</p>
+    </div>
+  )
+
+  const botaoConfirmar = (
+    <button
+      type="submit"
+      disabled={loading || codigo.length < 6}
+      className="w-full bg-[#ff2c03] hover:bg-[#cc2402] disabled:bg-zinc-800 disabled:text-zinc-600 text-white font-semibold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-all duration-200 text-sm disabled:cursor-not-allowed"
+    >
+      {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShieldCheck className="w-4 h-4" />}
+      {loading ? 'Verificando...' : 'Confirmar código'}
+    </button>
+  )
+
+  const botaoVoltar = (
+    <button
+      type="button"
+      onClick={() => { setErro(''); voltarParaCpf() }}
+      className="w-full text-zinc-500 hover:text-zinc-300 text-xs py-2 flex items-center justify-center gap-1.5 transition-colors"
+    >
+      <ArrowLeft className="w-3.5 h-3.5" /> Usar outro CPF
+    </button>
+  )
+
   return (
-    <main className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden"
+    <main className="min-h-screen flex items-center justify-center px-4 py-10 relative overflow-hidden"
       style={{ background: 'linear-gradient(160deg, #1a0800 0%, #0d0300 40%, #000000 100%)' }}
     >
       {/* Ondas animadas — cor ajustada para #ff2c03 */}
@@ -220,6 +326,96 @@ function LoginScreen({ onLogin }: { onLogin: (insider: Insider) => void }) {
           <p className="text-zinc-500 text-sm mt-1">Painel de controle Somma Club</p>
         </div>
 
+        {etapa === 'setup' && cadastro && (
+          <form
+            onSubmit={e => { e.preventDefault(); enviarCodigo(codigo) }}
+            className="space-y-4"
+          >
+            <div className="bg-zinc-900/80 backdrop-blur-sm border border-zinc-800 rounded-2xl p-4 space-y-4">
+              <div>
+                <p className="text-white text-sm font-semibold">Olá, {nome}. Ative a verificação em duas etapas</p>
+                <p className="text-zinc-400 text-xs mt-1 leading-relaxed">
+                  A partir de agora o Insider Connect pede um código do Google Authenticator a cada acesso.
+                  Isso só é feito uma vez.
+                </p>
+              </div>
+
+              <ol className="space-y-3 text-xs text-zinc-300">
+                <li className="flex gap-2.5">
+                  <span className="flex-shrink-0 w-5 h-5 rounded-full bg-[#ff2c03] text-white text-[11px] font-bold flex items-center justify-center">1</span>
+                  <span>
+                    Instale o <strong className="text-white">Google Authenticator</strong> no celular{' '}
+                    (<a href="https://apps.apple.com/app/google-authenticator/id388497605" target="_blank" rel="noopener noreferrer" className="text-[#ff2c03] underline">iPhone</a>
+                    {' · '}
+                    <a href="https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2" target="_blank" rel="noopener noreferrer" className="text-[#ff2c03] underline">Android</a>).
+                  </span>
+                </li>
+                <li className="flex gap-2.5">
+                  <span className="flex-shrink-0 w-5 h-5 rounded-full bg-[#ff2c03] text-white text-[11px] font-bold flex items-center justify-center">2</span>
+                  <span>No app, toque em <strong className="text-white">+</strong> e escaneie o QR abaixo. Se estiver no próprio celular, use o botão ou digite a chave.</span>
+                </li>
+              </ol>
+
+              <div className="flex justify-center">
+                <img src={cadastro.qr} alt="QR Code para o Google Authenticator" className="w-44 h-44 rounded-xl bg-white p-2" />
+              </div>
+
+              <a
+                href={cadastro.otpauth}
+                className="w-full border border-zinc-700 hover:border-[#ff2c03] text-white text-xs font-semibold py-2.5 rounded-xl flex items-center justify-center gap-2 transition-colors"
+              >
+                <ShieldCheck className="w-3.5 h-3.5" /> Abrir no app autenticador
+              </a>
+
+              <div>
+                <p className="text-[11px] text-zinc-500 uppercase tracking-wide mb-1">Chave para digitar no app</p>
+                <button
+                  type="button"
+                  onClick={copiarChave}
+                  className="w-full text-left bg-black/40 border border-zinc-800 rounded-lg px-3 py-2 font-mono text-xs text-zinc-200 break-all hover:border-zinc-600 transition-colors"
+                >
+                  {cadastro.segredo}
+                  <span className="block text-[10px] text-zinc-500 mt-1 font-sans">
+                    {copiado ? 'Copiada' : 'Toque para copiar'}
+                  </span>
+                </button>
+              </div>
+
+              <div className="flex gap-2.5 text-xs text-zinc-300">
+                <span className="flex-shrink-0 w-5 h-5 rounded-full bg-[#ff2c03] text-white text-[11px] font-bold flex items-center justify-center">3</span>
+                <span>Digite o código de 6 números que o app mostra para SOMMA Insider.</span>
+              </div>
+              {campoCodigo}
+            </div>
+
+            {caixaErro}
+            {botaoConfirmar}
+            {botaoVoltar}
+          </form>
+        )}
+
+        {etapa === 'verify' && (
+          <form
+            onSubmit={e => { e.preventDefault(); enviarCodigo(codigo) }}
+            className="space-y-4"
+          >
+            <div className="text-center">
+              <p className="text-white text-sm font-semibold">Olá, {nome}</p>
+              <p className="text-zinc-400 text-xs mt-1">
+                Abra o Google Authenticator e digite o código de SOMMA Insider.
+              </p>
+            </div>
+            {campoCodigo}
+            {caixaErro}
+            {botaoConfirmar}
+            {botaoVoltar}
+            <p className="text-center text-[11px] text-zinc-600">
+              Trocou de celular ou perdeu o app? Fale com a coordenação para liberar um novo cadastro.
+            </p>
+          </form>
+        )}
+
+        {etapa === 'cpf' && (
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-xs text-zinc-400 uppercase tracking-wide mb-1.5 font-medium">
@@ -249,9 +445,10 @@ function LoginScreen({ onLogin }: { onLogin: (insider: Insider) => void }) {
             className="w-full bg-[#ff2c03] hover:bg-[#cc2402] disabled:bg-zinc-800 disabled:text-zinc-600 text-white font-semibold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-all duration-200 text-sm disabled:cursor-not-allowed"
           >
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShieldCheck className="w-4 h-4" />}
-            {loading ? 'Verificando...' : 'Acessar Painel'}
+            {loading ? 'Verificando...' : 'Continuar'}
           </button>
         </form>
+        )}
       </div>
     </main>
   )
