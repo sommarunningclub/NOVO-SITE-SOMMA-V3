@@ -3,7 +3,7 @@ import QRCode from "qrcode";
 import { getServiceSupabase } from "@/lib/supabase";
 import { brDateToISO, isValidBirthDate, isValidCpf } from "@/lib/validation";
 import { sexoValido } from "@/lib/maratona-rio-2027/provas";
-import { VALOR_ESTRUTURA, VALOR_INSCRICAO, pixCopiaECola } from "@/lib/maratona-rio-2027/inscricao";
+import { PARCEIRA, PRAZO_LEGIVEL, VALOR_ESTRUTURA, VALOR_INSCRICAO, pixCopiaECola, prazoEncerrado } from "@/lib/maratona-rio-2027/inscricao";
 import { lerConfig } from "@/lib/maratona-rio-2027/config";
 import { PROFESSORES_BORA } from "@/lib/nova-assessoria/professores";
 import { ipDaRequisicao } from "@/lib/nova-assessoria/rastreio-servidor";
@@ -36,6 +36,13 @@ function erro(mensagem: string, status: number) {
 }
 
 export async function POST(req: NextRequest) {
+  if (prazoEncerrado()) {
+    return NextResponse.json(
+      { error: `O prazo da ${PARCEIRA} terminou ${PRAZO_LEGIVEL}.`, prazo: true },
+      { status: 409 }
+    );
+  }
+
   const body = await req.json().catch(() => null);
   if (!body) return erro("Pedido inválido.", 400);
 

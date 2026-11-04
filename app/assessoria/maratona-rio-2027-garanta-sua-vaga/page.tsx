@@ -7,14 +7,18 @@ import { CabecalhoBora } from "@/components/bora/cabecalho-bora";
 import { getServiceSupabase } from "@/lib/supabase";
 import {
   EMAIL_SAC,
+  PARCEIRA,
+  PRAZO_LEGIVEL,
   PROVA_INSCRICAO,
   VALOR_ESTRUTURA,
   VALOR_INSCRICAO,
+  prazoEncerrado,
   reais,
 } from "@/lib/maratona-rio-2027/inscricao";
 import { PROFESSORES_BORA } from "@/lib/nova-assessoria/professores";
 import { lerConfig } from "@/lib/maratona-rio-2027/config";
 import { FormularioInscricao } from "./_components/FormularioInscricao";
+import { Contador } from "./_components/Contador";
 
 /**
  * /assessoria/maratona-rio-2027-garanta-sua-vaga: inscrição da Meia Maratona
@@ -105,12 +109,16 @@ const PERGUNTAS = [
     r: "Neste lote só existe o Kit Básico, sem camisa.",
   },
   {
+    p: `Por que pago para a BORA e não direto para a ${PARCEIRA}?`,
+    r: `Porque estas vagas são da assessoria. A BORA recebe os pagamentos de todos os atletas, confere um por um e confirma cada inscrição. Com tudo confirmado, a assessoria paga a ${PARCEIRA} e faz as inscrições oficiais nestas condições. Por isso existe prazo: a ${PARCEIRA} só aceita inscrições assim até ${PRAZO_LEGIVEL}.`,
+  },
+  {
     p: "Como pago?",
     r: `Só por Pix ou transferência para a BORA Assessoria, sem parcelamento. A chave Pix é o e-mail ${EMAIL_SAC}. Ao enviar o formulário você recebe o Pix com o valor certo para copiar e colar.`,
   },
   {
     p: "Como sei que deu tudo certo?",
-    r: `Depois de pagar, anexe o comprovante na própria tela do Pix (ou mande para ${EMAIL_SAC}). A equipe confere e confirma a sua inscrição.`,
+    r: `Depois de pagar, anexe o comprovante na própria tela do Pix (ou mande para ${EMAIL_SAC}). A equipe confere e confirma a sua inscrição; depois a assessoria faz a inscrição oficial na ${PARCEIRA}.`,
   },
   {
     p: "Como vai ser a entrega dos kits no Rio?",
@@ -125,8 +133,9 @@ const PERGUNTAS = [
 export default async function GarantaSuaVagaPage() {
   const { limite, restantes: vagas, abertas } = await situacao();
   const esgotado = vagas === 0;
-  // Fechado pelo painel conta como bloqueio, mesmo com vaga sobrando.
-  const bloqueio = !abertas ? "fechado" : esgotado ? "esgotado" : null;
+  const encerrado = prazoEncerrado();
+  // Prazo vencido ou fechado pelo painel contam como bloqueio, mesmo com vaga sobrando.
+  const bloqueio = encerrado ? "prazo" : !abertas ? "fechado" : esgotado ? "esgotado" : null;
   const professores = PROFESSORES_BORA.map((p) => ({ slug: p.slug, nome: p.nome }));
 
   return (
@@ -166,15 +175,23 @@ export default async function GarantaSuaVagaPage() {
             <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" />
             <p className="text-sm leading-snug">
               <strong className="font-bora text-base font-black uppercase">
-                {abertas ? `Apenas ${limite} vagas disponíveis.` : "Inscrições fechadas."}
+                {encerrado ? "Inscrições encerradas." : abertas ? `Apenas ${limite} vagas disponíveis.` : "Inscrições fechadas."}
               </strong>{" "}
-              {!abertas
+              {encerrado
+                ? `O prazo da ${PARCEIRA} para estas condições terminou ${PRAZO_LEGIVEL}.`
+                : !abertas
                 ? "A assessoria fechou as inscrições deste lote."
                 : esgotado
                 ? "Todas já foram preenchidas."
-                : "Quando acabarem, as inscrições fecham automaticamente. Depois, só pelo sorteio."}
+                : `Só até ${PRAZO_LEGIVEL} ou até acabarem as vagas. Depois, só pelo sorteio.`}
             </p>
           </div>
+
+          {!encerrado && (
+            <div className="mt-4">
+              <Contador />
+            </div>
+          )}
 
           <div className="mt-8 grid grid-cols-3 gap-2 sm:gap-3">
             <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
@@ -201,6 +218,43 @@ export default async function GarantaSuaVagaPage() {
               </p>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* Como funciona: o caminho do dinheiro até a inscrição oficial */}
+      <section className="border-t border-white/10 py-14">
+        <div className="mx-auto max-w-3xl px-4 sm:px-6">
+          <p className="font-bora text-sm font-bold uppercase tracking-[0.2em] text-bora">Como funciona</p>
+          <h2 className="mt-3 font-bora text-3xl font-black uppercase italic leading-[0.95] sm:text-5xl">
+            A assessoria cuida da sua inscrição
+          </h2>
+          <ol className="mt-8 grid gap-6 md:grid-cols-3">
+            {[
+              {
+                titulo: "Você reserva e paga",
+                texto: `Preencha o formulário e pague o Pix para a BORA Assessoria até ${PRAZO_LEGIVEL}. Anexe o comprovante na mesma tela.`,
+              },
+              {
+                titulo: "A BORA confere",
+                texto: "A assessoria recebe os pagamentos, confere um por um e confirma a sua inscrição com você.",
+              },
+              {
+                titulo: `A BORA inscreve na ${PARCEIRA}`,
+                texto: `Com tudo confirmado, a assessoria paga a ${PARCEIRA} e faz a sua inscrição oficial nestas condições.`,
+              },
+            ].map((passo, n) => (
+              <li key={passo.titulo} className="border-t-2 border-bora pt-5">
+                <span className="font-bora text-5xl font-black italic text-bora">{n + 1}</span>
+                <h3 className="mt-2 font-bora text-2xl font-black uppercase italic leading-none">{passo.titulo}</h3>
+                <p className="mt-3 text-sm leading-relaxed text-white/65">{passo.texto}</p>
+              </li>
+            ))}
+          </ol>
+          <p className="mt-8 rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-sm leading-relaxed text-white/70">
+            <strong className="text-white">Por que o prazo?</strong> A {PARCEIRA} só aceita inscrições nestas condições
+            até {PRAZO_LEGIVEL}. A assessoria precisa receber e conferir todos os pagamentos antes disso, então o
+            formulário fecha nesse horário.
+          </p>
         </div>
       </section>
 

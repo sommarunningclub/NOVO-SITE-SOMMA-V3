@@ -18,7 +18,7 @@ import {
   Unlock,
   X,
 } from "lucide-react";
-import { reais } from "@/lib/maratona-rio-2027/inscricao";
+import { PARCEIRA, PRAZO_LEGIVEL, prazoEncerrado, reais } from "@/lib/maratona-rio-2027/inscricao";
 import { cn } from "@/lib/utils";
 
 type Status = "aguardando_pagamento" | "pago" | "cancelado";
@@ -357,6 +357,11 @@ export function GestaoInscricoes({
               >
                 {config.abertas ? <Unlock className="h-3 w-3" /> : <Lock className="h-3 w-3" />}
                 {config.abertas ? (livres ? "Inscrições abertas" : "Esgotado") : "Inscrições fechadas"}
+              </span>
+              <span className="text-xs text-white/50">
+                {prazoEncerrado()
+                  ? `Prazo da ${PARCEIRA} encerrado (${PRAZO_LEGIVEL}): o formulário está fechado.`
+                  : `Fecha sozinho ${PRAZO_LEGIVEL} (prazo da ${PARCEIRA}).`}
               </span>
             </div>
             <p className="mt-2 font-bora text-5xl font-black italic leading-none tabular-nums">
