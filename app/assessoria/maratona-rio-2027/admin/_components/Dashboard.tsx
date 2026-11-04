@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Download, LogOut, MessageCircle, RefreshCw, Search, Trash2, X } from "lucide-react";
 import { PROVAS_RIO, SEXOS, type ProvaRio, type Sexo } from "@/lib/maratona-rio-2027/provas";
@@ -247,6 +248,12 @@ export function Dashboard({ cadastros, erro }: { cadastros: Cadastro[]; erro?: s
           <h1 className="mt-2 font-bora text-4xl font-black uppercase italic leading-none sm:text-5xl">
             Maratona do Rio 2027
           </h1>
+          <Link
+            href="/assessoria/maratona-rio-2027-garanta-sua-vaga/admin"
+            className="mt-2 inline-block text-sm text-white/50 hover:text-bora"
+          >
+            Ver inscrições da Meia (pagamento) →
+          </Link>
         </div>
         <div className="flex flex-wrap gap-2">
           <button
