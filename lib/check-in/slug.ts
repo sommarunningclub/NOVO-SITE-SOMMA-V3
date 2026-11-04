@@ -6,7 +6,7 @@
  * `Somma-Edição-HALLOWEEN`, que no browser aparece percent-encoded.
  */
 
-const RESERVADOS = new Set(['sucesso'])
+const RESERVADOS = new Set(['sucesso', 'interno'])
 
 export function slugifyEventoTitulo(titulo: string): string {
   const slug = titulo

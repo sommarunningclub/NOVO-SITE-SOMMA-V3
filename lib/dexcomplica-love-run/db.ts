@@ -606,7 +606,15 @@ export type ResultadoInscricao =
   | { ok: true; participante: Participante; jaEstava: boolean }
   | { ok: false; motivo: "sem_banco" | "lotado" | "erro" };
 
-export async function inscrever(dados: Inscricao, evento: EventoRow): Promise<ResultadoInscricao> {
+/**
+ * `opcoes.interno`: inscrição feita pela equipe em /check-in/interno. Passa por
+ * cima do teto de vagas (a pessoa foi convidada) e fica marcada no metadata.
+ */
+export async function inscrever(
+  dados: Inscricao,
+  evento: EventoRow,
+  opcoes: { interno?: boolean } = {}
+): Promise<ResultadoInscricao> {
   const supabase = getServiceSupabase();
   if (!supabase) return { ok: false, motivo: "sem_banco" };
 
@@ -632,8 +640,13 @@ export async function inscrever(dados: Inscricao, evento: EventoRow): Promise<Re
     p_utm: dados.utm ?? {},
     // `evento_participantes` não tem coluna de sexo: vai no metadata, e o
     // leitor da gestão usa daqui quando precisa criar a linha em `checkins`.
-    p_metadata: { sexo: dados.sexo, marketing_optin: dados.marketing === true, lp: EVENTO_SLUG },
-    p_capacidade: typeof evento.capacidade === "number" ? evento.capacidade : null,
+    p_metadata: {
+      sexo: dados.sexo,
+      marketing_optin: dados.marketing === true,
+      lp: EVENTO_SLUG,
+      ...(opcoes.interno ? { via: "check-in-interno" } : {}),
+    },
+    p_capacidade: !opcoes.interno && typeof evento.capacidade === "number" ? evento.capacidade : null,
     p_atualizar_cadastro: false,
   });
 
