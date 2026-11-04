@@ -12,7 +12,8 @@ type Estado =
   | { fase: "preenchendo"; erro?: string }
   | { fase: "enviando" }
   | { fase: "pronto"; dados: DadosPagamento; nome: string }
-  | { fase: "esgotado" };
+  | { fase: "esgotado" }
+  | { fase: "fechado" };
 
 // Quem vai pagar no app do banco e volta encontra o Pix e o anexo, não o
 // formulário vazio. Fica só neste aparelho.
@@ -80,12 +81,13 @@ function Opcao({
 
 export function FormularioInscricao({
   professores,
-  esgotado = false,
+  bloqueio = null,
 }: {
   professores: { slug: string; nome: string }[];
-  /** Lote cheio: some o formulário, mas quem já reservou ainda vê o Pix. */
-  esgotado?: boolean;
+  /** Lote cheio ou fechado pelo painel: some o formulário, mas quem já reservou ainda vê o Pix. */
+  bloqueio?: "esgotado" | "fechado" | null;
 }) {
+  const semFormulario: Estado = bloqueio ? { fase: bloqueio } : { fase: "preenchendo" };
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [telefone, setTelefone] = useState("");
@@ -97,7 +99,7 @@ export function FormularioInscricao({
   const [estrutura, setEstrutura] = useState<boolean | null>(null);
   const [termo, setTermo] = useState(false);
   const [empresa, setEmpresa] = useState("");
-  const [estado, setEstado] = useState<Estado>(esgotado ? { fase: "esgotado" } : { fase: "preenchendo" });
+  const [estado, setEstado] = useState<Estado>(semFormulario);
 
   useEffect(() => {
     const salvo = lerGuardado();
@@ -146,6 +148,7 @@ export function FormularioInscricao({
       });
       const data = await res.json().catch(() => ({}));
       if (data.esgotado) return setEstado({ fase: "esgotado" });
+      if (data.fechado) return setEstado({ fase: "fechado" });
       if (!res.ok || !data.ok) return falha(data.error || "Não deu certo. Tente de novo.");
       guardar({ dados: data, nome: nome.trim() });
       setEstado({ fase: "pronto", dados: data, nome: nome.trim() });
@@ -164,18 +167,23 @@ export function FormularioInscricao({
         nome={estado.nome}
         onNovaInscricao={() => {
           guardar(null);
-          setEstado(esgotado ? { fase: "esgotado" } : { fase: "preenchendo" });
+          setEstado(semFormulario);
         }}
       />
     );
   }
 
-  if (estado.fase === "esgotado") {
+  if (estado.fase === "esgotado" || estado.fase === "fechado") {
     return (
       <div className="rounded-3xl border border-red-500/40 bg-red-500/10 px-6 py-10 text-center">
-        <p className="font-bora text-3xl font-black uppercase italic">Vagas esgotadas</p>
+        <p className="font-bora text-3xl font-black uppercase italic">
+          {estado.fase === "esgotado" ? "Vagas esgotadas" : "Inscrições fechadas"}
+        </p>
         <p className="mt-3 text-white/70">
-          Todas as vagas deste lote foram preenchidas. Fale com o seu treinador para saber das próximas.
+          {estado.fase === "esgotado"
+            ? "Todas as vagas deste lote foram preenchidas."
+            : "A assessoria fechou as inscrições deste lote."}{" "}
+          Fale com o seu treinador para saber das próximas.
         </p>
       </div>
     );
