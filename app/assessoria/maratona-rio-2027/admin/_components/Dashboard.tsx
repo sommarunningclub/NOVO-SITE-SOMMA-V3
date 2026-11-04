@@ -1,9 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Download, LogOut, MessageCircle, RefreshCw, Search, Trash2, X } from "lucide-react";
+import { Download, MessageCircle, RefreshCw, Search, Trash2, X } from "lucide-react";
 import { PROVAS_RIO, SEXOS, type ProvaRio, type Sexo } from "@/lib/maratona-rio-2027/provas";
 import { cn } from "@/lib/utils";
 
@@ -227,11 +226,6 @@ export function Dashboard({ cadastros, erro }: { cadastros: Cadastro[]; erro?: s
     router.refresh();
   }
 
-  async function sair() {
-    await fetch("/api/maratona-rio-2027/admin/login", { method: "DELETE" }).catch(() => null);
-    router.refresh();
-  }
-
   function atualizar() {
     setAtualizando(true);
     router.refresh();
@@ -241,20 +235,9 @@ export function Dashboard({ cadastros, erro }: { cadastros: Cadastro[]; erro?: s
   const temFiltro = Boolean(prova || sexo || busca);
 
   return (
-    <div className="mx-auto max-w-6xl px-4 pb-16 pt-8 sm:px-6">
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <p className="font-bora text-sm font-bold uppercase tracking-[0.2em] text-bora">Painel da assessoria</p>
-          <h1 className="mt-2 font-bora text-4xl font-black uppercase italic leading-none sm:text-5xl">
-            Maratona do Rio 2027
-          </h1>
-          <Link
-            href="/assessoria/maratona-rio-2027-garanta-sua-vaga/admin"
-            className="mt-2 inline-block text-sm text-white/50 hover:text-bora"
-          >
-            Ver inscrições da Meia (pagamento) →
-          </Link>
-        </div>
+    <div>
+      <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-sm text-white/55">Quem quer correr no Rio e qual distância pretende fazer. Não é inscrição.</p>
         <div className="flex flex-wrap gap-2">
           <button
             type="button"
@@ -270,13 +253,6 @@ export function Dashboard({ cadastros, erro }: { cadastros: Cadastro[]; erro?: s
             className="inline-flex items-center gap-2 rounded-full bg-bora px-4 py-2.5 text-sm font-bold text-black hover:bg-white disabled:opacity-40"
           >
             <Download className="h-4 w-4" /> Exportar CSV{temFiltro ? ` (${filtrados.length})` : ""}
-          </button>
-          <button
-            type="button"
-            onClick={sair}
-            className="inline-flex items-center gap-2 rounded-full border border-white/15 px-4 py-2.5 text-sm text-white/70 hover:border-white/40 hover:text-white"
-          >
-            <LogOut className="h-4 w-4" /> Sair
           </button>
         </div>
       </header>

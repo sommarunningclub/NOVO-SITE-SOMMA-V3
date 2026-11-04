@@ -7,8 +7,9 @@ export const dynamic = "force-dynamic";
 const STATUS = new Set(["aguardando_pagamento", "pago", "cancelado"]);
 
 /**
- * Muda o status de uma inscrição da Meia: confirmar pagamento, voltar para
- * aguardando ou cancelar (cancelar devolve a vaga ao lote).
+ * Muda uma inscrição da Meia: o status (confirmar pagamento, voltar para
+ * aguardando ou cancelar, que devolve a vaga ao lote) e/ou a observação
+ * interna da equipe.
  */
 export async function PATCH(req: NextRequest) {
   const negado = await exigirAcesso();
@@ -17,23 +18,29 @@ export async function PATCH(req: NextRequest) {
   const body = await req.json().catch(() => ({}));
   const id = Number(body?.id);
   const status = body?.status;
-  if (!Number.isSafeInteger(id) || id <= 0 || !STATUS.has(status)) {
-    return NextResponse.json({ error: "Pedido inválido." }, { status: 400 });
+  const observacao = body?.observacao;
+  if (!Number.isSafeInteger(id) || id <= 0) return NextResponse.json({ error: "Pedido inválido." }, { status: 400 });
+  if (status === undefined && observacao === undefined) {
+    return NextResponse.json({ error: "Nada para mudar." }, { status: 400 });
   }
+  if (status !== undefined && !STATUS.has(status)) return NextResponse.json({ error: "Status inválido." }, { status: 400 });
+  if (observacao !== undefined && (typeof observacao !== "string" || observacao.length > 1000)) {
+    return NextResponse.json({ error: "Observação inválida." }, { status: 400 });
+  }
+
+  const mudanca: Record<string, unknown> = { atualizado_em: new Date().toISOString() };
+  if (status !== undefined) {
+    mudanca.status = status;
+    mudanca.pago_em = status === "pago" ? new Date().toISOString() : null;
+  }
+  if (observacao !== undefined) mudanca.observacao = observacao.trim() || null;
 
   const supabase = getServiceSupabase();
   if (!supabase) return NextResponse.json({ error: "Banco indisponível." }, { status: 503 });
 
   const { error, count } = await supabase
     .from("maratona_rio_2027_inscricoes")
-    .update(
-      {
-        status,
-        pago_em: status === "pago" ? new Date().toISOString() : null,
-        atualizado_em: new Date().toISOString(),
-      },
-      { count: "exact" }
-    )
+    .update(mudanca, { count: "exact" })
     .eq("id", id);
   if (error) {
     console.error("[maratona-rio-2027] Falha ao mudar status:", error.message);

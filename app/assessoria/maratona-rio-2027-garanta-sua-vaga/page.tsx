@@ -7,13 +7,13 @@ import { CabecalhoBora } from "@/components/bora/cabecalho-bora";
 import { getServiceSupabase } from "@/lib/supabase";
 import {
   EMAIL_SAC,
-  LIMITE_VAGAS,
   PROVA_INSCRICAO,
   VALOR_ESTRUTURA,
   VALOR_INSCRICAO,
   reais,
 } from "@/lib/maratona-rio-2027/inscricao";
 import { PROFESSORES_BORA } from "@/lib/nova-assessoria/professores";
+import { lerConfig } from "@/lib/maratona-rio-2027/config";
 import { FormularioInscricao } from "./_components/FormularioInscricao";
 
 /**
@@ -27,7 +27,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Garanta sua vaga: Meia Maratona do Rio 2027 | BORA × SOMMA Club",
-  description: `Só ${LIMITE_VAGAS} vagas da assessoria para a Meia Maratona do Rio 2027, exclusivas para atletas BORA. ${reais(VALOR_INSCRICAO)}, kit sem camisa, vaga garantida sem sorteio.`,
+  description: `Vagas limitadas da assessoria para a Meia Maratona do Rio 2027, exclusivas para atletas BORA. ${reais(VALOR_INSCRICAO)}, kit sem camisa, vaga garantida sem sorteio.`,
   alternates: { canonical: "/assessoria/maratona-rio-2027-garanta-sua-vaga" },
   robots: { index: false, follow: false },
   openGraph: {
@@ -35,7 +35,7 @@ export const metadata: Metadata = {
     locale: "pt_BR",
     siteName: "SOMMA Club",
     title: "Meia Maratona do Rio 2027: garanta sua vaga",
-    description: `Só ${LIMITE_VAGAS} vagas, exclusivas para atletas BORA. ${reais(VALOR_INSCRICAO)}, vaga garantida sem sorteio.`,
+    description: `Vagas limitadas, exclusivas para atletas BORA. ${reais(VALOR_INSCRICAO)}, vaga garantida sem sorteio.`,
   },
 };
 
@@ -43,22 +43,27 @@ export const viewport: Viewport = {
   themeColor: "#000000",
 };
 
-/** Vagas que sobram. null quando o banco não respondeu (o formulário segue aberto e o banco decide). */
-async function vagasRestantes(): Promise<number | null> {
+/**
+ * Vagas do lote (o painel muda), quantas sobram e se a inscrição está aberta.
+ * `restantes` null quando o banco não respondeu: o formulário segue aberto e
+ * o banco decide na hora de reservar.
+ */
+async function situacao(): Promise<{ limite: number; restantes: number | null; abertas: boolean }> {
   const supabase = getServiceSupabase();
-  if (!supabase) return null;
+  const config = await lerConfig(supabase);
+  if (!supabase) return { limite: config.limite, restantes: null, abertas: config.abertas };
   const { count, error } = await supabase
     .from("maratona_rio_2027_inscricoes")
     .select("id", { count: "exact", head: true })
     .neq("status", "cancelado");
   if (error) {
     console.error("[maratona-rio-2027] Falha ao contar vagas:", error.message);
-    return null;
+    return { limite: config.limite, restantes: null, abertas: config.abertas };
   }
-  return Math.max(LIMITE_VAGAS - (count ?? 0), 0);
+  return { limite: config.limite, restantes: Math.max(config.limite - (count ?? 0), 0), abertas: config.abertas };
 }
 
-const CAMINHOS = [
+const caminhos = (limite: number) => [
   {
     titulo: "1º lote da assessoria",
     preco: "R$ 349",
@@ -69,7 +74,7 @@ const CAMINHOS = [
   {
     titulo: "Vagas da assessoria agora",
     preco: reais(VALOR_INSCRICAO),
-    itens: [`Só ${LIMITE_VAGAS} vagas neste lote`, "Vaga garantida, sem sorteio", "Kit básico, sem camisa", "Exclusivo para atletas BORA"],
+    itens: [`Só ${limite} vagas neste lote`, "Vaga garantida, sem sorteio", "Kit básico, sem camisa", "Exclusivo para atletas BORA"],
     destaque: true,
     esgotado: false,
   },
@@ -118,8 +123,10 @@ const PERGUNTAS = [
 ];
 
 export default async function GarantaSuaVagaPage() {
-  const vagas = await vagasRestantes();
+  const { limite, restantes: vagas, abertas } = await situacao();
   const esgotado = vagas === 0;
+  // Fechado pelo painel conta como bloqueio, mesmo com vaga sobrando.
+  const bloqueio = !abertas ? "fechado" : esgotado ? "esgotado" : null;
   const professores = PROFESSORES_BORA.map((p) => ({ slug: p.slug, nome: p.nome }));
 
   return (
@@ -151,7 +158,7 @@ export default async function GarantaSuaVagaPage() {
 
           <div
             className={
-              esgotado
+              bloqueio
                 ? "mt-6 flex gap-3 rounded-2xl border border-red-500/50 bg-red-500/10 p-4"
                 : "mt-6 flex gap-3 rounded-2xl border border-bora bg-bora p-4 text-black"
             }
@@ -159,9 +166,11 @@ export default async function GarantaSuaVagaPage() {
             <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" />
             <p className="text-sm leading-snug">
               <strong className="font-bora text-base font-black uppercase">
-                Apenas {LIMITE_VAGAS} vagas disponíveis.
+                {abertas ? `Apenas ${limite} vagas disponíveis.` : "Inscrições fechadas."}
               </strong>{" "}
-              {esgotado
+              {!abertas
+                ? "A assessoria fechou as inscrições deste lote."
+                : esgotado
                 ? "Todas já foram preenchidas."
                 : "Quando acabarem, as inscrições fecham automaticamente. Depois, só pelo sorteio."}
             </p>
@@ -185,10 +194,10 @@ export default async function GarantaSuaVagaPage() {
             >
               <p className="text-[11px] uppercase tracking-widest text-white/50">Vagas</p>
               <p className="mt-1 font-bora text-2xl font-black italic text-bora sm:text-3xl">
-                {vagas === null ? LIMITE_VAGAS : esgotado ? "0" : vagas}
+                {vagas === null ? limite : esgotado ? "0" : vagas}
               </p>
               <p className="text-[11px] text-white/50">
-                {vagas === null ? "no lote" : esgotado ? "esgotado" : `${vagas === 1 ? "restante" : "restantes"} de ${LIMITE_VAGAS}`}
+                {vagas === null ? "no lote" : esgotado ? "esgotado" : `${vagas === 1 ? "restante" : "restantes"} de ${limite}`}
               </p>
             </div>
           </div>
@@ -203,7 +212,7 @@ export default async function GarantaSuaVagaPage() {
             Os três caminhos para correr os 21 km
           </h2>
           <ol className="mt-8 grid gap-3 md:grid-cols-3">
-            {CAMINHOS.map((c) => (
+            {caminhos(limite).map((c) => (
               <li
                 key={c.titulo}
                 className={
@@ -258,10 +267,10 @@ export default async function GarantaSuaVagaPage() {
           </h2>
           <p className="mt-4 text-white/65">
             {PROVA_INSCRICAO.nome} · {PROVA_INSCRICAO.kit}. Preencha, reserve e pague o Pix que aparece no final.{" "}
-            <strong className="text-white">São só {LIMITE_VAGAS} vagas</strong>: a sua só fica guardada depois de enviar.
+            <strong className="text-white">São só {limite} vagas</strong>: a sua só fica guardada depois de enviar.
           </p>
           <div className="mt-8">
-            <FormularioInscricao professores={professores} esgotado={esgotado} />
+            <FormularioInscricao professores={professores} bloqueio={bloqueio} />
           </div>
         </div>
       </section>

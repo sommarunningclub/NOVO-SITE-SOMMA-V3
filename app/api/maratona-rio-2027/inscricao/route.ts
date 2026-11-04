@@ -3,7 +3,8 @@ import QRCode from "qrcode";
 import { getServiceSupabase } from "@/lib/supabase";
 import { brDateToISO, isValidBirthDate, isValidCpf } from "@/lib/validation";
 import { sexoValido } from "@/lib/maratona-rio-2027/provas";
-import { LIMITE_VAGAS, VALOR_ESTRUTURA, VALOR_INSCRICAO, pixCopiaECola } from "@/lib/maratona-rio-2027/inscricao";
+import { VALOR_ESTRUTURA, VALOR_INSCRICAO, pixCopiaECola } from "@/lib/maratona-rio-2027/inscricao";
+import { lerConfig } from "@/lib/maratona-rio-2027/config";
 import { PROFESSORES_BORA } from "@/lib/nova-assessoria/professores";
 import { ipDaRequisicao } from "@/lib/nova-assessoria/rastreio-servidor";
 
@@ -11,7 +12,7 @@ import { ipDaRequisicao } from "@/lib/nova-assessoria/rastreio-servidor";
  * Inscrição na Meia Maratona do Rio 2027 pela assessoria.
  *
  * A vaga é reservada no banco (`maratona_rio_2027_inscrever`, com o teto de
- * LIMITE_VAGAS sob lock) e a resposta já traz o Pix com o valor certo. Quem
+ * vagas do painel sob lock) e a resposta já traz o Pix com o valor certo. Quem
  * já está inscrito e envia de novo atualiza os dados sem ocupar outra vaga.
  */
 
@@ -80,8 +81,13 @@ export async function POST(req: NextRequest) {
     if ((count ?? 0) >= LIMITE_POR_IP) return erro("Muitos envios seguidos. Espere alguns minutos e tente de novo.", 429);
   }
 
+  const config = await lerConfig(supabase);
+  if (!config.abertas) {
+    return NextResponse.json({ error: "As inscrições estão fechadas.", fechado: true }, { status: 409 });
+  }
+
   const { data, error } = await supabase.rpc("maratona_rio_2027_inscrever", {
-    p_limite: LIMITE_VAGAS,
+    p_limite: config.limite,
     p_dados: {
       nome,
       email,
