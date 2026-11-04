@@ -607,13 +607,14 @@ export type ResultadoInscricao =
   | { ok: false; motivo: "sem_banco" | "lotado" | "erro" };
 
 /**
- * `opcoes.interno`: inscrição feita pela equipe em /check-in/interno. Passa por
- * cima do teto de vagas (a pessoa foi convidada) e fica marcada no metadata.
+ * `opcoes.interno`: inscrição feita pela equipe em /check-in/interno. Fica
+ * marcada no metadata e usa o teto que a rota calcula (`opcoes.capacidade`,
+ * a cota do link) no lugar do teto público do evento.
  */
 export async function inscrever(
   dados: Inscricao,
   evento: EventoRow,
-  opcoes: { interno?: boolean } = {}
+  opcoes: { interno?: boolean; capacidade?: number | null } = {}
 ): Promise<ResultadoInscricao> {
   const supabase = getServiceSupabase();
   if (!supabase) return { ok: false, motivo: "sem_banco" };
@@ -646,7 +647,11 @@ export async function inscrever(
       lp: EVENTO_SLUG,
       ...(opcoes.interno ? { via: "check-in-interno" } : {}),
     },
-    p_capacidade: !opcoes.interno && typeof evento.capacidade === "number" ? evento.capacidade : null,
+    p_capacidade: opcoes.interno
+      ? (opcoes.capacidade ?? null)
+      : typeof evento.capacidade === "number"
+        ? evento.capacidade
+        : null,
     p_atualizar_cadastro: false,
   });
 

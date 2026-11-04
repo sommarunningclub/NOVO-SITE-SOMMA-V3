@@ -38,10 +38,26 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
   }
 }
 
+/**
+ * Link colado com pontuação no fim ("…/check-in/interno." vindo de uma
+ * mensagem): tira a pontuação e manda para o endereço certo.
+ */
+function semPontuacaoFinal(slug: string): string | null {
+  const decodificado = decodificaSlug(slug)
+  const limpo = decodificado.replace(/[.,;:!?)\]}'"»”]+$/u, '')
+  return limpo && limpo !== decodificado ? limpo : null
+}
+
 export default async function CheckInEventoPage({ params }: { params: Promise<Params> }) {
   const { slug } = await params
+  const limpo = semPontuacaoFinal(slug)
+  if (limpo?.toLowerCase() === 'interno') redirect('/check-in/interno')
+
   const evento = await buscarEventoPublicoPorSlug(slug)
-  if (!evento) notFound()
+  if (!evento) {
+    if (limpo) redirect(`/check-in/${encodeURIComponent(limpo)}`)
+    notFound()
+  }
 
   if (decodificaSlug(slug) !== evento.slug) {
     redirect(`/check-in/${evento.slug}`)

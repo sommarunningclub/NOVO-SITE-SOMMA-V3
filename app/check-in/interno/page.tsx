@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import { ENV_SENHA, acessoConfigurado, temAcesso } from "@/lib/check-in-interno/auth";
-import { listarEventosInternos } from "@/lib/check-in-interno/eventos";
+import { VAGAS_LINK, situacaoDoLink } from "@/lib/check-in-interno/eventos";
 import { Login } from "./_components/Login";
 import { Formulario } from "./_components/Formulario";
 
 /**
- * Inscrição interna: a equipe coloca convidados dentro de eventos com a parte
- * pública fechada. Senha em CHECKIN_INTERNO_SENHA (ver lib/check-in-interno/auth).
- * A lista de eventos só sai do servidor depois da sessão conferida.
+ * Inscrição interna no Love Run de sábado: a equipe fura a fila com a LP e o
+ * /check-in fechados, até VAGAS_LINK vagas. Senha em CHECKIN_INTERNO_SENHA
+ * (ver lib/check-in-interno/auth). Nada do evento sai antes da sessão conferida.
  */
 
 export const dynamic = "force-dynamic";
@@ -33,6 +33,14 @@ export default async function CheckInInternoPage() {
 
   if (!(await temAcesso())) return <Login />;
 
-  const { eventos, erro } = await listarEventosInternos();
-  return <Formulario eventos={eventos} erro={erro} />;
+  const s = await situacaoDoLink();
+  return (
+    <Formulario
+      evento={s.evento}
+      usadas={s.usadas}
+      total={VAGAS_LINK}
+      motivo={s.motivo}
+      erro={s.erro}
+    />
+  );
 }
