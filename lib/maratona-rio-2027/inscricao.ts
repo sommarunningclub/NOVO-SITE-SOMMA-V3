@@ -21,14 +21,22 @@ export const PROVA_INSCRICAO = {
 export const EMAIL_SAC = "sac@boraequipe.com.br";
 export const TERMO_URL = "https://www.maratonadorio.com.br/";
 
-/** Pix da BORA, igual ao QR que a BORA divulga (conferido em 04/11/2026). */
+/**
+ * Pix da BORA. A chave é o e-mail do SAC, a que a BORA divulga para a Maratona
+ * do Rio (o Alex escolheu esta em vez da aleatória em 04/11/2026). Recebedor e
+ * cidade vêm do QR da BORA; o app do banco mostra o titular real da chave
+ * antes de confirmar o pagamento.
+ */
 export const PIX = {
-  chave: "c83ff4de-e554-4aae-8ef4-e1f704898c15",
+  chave: EMAIL_SAC,
   recebedor: "BORA ASSESSORIA LTDA",
   cidade: "SAO PAULO",
   cep: "05409000",
-  instituicao: "Nu Pagamentos",
 };
+
+/** Comprovante: imagem ou PDF. O teto fica abaixo do limite de corpo da Vercel (4,5 MB). */
+export const COMPROVANTE_MAX_BYTES = 4 * 1024 * 1024;
+export const BUCKET_COMPROVANTES = "maratona-rio-2027-comprovantes";
 
 export function valorTotal(estrutura: boolean): number {
   return VALOR_INSCRICAO + (estrutura ? VALOR_ESTRUTURA : 0);

@@ -3,6 +3,7 @@ import { altone } from "@/components/bora/fonte";
 import { getServiceSupabase } from "@/lib/supabase";
 import { ENV_SENHA, acessoConfigurado, temAcesso } from "@/lib/maratona-rio-2027/auth";
 import { PROFESSORES_BORA } from "@/lib/nova-assessoria/professores";
+import { BUCKET_COMPROVANTES } from "@/lib/maratona-rio-2027/inscricao";
 import { LoginAdmin } from "../../maratona-rio-2027/admin/_components/LoginAdmin";
 import { PainelInscricoes, type Inscricao } from "./_components/PainelInscricoes";
 
@@ -22,18 +23,34 @@ export const viewport: Viewport = {
   themeColor: "#000000",
 };
 
-async function carregar(): Promise<{ inscricoes: Inscricao[]; erro?: string }> {
+async function carregar(): Promise<{ inscricoes: Inscricao[]; comprovantes: Record<number, string>; erro?: string }> {
   const supabase = getServiceSupabase();
-  if (!supabase) return { inscricoes: [], erro: "Banco indisponível (SUPABASE_SERVICE_ROLE_KEY ausente)." };
+  if (!supabase) {
+    return { inscricoes: [], comprovantes: {}, erro: "Banco indisponível (SUPABASE_SERVICE_ROLE_KEY ausente)." };
+  }
   const { data, error } = await supabase
     .from("maratona_rio_2027_inscricoes")
     .select(
-      "id, criado_em, nome, email, telefone, cpf, data_nascimento, sexo, treinador, treinador_outro, estrutura_apoio, valor_total, status, pago_em"
+      "id, criado_em, nome, email, telefone, cpf, data_nascimento, sexo, treinador, treinador_outro, estrutura_apoio, valor_total, status, pago_em, comprovante_path, comprovante_enviado_em"
     )
     .order("criado_em", { ascending: true })
     .limit(2000);
-  if (error) return { inscricoes: [], erro: error.message };
-  return { inscricoes: (data ?? []) as Inscricao[] };
+  if (error) return { inscricoes: [], comprovantes: {}, erro: error.message };
+  const inscricoes = (data ?? []) as (Inscricao & { comprovante_path: string | null })[];
+
+  // Bucket privado: cada comprovante abre por link assinado que vale 1 hora.
+  const comprovantes: Record<number, string> = {};
+  const comArquivo = inscricoes.filter((i) => i.comprovante_path);
+  if (comArquivo.length) {
+    const { data: links, error: erroLinks } = await supabase.storage
+      .from(BUCKET_COMPROVANTES)
+      .createSignedUrls(comArquivo.map((i) => i.comprovante_path!), 60 * 60);
+    if (erroLinks) console.error("[maratona-rio-2027] Falha nos links dos comprovantes:", erroLinks.message);
+    links?.forEach((l, n) => {
+      if (l.signedUrl) comprovantes[comArquivo[n].id] = l.signedUrl;
+    });
+  }
+  return { inscricoes, comprovantes };
 }
 
 export default async function AdminInscricoesPage() {
@@ -51,9 +68,9 @@ export default async function AdminInscricoesPage() {
   } else if (!(await temAcesso())) {
     conteudo = <LoginAdmin />;
   } else {
-    const { inscricoes, erro } = await carregar();
+    const { inscricoes, comprovantes, erro } = await carregar();
     const treinadores = Object.fromEntries(PROFESSORES_BORA.map((p) => [p.slug, p.nome]));
-    conteudo = <PainelInscricoes inscricoes={inscricoes} treinadores={treinadores} erro={erro} />;
+    conteudo = <PainelInscricoes inscricoes={inscricoes} comprovantes={comprovantes} treinadores={treinadores} erro={erro} />;
   }
 
   return (

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent, type ReactNode } from "react";
+import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { ArrowRight, Loader2 } from "lucide-react";
 import { SEXOS, type Sexo } from "@/lib/maratona-rio-2027/provas";
 import { TERMO_URL, VALOR_ESTRUTURA, reais, valorTotal } from "@/lib/maratona-rio-2027/inscricao";
@@ -11,8 +11,31 @@ import { Pagamento, type DadosPagamento } from "./Pagamento";
 type Estado =
   | { fase: "preenchendo"; erro?: string }
   | { fase: "enviando" }
-  | { fase: "pronto"; dados: DadosPagamento }
+  | { fase: "pronto"; dados: DadosPagamento; nome: string }
   | { fase: "esgotado" };
+
+// Quem vai pagar no app do banco e volta encontra o Pix e o anexo, não o
+// formulário vazio. Fica só neste aparelho.
+const GUARDADO = "mdr27-inscricao";
+
+function lerGuardado(): { dados: DadosPagamento; nome: string } | null {
+  try {
+    const bruto = localStorage.getItem(GUARDADO);
+    const salvo = bruto ? JSON.parse(bruto) : null;
+    return salvo?.dados?.token && salvo?.dados?.pix ? salvo : null;
+  } catch {
+    return null;
+  }
+}
+
+function guardar(valor: { dados: DadosPagamento; nome: string } | null) {
+  try {
+    if (valor) localStorage.setItem(GUARDADO, JSON.stringify(valor));
+    else localStorage.removeItem(GUARDADO);
+  } catch {
+    // Navegação privada ou armazenamento bloqueado: segue sem lembrar.
+  }
+}
 
 const campo =
   "mt-2 w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3.5 text-base text-white outline-none placeholder:text-white/30 focus:border-bora";
@@ -55,7 +78,14 @@ function Opcao({
   );
 }
 
-export function FormularioInscricao({ professores }: { professores: { slug: string; nome: string }[] }) {
+export function FormularioInscricao({
+  professores,
+  esgotado = false,
+}: {
+  professores: { slug: string; nome: string }[];
+  /** Lote cheio: some o formulário, mas quem já reservou ainda vê o Pix. */
+  esgotado?: boolean;
+}) {
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [telefone, setTelefone] = useState("");
@@ -67,7 +97,12 @@ export function FormularioInscricao({ professores }: { professores: { slug: stri
   const [estrutura, setEstrutura] = useState<boolean | null>(null);
   const [termo, setTermo] = useState(false);
   const [empresa, setEmpresa] = useState("");
-  const [estado, setEstado] = useState<Estado>({ fase: "preenchendo" });
+  const [estado, setEstado] = useState<Estado>(esgotado ? { fase: "esgotado" } : { fase: "preenchendo" });
+
+  useEffect(() => {
+    const salvo = lerGuardado();
+    if (salvo) setEstado({ fase: "pronto", ...salvo });
+  }, []);
 
   function mexeu<T>(setter: (v: T) => void) {
     return (v: T) => {
@@ -112,7 +147,8 @@ export function FormularioInscricao({ professores }: { professores: { slug: stri
       const data = await res.json().catch(() => ({}));
       if (data.esgotado) return setEstado({ fase: "esgotado" });
       if (!res.ok || !data.ok) return falha(data.error || "Não deu certo. Tente de novo.");
-      setEstado({ fase: "pronto", dados: data });
+      guardar({ dados: data, nome: nome.trim() });
+      setEstado({ fase: "pronto", dados: data, nome: nome.trim() });
       requestAnimationFrame(() =>
         document.getElementById("inscricao")?.scrollIntoView({ behavior: "smooth", block: "start" })
       );
@@ -121,14 +157,25 @@ export function FormularioInscricao({ professores }: { professores: { slug: stri
     }
   }
 
-  if (estado.fase === "pronto") return <Pagamento dados={estado.dados} nome={nome.trim()} />;
+  if (estado.fase === "pronto") {
+    return (
+      <Pagamento
+        dados={estado.dados}
+        nome={estado.nome}
+        onNovaInscricao={() => {
+          guardar(null);
+          setEstado(esgotado ? { fase: "esgotado" } : { fase: "preenchendo" });
+        }}
+      />
+    );
+  }
 
   if (estado.fase === "esgotado") {
     return (
       <div className="rounded-3xl border border-red-500/40 bg-red-500/10 px-6 py-10 text-center">
         <p className="font-bora text-3xl font-black uppercase italic">Vagas esgotadas</p>
         <p className="mt-3 text-white/70">
-          A última vaga saiu agora há pouco. Fale com o seu treinador para saber das próximas.
+          Todas as vagas deste lote foram preenchidas. Fale com o seu treinador para saber das próximas.
         </p>
       </div>
     );

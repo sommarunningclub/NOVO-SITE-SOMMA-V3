@@ -49,6 +49,13 @@ create table if not exists public.maratona_rio_2027_inscricoes (
   status text not null default 'aguardando_pagamento'
     check (status in ('aguardando_pagamento', 'pago', 'cancelado')),
   pago_em timestamptz,
+
+  -- Segredo da inscrição: só quem acabou de se inscrever (e recebeu este
+  -- token) pode anexar o comprovante. O id sozinho é sequencial e adivinhável.
+  token uuid not null default gen_random_uuid(),
+  -- Caminho no bucket maratona-rio-2027-comprovantes (privado).
+  comprovante_path text,
+  comprovante_enviado_em timestamptz,
   observacao text,
 
   ip text,
@@ -59,6 +66,18 @@ create index if not exists maratona_rio_2027_inscricoes_status_idx
   on public.maratona_rio_2027_inscricoes (status);
 
 alter table public.maratona_rio_2027_inscricoes enable row level security;
+
+-- Bucket privado dos comprovantes de Pix. Só a service role lê e grava; o
+-- painel abre cada arquivo por link assinado de curta duração.
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values (
+  'maratona-rio-2027-comprovantes',
+  'maratona-rio-2027-comprovantes',
+  false,
+  4194304,
+  array['image/jpeg', 'image/png', 'image/webp', 'application/pdf']
+)
+on conflict (id) do nothing;
 
 comment on table public.maratona_rio_2027_inscricoes is
   'Inscrições da Meia Maratona do Rio 2027 pela assessoria (pagamento por Pix à BORA). Uma por CPF; canceladas devolvem a vaga.';

@@ -101,11 +101,11 @@ const PERGUNTAS = [
   },
   {
     p: "Como pago?",
-    r: "Só por Pix ou transferência para a BORA Assessoria, sem parcelamento. Ao enviar o formulário você recebe o Pix com o valor certo para copiar e colar.",
+    r: `Só por Pix ou transferência para a BORA Assessoria, sem parcelamento. A chave Pix é o e-mail ${EMAIL_SAC}. Ao enviar o formulário você recebe o Pix com o valor certo para copiar e colar.`,
   },
   {
     p: "Como sei que deu tudo certo?",
-    r: `Depois de pagar, mande o comprovante para ${EMAIL_SAC}. A equipe confere e confirma a sua inscrição.`,
+    r: `Depois de pagar, anexe o comprovante na própria tela do Pix (ou mande para ${EMAIL_SAC}). A equipe confere e confirma a sua inscrição.`,
   },
   {
     p: "Como vai ser a entrega dos kits no Rio?",
@@ -261,16 +261,7 @@ export default async function GarantaSuaVagaPage() {
             <strong className="text-white">São só {LIMITE_VAGAS} vagas</strong>: a sua só fica guardada depois de enviar.
           </p>
           <div className="mt-8">
-            {esgotado ? (
-              <div className="rounded-3xl border border-red-500/40 bg-red-500/10 px-6 py-10 text-center">
-                <p className="font-bora text-3xl font-black uppercase italic">Vagas esgotadas</p>
-                <p className="mt-3 text-white/70">
-                  As {LIMITE_VAGAS} vagas deste lote acabaram. Fale com o seu treinador para saber das próximas.
-                </p>
-              </div>
-            ) : (
-              <FormularioInscricao professores={professores} />
-            )}
+            <FormularioInscricao professores={professores} esgotado={esgotado} />
           </div>
         </div>
       </section>

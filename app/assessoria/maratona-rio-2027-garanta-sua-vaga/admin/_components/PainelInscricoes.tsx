@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Check, Download, LogOut, MessageCircle, RefreshCw, Search, Undo2, X } from "lucide-react";
+import { Check, Download, FileText, LogOut, MessageCircle, RefreshCw, Search, Undo2, X } from "lucide-react";
 import { LIMITE_VAGAS, reais } from "@/lib/maratona-rio-2027/inscricao";
 import { cn } from "@/lib/utils";
 
@@ -24,7 +24,11 @@ export interface Inscricao {
   valor_total: number | string;
   status: Status;
   pago_em: string | null;
+  comprovante_enviado_em: string | null;
 }
+
+/** Filtro da lista: um status, ou "conferir" (aguardando Pix com comprovante anexado). */
+type Filtro = Status | "conferir";
 
 const FUSO = "America/Sao_Paulo";
 const dataHora = new Intl.DateTimeFormat("pt-BR", { timeZone: FUSO, dateStyle: "short", timeStyle: "short" });
@@ -65,16 +69,19 @@ function Numero({ rotulo, valor, detalhe }: { rotulo: string; valor: string | nu
 
 export function PainelInscricoes({
   inscricoes,
+  comprovantes,
   treinadores,
   erro,
 }: {
   inscricoes: Inscricao[];
+  /** id da inscrição → link assinado do comprovante. */
+  comprovantes: Record<number, string>;
   treinadores: Record<string, string>;
   erro?: string;
 }) {
   const router = useRouter();
   const [busca, setBusca] = useState("");
-  const [status, setStatus] = useState<Status | null>(null);
+  const [status, setStatus] = useState<Filtro | null>(null);
   const [mudando, setMudando] = useState<number | null>(null);
 
   const nomeTreinador = (i: Inscricao) =>
@@ -83,6 +90,7 @@ export function PainelInscricoes({
   const ativas = inscricoes.filter((i) => i.status !== "cancelado");
   const pagas = ativas.filter((i) => i.status === "pago");
   const aguardando = ativas.filter((i) => i.status === "aguardando_pagamento");
+  const paraConferir = aguardando.filter((i) => i.comprovante_enviado_em);
   const soma = (l: Inscricao[]) => l.reduce((s, i) => s + Number(i.valor_total), 0);
   const comEstrutura = ativas.filter((i) => i.estrutura_apoio).length;
   const ocupadas = ativas.length;
@@ -101,7 +109,9 @@ export function PainelInscricoes({
     return inscricoes
       .map((i, n) => ({ ...i, ordem: n + 1 }))
       .filter((i) => {
-        if (status && i.status !== status) return false;
+        if (status === "conferir" ? !(i.status === "aguardando_pagamento" && i.comprovante_enviado_em) : status && i.status !== status) {
+          return false;
+        }
         if (!termo) return true;
         return (
           semAcento(i.nome).includes(termo) ||
@@ -134,7 +144,7 @@ export function PainelInscricoes({
   function baixarCsv() {
     const cab = [
       "Nº", "Nome", "E-mail", "Telefone", "CPF", "Nascimento", "Sexo", "Treinador",
-      "Estrutura de apoio", "Total", "Status", "Inscrito em", "Pago em",
+      "Estrutura de apoio", "Total", "Status", "Comprovante", "Inscrito em", "Pago em",
     ];
     const esc = (v: string) => `"${v.replace(/"/g, '""')}"`;
     const linhas = [...filtradas].reverse().map((i) =>
@@ -142,6 +152,7 @@ export function PainelInscricoes({
         String(i.ordem), i.nome, i.email, telefoneLegivel(i.telefone), cpfLegivel(i.cpf), nascLegivel(i.data_nascimento),
         i.sexo === "feminino" ? "Feminino" : "Masculino", nomeTreinador(i), i.estrutura_apoio ? "Sim" : "Não",
         Number(i.valor_total).toFixed(2).replace(".", ","), NOME_STATUS[i.status],
+        i.comprovante_enviado_em ? `Enviado ${dataHora.format(new Date(i.comprovante_enviado_em))}` : "Não",
         dataHora.format(new Date(i.criado_em)), i.pago_em ? dataHora.format(new Date(i.pago_em)) : "",
       ].map(esc).join(";")
     );
@@ -189,8 +200,9 @@ export function PainelInscricoes({
     );
   }
 
-  const filtros: { id: Status | null; nome: string; n: number }[] = [
+  const filtros: { id: Filtro | null; nome: string; n: number }[] = [
     { id: null, nome: "Todas", n: inscricoes.length },
+    { id: "conferir", nome: "Comprovante para conferir", n: paraConferir.length },
     { id: "aguardando_pagamento", nome: "Aguardando Pix", n: aguardando.length },
     { id: "pago", nome: "Pagas", n: pagas.length },
     { id: "cancelado", nome: "Canceladas", n: inscricoes.length - ocupadas },
@@ -252,7 +264,11 @@ export function PainelInscricoes({
 
       <div className="mt-3 grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Numero rotulo="Recebido" valor={reais(soma(pagas))} detalhe={`${pagas.length} ${pagas.length === 1 ? "inscrição paga" : "inscrições pagas"}`} />
-        <Numero rotulo="A receber" valor={reais(soma(aguardando))} detalhe={`${aguardando.length} aguardando Pix`} />
+        <Numero
+          rotulo="A receber"
+          valor={reais(soma(aguardando))}
+          detalhe={`${aguardando.length} aguardando Pix · ${paraConferir.length} com comprovante`}
+        />
         <Numero rotulo="Estrutura de apoio" valor={comEstrutura} detalhe={`de ${ocupadas} inscritos`} />
         <Numero
           rotulo="Mulheres · homens"
@@ -320,6 +336,18 @@ export function PainelInscricoes({
                   <span className="text-sm font-bold tabular-nums">{reais(Number(i.valor_total))}</span>
                   {i.estrutura_apoio && (
                     <span className="rounded-full border border-white/15 px-2.5 py-0.5 text-xs text-white/60">+ estrutura</span>
+                  )}
+                  {comprovantes[i.id] ? (
+                    <a
+                      href={comprovantes[i.id]}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-0.5 text-xs font-bold text-black hover:bg-bora"
+                    >
+                      <FileText className="h-3.5 w-3.5" /> Ver comprovante
+                    </a>
+                  ) : (
+                    i.status === "aguardando_pagamento" && <span className="text-xs text-white/35">sem comprovante</span>
                   )}
                 </div>
                 <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-sm text-white/60">

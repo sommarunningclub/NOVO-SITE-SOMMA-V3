@@ -110,7 +110,7 @@ export async function POST(req: NextRequest) {
 
   const { data: inscricao, error: erroLeitura } = await supabase
     .from("maratona_rio_2027_inscricoes")
-    .select("id, valor_total, estrutura_apoio, status")
+    .select("id, valor_total, estrutura_apoio, status, token, comprovante_enviado_em")
     .eq("id", r?.inscricao_id)
     .single();
   if (erroLeitura || !inscricao) {
@@ -129,6 +129,8 @@ export async function POST(req: NextRequest) {
     total,
     estrutura: inscricao.estrutura_apoio,
     pago: inscricao.status === "pago",
+    token: inscricao.token,
+    comprovante: Boolean(inscricao.comprovante_enviado_em),
     pix,
     qrSvg,
     vagasRestantes: r.vagas_restantes,
