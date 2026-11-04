@@ -18,6 +18,20 @@ export const PROVA_INSCRICAO = {
   kit: "Kit básico, sem camisa",
 } as const;
 
+/**
+ * Até quando a Go Dream aceita inscrições nestas condições: sexta, 06/11/2026,
+ * às 22h de Brasília. Depois disso o formulário e a API fecham sozinhos (o
+ * painel não reabre; para estender, mude esta data e publique).
+ */
+export const PRAZO_INSCRICAO = new Date("2026-11-06T22:00:00-03:00");
+export const PRAZO_LEGIVEL = "sexta, 06/11, às 22h";
+/** Quem recebe da assessoria e faz a inscrição oficial. */
+export const PARCEIRA = "Go Dream";
+
+export function prazoEncerrado(agora: number = Date.now()): boolean {
+  return agora >= PRAZO_INSCRICAO.getTime();
+}
+
 export const EMAIL_SAC = "sac@boraequipe.com.br";
 export const TERMO_URL = "https://www.maratonadorio.com.br/";
 

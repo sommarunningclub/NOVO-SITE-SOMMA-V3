@@ -3,7 +3,7 @@
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { ArrowRight, Loader2 } from "lucide-react";
 import { SEXOS, type Sexo } from "@/lib/maratona-rio-2027/provas";
-import { TERMO_URL, VALOR_ESTRUTURA, reais, valorTotal } from "@/lib/maratona-rio-2027/inscricao";
+import { PARCEIRA, PRAZO_LEGIVEL, TERMO_URL, VALOR_ESTRUTURA, reais, valorTotal } from "@/lib/maratona-rio-2027/inscricao";
 import { isValidBirthDate, isValidCpf, maskCpf, maskDate, maskPhone } from "@/lib/validation";
 import { cn } from "@/lib/utils";
 import { Pagamento, type DadosPagamento } from "./Pagamento";
@@ -13,7 +13,8 @@ type Estado =
   | { fase: "enviando" }
   | { fase: "pronto"; dados: DadosPagamento; nome: string }
   | { fase: "esgotado" }
-  | { fase: "fechado" };
+  | { fase: "fechado" }
+  | { fase: "prazo" };
 
 // Quem vai pagar no app do banco e volta encontra o Pix e o anexo, não o
 // formulário vazio. Fica só neste aparelho.
@@ -84,8 +85,8 @@ export function FormularioInscricao({
   bloqueio = null,
 }: {
   professores: { slug: string; nome: string }[];
-  /** Lote cheio ou fechado pelo painel: some o formulário, mas quem já reservou ainda vê o Pix. */
-  bloqueio?: "esgotado" | "fechado" | null;
+  /** Lote cheio, fechado pelo painel ou prazo vencido: some o formulário, mas quem já reservou ainda vê o Pix. */
+  bloqueio?: "esgotado" | "fechado" | "prazo" | null;
 }) {
   const semFormulario: Estado = bloqueio ? { fase: bloqueio } : { fase: "preenchendo" };
   const [nome, setNome] = useState("");
@@ -148,6 +149,7 @@ export function FormularioInscricao({
       });
       const data = await res.json().catch(() => ({}));
       if (data.esgotado) return setEstado({ fase: "esgotado" });
+      if (data.prazo) return setEstado({ fase: "prazo" });
       if (data.fechado) return setEstado({ fase: "fechado" });
       if (!res.ok || !data.ok) return falha(data.error || "Não deu certo. Tente de novo.");
       guardar({ dados: data, nome: nome.trim() });
@@ -173,15 +175,17 @@ export function FormularioInscricao({
     );
   }
 
-  if (estado.fase === "esgotado" || estado.fase === "fechado") {
+  if (estado.fase === "esgotado" || estado.fase === "fechado" || estado.fase === "prazo") {
     return (
       <div className="rounded-3xl border border-red-500/40 bg-red-500/10 px-6 py-10 text-center">
         <p className="font-bora text-3xl font-black uppercase italic">
-          {estado.fase === "esgotado" ? "Vagas esgotadas" : "Inscrições fechadas"}
+          {estado.fase === "esgotado" ? "Vagas esgotadas" : estado.fase === "prazo" ? "Inscrições encerradas" : "Inscrições fechadas"}
         </p>
         <p className="mt-3 text-white/70">
           {estado.fase === "esgotado"
             ? "Todas as vagas deste lote foram preenchidas."
+            : estado.fase === "prazo"
+            ? `O prazo da ${PARCEIRA} para estas condições terminou ${PRAZO_LEGIVEL}.`
             : "A assessoria fechou as inscrições deste lote."}{" "}
           Fale com o seu treinador para saber das próximas.
         </p>
