@@ -10,6 +10,10 @@ export const viewport: Viewport = {
   userScalable: false,
 };
 
+// A promo do mês tem data para acabar (lib/nova-assessoria/promo): a página
+// estática se refaz de hora em hora para o cupom sair do ar sozinho.
+export const revalidate = 3600;
+
 export default function LinksProfessoresLayout({
   children,
 }: {

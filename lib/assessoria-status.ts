@@ -11,26 +11,21 @@
  * Quem já é aluno não é afetado: webhook, consulta de status e /assessoria/nps
  * seguem funcionando. Para reabrir, trocar para `true` e publicar.
  *
- * Desde 26/10/2026 /assessoria não depende mais desta flag: apresenta a BORA,
- * a assessoria oficial do SOMMA Club, e leva ao WhatsApp dos professores
- * (lib/nova-assessoria). Os links de professor são a exceção, logo abaixo.
+ * Desde 26/10/2026 /assessoria e os links de professor (/joseph, /alexandre,
+ * /mateus, /gabriel-brito) não dependem mais desta flag: apresentam a BORA,
+ * a assessoria oficial do SOMMA Club. A assinatura é no checkout da BORA na
+ * Runy (lib/nova-assessoria/promo), não no Asaas do SOMMA.
  */
 export const ASSESSORIA_VENDAS_ABERTAS = false;
 
 /**
- * Professores que seguem vendendo com as vendas fechadas. Desde 28/10/2026 os
- * links deles (/alexandre, /joseph, /mateus, /gabriel-brito) voltaram a ser o
- * checkout de Mensal, Semestral e Anual, a pedido do Alex; /assessoria e
- * /checkout/* continuam fechados. O nome é o exato de
+ * Professores que vendem pelo Asaas mesmo com as vendas fechadas. De 28/10 a
+ * 04/11/2026 os quatro links de professor foram checkout aqui; desde então a
+ * venda é pela Runy e a lista está vazia. O nome é o exato de
  * `professores_curriculo_assessoria`, o mesmo que o checkout manda às rotas
  * de cobrança.
  */
-export const PROFESSORES_COM_VENDA_ABERTA = [
-  "Alexandre Alves",
-  "Joseph Pereira",
-  "Mateus Fonseca",
-  "Gabriel Brito",
-];
+export const PROFESSORES_COM_VENDA_ABERTA: string[] = [];
 
 /** Se uma venda com este professor pode passar pelas rotas de cobrança. */
 export function vendaAberta(professor: unknown): boolean {
