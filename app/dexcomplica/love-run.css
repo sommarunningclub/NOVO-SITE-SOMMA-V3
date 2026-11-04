@@ -457,6 +457,13 @@ html:has(.lr-root) { scroll-behavior: smooth; scroll-padding-top: 76px; }
 .lr-polaroid--1 { left: -26%; bottom: -8%; transform: rotate(-9deg); }
 .lr-polaroid--2 { right: -24%; top: 6%; transform: rotate(8deg); width: 38%; }
 .lr-festa__logo { width: min(100%, 460px); height: auto; margin: 0 0 22px; display: block; }
+.lr-festa__dados { display: grid; gap: 14px; margin: 4px 0 26px; padding: 18px 20px; border: 2px solid rgba(255, 255, 255, 0.35); border-radius: 18px; }
+.lr-festa__dados > div { display: grid; gap: 2px; align-content: start; }
+.lr-festa__dados dt { font-size: 11px; font-weight: 800; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(255, 255, 255, 0.72); }
+.lr-festa__dados dd { margin: 0; font-weight: 700; color: var(--branco); }
+.lr-festa__dados dd a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+.lr-festa__dados dd span { display: block; font-weight: 400; font-size: 0.9em; color: rgba(255, 255, 255, 0.82); }
+@media (min-width: 640px) { .lr-festa__dados { grid-template-columns: 1fr 1fr; } }
 @media (min-width: 960px) {
   .lr-festa__grid { grid-template-columns: 0.9fr 1.1fr; align-items: center; gap: 120px; }
   .lr-festa__midia { width: 340px; margin-bottom: 0; }

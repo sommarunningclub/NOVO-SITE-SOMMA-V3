@@ -292,8 +292,33 @@ export default async function LoveRunPage({ searchParams }: { searchParams: Prom
               </h2>
               <p className="lr-lead lr-lead--claro" data-revelar>
                 Quem estiver presente no corre terá acesso a uma condição especial para a festa Dexcomplica.
-                {FESTA.confirmada ? ` A festa é dia ${FESTA.data}${FESTA.local ? `, em ${FESTA.local}` : ""}.` : ""}
+                {FESTA.confirmada ? ` ${FESTA.chamada}` : ""}
               </p>
+              {FESTA.confirmada ? (
+                <dl className="lr-festa__dados" data-revelar>
+                  <div>
+                    <dt>Data</dt>
+                    <dd>{FESTA.data}</dd>
+                  </div>
+                  <div>
+                    <dt>Local</dt>
+                    <dd>
+                      <a href={FESTA.mapa} target="_blank" rel="noopener noreferrer">
+                        {FESTA.local}
+                      </a>
+                      <span>{FESTA.endereco}</span>
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Atrações</dt>
+                    <dd>{FESTA.atracoes}</dd>
+                  </div>
+                  <div>
+                    <dt>Classificação</dt>
+                    <dd>{FESTA.classificacao}</dd>
+                  </div>
+                </dl>
+              ) : null}
               <p className="lr-nota lr-nota--claro" data-revelar>
                 {FESTA.beneficio ??
                   "Os detalhes do benefício serão informados em breve. Ele vale para quem estiver presente no corre: a inscrição, sozinha, não garante a condição."}
@@ -306,7 +331,7 @@ export default async function LoveRunPage({ searchParams }: { searchParams: Prom
                 data-rastrear="festa_saiba_mais"
                 data-revelar
               >
-                {FESTA.url ? "Saiba mais sobre a festa" : "Acompanhe a Dexcomplica"}
+                {FESTA.url ? "Comprar ingresso da festa" : "Acompanhe a Dexcomplica"}
               </a>
             </div>
           </div>

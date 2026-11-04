@@ -187,15 +187,18 @@ export const LEVAR = [
 /* ─── A festa ─────────────────────────────────────────────────────────────── */
 export const FESTA = {
   nome: "Dexcomplica",
-  /**
-   * A bio do @dexxcomplica diz "28 de novembro" (sem ano, local nem link).
-   * Não confirmado pela organização: só aparece quando `confirmada = true`.
-   */
+  /** Confirmada pelo Alex em 04/11/2026 com o texto de divulgação da Dexcomplica. */
   data: "28 de novembro",
-  confirmada: false,
-  local: null as string | null,
-  /** PENDENTE: URL oficial de informações/ingressos. */
-  url: null as string | null,
+  confirmada: true,
+  /** "Pós final da Libertadores, edição beira lago." */
+  chamada: "Última edição do ano, pós final da Libertadores, edição beira lago.",
+  local: "Clube de Engenharia de Brasília" as string | null,
+  endereco: "SCES Trecho 2, Orla do Clube de Engenharia, Brasília, DF",
+  mapa: "https://www.google.com/maps/search/Clube+de+Engenharia+de+Bras%C3%ADlia,+SCES+Trecho+2+Orla+do+clube+de+engenharia,+Bras%C3%ADlia,+DF",
+  atracoes: "Banda Dexcomplica, convidados e funk",
+  classificacao: "Evento para maiores de 18 anos",
+  /** Venda de ingressos no Sympla, link enviado pelo Alex (com ?d=LOVERUN). */
+  url: "https://www.sympla.com.br/evento/dexcomplica/3634141?d=LOVERUN" as string | null,
   instagram: "https://www.instagram.com/dexxcomplica/",
   /**
    * PENDENTE. Sabe-se só que quem estiver PRESENTE no corre tem uma condição
