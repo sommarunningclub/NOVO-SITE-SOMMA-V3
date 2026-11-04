@@ -1,90 +1,147 @@
 import "server-only";
 import { getServiceSupabase } from "@/lib/supabase";
 import { formatarData } from "@/lib/check-in/eventos";
-import { EVENTO_SLUG as SLUG_LOVE_RUN } from "@/lib/dexcomplica-love-run/event.config";
+import { getEvento, type EventoRow } from "@/lib/dexcomplica-love-run/db";
+import { pelotoesValidos } from "@/lib/dexcomplica-love-run/estado";
 
 /**
- * Eventos em que a equipe pode inscrever pelo /check-in/interno: todos de hoje
- * em diante (horário de Brasília), qualquer que seja o estado da parte pública
- * (aberto, bloqueado, encerrado ou oculto no /check-in). É justamente para
- * colocar gente dentro quando o público está fechado.
+ * O /check-in/interno vale para UM evento só: o Dexcomplica Love Run de
+ * sábado (o slug vem de lib/dexcomplica-love-run/event.config). A LP e o
+ * /check-in continuam fechados; só este link fura a fila, e só até gastar a
+ * cota abaixo. Depois disso o link "vence" e o formulário trava.
+ *
+ * A cota conta as inscrições ativas feitas por aqui (metadata.via), então uma
+ * inscrição cancelada na gestão devolve a vaga ao link.
  */
 
-export const PELOTOES_PADRAO = ["4km", "6km", "8km"];
+/** 80 em produção. Fora dela, `CHECKIN_INTERNO_VAGAS_TESTE` encurta a cota para testar o bloqueio. */
+export const VAGAS_LINK =
+  (process.env.NODE_ENV !== "production" && Number(process.env.CHECKIN_INTERNO_VAGAS_TESTE)) || 80;
+export const VIA_INTERNO = "check-in-interno";
+
+const TABELA = "evento_participantes";
 
 export type EventoInterno = {
   id: string;
   titulo: string;
-  slug: string | null;
   data: string;
   dataFormatada: string;
-  horarioInicio: string;
   local: string;
-  tipo: "corrida" | "personalizado";
   pelotoes: string[];
-  /** Situação da parte pública, só para mostrar na tela. */
-  publico: "aberto" | "fechado" | "oculto";
-  /** Evento com LP própria e ingresso (hoje só o Dexcomplica Love Run). */
-  comIngresso: boolean;
 };
 
-type Linha = {
-  id: string;
-  titulo: string;
-  slug: string | null;
-  data_evento: string;
-  horario_inicio: string | null;
-  local: string | null;
-  tipo: "corrida" | "personalizado" | null;
-  checkin_status: string | null;
-  evento_encerrado: boolean | null;
-  oculto_no_checkin_publico: boolean | null;
-  pelotoes: string[] | null;
+export type SituacaoLink = {
+  evento: EventoInterno | null;
+  /** A linha completa, para a rota de inscrição. */
+  linha: EventoRow | null;
+  usadas: number;
+  restantes: number;
+  /** Cota gasta ou evento já passou: o formulário trava. */
+  encerrado: boolean;
+  motivo: "ok" | "esgotado" | "passou" | "sem_evento";
+  erro?: string;
 };
 
 export function hojeEmBrasilia(agora = new Date()): string {
   return new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo" }).format(agora);
 }
 
-function mapear(row: Linha): EventoInterno {
-  const pelotoes = (row.pelotoes ?? []).map((p) => String(p ?? "").trim()).filter(Boolean);
-  const publico =
-    row.oculto_no_checkin_publico === true
-      ? "oculto"
-      : row.checkin_status === "aberto" && row.evento_encerrado !== true
-        ? "aberto"
-        : "fechado";
-  return {
-    id: row.id,
-    titulo: row.titulo,
-    slug: row.slug,
-    data: row.data_evento,
-    dataFormatada: formatarData(row.data_evento),
-    horarioInicio: row.horario_inicio ?? "",
-    local: row.local || "Parque da Cidade, Brasília, DF",
-    tipo: row.tipo === "personalizado" ? "personalizado" : "corrida",
-    pelotoes: pelotoes.length > 0 ? pelotoes : PELOTOES_PADRAO,
-    publico,
-    comIngresso: row.slug === SLUG_LOVE_RUN,
-  };
-}
-
-export async function listarEventosInternos(): Promise<{ eventos: EventoInterno[]; erro?: string }> {
+/** Inscrições ativas feitas pelo link interno. Lança se o banco falhar (para não liberar vaga às cegas). */
+export async function contarUsadasNoLink(eventoId: string): Promise<number> {
   const supabase = getServiceSupabase();
-  if (!supabase) return { eventos: [], erro: "Banco indisponível (SUPABASE_SERVICE_ROLE_KEY ausente)." };
-  const { data, error } = await supabase
-    .from("eventos")
-    .select(
-      "id, titulo, slug, data_evento, horario_inicio, local, tipo, checkin_status, evento_encerrado, oculto_no_checkin_publico, pelotoes"
-    )
-    .gte("data_evento", hojeEmBrasilia())
-    .order("data_evento", { ascending: true })
-    .limit(30);
-  if (error) return { eventos: [], erro: error.message };
-  return { eventos: ((data ?? []) as Linha[]).map(mapear) };
+  if (!supabase) throw new Error("Banco indisponível");
+  const { count, error } = await supabase
+    .from(TABELA)
+    .select("id", { count: "exact", head: true })
+    .eq("evento_id", eventoId)
+    .neq("status", "cancelado")
+    .eq("metadata->>via", VIA_INTERNO);
+  if (error) throw new Error(error.message);
+  return count ?? 0;
 }
 
-export async function buscarEventoInterno(id: string): Promise<EventoInterno | null> {
-  const { eventos } = await listarEventosInternos();
-  return eventos.find((e) => e.id === id) ?? null;
+/**
+ * Teto a passar para `inscrever_no_evento`: quem está no evento POR FORA do
+ * link + a cota do link. A função conta todos os inscritos sob advisory lock;
+ * como o público está fechado, a parcela de fora não muda e o teto é o mesmo
+ * para todos os envios simultâneos, então juntos eles não passam da cota.
+ * (Somar "total - usadas" em duas leituras separadas deixava o teto crescer
+ * entre uma leitura e outra: 6 envios simultâneos passavam numa cota de 3.)
+ */
+export async function capacidadeDoLink(eventoId: string): Promise<number> {
+  const supabase = getServiceSupabase();
+  if (!supabase) throw new Error("Banco indisponível");
+  const { count, error } = await supabase
+    .from(TABELA)
+    .select("id", { count: "exact", head: true })
+    .eq("evento_id", eventoId)
+    .neq("status", "cancelado")
+    .or(`metadata->>via.is.null,metadata->>via.neq.${VIA_INTERNO}`);
+  if (error) throw new Error(error.message);
+  return (count ?? 0) + VAGAS_LINK;
+}
+
+export async function situacaoDoLink(): Promise<SituacaoLink> {
+  const vazio = { evento: null, linha: null, usadas: 0, restantes: 0, encerrado: true } as const;
+  const linha = await getEvento();
+  if (!linha || !linha.data_evento) return { ...vazio, motivo: "sem_evento" };
+
+  const evento: EventoInterno = {
+    id: linha.id,
+    titulo: linha.titulo,
+    data: linha.data_evento,
+    dataFormatada: formatarData(linha.data_evento),
+    local: (linha as EventoRow & { local?: string | null }).local || "Parque da Cidade, Brasília, DF",
+    pelotoes: pelotoesValidos(linha.pelotoes),
+  };
+
+  let usadas: number;
+  try {
+    usadas = await contarUsadasNoLink(linha.id);
+  } catch (e) {
+    return { ...vazio, evento, linha, motivo: "sem_evento", erro: e instanceof Error ? e.message : String(e) };
+  }
+  const restantes = Math.max(0, VAGAS_LINK - usadas);
+
+  if (linha.data_evento < hojeEmBrasilia()) {
+    return { evento, linha, usadas, restantes, encerrado: true, motivo: "passou" };
+  }
+  if (restantes === 0) return { evento, linha, usadas, restantes, encerrado: true, motivo: "esgotado" };
+  return { evento, linha, usadas, restantes, encerrado: false, motivo: "ok" };
+}
+
+export type Repetido = { nome: string; por: "cpf" | "email"; onde: "inscricao" | "lista" };
+
+/** ilike sem curinga: e-mail com "_" ou "%" não pode casar com outro. */
+function semCuringa(v: string): string {
+  return v.replace(/[\\%_]/g, (c) => `\\${c}`);
+}
+
+/**
+ * A pessoa já está neste evento por qualquer porta? Confere as inscrições
+ * (LP e link) e a lista de check-in da gestão, por CPF (nas duas grafias) e
+ * por e-mail (sem diferenciar maiúsculas). Mesmo e-mail com outro CPF quase
+ * sempre é a mesma pessoa com o CPF digitado errado. Lança se o banco falhar:
+ * na dúvida, não inscreve.
+ */
+export async function cadastroRepetido(eventoId: string, cpf: string, email: string): Promise<Repetido | null> {
+  const supabase = getServiceSupabase();
+  if (!supabase) throw new Error("Banco indisponível");
+  const mascarado = `${cpf.slice(0, 3)}.${cpf.slice(3, 6)}.${cpf.slice(6, 9)}-${cpf.slice(9)}`;
+  const emailBusca = semCuringa(email.trim());
+
+  const [insCpf, insEmail, listaCpf, listaEmail] = await Promise.all([
+    supabase.from(TABELA).select("nome_completo").eq("evento_id", eventoId).neq("status", "cancelado").in("cpf", [cpf, mascarado]).limit(1),
+    supabase.from(TABELA).select("nome_completo").eq("evento_id", eventoId).neq("status", "cancelado").ilike("email", emailBusca).limit(1),
+    supabase.from("checkins").select("nome_completo").eq("evento_id", eventoId).in("cpf", [cpf, mascarado]).limit(1),
+    supabase.from("checkins").select("nome_completo").eq("evento_id", eventoId).ilike("email", emailBusca).limit(1),
+  ]);
+  for (const r of [insCpf, insEmail, listaCpf, listaEmail]) if (r.error) throw new Error(r.error.message);
+
+  const nome = (r: { data: { nome_completo: string | null }[] | null }) => r.data?.[0]?.nome_completo || "Essa pessoa";
+  if (insCpf.data?.length) return { nome: nome(insCpf), por: "cpf", onde: "inscricao" };
+  if (listaCpf.data?.length) return { nome: nome(listaCpf), por: "cpf", onde: "lista" };
+  if (insEmail.data?.length) return { nome: nome(insEmail), por: "email", onde: "inscricao" };
+  if (listaEmail.data?.length) return { nome: nome(listaEmail), por: "email", onde: "lista" };
+  return null;
 }

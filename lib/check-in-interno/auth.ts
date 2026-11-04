@@ -46,8 +46,8 @@ export async function exigirAcesso(): Promise<NextResponse | null> {
 export const COOKIE_OPTS = {
   httpOnly: true,
   secure: process.env.NODE_ENV === "production",
-  // strict: o cookie grava inscrição; nada disso pode vir de navegação de fora.
-  sameSite: "strict" as const,
+  // lax: abre já logado vindo de link no WhatsApp; POST de outro site continua sem cookie.
+  sameSite: "lax" as const,
   path: "/",
   maxAge: DURACAO,
 };

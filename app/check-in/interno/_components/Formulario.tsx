@@ -2,9 +2,9 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowUpRight, Calendar, Check, CircleAlert, Loader2, LogOut, Ticket } from 'lucide-react'
+import { ArrowUpRight, Check, CircleAlert, Loader2, Lock, LogOut, Ticket } from 'lucide-react'
 import { Grupo, IconeQuadrado, Linha, Segmentado } from '../../_components/ios'
-import type { EventoInterno } from '@/lib/check-in-interno/eventos'
+import type { EventoInterno, SituacaoLink } from '@/lib/check-in-interno/eventos'
 
 type Sexo = '' | 'masculino' | 'feminino'
 
@@ -14,7 +14,6 @@ type Resultado =
   | {
       tipo: 'ok'
       nome: string
-      evento: string
       pelotao: string | null
       emailEnviado?: boolean
       ingressoUrl?: string
@@ -23,14 +22,6 @@ type Resultado =
   | { tipo: 'ja'; mensagem: string; ingressoUrl?: string; ticketCode?: string }
 
 const VAZIO: Pessoa = { nome: '', telefone: '', email: '', cpf: '', sexo: '' }
-
-const MESES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez']
-
-const PUBLICO: Record<EventoInterno['publico'], { rotulo: string; cor: string }> = {
-  aberto: { rotulo: 'Público aberto', cor: '#30D158' },
-  fechado: { rotulo: 'Público fechado', cor: '#FF9F0A' },
-  oculto: { rotulo: 'Oculto no site', cor: '#8E8E93' },
-}
 
 function rotuloPelotao(p: string): string {
   const km = p.trim().match(/^(\d+(?:[.,]\d+)?)\s*km$/i)
@@ -52,9 +43,28 @@ function mascaraCpf(v: string): string {
     .replace(/\.(\d{3})(\d)/, '.$1-$2')
 }
 
-export function Formulario({ eventos, erro: erroCarga }: { eventos: EventoInterno[]; erro?: string }) {
+const MENSAGEM_TRAVADO: Record<Exclude<SituacaoLink['motivo'], 'ok'>, (total: number) => string> = {
+  esgotado: total => `As ${total} vagas deste link foram usadas. O link está encerrado e não aceita mais inscrições.`,
+  passou: () => 'O evento já passou. O link está encerrado.',
+  sem_evento: () => 'Não encontramos o evento. Tente de novo em instantes.',
+}
+
+export function Formulario({
+  evento,
+  usadas: usadasInicial,
+  total,
+  motivo: motivoInicial,
+  erro: erroCarga,
+}: {
+  evento: EventoInterno | null
+  usadas: number
+  total: number
+  motivo: SituacaoLink['motivo']
+  erro?: string
+}) {
   const router = useRouter()
-  const [eventoId, setEventoId] = useState(eventos.length === 1 ? eventos[0].id : '')
+  const [usadas, setUsadas] = useState(usadasInicial)
+  const [motivo, setMotivo] = useState(motivoInicial)
   const [pelotao, setPelotao] = useState('')
   const [pessoa, setPessoa] = useState<Pessoa>(VAZIO)
   const [campos, setCampos] = useState<Record<string, string>>({})
@@ -62,24 +72,17 @@ export function Formulario({ eventos, erro: erroCarga }: { eventos: EventoIntern
   const [enviando, setEnviando] = useState(false)
   const [resultado, setResultado] = useState<Resultado | null>(null)
 
-  const evento = eventos.find(e => e.id === eventoId) ?? null
-  const precisaPelotao = evento?.tipo !== 'personalizado'
+  const restantes = Math.max(0, total - usadas)
+  const travado = motivo !== 'ok' || !evento
 
   const pronto =
-    !!evento &&
-    (!precisaPelotao || !!pelotao) &&
+    !travado &&
+    !!pelotao &&
     pessoa.nome.trim().length > 0 &&
     pessoa.telefone.length >= 10 &&
     pessoa.email.trim().length > 0 &&
     pessoa.cpf.length === 11 &&
     !!pessoa.sexo
-
-  function escolherEvento(id: string) {
-    setEventoId(id)
-    const ev = eventos.find(e => e.id === id)
-    if (ev && !ev.pelotoes.includes(pelotao)) setPelotao('')
-    setResultado(null)
-  }
 
   function mudar<K extends keyof Pessoa>(campo: K, valor: Pessoa[K]) {
     setPessoa(p => ({ ...p, [campo]: valor }))
@@ -92,7 +95,7 @@ export function Formulario({ eventos, erro: erroCarga }: { eventos: EventoIntern
 
   async function enviar(e: React.FormEvent) {
     e.preventDefault()
-    if (!pronto || enviando || !evento) return
+    if (!pronto || enviando) return
     setEnviando(true)
     setErro('')
     setCampos({})
@@ -101,11 +104,16 @@ export function Formulario({ eventos, erro: erroCarga }: { eventos: EventoIntern
       const res = await fetch('/api/check-in-interno/inscrever', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ evento_id: evento.id, pelotao, ...pessoa }),
+        body: JSON.stringify({ pelotao, ...pessoa }),
       })
       const json = await res.json().catch(() => ({}))
       if (res.status === 401) {
         router.refresh()
+        return
+      }
+      if (res.status === 410 && json.encerrado) {
+        if (typeof json.usadas === 'number') setUsadas(json.usadas)
+        setMotivo(json.motivo ?? 'esgotado')
         return
       }
       if (res.status === 409 && json.ja_inscrito) {
@@ -120,12 +128,15 @@ export function Formulario({ eventos, erro: erroCarga }: { eventos: EventoIntern
       setResultado({
         tipo: 'ok',
         nome: json.nome,
-        evento: json.evento,
         pelotao: json.pelotao ?? null,
         emailEnviado: json.email_enviado,
         ingressoUrl: json.ingresso_url,
         ticketCode: json.ticket_code,
       })
+      if (typeof json.usadas === 'number') {
+        setUsadas(json.usadas)
+        if (json.usadas >= total) setMotivo('esgotado')
+      }
       setPessoa(VAZIO)
       window.scrollTo({ top: 0, behavior: 'smooth' })
     } catch {
@@ -148,9 +159,6 @@ export function Formulario({ eventos, erro: erroCarga }: { eventos: EventoIntern
         <div>
           <p className="text-[13px] font-semibold uppercase tracking-[0.06em] text-[var(--ck-tint)]">Equipe SOMMA</p>
           <h1 className="mt-1 text-[28px] font-bold leading-tight tracking-[-0.03em] sm:text-[34px]">Inscrição interna</h1>
-          <p className="mt-1 text-[15px] text-[var(--ck-sec)]">
-            Coloque convidados dentro do evento, mesmo com a inscrição pública fechada.
-          </p>
         </div>
         <button
           type="button"
@@ -161,74 +169,60 @@ export function Formulario({ eventos, erro: erroCarga }: { eventos: EventoIntern
         </button>
       </div>
 
-      {resultado ? <CartaoResultado resultado={resultado} onFechar={() => setResultado(null)} /> : null}
-
-      {erroCarga ? (
-        <p className="mb-5 rounded-[12px] bg-[#FF453A]/15 px-4 py-3 text-[15px] text-[#FF453A]">
-          Não deu para carregar os eventos: {erroCarga}
-        </p>
+      {evento ? (
+        <div className="overflow-hidden rounded-[18px] bg-gradient-to-br from-[#FF2C03] via-[#FF4A12] to-[#FF8A1F] p-5">
+          <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-white/80">{evento.dataFormatada}</p>
+          <h2 className="mt-1.5 text-[24px] font-bold leading-[1.1] tracking-[-0.03em] text-white">{evento.titulo}</h2>
+          <div className="mt-4">
+            <div className="flex items-baseline justify-between text-white">
+              <span className="text-[15px] font-semibold">
+                {travado ? 'Link encerrado' : `Restam ${restantes} de ${total} vagas`}
+              </span>
+              <span className="text-[13px] tabular-nums text-white/80">
+                {usadas}/{total} usadas
+              </span>
+            </div>
+            <div className="mt-2 h-[6px] overflow-hidden rounded-full bg-black/25" aria-hidden>
+              <div className="h-full rounded-full bg-white" style={{ width: `${Math.min(100, (usadas / total) * 100)}%` }} />
+            </div>
+          </div>
+        </div>
       ) : null}
 
-      {eventos.length === 0 && !erroCarga ? (
-        <Grupo>
-          <Linha icone={<IconeQuadrado cor="#636366"><Calendar /></IconeQuadrado>}>
-            <span className="block text-[16px]">Nenhum evento de hoje em diante.</span>
-            <span className="block text-[13px] text-[var(--ck-sec)]">Crie o evento na gestão e recarregue a página.</span>
-          </Linha>
-        </Grupo>
+      {resultado ? (
+        <div className="mt-5">
+          <CartaoResultado resultado={resultado} onFechar={() => setResultado(null)} />
+        </div>
       ) : null}
 
-      {eventos.length > 0 ? (
-        <form onSubmit={enviar} noValidate>
-          <Grupo titulo="Evento">
-            {eventos.map(ev => {
-              const [, m, d] = ev.data.split('-').map(Number)
-              const st = PUBLICO[ev.publico]
-              const ativo = ev.id === eventoId
-              return (
-                <Linha
-                  key={ev.id}
-                  onClick={() => escolherEvento(ev.id)}
-                  selecionada={ativo}
-                  icone={
-                    <span className="grid h-[44px] w-[44px] shrink-0 place-items-center rounded-[10px] bg-[var(--ck-cel-2)] text-center leading-none">
-                      <span>
-                        <span className="block text-[18px] font-bold tabular-nums">{String(d).padStart(2, '0')}</span>
-                        <span className="block text-[11px] uppercase text-[var(--ck-sec)]">{MESES[m - 1]}</span>
-                      </span>
-                    </span>
-                  }
-                  direita={
-                    ativo ? <Check className="h-5 w-5 shrink-0 text-[var(--ck-tint)]" strokeWidth={2.6} /> : null
-                  }
-                >
-                  <span className="block text-[16px] font-medium">{ev.titulo}</span>
-                  <span className="mt-0.5 flex items-center gap-1.5 text-[13px] text-[var(--ck-sec)]">
-                    <span className="h-2 w-2 rounded-full" style={{ background: st.cor }} aria-hidden />
-                    {st.rotulo}
-                    {ev.comIngresso ? ' · gera ingresso' : ''}
-                  </span>
-                </Linha>
-              )
-            })}
+      {travado ? (
+        <div className="mt-6 flex items-start gap-3 rounded-[14px] bg-[var(--ck-cel)] p-4" role="status">
+          <IconeQuadrado cor="#636366">
+            <Lock />
+          </IconeQuadrado>
+          <div>
+            <p className="text-[16px] font-semibold">Formulário bloqueado</p>
+            <p className="mt-0.5 text-[14px] text-[var(--ck-sec)]">
+              {motivo !== 'ok' ? MENSAGEM_TRAVADO[motivo](total) : MENSAGEM_TRAVADO.sem_evento(total)}
+              {erroCarga ? ` (${erroCarga})` : ''}
+            </p>
+          </div>
+        </div>
+      ) : evento ? (
+        <form onSubmit={enviar} noValidate className="mt-6">
+          <Grupo
+            titulo="Pelotão"
+            rodape={campos.pelotao ? <span className="text-[#FF453A]" role="alert">{campos.pelotao}</span> : undefined}
+          >
+            <div className="p-2">
+              <Segmentado
+                rotulo="Pelotão"
+                valor={pelotao}
+                onChange={setPelotao}
+                opcoes={evento.pelotoes.map(p => ({ valor: p, rotulo: rotuloPelotao(p) }))}
+              />
+            </div>
           </Grupo>
-
-          {evento && precisaPelotao ? (
-            <Grupo
-              className="mt-6"
-              titulo="Pelotão"
-              rodape={campos.pelotao ? <span className="text-[#FF453A]" role="alert">{campos.pelotao}</span> : undefined}
-            >
-              <div className="p-2">
-                <Segmentado
-                  rotulo="Pelotão"
-                  valor={pelotao}
-                  onChange={setPelotao}
-                  opcoes={evento.pelotoes.map(p => ({ valor: p, rotulo: rotuloPelotao(p) }))}
-                />
-              </div>
-            </Grupo>
-          ) : null}
 
           <Grupo
             className="mt-6"
@@ -320,7 +314,7 @@ export function Formulario({ eventos, erro: erroCarga }: { eventos: EventoIntern
             Inscrever no evento
           </button>
           <p className="mt-2 px-4 text-center text-[13px] text-[var(--ck-sec)]">
-            A pessoa entra na lista de check-in da gestão, como numa inscrição pelo site.
+            A pessoa recebe o ingresso por e-mail e entra na lista de check-in da gestão.
           </p>
         </form>
       ) : null}
@@ -331,28 +325,21 @@ export function Formulario({ eventos, erro: erroCarga }: { eventos: EventoIntern
 function CartaoResultado({ resultado, onFechar }: { resultado: Resultado; onFechar: () => void }) {
   const ok = resultado.tipo === 'ok'
   return (
-    <div
-      className={`mb-6 rounded-[14px] p-4 ${ok ? 'bg-[#30D158]/15' : 'bg-[#FF9F0A]/15'}`}
-      role="status"
-      aria-live="polite"
-    >
+    <div className={`rounded-[14px] p-4 ${ok ? 'bg-[#30D158]/15' : 'bg-[#FF9F0A]/15'}`} role="status" aria-live="polite">
       <div className="flex items-start gap-3">
         <IconeQuadrado cor={ok ? '#30D158' : '#FF9F0A'}>{ok ? <Check /> : <CircleAlert />}</IconeQuadrado>
         <div className="min-w-0 flex-1">
           {resultado.tipo === 'ok' ? (
             <>
               <p className="text-[16px] font-semibold">{resultado.nome} está dentro.</p>
-              <p className="mt-0.5 text-[14px] text-[var(--ck-sec)]">
-                {resultado.evento}
-                {resultado.pelotao ? ` · ${rotuloPelotao(resultado.pelotao)}` : ''}
-              </p>
-              {resultado.ingressoUrl ? (
-                <p className="mt-1 text-[14px] text-[var(--ck-sec)]">
-                  {resultado.emailEnviado
-                    ? 'O ingresso foi enviado por e-mail.'
-                    : 'O e-mail do ingresso não saiu: mande o link abaixo para a pessoa.'}
-                </p>
+              {resultado.pelotao ? (
+                <p className="mt-0.5 text-[14px] text-[var(--ck-sec)]">Pelotão {rotuloPelotao(resultado.pelotao)}</p>
               ) : null}
+              <p className="mt-1 text-[14px] text-[var(--ck-sec)]">
+                {resultado.emailEnviado
+                  ? 'O ingresso foi enviado por e-mail.'
+                  : 'O e-mail do ingresso não saiu: mande o link abaixo para a pessoa.'}
+              </p>
             </>
           ) : (
             <p className="text-[16px] font-semibold">{resultado.mensagem}</p>
