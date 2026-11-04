@@ -109,3 +109,39 @@ export async function situacaoDoLink(): Promise<SituacaoLink> {
   if (restantes === 0) return { evento, linha, usadas, restantes, encerrado: true, motivo: "esgotado" };
   return { evento, linha, usadas, restantes, encerrado: false, motivo: "ok" };
 }
+
+export type Repetido = { nome: string; por: "cpf" | "email"; onde: "inscricao" | "lista" };
+
+/** ilike sem curinga: e-mail com "_" ou "%" não pode casar com outro. */
+function semCuringa(v: string): string {
+  return v.replace(/[\\%_]/g, (c) => `\\${c}`);
+}
+
+/**
+ * A pessoa já está neste evento por qualquer porta? Confere as inscrições
+ * (LP e link) e a lista de check-in da gestão, por CPF (nas duas grafias) e
+ * por e-mail (sem diferenciar maiúsculas). Mesmo e-mail com outro CPF quase
+ * sempre é a mesma pessoa com o CPF digitado errado. Lança se o banco falhar:
+ * na dúvida, não inscreve.
+ */
+export async function cadastroRepetido(eventoId: string, cpf: string, email: string): Promise<Repetido | null> {
+  const supabase = getServiceSupabase();
+  if (!supabase) throw new Error("Banco indisponível");
+  const mascarado = `${cpf.slice(0, 3)}.${cpf.slice(3, 6)}.${cpf.slice(6, 9)}-${cpf.slice(9)}`;
+  const emailBusca = semCuringa(email.trim());
+
+  const [insCpf, insEmail, listaCpf, listaEmail] = await Promise.all([
+    supabase.from(TABELA).select("nome_completo").eq("evento_id", eventoId).neq("status", "cancelado").in("cpf", [cpf, mascarado]).limit(1),
+    supabase.from(TABELA).select("nome_completo").eq("evento_id", eventoId).neq("status", "cancelado").ilike("email", emailBusca).limit(1),
+    supabase.from("checkins").select("nome_completo").eq("evento_id", eventoId).in("cpf", [cpf, mascarado]).limit(1),
+    supabase.from("checkins").select("nome_completo").eq("evento_id", eventoId).ilike("email", emailBusca).limit(1),
+  ]);
+  for (const r of [insCpf, insEmail, listaCpf, listaEmail]) if (r.error) throw new Error(r.error.message);
+
+  const nome = (r: { data: { nome_completo: string | null }[] | null }) => r.data?.[0]?.nome_completo || "Essa pessoa";
+  if (insCpf.data?.length) return { nome: nome(insCpf), por: "cpf", onde: "inscricao" };
+  if (listaCpf.data?.length) return { nome: nome(listaCpf), por: "cpf", onde: "lista" };
+  if (insEmail.data?.length) return { nome: nome(insEmail), por: "email", onde: "inscricao" };
+  if (listaEmail.data?.length) return { nome: nome(listaEmail), por: "email", onde: "lista" };
+  return null;
+}

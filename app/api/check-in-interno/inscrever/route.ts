@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
 import { exigirAcesso } from "@/lib/check-in-interno/auth";
-import { VAGAS_LINK, capacidadeDoLink, contarUsadasNoLink, situacaoDoLink } from "@/lib/check-in-interno/eventos";
+import { VAGAS_LINK, cadastroRepetido, capacidadeDoLink, contarUsadasNoLink, situacaoDoLink } from "@/lib/check-in-interno/eventos";
 import { camposComErro, cpfSchema, emailSchema, nomeSchema, sexoSchema, telefoneSchema } from "@/lib/dexcomplica-love-run/schema";
 import { getParticipacao, inscrever } from "@/lib/dexcomplica-love-run/db";
 import { urlIngresso } from "@/lib/dexcomplica-love-run/ticket";
@@ -83,6 +83,16 @@ export async function POST(req: NextRequest) {
         },
         { status: 409 }
       );
+    }
+
+    // Já está na lista da gestão ou com o mesmo e-mail: não entra de novo.
+    const repetido = await cadastroRepetido(linha.id, dados.cpf, dados.email);
+    if (repetido) {
+      const error =
+        repetido.por === "cpf"
+          ? `${repetido.nome} já está na lista deste evento (mesmo CPF).`
+          : `O e-mail ${dados.email} já está inscrito neste evento, no nome de ${repetido.nome}. Se for a mesma pessoa, ela já está dentro; se não, use outro e-mail.`;
+      return NextResponse.json({ ok: false, ja_inscrito: true, error }, { status: 409 });
     }
 
     if (situacao.encerrado) return encerrado(situacao.usadas, situacao.motivo as "esgotado" | "passou");
