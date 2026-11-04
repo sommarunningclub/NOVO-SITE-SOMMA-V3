@@ -1,0 +1,3858 @@
+{
+ "fonte": "real",
+ "geradoEm": "2026-11-04T18:45:16.987Z",
+ "historico": {
+  "inicio": "2026-03-07",
+  "corte": "2026-10-31"
+ },
+ "base": {
+  "cadastros": 7361,
+  "pessoasNaBase": 8562,
+  "pessoasComParticipacao": 4860,
+  "participantesForaDoCadastro": 1201
+ },
+ "sabados": {
+  "eventos": 27,
+  "mediana": 258,
+  "p25": 217,
+  "p75": 343,
+  "maximo": 864
+ },
+ "qualidade": {
+  "registrosBrutos": 11547,
+  "semEventoRealizado": 537,
+  "semCpfValido": 86,
+  "transferidos": 0,
+  "duplicados": 95,
+  "validos": 10829
+ },
+ "privacidade": {
+  "minimoCelula": 5,
+  "minimoElegiveis": 30
+ },
+ "eventos": [
+  {
+   "id": "98db9340",
+   "titulo": "Somma Club — Edição #01 de Março",
+   "data": "2026-03-07",
+   "categoria": "sabado",
+   "participacoes": 349,
+   "estreantes": 349,
+   "recorrentes": 0,
+   "porSexo": {
+    "F": {
+     "participacoes": 208,
+     "estreantes": 208
+    },
+    "M": {
+     "participacoes": 141,
+     "estreantes": 141
+    }
+   },
+   "voltaramDepois": 71.6,
+   "eventosDepois": 37
+  },
+  {
+   "id": "f6fb14d4",
+   "titulo": "Somma Club — Edição #02 de Março",
+   "data": "2026-03-14",
+   "categoria": "sabado",
+   "participacoes": 419,
+   "estreantes": 266,
+   "recorrentes": 153,
+   "porSexo": {
+    "F": {
+     "participacoes": 252,
+     "estreantes": 160
+    },
+    "M": {
+     "participacoes": 167,
+     "estreantes": 106
+    }
+   },
+   "voltaramDepois": 73.7,
+   "eventosDepois": 36
+  },
+  {
+   "id": "52d8642f",
+   "titulo": "Somma Club — Edição #03 de Março",
+   "data": "2026-03-21",
+   "categoria": "sabado",
+   "participacoes": 337,
+   "estreantes": 158,
+   "recorrentes": 179,
+   "porSexo": {
+    "F": {
+     "participacoes": 206,
+     "estreantes": 97
+    },
+    "M": {
+     "participacoes": 131,
+     "estreantes": 61
+    }
+   },
+   "voltaramDepois": 75.1,
+   "eventosDepois": 35
+  },
+  {
+   "id": "c68a0061",
+   "titulo": "Somma Day — Edição #04 de Março",
+   "data": "2026-03-28",
+   "categoria": "sabado",
+   "participacoes": 465,
+   "estreantes": 233,
+   "recorrentes": 232,
+   "porSexo": {
+    "F": {
+     "participacoes": 285,
+     "estreantes": 149
+    },
+    "M": {
+     "participacoes": 180,
+     "estreantes": 84
+    }
+   },
+   "voltaramDepois": 63.4,
+   "eventosDepois": 34
+  },
+  {
+   "id": "011cca36",
+   "titulo": "Somma Club — Edição #01 de Abril",
+   "data": "2026-04-04",
+   "categoria": "sabado",
+   "participacoes": 413,
+   "estreantes": 206,
+   "recorrentes": 207,
+   "porSexo": {
+    "F": {
+     "participacoes": 274,
+     "estreantes": 143
+    },
+    "M": {
+     "participacoes": 139,
+     "estreantes": 63
+    }
+   },
+   "voltaramDepois": 62,
+   "eventosDepois": 33
+  },
+  {
+   "id": "6f555e63",
+   "titulo": "Somma & Evolve - Revezamento de Corrida",
+   "data": "2026-04-09",
+   "categoria": "especial",
+   "participacoes": 59,
+   "estreantes": 40,
+   "recorrentes": 19,
+   "porSexo": {
+    "F": {
+     "participacoes": 34,
+     "estreantes": 21
+    },
+    "M": {
+     "participacoes": 25,
+     "estreantes": 19
+    }
+   },
+   "voltaramDepois": 55.9,
+   "eventosDepois": 32
+  },
+  {
+   "id": "2251c7ac",
+   "titulo": "Somma Club — Edição #02 de Abril",
+   "data": "2026-04-11",
+   "categoria": "sabado",
+   "participacoes": 260,
+   "estreantes": 104,
+   "recorrentes": 156,
+   "porSexo": {
+    "F": {
+     "participacoes": 172,
+     "estreantes": 69
+    },
+    "M": {
+     "participacoes": 88,
+     "estreantes": 35
+    }
+   },
+   "voltaramDepois": 65.8,
+   "eventosDepois": 31
+  },
+  {
+   "id": "472f830d",
+   "titulo": "Somma Club - 18 de abril",
+   "data": "2026-04-18",
+   "categoria": "sabado",
+   "participacoes": 241,
+   "estreantes": 93,
+   "recorrentes": 148,
+   "porSexo": {
+    "F": {
+     "participacoes": 170,
+     "estreantes": 70
+    },
+    "M": {
+     "participacoes": 71,
+     "estreantes": 23
+    }
+   },
+   "voltaramDepois": 73,
+   "eventosDepois": 30
+  },
+  {
+   "id": "f139b049",
+   "titulo": "Somma Day × Red Bull",
+   "data": "2026-04-26",
+   "categoria": "especial",
+   "participacoes": 825,
+   "estreantes": 546,
+   "recorrentes": 279,
+   "porSexo": {
+    "F": {
+     "participacoes": 550,
+     "estreantes": 363
+    },
+    "M": {
+     "participacoes": 275,
+     "estreantes": 183
+    }
+   },
+   "voltaramDepois": 48.2,
+   "eventosDepois": 29
+  },
+  {
+   "id": "045dbd85",
+   "titulo": "Somma Club - 09 de Maio",
+   "data": "2026-05-09",
+   "categoria": "sabado",
+   "participacoes": 236,
+   "estreantes": 91,
+   "recorrentes": 145,
+   "porSexo": {
+    "F": {
+     "participacoes": 144,
+     "estreantes": 51
+    },
+    "M": {
+     "participacoes": 92,
+     "estreantes": 40
+    }
+   },
+   "voltaramDepois": 65.3,
+   "eventosDepois": 28
+  },
+  {
+   "id": "2db5a8db",
+   "titulo": "Somma & Evolve - Revezamento de Corrida",
+   "data": "2026-05-14",
+   "categoria": "especial",
+   "participacoes": 18,
+   "estreantes": 8,
+   "recorrentes": 10,
+   "porSexo": {
+    "F": {
+     "participacoes": 7,
+     "estreantes": 5
+    },
+    "M": {
+     "participacoes": 11,
+     "estreantes": 3
+    }
+   },
+   "voltaramDepois": 66.7,
+   "eventosDepois": 27
+  },
+  {
+   "id": "cbe88f52",
+   "titulo": "Somma Club - Edição Aquecimento Centauro Desbrava",
+   "data": "2026-05-16",
+   "categoria": "sabado",
+   "participacoes": 343,
+   "estreantes": 127,
+   "recorrentes": 216,
+   "porSexo": {
+    "F": {
+     "participacoes": 224,
+     "estreantes": 81
+    },
+    "M": {
+     "participacoes": 119,
+     "estreantes": 46
+    }
+   },
+   "voltaramDepois": 72.6,
+   "eventosDepois": 26
+  },
+  {
+   "id": "d03eed38",
+   "titulo": "Somma Club - 23 de Maio",
+   "data": "2026-05-23",
+   "categoria": "sabado",
+   "participacoes": 289,
+   "estreantes": 107,
+   "recorrentes": 182,
+   "porSexo": {
+    "F": {
+     "participacoes": 186,
+     "estreantes": 75
+    },
+    "M": {
+     "participacoes": 103,
+     "estreantes": 32
+    }
+   },
+   "voltaramDepois": 72.3,
+   "eventosDepois": 25
+  },
+  {
+   "id": "4b9d0a9c",
+   "titulo": "Wings das Atléticas 2026 — Atletic Day Wings for Life 2",
+   "data": "2026-05-24",
+   "categoria": "especial",
+   "participacoes": 179,
+   "estreantes": 176,
+   "recorrentes": 3,
+   "porSexo": {
+    "F": {
+     "participacoes": 90,
+     "estreantes": 88
+    },
+    "M": {
+     "participacoes": 86,
+     "estreantes": 85
+    }
+   },
+   "voltaramDepois": 1.1,
+   "eventosDepois": 24
+  },
+  {
+   "id": "2a05992e",
+   "titulo": "SommaDay — último sábado de Maio",
+   "data": "2026-05-30",
+   "categoria": "sabado",
+   "participacoes": 492,
+   "estreantes": 185,
+   "recorrentes": 307,
+   "porSexo": {
+    "F": {
+     "participacoes": 306,
+     "estreantes": 110
+    },
+    "M": {
+     "participacoes": 186,
+     "estreantes": 75
+    }
+   },
+   "voltaramDepois": 62.8,
+   "eventosDepois": 23
+  },
+  {
+   "id": "eb8b9a62",
+   "titulo": "Somma Club - 13 de Junho",
+   "data": "2026-06-13",
+   "categoria": "sabado",
+   "participacoes": 289,
+   "estreantes": 111,
+   "recorrentes": 178,
+   "porSexo": {
+    "F": {
+     "participacoes": 181,
+     "estreantes": 67
+    },
+    "M": {
+     "participacoes": 108,
+     "estreantes": 44
+    }
+   },
+   "voltaramDepois": 73.4,
+   "eventosDepois": 22
+  },
+  {
+   "id": "73c1c610",
+   "titulo": "SOMMA CLUB - Ressaca Jogo do Brasil",
+   "data": "2026-06-20",
+   "categoria": "sabado",
+   "participacoes": 217,
+   "estreantes": 64,
+   "recorrentes": 153,
+   "porSexo": {
+    "F": {
+     "participacoes": 132,
+     "estreantes": 45
+    },
+    "M": {
+     "participacoes": 85,
+     "estreantes": 19
+    }
+   },
+   "voltaramDepois": 77.4,
+   "eventosDepois": 21
+  },
+  {
+   "id": "83b744b2",
+   "titulo": "ESQUENTA SOMMA SPECIAL DAY - Edição Especial Junina",
+   "data": "2026-06-28",
+   "categoria": "especial",
+   "participacoes": 930,
+   "estreantes": 471,
+   "recorrentes": 459,
+   "porSexo": {
+    "F": {
+     "participacoes": 634,
+     "estreantes": 310
+    },
+    "M": {
+     "participacoes": 296,
+     "estreantes": 161
+    }
+   },
+   "voltaramDepois": 40.1,
+   "eventosDepois": 20
+  },
+  {
+   "id": "f65da655",
+   "titulo": "SOMMA CLUB - edição 04/07",
+   "data": "2026-07-04",
+   "categoria": "sabado",
+   "participacoes": 172,
+   "estreantes": 34,
+   "recorrentes": 138,
+   "porSexo": {
+    "F": {
+     "participacoes": 98,
+     "estreantes": 19
+    },
+    "M": {
+     "participacoes": 74,
+     "estreantes": 15
+    }
+   },
+   "voltaramDepois": 71.5,
+   "eventosDepois": 19
+  },
+  {
+   "id": "8431224e",
+   "titulo": "ESQUENTA SOMMA SPECIAL DAY",
+   "data": "2026-07-11",
+   "categoria": "sabado",
+   "participacoes": 281,
+   "estreantes": 102,
+   "recorrentes": 179,
+   "porSexo": {
+    "F": {
+     "participacoes": 182,
+     "estreantes": 74
+    },
+    "M": {
+     "participacoes": 99,
+     "estreantes": 28
+    }
+   },
+   "voltaramDepois": 61.6,
+   "eventosDepois": 18
+  },
+  {
+   "id": "2307f5c4",
+   "titulo": "SOMMA CLUB - 25 de Julho",
+   "data": "2026-07-25",
+   "categoria": "sabado",
+   "participacoes": 232,
+   "estreantes": 87,
+   "recorrentes": 145,
+   "porSexo": {
+    "F": {
+     "participacoes": 149,
+     "estreantes": 58
+    },
+    "M": {
+     "participacoes": 83,
+     "estreantes": 29
+    }
+   },
+   "voltaramDepois": 69,
+   "eventosDepois": 17
+  },
+  {
+   "id": "704eba85",
+   "titulo": "Somma Club - Primeiro treinão de Agosto",
+   "data": "2026-08-01",
+   "categoria": "sabado",
+   "participacoes": 258,
+   "estreantes": 71,
+   "recorrentes": 187,
+   "porSexo": {
+    "F": {
+     "participacoes": 166,
+     "estreantes": 45
+    },
+    "M": {
+     "participacoes": 92,
+     "estreantes": 26
+    }
+   },
+   "voltaramDepois": 62.4,
+   "eventosDepois": 16
+  },
+  {
+   "id": "2ff8b33f",
+   "titulo": "Somma Club - Segundo treinão de Agosto",
+   "data": "2026-08-08",
+   "categoria": "sabado",
+   "participacoes": 186,
+   "estreantes": 51,
+   "recorrentes": 135,
+   "porSexo": {
+    "F": {
+     "participacoes": 119,
+     "estreantes": 38
+    },
+    "M": {
+     "participacoes": 67,
+     "estreantes": 13
+    }
+   },
+   "voltaramDepois": 66.7,
+   "eventosDepois": 15
+  },
+  {
+   "id": "bfdbeb72",
+   "titulo": "SOMMA CLUB - Edição especial Asa Delta",
+   "data": "2026-08-16",
+   "categoria": "especial",
+   "participacoes": 406,
+   "estreantes": 149,
+   "recorrentes": 257,
+   "porSexo": {
+    "F": {
+     "participacoes": 260,
+     "estreantes": 96
+    },
+    "M": {
+     "participacoes": 146,
+     "estreantes": 53
+    }
+   },
+   "voltaramDepois": 50.7,
+   "eventosDepois": 14
+  },
+  {
+   "id": "5e488374",
+   "titulo": "Desafio das Esteiras — Evolve + SOMMA Club",
+   "data": "2026-08-19",
+   "categoria": "especial",
+   "participacoes": 39,
+   "estreantes": 21,
+   "recorrentes": 18,
+   "porSexo": {
+    "F": {
+     "participacoes": 12,
+     "estreantes": 7
+    },
+    "M": {
+     "participacoes": 20,
+     "estreantes": 7
+    }
+   },
+   "voltaramDepois": 30.8,
+   "eventosDepois": 13
+  },
+  {
+   "id": "8958a5e1",
+   "titulo": "SOMMA CLUB - Edição especial Eixão",
+   "data": "2026-08-23",
+   "categoria": "especial",
+   "participacoes": 274,
+   "estreantes": 97,
+   "recorrentes": 177,
+   "porSexo": {
+    "F": {
+     "participacoes": 165,
+     "estreantes": 56
+    },
+    "M": {
+     "participacoes": 109,
+     "estreantes": 41
+    }
+   },
+   "voltaramDepois": 56.2,
+   "eventosDepois": 12
+  },
+  {
+   "id": "c3581fca",
+   "titulo": "Treino Fila Indiana | Alexandre Alves x Somma Club x MUDE",
+   "data": "2026-08-29",
+   "categoria": "sabado",
+   "participacoes": 11,
+   "estreantes": 0,
+   "recorrentes": 11,
+   "porSexo": {
+    "F": {
+     "participacoes": 6,
+     "estreantes": 0
+    },
+    "M": {
+     "participacoes": 5,
+     "estreantes": 0
+    }
+   },
+   "voltaramDepois": 81.8,
+   "eventosDepois": 11
+  },
+  {
+   "id": "56511cc2",
+   "titulo": "SOMMA CLUB - Edição SOMMA DAY",
+   "data": "2026-08-30",
+   "categoria": "especial",
+   "participacoes": 210,
+   "estreantes": 58,
+   "recorrentes": 152,
+   "porSexo": {
+    "F": {
+     "participacoes": 131,
+     "estreantes": 33
+    },
+    "M": {
+     "participacoes": 79,
+     "estreantes": 25
+    }
+   },
+   "voltaramDepois": 57.1,
+   "eventosDepois": 10
+  },
+  {
+   "id": "d8f68dae",
+   "titulo": "SOMMA CLUB - Treinão no Parque",
+   "data": "2026-09-12",
+   "categoria": "sabado",
+   "participacoes": 182,
+   "estreantes": 49,
+   "recorrentes": 133,
+   "porSexo": {
+    "F": {
+     "participacoes": 114,
+     "estreantes": 27
+    },
+    "M": {
+     "participacoes": 68,
+     "estreantes": 22
+    }
+   },
+   "voltaramDepois": 72.5,
+   "eventosDepois": 9
+  },
+  {
+   "id": "34fe49b2",
+   "titulo": "Treinão no parque - music day",
+   "data": "2026-09-19",
+   "categoria": "sabado",
+   "participacoes": 269,
+   "estreantes": 83,
+   "recorrentes": 186,
+   "porSexo": {
+    "F": {
+     "participacoes": 170,
+     "estreantes": 47
+    },
+    "M": {
+     "participacoes": 99,
+     "estreantes": 36
+    }
+   },
+   "voltaramDepois": 62.1,
+   "eventosDepois": 8
+  },
+  {
+   "id": "dc3fa9f8",
+   "titulo": "Desafio das Esteiras — Evolve + SOMMA Club",
+   "data": "2026-09-24",
+   "categoria": "especial",
+   "participacoes": 32,
+   "estreantes": 16,
+   "recorrentes": 16,
+   "porSexo": {
+    "F": {
+     "participacoes": 14,
+     "estreantes": 7
+    },
+    "M": {
+     "participacoes": 18,
+     "estreantes": 9
+    }
+   },
+   "voltaramDepois": 46.9,
+   "eventosDepois": 7
+  },
+  {
+   "id": "be0099f5",
+   "titulo": "SOMMA DAY — Edição Especial SET 2026",
+   "data": "2026-09-26",
+   "categoria": "sabado",
+   "participacoes": 864,
+   "estreantes": 448,
+   "recorrentes": 416,
+   "porSexo": {
+    "F": {
+     "participacoes": 385,
+     "estreantes": 126
+    },
+    "M": {
+     "participacoes": 220,
+     "estreantes": 63
+    }
+   },
+   "voltaramDepois": 26.7,
+   "eventosDepois": 6
+  },
+  {
+   "id": "e778b7e4",
+   "titulo": "Somma Club - PRIMEIRO CORRE DE OUTUBRO",
+   "data": "2026-10-03",
+   "categoria": "sabado",
+   "participacoes": 226,
+   "estreantes": 53,
+   "recorrentes": 173,
+   "porSexo": {
+    "F": {
+     "participacoes": 134,
+     "estreantes": 33
+    },
+    "M": {
+     "participacoes": 92,
+     "estreantes": 20
+    }
+   },
+   "voltaramDepois": 54.4,
+   "eventosDepois": 5
+  },
+  {
+   "id": "2bb491ad",
+   "titulo": "SOMMA Music - Parque Asa Delta",
+   "data": "2026-10-10",
+   "categoria": "sabado",
+   "participacoes": 223,
+   "estreantes": 49,
+   "recorrentes": 174,
+   "porSexo": {
+    "F": {
+     "participacoes": 141,
+     "estreantes": 31
+    },
+    "M": {
+     "participacoes": 82,
+     "estreantes": 18
+    }
+   },
+   "voltaramDepois": 41.3,
+   "eventosDepois": 4
+  },
+  {
+   "id": "820b0b65",
+   "titulo": "Somma Club - Outubro Rosa",
+   "data": "2026-10-17",
+   "categoria": "sabado",
+   "participacoes": 216,
+   "estreantes": 56,
+   "recorrentes": 160,
+   "porSexo": {
+    "F": {
+     "participacoes": 167,
+     "estreantes": 49
+    },
+    "M": {
+     "participacoes": 49,
+     "estreantes": 7
+    }
+   },
+   "voltaramDepois": 38,
+   "eventosDepois": 3
+  },
+  {
+   "id": "dbba1cb3",
+   "titulo": "Desafio das Esteiras - Somma Club + Evolve",
+   "data": "2026-10-20",
+   "categoria": "especial",
+   "participacoes": 11,
+   "estreantes": 2,
+   "recorrentes": 9,
+   "porSexo": {
+    "F": {
+     "participacoes": 5,
+     "estreantes": 1
+    },
+    "M": {
+     "participacoes": 6,
+     "estreantes": 1
+    }
+   },
+   "voltaramDepois": 45.5,
+   "eventosDepois": 2
+  },
+  {
+   "id": "1e7ac40d",
+   "titulo": "Somma Club - Encontro Geral #3",
+   "data": "2026-10-24",
+   "categoria": "sabado",
+   "participacoes": 172,
+   "estreantes": 47,
+   "recorrentes": 125,
+   "porSexo": {
+    "F": {
+     "participacoes": 108,
+     "estreantes": 31
+    },
+    "M": {
+     "participacoes": 64,
+     "estreantes": 16
+    }
+   },
+   "voltaramDepois": 29.7,
+   "eventosDepois": 1
+  },
+  {
+   "id": "fe8d256a",
+   "titulo": "Somma - Edição HALLOWEEN",
+   "data": "2026-10-31",
+   "categoria": "sabado",
+   "participacoes": 204,
+   "estreantes": 52,
+   "recorrentes": 152,
+   "porSexo": {
+    "F": {
+     "participacoes": 139,
+     "estreantes": 36
+    },
+    "M": {
+     "participacoes": 65,
+     "estreantes": 16
+    }
+   },
+   "voltaramDepois": null,
+   "eventosDepois": 0
+  }
+ ],
+ "resumos": {
+  "30d|todos|todos": {
+   "eventos": 6,
+   "participacoes": 1052,
+   "pessoas": 699,
+   "mediaPorEvento": 175,
+   "estreantes": 259,
+   "recorrentes": 216,
+   "umaVez": 483,
+   "taxaRecorrencia": 30.9,
+   "mediaEventosPorPessoa": 1.51,
+   "frequencia": [
+    {
+     "rotulo": "1",
+     "pessoas": 483
+    },
+    {
+     "rotulo": "2",
+     "pessoas": 119
+    },
+    {
+     "rotulo": "3",
+     "pessoas": 68
+    },
+    {
+     "rotulo": "4–5",
+     "pessoas": 28
+    },
+    {
+     "rotulo": "6–9",
+     "pessoas": 1
+    },
+    {
+     "rotulo": "10+",
+     "pessoas": 0
+    }
+   ],
+   "sexo": {
+    "F": 465,
+    "M": 234,
+    "naoInformado": null
+   },
+   "idade": {
+    "faixas": [
+     {
+      "faixa": "até 17",
+      "pessoas": 6
+     },
+     {
+      "faixa": "18–24",
+      "pessoas": 83
+     },
+     {
+      "faixa": "25–34",
+      "pessoas": 177
+     },
+     {
+      "faixa": "35–44",
+      "pessoas": 91
+     },
+     {
+      "faixa": "45–54",
+      "pessoas": 28
+     },
+     {
+      "faixa": "55+",
+      "pessoas": 12
+     }
+    ],
+    "semDado": 302
+   }
+  },
+  "30d|todos|sabado": {
+   "eventos": 5,
+   "participacoes": 1041,
+   "pessoas": 696,
+   "mediaPorEvento": 208,
+   "estreantes": 257,
+   "recorrentes": 213,
+   "umaVez": 483,
+   "taxaRecorrencia": 30.6,
+   "mediaEventosPorPessoa": 1.5,
+   "frequencia": [
+    {
+     "rotulo": "1",
+     "pessoas": 483
+    },
+    {
+     "rotulo": "2",
+     "pessoas": 118
+    },
+    {
+     "rotulo": "3",
+     "pessoas": 67
+    },
+    {
+     "rotulo": "4–5",
+     "pessoas": 28
+    },
+    {
+     "rotulo": "6–9",
+     "pessoas": 0
+    },
+    {
+     "rotulo": "10+",
+     "pessoas": 0
+    }
+   ],
+   "sexo": {
+    "F": 463,
+    "M": 233,
+    "naoInformado": null
+   },
+   "idade": {
+    "faixas": [
+     {
+      "faixa": "até 17",
+      "pessoas": 6
+     },
+     {
+      "faixa": "18–24",
+      "pessoas": 83
+     },
+     {
+      "faixa": "25–34",
+      "pessoas": 177
+     },
+     {
+      "faixa": "35–44",
+      "pessoas": 90
+     },
+     {
+      "faixa": "45–54",
+      "pessoas": 28
+     },
+     {
+      "faixa": "55+",
+      "pessoas": 12
+     }
+    ],
+    "semDado": 300
+   }
+  },
+  "30d|todos|especial": {
+   "eventos": 1,
+   "participacoes": 11,
+   "pessoas": 11,
+   "mediaPorEvento": 11,
+   "estreantes": 2,
+   "recorrentes": 0,
+   "umaVez": 11,
+   "taxaRecorrencia": 0,
+   "mediaEventosPorPessoa": 1,
+   "frequencia": [
+    {
+     "rotulo": "1",
+     "pessoas": 11
+    },
+    {
+     "rotulo": "2",
+     "pessoas": 0
+    },
+    {
+     "rotulo": "3",
+     "pessoas": 0
+    },
+    {
+     "rotulo": "4–5",
+     "pessoas": 0
+    },
+    {
+     "rotulo": "6–9",
+     "pessoas": 0
+    },
+    {
+     "rotulo": "10+",
+     "pessoas": 0
+    }
+   ],
+   "sexo": {
+    "F": 5,
+    "M": 6,
+    "naoInformado": null
+   },
+   "idade": {
+    "faixas": [
+     {
+      "faixa": "até 17",
+      "pessoas": null
+     },
+     {
+      "faixa": "18–24",
+      "pessoas": null
+     },
+     {
+      "faixa": "25–34",
+      "pessoas": null
+     },
+     {
+      "faixa": "35–44",
+      "pessoas": null
+     },
+     {
+      "faixa": "45–54",
+      "pessoas": null
+     },
+     {
+      "faixa": "55+",
+      "pessoas": null
+     }
+    ],
+    "semDado": 4
+   }
+  },
+  "30d|F|todos": {
+   "eventos": 6,
+   "participacoes": 694,
+   "pessoas": 465,
+   "mediaPorEvento": 116,
+   "estreantes": 181,
+   "recorrentes": 141,
+   "umaVez": 324,
+   "taxaRecorrencia": 30.3,
+   "mediaEventosPorPessoa": 1.49,
+   "frequencia": [
+    {
+     "rotulo": "1",
+     "pessoas": 324
+    },
+    {
+     "rotulo": "2",
+     "pessoas": 78
+    },
+    {
+     "rotulo": "3",
+     "pessoas": 43
+    },
+    {
+     "rotulo": "4–5",
+     "pessoas": 20
+    },
+    {
+     "rotulo": "6–9",
+     "pessoas": 0
+    },
+    {
+     "rotulo": "10+",
+     "pessoas": 0
+    }
+   ],
+   "sexo": {
+    "F": 465,
+    "M": null,
+    "naoInformado": null
+   },
+   "idade": {
+    "faixas": [
+     {
+      "faixa": "até 17",
+      "pessoas": null
+     },
+     {
+      "faixa": "18–24",
+      "pessoas": 44
+     },
+     {
+      "faixa": "25–34",
+      "pessoas": 118
+     },
+     {
+      "faixa": "35–44",
+      "pessoas": 66
+     },
+     {
+      "faixa": "45–54",
+      "pessoas": 13
+     },
+     {
+      "faixa": "55+",
+      "pessoas": 7
+     }
+    ],
+    "semDado": 214
+   }
+  },
+  "30d|F|sabado": {
+   "eventos": 5,
+   "participacoes": 689,
+   "pessoas": 463,
+   "mediaPorEvento": 138,
+   "estreantes": 180,
+   "recorrentes": 140,
+   "umaVez": 323,
+   "taxaRecorrencia": 30.2,
+   "mediaEventosPorPessoa": 1.49,
+   "frequencia": [
+    {
+     "rotulo": "1",
+     "pessoas": 323
+    },
+    {
+     "rotulo": "2",
+     "pessoas": 78
+    },
+    {
+     "rotulo": "3",
+     "pessoas": 43
+    },
+    {
+     "rotulo": "4–5",
+     "pessoas": 19
+    },
+    {
+     "rotulo": "6–9",
+     "pessoas": 0
+    },
+    {
+     "rotulo": "10+",
+     "pessoas": 0
+    }
+   ],
+   "sexo": {
+    "F": 463,
+    "M": null,
+    "naoInformado": null
+   },
+   "idade": {
+    "faixas": [
+     {
+      "faixa": "até 17",
+      "pessoas": null
+     },
+     {
+      "faixa": "18–24",
+      "pessoas": 44
+     },
+     {
+      "faixa": "25–34",
+      "pessoas": 118
+     },
+     {
+      "faixa": "35–44",
+      "pessoas": 65
+     },
+     {
+      "faixa": "45–54",
+      "pessoas": 13
+     },
+     {
+      "faixa": "55+",
+      "pessoas": 7
+     }
+    ],
+    "semDado": 213
+   }
+  },
+  "30d|F|especial": {
+   "eventos": 1,
+   "participacoes": 5,
+   "pessoas": 5,
+   "mediaPorEvento": 5,
+   "estreantes": 1,
+   "recorrentes": 0,
+   "umaVez": 5,
+   "taxaRecorrencia": 0,
+   "mediaEventosPorPessoa": 1,
+   "frequencia": [
+    {
+     "rotulo": "1",
+     "pessoas": 5
+    },
+    {
+     "rotulo": "2",
+     "pessoas": 0
+    },
+    {
+     "rotulo": "3",
+     "pessoas": 0
+    },
+    {
+     "rotulo": "4–5",
+     "pessoas": 0
+    },
+    {
+     "rotulo": "6–9",
+     "pessoas": 0
+    },
+    {
+     "rotulo": "10+",
+     "pessoas": 0
+    }
+   ],
+   "sexo": {
+    "F": 5,
+    "M": null,
+    "naoInformado": null
+   },
+   "idade": {
+    "faixas": [
+     {
+      "faixa": "até 17",
+      "pessoas": null
+     },
+     {
+      "faixa": "18–24",
+      "pessoas": null
+     },
+     {
+      "faixa": "25–34",
+      "pessoas": null
+     },
+     {
+      "faixa": "35–44",
+      "pessoas": null
+     },
+     {
+      "faixa": "45–54",
+      "pessoas": null
+     },
+     {
+      "faixa": "55+",
+      "pessoas": null
+     }
+    ],
+    "semDado": 2
+   }
+  },
+  "30d|M|todos": {
+   "eventos": 6,
+   "participacoes": 358,
+   "pessoas": 234,
+   "mediaPorEvento": 60,
+   "estreantes": 78,
+   "recorrentes": 75,
+   "umaVez": 159,
+   "taxaRecorrencia": 32.1,
+   "mediaEventosPorPessoa": 1.53,
+   "frequencia": [
+    {
+     "rotulo": "1",
+     "pessoas": 159
+    },
+    {
+     "rotulo": "2",
+     "pessoas": 41
+    },
+    {
+     "rotulo": "3",
+     "pessoas": 25
+    },
+    {
+     "rotulo": "4–5",
+     "pessoas": 8
+    },
+    {
+     "rotulo": "6–9",
+     "pessoas": 1
+    },
+    {
+     "rotulo": "10+",
+     "pessoas": 0
+    }
+   ],
+   "sexo": {
+    "F": null,
+    "M": 234,
+    "naoInformado": null
+   },
+   "idade": {
+    "faixas": [
+     {
+      "faixa": "até 17",
+      "pessoas": null
+     },
+     {
+      "faixa": "18–24",
+      "pessoas": 39
+     },
+     {
+      "faixa": "25–34",
+      "pessoas": 59
+     },
+     {
+      "faixa": "35–44",
+      "pessoas": 25
+     },
+     {
+      "faixa": "45–54",
+      "pessoas": 15
+     },
+     {
+      "faixa": "55+",
+      "pessoas": 5
+     }
+    ],
+    "semDado": 88
+   }
+  },
+  "30d|M|sabado": {
+   "eventos": 5,
+   "participacoes": 352,
+   "pessoas": 233,
+   "mediaPorEvento": 70,
+   "estreantes": 77,
+   "recorrentes": 73,
+   "umaVez": 160,
+   "taxaRecorrencia": 31.3,
+   "mediaEventosPorPessoa": 1.51,
+   "frequencia": [
+    {
+     "rotulo": "1",
+     "pessoas": 160
+    },
+    {
+     "rotulo": "2",
+     "pessoas": 40
+    },
+    {
+     "rotulo": "3",
+     "pessoas": 24
+    },
+    {
+     "rotulo": "4–5",
+     "pessoas": 9
+    },
+    {
+     "rotulo": "6–9",
+     "pessoas": 0
+    },
+    {
+     "rotulo": "10+",
+     "pessoas": 0
+    }
+   ],
+   "sexo": {
+    "F": null,
+    "M": 233,
+    "naoInformado": null
+   },
+   "idade": {
+    "faixas": [
+     {
+      "faixa": "até 17",
+      "pessoas": null
+     },
+     {
+      "faixa": "18–24",
+      "pessoas": 39
+     },
+     {
+      "faixa": "25–34",
+      "pessoas": 59
+     },
+     {
+      "faixa": "35–44",
+      "pessoas": 25
+     },
+     {
+      "faixa": "45–54",
+      "pessoas": 15
+     },
+     {
+      "faixa": "55+",
+      "pessoas": 5
+     }
+    ],
+    "semDado": 87
+   }
+  },
+  "30d|M|especial": {
+   "eventos": 1,
+   "participacoes": 6,
+   "pessoas": 6,
+   "mediaPorEvento": 6,
+   "estreantes": 1,
+   "recorrentes": 0,
+   "umaVez": 6,
+   "taxaRecorrencia": 0,
+   "mediaEventosPorPessoa": 1,
+   "frequencia": [
+    {
+     "rotulo": "1",
+     "pessoas": 6
+    },
+    {
+     "rotulo": "2",
+     "pessoas": 0
+    },
+    {
+     "rotulo": "3",
+     "pessoas": 0
+    },
+    {
+     "rotulo": "4–5",
+     "pessoas": 0
+    },
+    {
+     "rotulo": "6–9",
+     "pessoas": 0
+    },
+    {
+     "rotulo": "10+",
+     "pessoas": 0
+    }
+   ],
+   "sexo": {
+    "F": null,
+    "M": 6,
+    "naoInformado": null
+   },
+   "idade": {
+    "faixas": [
+     {
+      "faixa": "até 17",
+      "pessoas": null
+     },
+     {
+      "faixa": "18–24",
+      "pessoas": null
+     },
+     {
+      "faixa": "25–34",
+      "pessoas": null
+     },
+     {
+      "faixa": "35–44",
+      "pessoas": null
+     },
+     {
+      "faixa": "45–54",
+      "pessoas": null
+     },
+     {
+      "faixa": "55+",
+      "pessoas": null
+     }
+    ],
+    "semDado": 2
+   }
+  },
+  "90d|todos|todos": {
+   "eventos": 16,
+   "participacoes": 3525,
+   "pessoas": 2002,
+   "mediaPorEvento": 220,
+   "estreantes": 1231,
+   "recorrentes": 618,
+   "umaVez": 1384,
+   "taxaRecorrencia": 30.9,
+   "mediaEventosPorPessoa": 1.76,
+   "frequencia": [
+    {
+     "rotulo": "1",
+     "pessoas": 1384
+    },
+    {
+     "rotulo": "2",
+     "pessoas": 285
+    },
+    {
+     "rotulo": "3",
+     "pessoas": 132
+    },
+    {
+     "rotulo": "4–5",
+     "pessoas": 103
+    },
+    {
+     "rotulo": "6–9",
+     "pessoas": 86
+    },
+    {
+     "rotulo": "10+",
+     "pessoas": 12
+    }
+   ],
+   "sexo": {
+    "F": 1110,
+    "M": 626,
+    "naoInformado": 266
+   },
+   "idade": {
+    "faixas": [
+     {
+      "faixa": "até 17",
+      "pessoas": 26
+     },
+     {
+      "faixa": "18–24",
+      "pessoas": 234
+     },
+     {
+      "faixa": "25–34",
+      "pessoas": 508
+     },
+     {
+      "faixa": "35–44",
+      "pessoas": 264
+     },
+     {
+      "faixa": "45–54",
+      "pessoas": 97
+     },
+     {
+      "faixa": "55+",
+      "pessoas": 27
+     }
+    ],
+    "semDado": 846
+   }
+  },
+  "90d|todos|sabado": {
+   "eventos": 10,
+   "participacoes": 2553,
+   "pessoas": 1562,
+   "mediaPorEvento": 255,
+   "estreantes": 888,
+   "recorrentes": 464,
+   "umaVez": 1098,
+   "taxaRecorrencia": 29.7,
+   "mediaEventosPorPessoa": 1.63,
+   "frequencia": [
+    {
+     "rotulo": "1",
+     "pessoas": 1098
+    },
+    {
+     "rotulo": "2",
+     "pessoas": 234
+    },
+    {
+     "rotulo": "3",
+     "pessoas": 90
+    },
+    {
+     "rotulo": "4–5",
+     "pessoas": 98
+    },
+    {
+     "rotulo": "6–9",
+     "pessoas": 42
+    },
+    {
+     "rotulo": "10+",
+     "pessoas": 0
+    }
+   ],
+   "sexo": {
+    "F": 840,
+    "M": 463,
+    "naoInformado": 259
+   },
+   "idade": {
+    "faixas": [
+     {
+      "faixa": "até 17",
+      "pessoas": 25
+     },
+     {
+      "faixa": "18–24",
+      "pessoas": 197
+     },
+     {
+      "faixa": "25–34",
+      "pessoas": 447
+     },
+     {
+      "faixa": "35–44",
+      "pessoas": 235
+     },
+     {
+      "faixa": "45–54",
+      "pessoas": 90
+     },
+     {
+      "faixa": "55+",
+      "pessoas": 27
+     }
+    ],
+    "semDado": 541
+   }
+  },
+  "90d|todos|especial": {
+   "eventos": 6,
+   "participacoes": 972,
+   "pessoas": 748,
+   "mediaPorEvento": 162,
+   "estreantes": 343,
+   "recorrentes": 171,
+   "umaVez": 577,
+   "taxaRecorrencia": 22.9,
+   "mediaEventosPorPessoa": 1.3,
+   "frequencia": [
+    {
+     "rotulo": "1",
+     "pessoas": 577
+    },
+    {
+     "rotulo": "2",
+     "pessoas": 123
+    },
+    {
+     "rotulo": "3",
+     "pessoas": 46
+    },
+    {
+     "rotulo": "4–5",
+     "pessoas": 1
+    },
+    {
+     "rotulo": "6–9",
+     "pessoas": 1
+    },
+    {
+     "rotulo": "10+",
+     "pessoas": 0
+    }
+   ],
+   "sexo": {
+    "F": 456,
+    "M": 285,
+    "naoInformado": 7
+   },
+   "idade": {
+    "faixas": [
+     {
+      "faixa": "até 17",
+      "pessoas": null
+     },
+     {
+      "faixa": "18–24",
+      "pessoas": 93
+     },
+     {
+      "faixa": "25–34",
+      "pessoas": 178
+     },
+     {
+      "faixa": "35–44",
+      "pessoas": 79
+     },
+     {
+      "faixa": "45–54",
+      "pessoas": 25
+     },
+     {
+      "faixa": "55+",
+      "pessoas": 9
+     }
+    ],
+    "semDado": 361
+   }
+  },
+  "90d|F|todos": {
+   "eventos": 16,
+   "participacoes": 2070,
+   "pessoas": 1110,
+   "mediaPorEvento": 129,
+   "estreantes": 618,
+   "recorrentes": 388,
+   "umaVez": 722,
+   "taxaRecorrencia": 35,
+   "mediaEventosPorPessoa": 1.86,
+   "frequencia": [
+    {
+     "rotulo": "1",
+     "pessoas": 722
+    },
+    {
+     "rotulo": "2",
+     "pessoas": 183
+    },
+    {
+     "rotulo": "3",
+     "pessoas": 75
+    },
+    {
+     "rotulo": "4–5",
+     "pessoas": 66
+    },
+    {
+     "rotulo": "6–9",
+     "pessoas": 56
+    },
+    {
+     "rotulo": "10+",
+     "pessoas": 8
+    }
+   ],
+   "sexo": {
+    "F": 1110,
+    "M": null,
+    "naoInformado": null
+   },
+   "idade": {
+    "faixas": [
+     {
+      "faixa": "até 17",
+      "pessoas": null
+     },
+     {
+      "faixa": "18–24",
+      "pessoas": 116
+     },
+     {
+      "faixa": "25–34",
+      "pessoas": 259
+     },
+     {
+      "faixa": "35–44",
+      "pessoas": 138
+     },
+     {
+      "faixa": "45–54",
+      "pessoas": 44
+     },
+     {
+      "faixa": "55+",
+      "pessoas": 10
+     }
+    ],
+    "semDado": 540
+   }
+  },
+  "90d|F|sabado": {
+   "eventos": 10,
+   "participacoes": 1483,
+   "pessoas": 840,
+   "mediaPorEvento": 148,
+   "estreantes": 418,
+   "recorrentes": 296,
+   "umaVez": 544,
+   "taxaRecorrencia": 35.2,
+   "mediaEventosPorPessoa": 1.77,
+   "frequencia": [
+    {
+     "rotulo": "1",
+     "pessoas": 544
+    },
+    {
+     "rotulo": "2",
+     "pessoas": 151
+    },
+    {
+     "rotulo": "3",
+     "pessoas": 55
+    },
+    {
+     "rotulo": "4–5",
+     "pessoas": 61
+    },
+    {
+     "rotulo": "6–9",
+     "pessoas": 29
+    },
+    {
+     "rotulo": "10+",
+     "pessoas": 0
+    }
+   ],
+   "sexo": {
+    "F": 840,
+    "M": null,
+    "naoInformado": null
+   },
+   "idade": {
+    "faixas": [
+     {
+      "faixa": "até 17",
+      "pessoas": null
+     },
+     {
+      "faixa": "18–24",
+      "pessoas": 91
+     },
+     {
+      "faixa": "25–34",
+      "pessoas": 219
+     },
+     {
+      "faixa": "35–44",
+      "pessoas": 123
+     },
+     {
+      "faixa": "45–54",
+      "pessoas": 37
+     },
+     {
+      "faixa": "55+",
+      "pessoas": 10
+     }
+    ],
+    "semDado": 357
+   }
+  },
+  "90d|F|especial": {
+   "eventos": 6,
+   "participacoes": 587,
+   "pessoas": 456,
+   "mediaPorEvento": 98,
+   "estreantes": 200,
+   "recorrentes": 100,
+   "umaVez": 356,
+   "taxaRecorrencia": 21.9,
+   "mediaEventosPorPessoa": 1.29,
+   "frequencia": [
+    {
+     "rotulo": "1",
+     "pessoas": 356
+    },
+    {
+     "rotulo": "2",
+     "pessoas": 69
+    },
+    {
+     "rotulo": "3",
+     "pessoas": 31
+    },
+    {
+     "rotulo": "4–5",
+     "pessoas": 0
+    },
+    {
+     "rotulo": "6–9",
+     "pessoas": 0
+    },
+    {
+     "rotulo": "10+",
+     "pessoas": 0
+    }
+   ],
+   "sexo": {
+    "F": 456,
+    "M": null,
+    "naoInformado": null
+   },
+   "idade": {
+    "faixas": [
+     {
+      "faixa": "até 17",
+      "pessoas": null
+     },
+     {
+      "faixa": "18–24",
+      "pessoas": 61
+     },
+     {
+      "faixa": "25–34",
+      "pessoas": 101
+     },
+     {
+      "faixa": "35–44",
+      "pessoas": 50
+     },
+     {
+      "faixa": "45–54",
+      "pessoas": 17
+     },
+     {
+      "faixa": "55+",
+      "pessoas": 6
+     }
+    ],
+    "semDado": 221
+   }
+  },
+  "90d|M|todos": {
+   "eventos": 16,
+   "participacoes": 1189,
+   "pessoas": 626,
+   "mediaPorEvento": 74,
+   "estreantes": 347,
+   "recorrentes": 230,
+   "umaVez": 396,
+   "taxaRecorrencia": 36.7,
+   "mediaEventosPorPessoa": 1.9,
+   "frequencia": [
+    {
+     "rotulo": "1",
+     "pessoas": 396
+    },
+    {
+     "rotulo": "2",
+     "pessoas": 102
+    },
+    {
+     "rotulo": "3",
+     "pessoas": 57
+    },
+    {
+     "rotulo": "4–5",
+     "pessoas": 37
+    },
+    {
+     "rotulo": "6–9",
+     "pessoas": 30
+    },
+    {
+     "rotulo": "10+",
+     "pessoas": 4
+    }
+   ],
+   "sexo": {
+    "F": null,
+    "M": 626,
+    "naoInformado": null
+   },
+   "idade": {
+    "faixas": [
+     {
+      "faixa": "até 17",
+      "pessoas": 8
+     },
+     {
+      "faixa": "18–24",
+      "pessoas": 76
+     },
+     {
+      "faixa": "25–34",
+      "pessoas": 147
+     },
+     {
+      "faixa": "35–44",
+      "pessoas": 61
+     },
+     {
+      "faixa": "45–54",
+      "pessoas": 27
+     },
+     {
+      "faixa": "55+",
+      "pessoas": 8
+     }
+    ],
+    "semDado": 299
+   }
+  },
+  "90d|M|sabado": {
+   "eventos": 10,
+   "participacoes": 811,
+   "pessoas": 463,
+   "mediaPorEvento": 81,
+   "estreantes": 211,
+   "recorrentes": 168,
+   "umaVez": 295,
+   "taxaRecorrencia": 36.3,
+   "mediaEventosPorPessoa": 1.75,
+   "frequencia": [
+    {
+     "rotulo": "1",
+     "pessoas": 295
+    },
+    {
+     "rotulo": "2",
+     "pessoas": 83
+    },
+    {
+     "rotulo": "3",
+     "pessoas": 35
+    },
+    {
+     "rotulo": "4–5",
+     "pessoas": 37
+    },
+    {
+     "rotulo": "6–9",
+     "pessoas": 13
+    },
+    {
+     "rotulo": "10+",
+     "pessoas": 0
+    }
+   ],
+   "sexo": {
+    "F": null,
+    "M": 463,
+    "naoInformado": null
+   },
+   "idade": {
+    "faixas": [
+     {
+      "faixa": "até 17",
+      "pessoas": 7
+     },
+     {
+      "faixa": "18–24",
+      "pessoas": 64
+     },
+     {
+      "faixa": "25–34",
+      "pessoas": 127
+     },
+     {
+      "faixa": "35–44",
+      "pessoas": 47
+     },
+     {
+      "faixa": "45–54",
+      "pessoas": 27
+     },
+     {
+      "faixa": "55+",
+      "pessoas": 8
+     }
+    ],
+    "semDado": 183
+   }
+  },
+  "90d|M|especial": {
+   "eventos": 6,
+   "participacoes": 378,
+   "pessoas": 285,
+   "mediaPorEvento": 63,
+   "estreantes": 136,
+   "recorrentes": 71,
+   "umaVez": 214,
+   "taxaRecorrencia": 24.9,
+   "mediaEventosPorPessoa": 1.33,
+   "frequencia": [
+    {
+     "rotulo": "1",
+     "pessoas": 214
+    },
+    {
+     "rotulo": "2",
+     "pessoas": 54
+    },
+    {
+     "rotulo": "3",
+     "pessoas": 15
+    },
+    {
+     "rotulo": "4–5",
+     "pessoas": 1
+    },
+    {
+     "rotulo": "6–9",
+     "pessoas": 1
+    },
+    {
+     "rotulo": "10+",
+     "pessoas": 0
+    }
+   ],
+   "sexo": {
+    "F": null,
+    "M": 285,
+    "naoInformado": null
+   },
+   "idade": {
+    "faixas": [
+     {
+      "faixa": "até 17",
+      "pessoas": null
+     },
+     {
+      "faixa": "18–24",
+      "pessoas": 32
+     },
+     {
+      "faixa": "25–34",
+      "pessoas": 76
+     },
+     {
+      "faixa": "35–44",
+      "pessoas": 29
+     },
+     {
+      "faixa": "45–54",
+      "pessoas": 8
+     },
+     {
+      "faixa": "55+",
+      "pessoas": null
+     }
+    ],
+    "semDado": 134
+   }
+  },
+  "180d|todos|todos": {
+   "eventos": 29,
+   "participacoes": 7461,
+   "pessoas": 3633,
+   "mediaPorEvento": 257,
+   "estreantes": 2865,
+   "recorrentes": 1188,
+   "umaVez": 2445,
+   "taxaRecorrencia": 32.7,
+   "mediaEventosPorPessoa": 2.05,
+   "frequencia": [
+    {
+     "rotulo": "1",
+     "pessoas": 2445
+    },
+    {
+     "rotulo": "2",
+     "pessoas": 485
+    },
+    {
+     "rotulo": "3",
+     "pessoas": 237
+    },
+    {
+     "rotulo": "4–5",
+     "pessoas": 193
+    },
+    {
+     "rotulo": "6–9",
+     "pessoas": 183
+    },
+    {
+     "rotulo": "10+",
+     "pessoas": 90
+    }
+   ],
+   "sexo": {
+    "F": 2153,
+    "M": 1211,
+    "naoInformado": 269
+   },
+   "idade": {
+    "faixas": [
+     {
+      "faixa": "até 17",
+      "pessoas": 31
+     },
+     {
+      "faixa": "18–24",
+      "pessoas": 352
+     },
+     {
+      "faixa": "25–34",
+      "pessoas": 712
+     },
+     {
+      "faixa": "35–44",
+      "pessoas": 346
+     },
+     {
+      "faixa": "45–54",
+      "pessoas": 129
+     },
+     {
+      "faixa": "55+",
+      "pessoas": 36
+     }
+    ],
+    "semDado": 2027
+   }
+  },
+  "180d|todos|sabado": {
+   "eventos": 20,
+   "participacoes": 5362,
+   "pessoas": 2623,
+   "mediaPorEvento": 268,
+   "estreantes": 1867,
+   "recorrentes": 934,
+   "umaVez": 1689,
+   "taxaRecorrencia": 35.6,
+   "mediaEventosPorPessoa": 2.04,
+   "frequencia": [
+    {
+     "rotulo": "1",
+     "pessoas": 1689
+    },
+    {
+     "rotulo": "2",
+     "pessoas": 399
+    },
+    {
+     "rotulo": "3",
+     "pessoas": 172
+    },
+    {
+     "rotulo": "4–5",
+     "pessoas": 173
+    },
+    {
+     "rotulo": "6–9",
+     "pessoas": 140
+    },
+    {
+     "rotulo": "10+",
+     "pessoas": 50
+    }
+   ],
+   "sexo": {
+    "F": 1528,
+    "M": 836,
+    "naoInformado": 259
+   },
+   "idade": {
+    "faixas": [
+     {
+      "faixa": "até 17",
+      "pessoas": 30
+     },
+     {
+      "faixa": "18–24",
+      "pessoas": 296
+     },
+     {
+      "faixa": "25–34",
+      "pessoas": 629
+     },
+     {
+      "faixa": "35–44",
+      "pessoas": 312
+     },
+     {
+      "faixa": "45–54",
+      "pessoas": 115
+     },
+     {
+      "faixa": "55+",
+      "pessoas": 32
+     }
+    ],
+    "semDado": 1209
+   }
+  },
+  "180d|todos|especial": {
+   "eventos": 9,
+   "participacoes": 2099,
+   "pessoas": 1678,
+   "mediaPorEvento": 233,
+   "estreantes": 998,
+   "recorrentes": 279,
+   "umaVez": 1399,
+   "taxaRecorrencia": 16.6,
+   "mediaEventosPorPessoa": 1.25,
+   "frequencia": [
+    {
+     "rotulo": "1",
+     "pessoas": 1399
+    },
+    {
+     "rotulo": "2",
+     "pessoas": 171
+    },
+    {
+     "rotulo": "3",
+     "pessoas": 79
+    },
+    {
+     "rotulo": "4–5",
+     "pessoas": 28
+    },
+    {
+     "rotulo": "6–9",
+     "pessoas": 1
+    },
+    {
+     "rotulo": "10+",
+     "pessoas": 0
+    }
+   ],
+   "sexo": {
+    "F": 1056,
+    "M": 612,
+    "naoInformado": 10
+   },
+   "idade": {
+    "faixas": [
+     {
+      "faixa": "até 17",
+      "pessoas": 5
+     },
+     {
+      "faixa": "18–24",
+      "pessoas": 142
+     },
+     {
+      "faixa": "25–34",
+      "pessoas": 307
+     },
+     {
+      "faixa": "35–44",
+      "pessoas": 134
+     },
+     {
+      "faixa": "45–54",
+      "pessoas": 52
+     },
+     {
+      "faixa": "55+",
+      "pessoas": 14
+     }
+    ],
+    "semDado": 1024
+   }
+  },
+  "180d|F|todos": {
+   "eventos": 29,
+   "participacoes": 4569,
+   "pessoas": 2153,
+   "mediaPorEvento": 158,
+   "estreantes": 1646,
+   "recorrentes": 751,
+   "umaVez": 1402,
+   "taxaRecorrencia": 34.9,
+   "mediaEventosPorPessoa": 2.12,
+   "frequencia": [
+    {
+     "rotulo": "1",
+     "pessoas": 1402
+    },
+    {
+     "rotulo": "2",
+     "pessoas": 310
+    },
+    {
+     "rotulo": "3",
+     "pessoas": 142
+    },
+    {
+     "rotulo": "4–5",
+     "pessoas": 125
+    },
+    {
+     "rotulo": "6–9",
+     "pessoas": 120
+    },
+    {
+     "rotulo": "10+",
+     "pessoas": 54
+    }
+   ],
+   "sexo": {
+    "F": 2153,
+    "M": null,
+    "naoInformado": null
+   },
+   "idade": {
+    "faixas": [
+     {
+      "faixa": "até 17",
+      "pessoas": 6
+     },
+     {
+      "faixa": "18–24",
+      "pessoas": 192
+     },
+     {
+      "faixa": "25–34",
+      "pessoas": 397
+     },
+     {
+      "faixa": "35–44",
+      "pessoas": 193
+     },
+     {
+      "faixa": "45–54",
+      "pessoas": 65
+     },
+     {
+      "faixa": "55+",
+      "pessoas": 18
+     }
+    ],
+    "semDado": 1282
+   }
+  },
+  "180d|F|sabado": {
+   "eventos": 20,
+   "participacoes": 3251,
+   "pessoas": 1528,
+   "mediaPorEvento": 163,
+   "estreantes": 1043,
+   "recorrentes": 580,
+   "umaVez": 948,
+   "taxaRecorrencia": 38,
+   "mediaEventosPorPessoa": 2.13,
+   "frequencia": [
+    {
+     "rotulo": "1",
+     "pessoas": 948
+    },
+    {
+     "rotulo": "2",
+     "pessoas": 248
+    },
+    {
+     "rotulo": "3",
+     "pessoas": 99
+    },
+    {
+     "rotulo": "4–5",
+     "pessoas": 116
+    },
+    {
+     "rotulo": "6–9",
+     "pessoas": 84
+    },
+    {
+     "rotulo": "10+",
+     "pessoas": 33
+    }
+   ],
+   "sexo": {
+    "F": 1528,
+    "M": null,
+    "naoInformado": null
+   },
+   "idade": {
+    "faixas": [
+     {
+      "faixa": "até 17",
+      "pessoas": 6
+     },
+     {
+      "faixa": "18–24",
+      "pessoas": 155
+     },
+     {
+      "faixa": "25–34",
+      "pessoas": 338
+     },
+     {
+      "faixa": "35–44",
+      "pessoas": 170
+     },
+     {
+      "faixa": "45–54",
+      "pessoas": 54
+     },
+     {
+      "faixa": "55+",
+      "pessoas": 14
+     }
+    ],
+    "semDado": 791
+   }
+  },
+  "180d|F|especial": {
+   "eventos": 9,
+   "participacoes": 1318,
+   "pessoas": 1056,
+   "mediaPorEvento": 146,
+   "estreantes": 603,
+   "recorrentes": 174,
+   "umaVez": 882,
+   "taxaRecorrencia": 16.5,
+   "mediaEventosPorPessoa": 1.25,
+   "frequencia": [
+    {
+     "rotulo": "1",
+     "pessoas": 882
+    },
+    {
+     "rotulo": "2",
+     "pessoas": 104
+    },
+    {
+     "rotulo": "3",
+     "pessoas": 52
+    },
+    {
+     "rotulo": "4–5",
+     "pessoas": 18
+    },
+    {
+     "rotulo": "6–9",
+     "pessoas": 0
+    },
+    {
+     "rotulo": "10+",
+     "pessoas": 0
+    }
+   ],
+   "sexo": {
+    "F": 1056,
+    "M": null,
+    "naoInformado": null
+   },
+   "idade": {
+    "faixas": [
+     {
+      "faixa": "até 17",
+      "pessoas": null
+     },
+     {
+      "faixa": "18–24",
+      "pessoas": 94
+     },
+     {
+      "faixa": "25–34",
+      "pessoas": 195
+     },
+     {
+      "faixa": "35–44",
+      "pessoas": 92
+     },
+     {
+      "faixa": "45–54",
+      "pessoas": 33
+     },
+     {
+      "faixa": "55+",
+      "pessoas": 10
+     }
+    ],
+    "semDado": 632
+   }
+  },
+  "180d|M|todos": {
+   "eventos": 29,
+   "participacoes": 2623,
+   "pessoas": 1211,
+   "mediaPorEvento": 90,
+   "estreantes": 950,
+   "recorrentes": 437,
+   "umaVez": 774,
+   "taxaRecorrencia": 36.1,
+   "mediaEventosPorPessoa": 2.17,
+   "frequencia": [
+    {
+     "rotulo": "1",
+     "pessoas": 774
+    },
+    {
+     "rotulo": "2",
+     "pessoas": 175
+    },
+    {
+     "rotulo": "3",
+     "pessoas": 95
+    },
+    {
+     "rotulo": "4–5",
+     "pessoas": 68
+    },
+    {
+     "rotulo": "6–9",
+     "pessoas": 63
+    },
+    {
+     "rotulo": "10+",
+     "pessoas": 36
+    }
+   ],
+   "sexo": {
+    "F": null,
+    "M": 1211,
+    "naoInformado": null
+   },
+   "idade": {
+    "faixas": [
+     {
+      "faixa": "até 17",
+      "pessoas": 10
+     },
+     {
+      "faixa": "18–24",
+      "pessoas": 118
+     },
+     {
+      "faixa": "25–34",
+      "pessoas": 213
+     },
+     {
+      "faixa": "35–44",
+      "pessoas": 88
+     },
+     {
+      "faixa": "45–54",
+      "pessoas": 38
+     },
+     {
+      "faixa": "55+",
+      "pessoas": 9
+     }
+    ],
+    "semDado": 735
+   }
+  },
+  "180d|M|sabado": {
+   "eventos": 20,
+   "participacoes": 1852,
+   "pessoas": 836,
+   "mediaPorEvento": 93,
+   "estreantes": 565,
+   "recorrentes": 354,
+   "umaVez": 482,
+   "taxaRecorrencia": 42.3,
+   "mediaEventosPorPessoa": 2.22,
+   "frequencia": [
+    {
+     "rotulo": "1",
+     "pessoas": 482
+    },
+    {
+     "rotulo": "2",
+     "pessoas": 151
+    },
+    {
+     "rotulo": "3",
+     "pessoas": 73
+    },
+    {
+     "rotulo": "4–5",
+     "pessoas": 57
+    },
+    {
+     "rotulo": "6–9",
+     "pessoas": 56
+    },
+    {
+     "rotulo": "10+",
+     "pessoas": 17
+    }
+   ],
+   "sexo": {
+    "F": null,
+    "M": 836,
+    "naoInformado": null
+   },
+   "idade": {
+    "faixas": [
+     {
+      "faixa": "até 17",
+      "pessoas": 9
+     },
+     {
+      "faixa": "18–24",
+      "pessoas": 99
+     },
+     {
+      "faixa": "25–34",
+      "pessoas": 190
+     },
+     {
+      "faixa": "35–44",
+      "pessoas": 77
+     },
+     {
+      "faixa": "45–54",
+      "pessoas": 35
+     },
+     {
+      "faixa": "55+",
+      "pessoas": 9
+     }
+    ],
+    "semDado": 417
+   }
+  },
+  "180d|M|especial": {
+   "eventos": 9,
+   "participacoes": 771,
+   "pessoas": 612,
+   "mediaPorEvento": 86,
+   "estreantes": 385,
+   "recorrentes": 105,
+   "umaVez": 507,
+   "taxaRecorrencia": 17.2,
+   "mediaEventosPorPessoa": 1.26,
+   "frequencia": [
+    {
+     "rotulo": "1",
+     "pessoas": 507
+    },
+    {
+     "rotulo": "2",
+     "pessoas": 67
+    },
+    {
+     "rotulo": "3",
+     "pessoas": 27
+    },
+    {
+     "rotulo": "4–5",
+     "pessoas": 10
+    },
+    {
+     "rotulo": "6–9",
+     "pessoas": 1
+    },
+    {
+     "rotulo": "10+",
+     "pessoas": 0
+    }
+   ],
+   "sexo": {
+    "F": null,
+    "M": 612,
+    "naoInformado": null
+   },
+   "idade": {
+    "faixas": [
+     {
+      "faixa": "até 17",
+      "pessoas": 5
+     },
+     {
+      "faixa": "18–24",
+      "pessoas": 48
+     },
+     {
+      "faixa": "25–34",
+      "pessoas": 111
+     },
+     {
+      "faixa": "35–44",
+      "pessoas": 42
+     },
+     {
+      "faixa": "45–54",
+      "pessoas": 19
+     },
+     {
+      "faixa": "55+",
+      "pessoas": null
+     }
+    ],
+    "semDado": 383
+   }
+  },
+  "tudo|todos|todos": {
+   "eventos": 38,
+   "participacoes": 10829,
+   "pessoas": 4860,
+   "mediaPorEvento": 285,
+   "estreantes": 4860,
+   "recorrentes": 1642,
+   "umaVez": 3218,
+   "taxaRecorrencia": 33.8,
+   "mediaEventosPorPessoa": 2.23,
+   "frequencia": [
+    {
+     "rotulo": "1",
+     "pessoas": 3218
+    },
+    {
+     "rotulo": "2",
+     "pessoas": 634
+    },
+    {
+     "rotulo": "3",
+     "pessoas": 321
+    },
+    {
+     "rotulo": "4–5",
+     "pessoas": 277
+    },
+    {
+     "rotulo": "6–9",
+     "pessoas": 232
+    },
+    {
+     "rotulo": "10+",
+     "pessoas": 178
+    }
+   ],
+   "sexo": {
+    "F": 2926,
+    "M": 1665,
+    "naoInformado": 269
+   },
+   "idade": {
+    "faixas": [
+     {
+      "faixa": "até 17",
+      "pessoas": 33
+     },
+     {
+      "faixa": "18–24",
+      "pessoas": 434
+     },
+     {
+      "faixa": "25–34",
+      "pessoas": 848
+     },
+     {
+      "faixa": "35–44",
+      "pessoas": 393
+     },
+     {
+      "faixa": "45–54",
+      "pessoas": 151
+     },
+     {
+      "faixa": "55+",
+      "pessoas": 42
+     }
+    ],
+    "semDado": 2959
+   }
+  },
+  "tudo|todos|sabado": {
+   "eventos": 27,
+   "participacoes": 7846,
+   "pessoas": 3515,
+   "mediaPorEvento": 291,
+   "estreantes": 3276,
+   "recorrentes": 1286,
+   "umaVez": 2229,
+   "taxaRecorrencia": 36.6,
+   "mediaEventosPorPessoa": 2.23,
+   "frequencia": [
+    {
+     "rotulo": "1",
+     "pessoas": 2229
+    },
+    {
+     "rotulo": "2",
+     "pessoas": 518
+    },
+    {
+     "rotulo": "3",
+     "pessoas": 232
+    },
+    {
+     "rotulo": "4–5",
+     "pessoas": 215
+    },
+    {
+     "rotulo": "6–9",
+     "pessoas": 215
+    },
+    {
+     "rotulo": "10+",
+     "pessoas": 106
+    }
+   ],
+   "sexo": {
+    "F": 2095,
+    "M": 1161,
+    "naoInformado": 259
+   },
+   "idade": {
+    "faixas": [
+     {
+      "faixa": "até 17",
+      "pessoas": 32
+     },
+     {
+      "faixa": "18–24",
+      "pessoas": 369
+     },
+     {
+      "faixa": "25–34",
+      "pessoas": 751
+     },
+     {
+      "faixa": "35–44",
+      "pessoas": 348
+     },
+     {
+      "faixa": "45–54",
+      "pessoas": 134
+     },
+     {
+      "faixa": "55+",
+      "pessoas": 40
+     }
+    ],
+    "semDado": 1841
+   }
+  },
+  "tudo|todos|especial": {
+   "eventos": 11,
+   "participacoes": 2983,
+   "pessoas": 2261,
+   "mediaPorEvento": 271,
+   "estreantes": 1584,
+   "recorrentes": 459,
+   "umaVez": 1802,
+   "taxaRecorrencia": 20.3,
+   "mediaEventosPorPessoa": 1.32,
+   "frequencia": [
+    {
+     "rotulo": "1",
+     "pessoas": 1802
+    },
+    {
+     "rotulo": "2",
+     "pessoas": 280
+    },
+    {
+     "rotulo": "3",
+     "pessoas": 114
+    },
+    {
+     "rotulo": "4–5",
+     "pessoas": 64
+    },
+    {
+     "rotulo": "6–9",
+     "pessoas": 1
+    },
+    {
+     "rotulo": "10+",
+     "pessoas": 0
+    }
+   ],
+   "sexo": {
+    "F": 1433,
+    "M": 818,
+    "naoInformado": 10
+   },
+   "idade": {
+    "faixas": [
+     {
+      "faixa": "até 17",
+      "pessoas": 6
+     },
+     {
+      "faixa": "18–24",
+      "pessoas": 193
+     },
+     {
+      "faixa": "25–34",
+      "pessoas": 378
+     },
+     {
+      "faixa": "35–44",
+      "pessoas": 169
+     },
+     {
+      "faixa": "45–54",
+      "pessoas": 63
+     },
+     {
+      "faixa": "55+",
+      "pessoas": 14
+     }
+    ],
+    "semDado": 1438
+   }
+  },
+  "tudo|F|todos": {
+   "eventos": 38,
+   "participacoes": 6720,
+   "pessoas": 2926,
+   "mediaPorEvento": 177,
+   "estreantes": 2926,
+   "recorrentes": 1052,
+   "umaVez": 1874,
+   "taxaRecorrencia": 36,
+   "mediaEventosPorPessoa": 2.3,
+   "frequencia": [
+    {
+     "rotulo": "1",
+     "pessoas": 1874
+    },
+    {
+     "rotulo": "2",
+     "pessoas": 406
+    },
+    {
+     "rotulo": "3",
+     "pessoas": 215
+    },
+    {
+     "rotulo": "4–5",
+     "pessoas": 177
+    },
+    {
+     "rotulo": "6–9",
+     "pessoas": 143
+    },
+    {
+     "rotulo": "10+",
+     "pessoas": 111
+    }
+   ],
+   "sexo": {
+    "F": 2926,
+    "M": null,
+    "naoInformado": null
+   },
+   "idade": {
+    "faixas": [
+     {
+      "faixa": "até 17",
+      "pessoas": 7
+     },
+     {
+      "faixa": "18–24",
+      "pessoas": 240
+     },
+     {
+      "faixa": "25–34",
+      "pessoas": 483
+     },
+     {
+      "faixa": "35–44",
+      "pessoas": 226
+     },
+     {
+      "faixa": "45–54",
+      "pessoas": 85
+     },
+     {
+      "faixa": "55+",
+      "pessoas": 22
+     }
+    ],
+    "semDado": 1863
+   }
+  },
+  "tudo|F|sabado": {
+   "eventos": 27,
+   "participacoes": 4818,
+   "pessoas": 2095,
+   "mediaPorEvento": 178,
+   "estreantes": 1939,
+   "recorrentes": 811,
+   "umaVez": 1284,
+   "taxaRecorrencia": 38.7,
+   "mediaEventosPorPessoa": 2.3,
+   "frequencia": [
+    {
+     "rotulo": "1",
+     "pessoas": 1284
+    },
+    {
+     "rotulo": "2",
+     "pessoas": 339
+    },
+    {
+     "rotulo": "3",
+     "pessoas": 138
+    },
+    {
+     "rotulo": "4–5",
+     "pessoas": 134
+    },
+    {
+     "rotulo": "6–9",
+     "pessoas": 132
+    },
+    {
+     "rotulo": "10+",
+     "pessoas": 68
+    }
+   ],
+   "sexo": {
+    "F": 2095,
+    "M": null,
+    "naoInformado": null
+   },
+   "idade": {
+    "faixas": [
+     {
+      "faixa": "até 17",
+      "pessoas": 7
+     },
+     {
+      "faixa": "18–24",
+      "pessoas": 199
+     },
+     {
+      "faixa": "25–34",
+      "pessoas": 414
+     },
+     {
+      "faixa": "35–44",
+      "pessoas": 195
+     },
+     {
+      "faixa": "45–54",
+      "pessoas": 71
+     },
+     {
+      "faixa": "55+",
+      "pessoas": 20
+     }
+    ],
+    "semDado": 1189
+   }
+  },
+  "tudo|F|especial": {
+   "eventos": 11,
+   "participacoes": 1902,
+   "pessoas": 1433,
+   "mediaPorEvento": 173,
+   "estreantes": 987,
+   "recorrentes": 307,
+   "umaVez": 1126,
+   "taxaRecorrencia": 21.4,
+   "mediaEventosPorPessoa": 1.33,
+   "frequencia": [
+    {
+     "rotulo": "1",
+     "pessoas": 1126
+    },
+    {
+     "rotulo": "2",
+     "pessoas": 193
+    },
+    {
+     "rotulo": "3",
+     "pessoas": 75
+    },
+    {
+     "rotulo": "4–5",
+     "pessoas": 39
+    },
+    {
+     "rotulo": "6–9",
+     "pessoas": 0
+    },
+    {
+     "rotulo": "10+",
+     "pessoas": 0
+    }
+   ],
+   "sexo": {
+    "F": 1433,
+    "M": null,
+    "naoInformado": null
+   },
+   "idade": {
+    "faixas": [
+     {
+      "faixa": "até 17",
+      "pessoas": null
+     },
+     {
+      "faixa": "18–24",
+      "pessoas": 122
+     },
+     {
+      "faixa": "25–34",
+      "pessoas": 243
+     },
+     {
+      "faixa": "35–44",
+      "pessoas": 118
+     },
+     {
+      "faixa": "45–54",
+      "pessoas": 43
+     },
+     {
+      "faixa": "55+",
+      "pessoas": 10
+     }
+    ],
+    "semDado": 897
+   }
+  },
+  "tudo|M|todos": {
+   "eventos": 38,
+   "participacoes": 3840,
+   "pessoas": 1665,
+   "mediaPorEvento": 101,
+   "estreantes": 1665,
+   "recorrentes": 590,
+   "umaVez": 1075,
+   "taxaRecorrencia": 35.4,
+   "mediaEventosPorPessoa": 2.31,
+   "frequencia": [
+    {
+     "rotulo": "1",
+     "pessoas": 1075
+    },
+    {
+     "rotulo": "2",
+     "pessoas": 228
+    },
+    {
+     "rotulo": "3",
+     "pessoas": 106
+    },
+    {
+     "rotulo": "4–5",
+     "pessoas": 100
+    },
+    {
+     "rotulo": "6–9",
+     "pessoas": 89
+    },
+    {
+     "rotulo": "10+",
+     "pessoas": 67
+    }
+   ],
+   "sexo": {
+    "F": null,
+    "M": 1665,
+    "naoInformado": null
+   },
+   "idade": {
+    "faixas": [
+     {
+      "faixa": "até 17",
+      "pessoas": 11
+     },
+     {
+      "faixa": "18–24",
+      "pessoas": 152
+     },
+     {
+      "faixa": "25–34",
+      "pessoas": 263
+     },
+     {
+      "faixa": "35–44",
+      "pessoas": 102
+     },
+     {
+      "faixa": "45–54",
+      "pessoas": 40
+     },
+     {
+      "faixa": "55+",
+      "pessoas": 11
+     }
+    ],
+    "semDado": 1086
+   }
+  },
+  "tudo|M|sabado": {
+   "eventos": 27,
+   "participacoes": 2769,
+   "pessoas": 1161,
+   "mediaPorEvento": 103,
+   "estreantes": 1078,
+   "recorrentes": 475,
+   "umaVez": 686,
+   "taxaRecorrencia": 40.9,
+   "mediaEventosPorPessoa": 2.39,
+   "frequencia": [
+    {
+     "rotulo": "1",
+     "pessoas": 686
+    },
+    {
+     "rotulo": "2",
+     "pessoas": 179
+    },
+    {
+     "rotulo": "3",
+     "pessoas": 94
+    },
+    {
+     "rotulo": "4–5",
+     "pessoas": 81
+    },
+    {
+     "rotulo": "6–9",
+     "pessoas": 83
+    },
+    {
+     "rotulo": "10+",
+     "pessoas": 38
+    }
+   ],
+   "sexo": {
+    "F": null,
+    "M": 1161,
+    "naoInformado": null
+   },
+   "idade": {
+    "faixas": [
+     {
+      "faixa": "até 17",
+      "pessoas": 10
+     },
+     {
+      "faixa": "18–24",
+      "pessoas": 128
+     },
+     {
+      "faixa": "25–34",
+      "pessoas": 236
+     },
+     {
+      "faixa": "35–44",
+      "pessoas": 88
+     },
+     {
+      "faixa": "45–54",
+      "pessoas": 37
+     },
+     {
+      "faixa": "55+",
+      "pessoas": 11
+     }
+    ],
+    "semDado": 651
+   }
+  },
+  "tudo|M|especial": {
+   "eventos": 11,
+   "participacoes": 1071,
+   "pessoas": 818,
+   "mediaPorEvento": 97,
+   "estreantes": 587,
+   "recorrentes": 152,
+   "umaVez": 666,
+   "taxaRecorrencia": 18.6,
+   "mediaEventosPorPessoa": 1.31,
+   "frequencia": [
+    {
+     "rotulo": "1",
+     "pessoas": 666
+    },
+    {
+     "rotulo": "2",
+     "pessoas": 87
+    },
+    {
+     "rotulo": "3",
+     "pessoas": 39
+    },
+    {
+     "rotulo": "4–5",
+     "pessoas": 25
+    },
+    {
+     "rotulo": "6–9",
+     "pessoas": 1
+    },
+    {
+     "rotulo": "10+",
+     "pessoas": 0
+    }
+   ],
+   "sexo": {
+    "F": null,
+    "M": 818,
+    "naoInformado": null
+   },
+   "idade": {
+    "faixas": [
+     {
+      "faixa": "até 17",
+      "pessoas": 6
+     },
+     {
+      "faixa": "18–24",
+      "pessoas": 71
+     },
+     {
+      "faixa": "25–34",
+      "pessoas": 134
+     },
+     {
+      "faixa": "35–44",
+      "pessoas": 51
+     },
+     {
+      "faixa": "45–54",
+      "pessoas": 20
+     },
+     {
+      "faixa": "55+",
+      "pessoas": null
+     }
+    ],
+    "semDado": 532
+   }
+  }
+ },
+ "porSexo": {
+  "todos": {
+   "retencao": [
+    {
+     "dias": 30,
+     "elegiveis": 4601,
+     "taxa": 23.3
+    },
+    {
+     "dias": 90,
+     "elegiveis": 3629,
+     "taxa": 35.3
+    },
+    {
+     "dias": 180,
+     "elegiveis": 1995,
+     "taxa": 47
+    }
+   ],
+   "coortes": [
+    {
+     "mes": "2026-03",
+     "pessoas": 1006,
+     "celulas": [
+      100,
+      37.5,
+      27.9,
+      25.6,
+      13.3,
+      20.8,
+      18.4,
+      15.3
+     ]
+    },
+    {
+     "mes": "2026-04",
+     "pessoas": 989,
+     "celulas": [
+      100,
+      14.9,
+      16.2,
+      6.6,
+      11.6,
+      9.5,
+      6.7
+     ]
+    },
+    {
+     "mes": "2026-05",
+     "pessoas": 694,
+     "celulas": [
+      100,
+      16.3,
+      7.3,
+      7.8,
+      8.1,
+      6.5
+     ]
+    },
+    {
+     "mes": "2026-06",
+     "pessoas": 646,
+     "celulas": [
+      100,
+      10.1,
+      10.7,
+      11.3,
+      6.5
+     ]
+    },
+    {
+     "mes": "2026-07",
+     "pessoas": 223,
+     "celulas": [
+      100,
+      22.9,
+      16.6,
+      9.4
+     ]
+    },
+    {
+     "mes": "2026-08",
+     "pessoas": 447,
+     "celulas": [
+      100,
+      12.1,
+      9.2
+     ]
+    },
+    {
+     "mes": "2026-09",
+     "pessoas": 596,
+     "celulas": [
+      100,
+      11.9
+     ]
+    },
+    {
+     "mes": "2026-10",
+     "pessoas": 259,
+     "celulas": [
+      100
+     ]
+    }
+   ],
+   "tendencia": [
+    {
+     "mes": "2026-03",
+     "participacoes": 1570,
+     "pessoas": 1006,
+     "estreantes": 1006
+    },
+    {
+     "mes": "2026-04",
+     "participacoes": 1798,
+     "pessoas": 1366,
+     "estreantes": 989
+    },
+    {
+     "mes": "2026-05",
+     "participacoes": 1557,
+     "pessoas": 1122,
+     "estreantes": 694
+    },
+    {
+     "mes": "2026-06",
+     "participacoes": 1436,
+     "pessoas": 1177,
+     "estreantes": 646
+    },
+    {
+     "mes": "2026-07",
+     "participacoes": 685,
+     "pessoas": 538,
+     "estreantes": 223
+    },
+    {
+     "mes": "2026-08",
+     "participacoes": 1384,
+     "pessoas": 945,
+     "estreantes": 447
+    },
+    {
+     "mes": "2026-09",
+     "participacoes": 1347,
+     "pessoas": 1095,
+     "estreantes": 596
+    },
+    {
+     "mes": "2026-10",
+     "participacoes": 1052,
+     "pessoas": 699,
+     "estreantes": 259
+    }
+   ]
+  },
+  "F": {
+   "retencao": [
+    {
+     "dias": 30,
+     "elegiveis": 2745,
+     "taxa": 24.2
+    },
+    {
+     "dias": 90,
+     "elegiveis": 2308,
+     "taxa": 35.8
+    },
+    {
+     "dias": 180,
+     "elegiveis": 1280,
+     "taxa": 48
+    }
+   ],
+   "coortes": [
+    {
+     "mes": "2026-03",
+     "pessoas": 614,
+     "celulas": [
+      100,
+      38.9,
+      28.5,
+      27.9,
+      13.7,
+      22.3,
+      18.9,
+      16.1
+     ]
+    },
+    {
+     "mes": "2026-04",
+     "pessoas": 666,
+     "celulas": [
+      100,
+      15.8,
+      18,
+      6.5,
+      10.8,
+      9.8,
+      7.8
+     ]
+    },
+    {
+     "mes": "2026-05",
+     "pessoas": 410,
+     "celulas": [
+      100,
+      17.6,
+      7.1,
+      8,
+      7.6,
+      7.1
+     ]
+    },
+    {
+     "mes": "2026-06",
+     "pessoas": 422,
+     "celulas": [
+      100,
+      9,
+      10.9,
+      11.1,
+      6.4
+     ]
+    },
+    {
+     "mes": "2026-07",
+     "pessoas": 151,
+     "celulas": [
+      100,
+      20.5,
+      15.2,
+      7.3
+     ]
+    },
+    {
+     "mes": "2026-08",
+     "pessoas": 275,
+     "celulas": [
+      100,
+      11.3,
+      7.6
+     ]
+    },
+    {
+     "mes": "2026-09",
+     "pessoas": 207,
+     "celulas": [
+      100,
+      21.7
+     ]
+    },
+    {
+     "mes": "2026-10",
+     "pessoas": 181,
+     "celulas": [
+      100
+     ]
+    }
+   ],
+   "tendencia": [
+    {
+     "mes": "2026-03",
+     "participacoes": 951,
+     "pessoas": 614,
+     "estreantes": 614
+    },
+    {
+     "mes": "2026-04",
+     "participacoes": 1200,
+     "pessoas": 905,
+     "estreantes": 666
+    },
+    {
+     "mes": "2026-05",
+     "participacoes": 957,
+     "pessoas": 690,
+     "estreantes": 410
+    },
+    {
+     "mes": "2026-06",
+     "participacoes": 947,
+     "pessoas": 785,
+     "estreantes": 422
+    },
+    {
+     "mes": "2026-07",
+     "participacoes": 429,
+     "pessoas": 345,
+     "estreantes": 151
+    },
+    {
+     "mes": "2026-08",
+     "participacoes": 859,
+     "pessoas": 594,
+     "estreantes": 275
+    },
+    {
+     "mes": "2026-09",
+     "participacoes": 683,
+     "pessoas": 520,
+     "estreantes": 207
+    },
+    {
+     "mes": "2026-10",
+     "participacoes": 694,
+     "pessoas": 465,
+     "estreantes": 181
+    }
+   ]
+  },
+  "M": {
+   "retencao": [
+    {
+     "dias": 30,
+     "elegiveis": 1587,
+     "taxa": 25.6
+    },
+    {
+     "dias": 90,
+     "elegiveis": 1318,
+     "taxa": 34.6
+    },
+    {
+     "dias": 180,
+     "elegiveis": 715,
+     "taxa": 45.2
+    }
+   ],
+   "coortes": [
+    {
+     "mes": "2026-03",
+     "pessoas": 392,
+     "celulas": [
+      100,
+      35.2,
+      27,
+      22.2,
+      12.8,
+      18.4,
+      17.6,
+      14
+     ]
+    },
+    {
+     "mes": "2026-04",
+     "pessoas": 323,
+     "celulas": [
+      100,
+      13,
+      12.4,
+      6.8,
+      13.3,
+      9,
+      4.3
+     ]
+    },
+    {
+     "mes": "2026-05",
+     "pessoas": 281,
+     "celulas": [
+      100,
+      14.6,
+      7.8,
+      7.5,
+      8.9,
+      5.7
+     ]
+    },
+    {
+     "mes": "2026-06",
+     "pessoas": 224,
+     "celulas": [
+      100,
+      12.1,
+      10.3,
+      11.6,
+      6.7
+     ]
+    },
+    {
+     "mes": "2026-07",
+     "pessoas": 72,
+     "celulas": [
+      100,
+      27.8,
+      19.4,
+      13.9
+     ]
+    },
+    {
+     "mes": "2026-08",
+     "pessoas": 165,
+     "celulas": [
+      100,
+      13.9,
+      12.1
+     ]
+    },
+    {
+     "mes": "2026-09",
+     "pessoas": 130,
+     "celulas": [
+      100,
+      20
+     ]
+    },
+    {
+     "mes": "2026-10",
+     "pessoas": 78,
+     "celulas": [
+      100
+     ]
+    }
+   ],
+   "tendencia": [
+    {
+     "mes": "2026-03",
+     "participacoes": 619,
+     "pessoas": 392,
+     "estreantes": 392
+    },
+    {
+     "mes": "2026-04",
+     "participacoes": 598,
+     "pessoas": 461,
+     "estreantes": 323
+    },
+    {
+     "mes": "2026-05",
+     "participacoes": 597,
+     "pessoas": 429,
+     "estreantes": 281
+    },
+    {
+     "mes": "2026-06",
+     "participacoes": 489,
+     "pessoas": 392,
+     "estreantes": 224
+    },
+    {
+     "mes": "2026-07",
+     "participacoes": 256,
+     "pessoas": 193,
+     "estreantes": 72
+    },
+    {
+     "mes": "2026-08",
+     "participacoes": 518,
+     "pessoas": 344,
+     "estreantes": 165
+    },
+    {
+     "mes": "2026-09",
+     "participacoes": 405,
+     "pessoas": 316,
+     "estreantes": 130
+    },
+    {
+     "mes": "2026-10",
+     "participacoes": 358,
+     "pessoas": 234,
+     "estreantes": 78
+    }
+   ]
+  }
+ }
+}
