@@ -138,6 +138,34 @@ export function Linha({
   return <div className={classe}>{miolo}</div>
 }
 
+/** Caixa de aceite do Termo de Uso de Imagem. O texto vem em `children`. */
+export function LinhaAceite({
+  marcado,
+  onChange,
+  erro,
+  children,
+}: {
+  marcado: boolean
+  onChange: (marcado: boolean) => void
+  erro?: boolean
+  children: ReactNode
+}) {
+  return (
+    <Linha rotulo>
+      <span className="flex items-start gap-3">
+        <input
+          type="checkbox"
+          checked={marcado}
+          onChange={e => onChange(e.target.checked)}
+          aria-invalid={erro || undefined}
+          className="mt-px h-[22px] w-[22px] shrink-0 accent-[var(--ck-tint)]"
+        />
+        <span className="text-[15px] leading-snug">{children}</span>
+      </span>
+    </Linha>
+  )
+}
+
 export function Segmentado<T extends string>({
   opcoes,
   valor,

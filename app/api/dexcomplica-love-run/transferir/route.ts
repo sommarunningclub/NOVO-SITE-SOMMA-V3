@@ -4,6 +4,7 @@ import { camposComErro, transferenciaSchema } from "@/lib/dexcomplica-love-run/s
 import { getEvento, transferirIngresso, type MotivoTransferencia } from "@/lib/dexcomplica-love-run/db";
 import { lerTokenPerfil } from "@/lib/dexcomplica-love-run/perfil";
 import { enviarIngresso } from "@/lib/emails/dexcomplica-love-run-ingresso";
+import { registrarAceites } from "@/lib/aceites/registrar";
 
 export const dynamic = "force-dynamic";
 
@@ -76,6 +77,18 @@ export async function POST(request: NextRequest) {
     }
 
     const { participante, anterior } = resultado;
+
+    // Quem marcou foi o dono anterior do ingresso, não quem recebeu.
+    await registrarAceites(request, {
+      tipos: ["uso_imagem"],
+      origem: "love-run-transferencia",
+      forma: "terceiro",
+      cpf: parsed.data.cpf,
+      nome: parsed.data.nome,
+      email: parsed.data.email,
+      eventoId: evento.id,
+    });
+
     if (participante.email) {
       void enviarIngresso({
         nome: participante.nome_completo,

@@ -75,6 +75,7 @@ export const inscricaoSchema = z.object({
   sexo: sexoSchema,
   pelotao: z.string({ message: "Escolha seu pelotão" }).trim().min(1, "Escolha seu pelotão").max(40),
   marketing: z.boolean().optional().default(false),
+  aceite_imagem: z.literal(true, { message: "Aceite o Termo de Uso de Imagem" }),
   utm: utmSchema.optional(),
 });
 

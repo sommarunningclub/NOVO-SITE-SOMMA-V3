@@ -537,7 +537,7 @@ export async function desfazerTransferencia(
  */
 export async function editarTitularTransferido(
   id: string,
-  dados: Omit<Inscricao, "utm" | "marketing">,
+  dados: Omit<Inscricao, "utm" | "marketing" | "aceite_imagem">,
   evento: EventoRow
 ): Promise<ResultadoAjusteTransferencia> {
   const supabase = getServiceSupabase();
