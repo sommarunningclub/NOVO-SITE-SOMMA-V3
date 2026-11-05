@@ -59,6 +59,7 @@ const nextConfig = {
       "em-breve",
       "email",
       "obrigado",
+      "operador",
       "p",
       "privacidade",
       "regulamento",
