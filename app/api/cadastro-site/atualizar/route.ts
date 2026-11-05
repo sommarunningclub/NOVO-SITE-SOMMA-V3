@@ -5,6 +5,7 @@ import { clientIp, rateLimit } from "@/lib/rate-limit";
 import { verifySignedToken } from "@/lib/auth/session-token";
 import { brDateToISO, isValidBirthDate } from "@/lib/validation";
 import { normalizarSexo, variantesCpf } from "@/lib/cadastro/identificacao";
+import { registrarAceites } from "@/lib/aceites/registrar";
 
 export const dynamic = "force-dynamic";
 
@@ -27,6 +28,9 @@ const schema = z.object({
   whatsapp: z.string().trim().refine((v) => v.replace(/\D/g, "").length >= 10, "WhatsApp inválido."),
   cep: z.string().trim().refine((v) => v.replace(/\D/g, "").length === 8, "CEP inválido."),
   sexo: z.enum(["masculino", "feminino"], { message: "Selecione uma opção." }),
+  // Só quem está criando o cadastro marca os termos; quem atualiza já tinha aceito.
+  consent_lgpd: z.boolean().optional(),
+  consent_imagem: z.boolean().optional(),
 });
 
 interface TokenCadastro extends Record<string, unknown> {
@@ -133,6 +137,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Quem veio de `checkins` ainda não tinha cadastro: cria agora.
+    if (!parsed.data.consent_lgpd || !parsed.data.consent_imagem) {
+      return NextResponse.json({ erro: "É preciso aceitar os dois termos para continuar." }, { status: 400 });
+    }
+
     const { error } = await supabase
       .from("cadastro_site")
       .insert([{ ...registro, data_de_cadastro: new Date().toISOString() }]);
@@ -141,6 +149,14 @@ export async function POST(request: NextRequest) {
       console.error("[cadastro-atualizar] erro ao inserir:", error);
       return NextResponse.json({ erro: "Erro ao salvar. Tente novamente." }, { status: 500 });
     }
+
+    await registrarAceites(request, {
+      tipos: ["lgpd", "uso_imagem"],
+      origem: "cadastro-site",
+      cpf: variantes.digitos,
+      nome: registro.nome_completo,
+      email: registro.email,
+    });
 
     return NextResponse.json({ ok: true, acao: "criado" });
   } catch (erro) {

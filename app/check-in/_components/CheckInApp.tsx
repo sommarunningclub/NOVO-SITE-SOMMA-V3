@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import { AnimatePresence, motion } from 'framer-motion'
 import { ArrowUpRight, Calendar, Check, ChevronRight, Clock, Loader2, Lock, MapPin, Users } from 'lucide-react'
 import { Agenda } from './Agenda'
-import { BarraNav, Grupo, IconeQuadrado, Linha, Segmentado } from './ios'
+import { BarraNav, Grupo, IconeQuadrado, Linha, LinhaAceite, Segmentado } from './ios'
 import { hojeEmBrasilia } from '../agenda-novembro'
 import {
   type Evento,
@@ -16,6 +16,7 @@ import {
   mapearEvento,
 } from '@/lib/check-in/eventos'
 import { caminhoCheckIn } from '@/lib/check-in/slug'
+import { TERMO_IMAGEM_URL } from '@/lib/aceites/termos'
 
 type FormData = {
   peloton: '' | '4km' | '6km' | '8km'
@@ -24,6 +25,7 @@ type FormData = {
   sexo: '' | 'masculino' | 'feminino'
   email: string
   cpf: string
+  aceiteImagem: boolean
 }
 
 const MESES_CURTOS = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez']
@@ -78,6 +80,7 @@ export function CheckInApp({ slug, eventoInicial }: { slug?: string; eventoInici
     sexo: '',
     email: '',
     cpf: '',
+    aceiteImagem: false,
   })
   const hoje = useMemo(() => hojeEmBrasilia(), [])
 
@@ -140,7 +143,8 @@ export function CheckInApp({ slug, eventoInicial }: { slug?: string; eventoInici
     validar.telefone(formData.telefone) &&
     validar.email(formData.email) &&
     validar.cpf(formData.cpf) &&
-    !!formData.sexo
+    !!formData.sexo &&
+    formData.aceiteImagem
 
   const passoDados = eventoSelecionado?.tipo === 'personalizado' ? 2 : 3
 
@@ -185,6 +189,7 @@ export function CheckInApp({ slug, eventoInicial }: { slug?: string; eventoInici
           data_do_evento: eventoSelecionado?.dataEvento || '',
           nome_do_evento: eventoSelecionado?.titulo || '',
           evento_id: eventoSelecionado?.id || null,
+          aceite_imagem: formData.aceiteImagem,
         }),
       })
 
@@ -494,6 +499,32 @@ export function CheckInApp({ slug, eventoInicial }: { slug?: string; eventoInici
                       </Linha>
                     </Grupo>
                   ) : null}
+
+                  <Grupo
+                    className="mt-6"
+                    rodape={
+                      tentouEnviar && !formData.aceiteImagem ? (
+                        <span className="text-[#FF453A]" role="alert">Aceite o termo para confirmar o check-in.</span>
+                      ) : undefined
+                    }
+                  >
+                    <LinhaAceite
+                      marcado={formData.aceiteImagem}
+                      onChange={aceiteImagem => setFormData(prev => ({ ...prev, aceiteImagem }))}
+                      erro={tentouEnviar && !formData.aceiteImagem}
+                    >
+                      Li e aceito o{' '}
+                      <a
+                        href={TERMO_IMAGEM_URL}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[var(--ck-tint)] underline underline-offset-2"
+                      >
+                        Termo de Uso de Imagem
+                      </a>
+                      .
+                    </LinhaAceite>
+                  </Grupo>
 
                   {error ? (
                     <div role="alert" className="mt-6 rounded-[12px] bg-[#FF453A]/15 px-4 py-3 text-[15px] leading-snug text-[#FF6961]">

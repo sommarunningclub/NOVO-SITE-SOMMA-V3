@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { sendCadastroSiteWelcomeEmail } from "@/lib/emails/cadastro-site";
 import { getServiceSupabase } from "@/lib/supabase";
 import { signupSchema, brDateToISO } from "@/lib/validation";
+import { registrarAceites } from "@/lib/aceites/registrar";
 
 // Espelha o padrão do site atual (app/api/cadastro-site → tabela `cadastro_site`):
 // grava nome, email, cpf (formatado) e whatsapp, com dedup por CPF.
@@ -115,6 +116,14 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    await registrarAceites(request, {
+      tipos: ["lgpd", "uso_imagem"],
+      origem: "cadastro-site",
+      cpf: cpfDigits,
+      nome: nome_completo,
+      email,
+    });
 
     void sendCadastroSiteWelcomeEmail({ nome: nome_completo, email }).catch((err) => {
       console.error("[cadastro-site] Erro ao enviar e-mail de boas-vindas:", err);

@@ -42,7 +42,7 @@ t("rótulo 2.5km → 2,5 km", rotuloPelotao("2.5km") === "2,5 km");
 t("rótulo livre passa como veio", rotuloPelotao("Caminhada") === "Caminhada");
 
 console.log("Formulário");
-const base = { nome: "Maria Fernanda Silva", email: "Maria@Exemplo.com ", telefone: "(61) 99812-3456", cpf: "529.982.247-25", sexo: "feminino", pelotao: "5km" };
+const base = { nome: "Maria Fernanda Silva", email: "Maria@Exemplo.com ", telefone: "(61) 99812-3456", cpf: "529.982.247-25", sexo: "feminino", pelotao: "5km", aceite_imagem: true };
 const r = inscricaoSchema.safeParse(base);
 t("dados válidos passam", r.success);
 t("CPF sai sem máscara", r.success && r.data.cpf === "52998224725");
@@ -62,6 +62,10 @@ t("telefone fixo é recusado", !inscricaoSchema.safeParse({ ...base, telefone: "
 t("DDD inválido é recusado", !inscricaoSchema.safeParse({ ...base, telefone: "(20) 99812-3456" }).success);
 t("máscara do telefone", mascararTelefone("61998123456") === "(61) 99812-3456" && mascararTelefone("619") === "(61) 9");
 t("campos faltando são recusados", !inscricaoSchema.safeParse({ cpf: base.cpf }).success);
+t("sem aceite de imagem é recusado", !inscricaoSchema.safeParse({ ...base, aceite_imagem: false }).success);
+t("aceite ausente é recusado", !inscricaoSchema.safeParse({ ...base, aceite_imagem: undefined }).success);
+t("transferência exige o aceite de imagem", !transferenciaSchema.safeParse({ ...base, aceite_imagem: false }).success);
+t("Editar da gestão não pede aceite", transferenciaSchema.omit({ marketing: true, aceite_imagem: true }).safeParse({ ...base, aceite_imagem: undefined }).success);
 t("recuperação aceita só CPF válido", recuperarSchema.safeParse({ cpf: "52998224725" }).success && !recuperarSchema.safeParse({ cpf: "123" }).success);
 t("perfil exige CPF e e-mail", perfilAcessoSchema.safeParse({ cpf: "52998224725", email: "maria@exemplo.com" }).success);
 t("perfil recusa e-mail errado", !perfilAcessoSchema.safeParse({ cpf: "52998224725", email: "maria@" }).success);

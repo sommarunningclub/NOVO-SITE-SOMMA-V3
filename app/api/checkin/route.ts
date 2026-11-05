@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServiceSupabase } from '@/lib/supabase'
+import { registrarAceites } from '@/lib/aceites/registrar'
 
 export const dynamic = 'force-dynamic'
 
@@ -21,12 +22,20 @@ export async function POST(request: NextRequest) {
       data_do_evento,
       nome_do_evento,
       evento_id,
+      aceite_imagem,
     } = body
 
     // Validação básica
     if (!nome_completo || !email || !telefone || !cpf || !sexo) {
       return NextResponse.json(
         { error: 'Campos obrigatórios faltando' },
+        { status: 400 }
+      )
+    }
+
+    if (aceite_imagem !== true) {
+      return NextResponse.json(
+        { error: 'Aceite o Termo de Uso de Imagem para confirmar. Se a opção não aparecer, atualize a página.' },
         { status: 400 }
       )
     }
@@ -76,6 +85,15 @@ export async function POST(request: NextRequest) {
         { status: 500 }
       )
     }
+
+    await registrarAceites(request, {
+      tipos: ['uso_imagem'],
+      origem: 'check-in',
+      cpf,
+      nome: nome_completo,
+      email,
+      eventoId: evento_id || null,
+    })
 
     return NextResponse.json(
       { success: true, data },

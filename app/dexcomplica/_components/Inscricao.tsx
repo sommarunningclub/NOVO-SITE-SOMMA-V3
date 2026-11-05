@@ -6,6 +6,7 @@ import type { EstadoInscricao } from "@/lib/dexcomplica-love-run/event.config";
 import { CAMINHO_TRANSFERIDO, INSTAGRAM_SOMMA, POLITICA_PRIVACIDADE } from "@/lib/dexcomplica-love-run/event.config";
 import { camposComErro, inscricaoSchema, mascararCpf, mascararTelefone, recuperarSchema, SEXO_ROTULO, SEXOS, sugestaoEmail } from "@/lib/dexcomplica-love-run/schema";
 import { rastrear } from "@/lib/dexcomplica-love-run/analytics";
+import { TERMO_IMAGEM_URL } from "@/lib/aceites/termos";
 import { esquecerIngresso, lembrarIngresso, lembrarTransferencia } from "./meuIngresso";
 import Transicao from "./Transicao";
 
@@ -100,7 +101,7 @@ function Formulario({
   const resumo = useRef<HTMLDivElement>(null);
   const iniciou = useRef(false);
   const enviandoRef = useRef(false);
-  const [v, setV] = useState({ nome: "", email: "", telefone: "", cpf: "", sexo: "", pelotao: "", marketing: false });
+  const [v, setV] = useState({ nome: "", email: "", telefone: "", cpf: "", sexo: "", pelotao: "", marketing: false, aceite_imagem: false });
   const [erros, setErros] = useState<Record<string, string>>({});
 
   const enviando = fase.tipo === "enviando" || fase.tipo === "redirecionando" || fase.tipo === "celebrando";
@@ -326,6 +327,24 @@ function Formulario({
         Usamos seus dados para registrar sua inscrição, emitir o ingresso e organizar o evento, junto da Dexcomplica e
         da produção. Veja a <a href={POLITICA_PRIVACIDADE} target="_blank" rel="noopener noreferrer">política de privacidade</a>.
       </p>
+
+      <div>
+        <label className="lr-check">
+          <input
+            id={`${id}-aceite_imagem`}
+            type="checkbox"
+            checked={v.aceite_imagem}
+            onChange={(e) => set("aceite_imagem")(e.target.checked)}
+            aria-invalid={Boolean(erros.aceite_imagem)}
+            aria-describedby={erroDe("aceite_imagem")}
+            required
+          />
+          <span>
+            Li e aceito o <a href={TERMO_IMAGEM_URL} target="_blank" rel="noopener noreferrer">Termo de Uso de Imagem</a>.
+          </span>
+        </label>
+        {erros.aceite_imagem ? <p id={erroDe("aceite_imagem")} className="lr-campo__erro">{erros.aceite_imagem}</p> : null}
+      </div>
 
       <label className="lr-check">
         <input type="checkbox" checked={v.marketing} onChange={(e) => set("marketing")(e.target.checked)} />
@@ -583,7 +602,7 @@ function FormTransferir({
 }) {
   const id = useId();
   const [aberto, setAberto] = useState(false);
-  const [v, setV] = useState({ nome: "", email: "", telefone: "", cpf: "", sexo: "", pelotao: "", marketing: false });
+  const [v, setV] = useState({ nome: "", email: "", telefone: "", cpf: "", sexo: "", pelotao: "", marketing: false, aceite_imagem: false });
   const [autorizado, setAutorizado] = useState(false);
   const [erros, setErros] = useState<Record<string, string>>({});
   const [erro, setErro] = useState("");
@@ -758,6 +777,21 @@ function FormTransferir({
             <input type="checkbox" checked={autorizado} onChange={(e) => setAutorizado(e.target.checked)} required />
             <span>Confirmo que tenho autorização desta pessoa para transferir o ingresso e que os dados estão corretos.</span>
           </label>
+          <div>
+            <label className="lr-check">
+              <input
+                type="checkbox"
+                checked={v.aceite_imagem}
+                onChange={(e) => set("aceite_imagem")(e.target.checked)}
+                aria-invalid={Boolean(erros.aceite_imagem)}
+                required
+              />
+              <span>
+                Esta pessoa aceita o <a href={TERMO_IMAGEM_URL} target="_blank" rel="noopener noreferrer">Termo de Uso de Imagem</a>.
+              </span>
+            </label>
+            {erros.aceite_imagem ? <p className="lr-campo__erro">{erros.aceite_imagem}</p> : null}
+          </div>
           <button type="submit" className="lr-btn lr-btn--vermelho lr-btn--p lr-btn--bloco" disabled={enviando}>
             {enviando ? "Transferindo…" : "Transferir ingresso"}
           </button>

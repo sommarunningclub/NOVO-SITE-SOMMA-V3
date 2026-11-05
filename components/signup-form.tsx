@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Loader2, ArrowRight, Check, MessageCircle, ShieldCheck } from "lucide-react";
 import { signupSchema, maskPhone, maskCpf, maskDate, maskCep, isValidBirthDate } from "@/lib/validation";
 import { abrirGrupo } from "@/lib/whatsapp-grupos";
+import { TERMO_IMAGEM_URL, TERMO_LGPD_URL } from "@/lib/aceites/termos";
 
 /**
  * INSCRIÇÃO DA HOME
@@ -215,7 +216,11 @@ export function SignupForm() {
       const res = await fetch("/api/cadastro-site/atualizar", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, token }),
+        body: JSON.stringify({
+          ...form,
+          token,
+          ...(criando ? { consent_lgpd: consentLgpd, consent_imagem: consentImagem } : {}),
+        }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.erro ?? "Erro ao salvar.");
@@ -520,11 +525,23 @@ export function SignupForm() {
         <div className="mt-5 space-y-3 border-t border-black/5 pt-5">
           <label className="flex cursor-pointer items-start gap-3 text-sm text-muted">
             <input type="checkbox" checked={consentLgpd} onChange={(e) => setConsentLgpd(e.target.checked)} className="mt-1 h-4 w-4 accent-[#ff2c03]" />
-            <span>Aceito o Termo de Consentimento de Dados (LGPD).</span>
+            <span>
+              Aceito o{" "}
+              <a href={TERMO_LGPD_URL} target="_blank" rel="noopener noreferrer" className="underline">
+                Termo de Consentimento de Dados (LGPD)
+              </a>
+              .
+            </span>
           </label>
           <label className="flex cursor-pointer items-start gap-3 text-sm text-muted">
             <input type="checkbox" checked={consentImagem} onChange={(e) => setConsentImagem(e.target.checked)} className="mt-1 h-4 w-4 accent-[#ff2c03]" />
-            <span>Aceito o Termo de Uso de Imagem.</span>
+            <span>
+              Aceito o{" "}
+              <a href={TERMO_IMAGEM_URL} target="_blank" rel="noopener noreferrer" className="underline">
+                Termo de Uso de Imagem
+              </a>
+              .
+            </span>
           </label>
         </div>
       )}

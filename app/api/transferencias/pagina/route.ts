@@ -68,7 +68,7 @@ export async function PATCH(req: NextRequest) {
   const lido = await lerId(req)
   if (!lido) return NextResponse.json({ error: 'Requisição inválida.' }, { status: 400 })
 
-  const parsed = transferenciaSchema.omit({ marketing: true }).safeParse(lido.corpo.dados ?? {})
+  const parsed = transferenciaSchema.omit({ marketing: true, aceite_imagem: true }).safeParse(lido.corpo.dados ?? {})
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.issues[0]?.message ?? 'Confira os campos.' }, { status: 422 })
   }

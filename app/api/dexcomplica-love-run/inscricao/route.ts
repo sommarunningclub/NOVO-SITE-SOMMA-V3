@@ -6,6 +6,7 @@ import { contarInscritos, getEvento, getParticipacao, inscrever, type Participan
 import { caminhoIngresso } from "@/lib/dexcomplica-love-run/ticket";
 import { MODO_TESTE } from "@/lib/dexcomplica-love-run/event.config";
 import { enviarIngresso } from "@/lib/emails/dexcomplica-love-run-ingresso";
+import { registrarAceites } from "@/lib/aceites/registrar";
 
 export const dynamic = "force-dynamic";
 
@@ -107,6 +108,15 @@ export async function POST(request: NextRequest) {
     const { participante, jaEstava } = resultado;
     // Dois envios simultâneos do mesmo CPF: o banco devolveu a inscrição que já existia.
     if (jaEstava) return responderJaInscrito(participante, dados.email, dados.cpf);
+
+    await registrarAceites(request, {
+      tipos: ["uso_imagem"],
+      origem: "love-run",
+      cpf: dados.cpf,
+      nome: dados.nome,
+      email: dados.email,
+      eventoId: evento.id,
+    });
 
     // O e-mail é consequência: a vaga já está gravada. Se falhar, a pessoa vê o
     // ingresso na tela e a página não afirma que o e-mail chegou.

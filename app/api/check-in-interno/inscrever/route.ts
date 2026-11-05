@@ -7,6 +7,7 @@ import { camposComErro, cpfSchema, emailSchema, nomeSchema, sexoSchema, telefone
 import { getParticipacao, inscrever } from "@/lib/dexcomplica-love-run/db";
 import { urlIngresso } from "@/lib/dexcomplica-love-run/ticket";
 import { enviarIngresso } from "@/lib/emails/dexcomplica-love-run-ingresso";
+import { registrarAceites } from "@/lib/aceites/registrar";
 
 export const dynamic = "force-dynamic";
 
@@ -18,7 +19,8 @@ export const dynamic = "force-dynamic";
  * aqui. Esgotou, a rota responde 410 e a página trava o formulário.
  *
  * Grava pelo mesmo caminho da LP (`inscrever_no_evento`): ingresso, e-mail e
- * espelho em `checkins`. Sexo é obrigatório.
+ * espelho em `checkins`. Sexo é obrigatório, e o aceite do Termo de Uso de
+ * Imagem é declarado pela equipe (gravado com forma "equipe").
  */
 
 const corpoSchema = z.object({
@@ -28,6 +30,7 @@ const corpoSchema = z.object({
   telefone: telefoneSchema,
   sexo: sexoSchema,
   pelotao: z.string().trim().max(40).optional().default(""),
+  aceite_imagem: z.literal(true, { message: "Confirme que a pessoa aceitou o Termo de Uso de Imagem" }),
 });
 
 function encerrado(usadas: number, motivo: "esgotado" | "passou" | "sem_evento") {
@@ -130,6 +133,16 @@ export async function POST(req: NextRequest) {
         { status: 409 }
       );
     }
+
+    await registrarAceites(req, {
+      tipos: ["uso_imagem"],
+      origem: "check-in-interno",
+      forma: "equipe",
+      cpf: dados.cpf,
+      nome: dados.nome,
+      email: dados.email,
+      eventoId: linha.id,
+    });
 
     const email = p.email
       ? await enviarIngresso({

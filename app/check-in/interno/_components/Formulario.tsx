@@ -3,12 +3,13 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowUpRight, Check, CircleAlert, Loader2, Lock, LogOut, Ticket } from 'lucide-react'
-import { Grupo, IconeQuadrado, Linha, Segmentado } from '../../_components/ios'
+import { Grupo, IconeQuadrado, Linha, LinhaAceite, Segmentado } from '../../_components/ios'
 import type { EventoInterno, SituacaoLink } from '@/lib/check-in-interno/eventos'
+import { TERMO_IMAGEM_URL } from '@/lib/aceites/termos'
 
 type Sexo = '' | 'masculino' | 'feminino'
 
-type Pessoa = { nome: string; telefone: string; email: string; cpf: string; sexo: Sexo }
+type Pessoa = { nome: string; telefone: string; email: string; cpf: string; sexo: Sexo; aceite_imagem: boolean }
 
 type Resultado =
   | {
@@ -21,7 +22,7 @@ type Resultado =
     }
   | { tipo: 'ja'; mensagem: string; ingressoUrl?: string; ticketCode?: string }
 
-const VAZIO: Pessoa = { nome: '', telefone: '', email: '', cpf: '', sexo: '' }
+const VAZIO: Pessoa = { nome: '', telefone: '', email: '', cpf: '', sexo: '', aceite_imagem: false }
 
 function rotuloPelotao(p: string): string {
   const km = p.trim().match(/^(\d+(?:[.,]\d+)?)\s*km$/i)
@@ -82,7 +83,8 @@ export function Formulario({
     pessoa.telefone.length >= 10 &&
     pessoa.email.trim().length > 0 &&
     pessoa.cpf.length === 11 &&
-    !!pessoa.sexo
+    !!pessoa.sexo &&
+    pessoa.aceite_imagem
 
   function mudar<K extends keyof Pessoa>(campo: K, valor: Pessoa[K]) {
     setPessoa(p => ({ ...p, [campo]: valor }))
@@ -297,6 +299,34 @@ export function Formulario({
                 ]}
               />
             </div>
+          </Grupo>
+
+          <Grupo
+            className="mt-6"
+            rodape={
+              campos.aceite_imagem ? (
+                <span className="text-[#FF453A]" role="alert">{campos.aceite_imagem}</span>
+              ) : (
+                'Confirme com a pessoa antes de marcar.'
+              )
+            }
+          >
+            <LinhaAceite
+              marcado={pessoa.aceite_imagem}
+              onChange={v => mudar('aceite_imagem', v)}
+              erro={!!campos.aceite_imagem}
+            >
+              A pessoa aceitou o{' '}
+              <a
+                href={TERMO_IMAGEM_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[var(--ck-tint)] underline underline-offset-2"
+              >
+                Termo de Uso de Imagem
+              </a>
+              .
+            </LinhaAceite>
           </Grupo>
 
           {erro ? (
