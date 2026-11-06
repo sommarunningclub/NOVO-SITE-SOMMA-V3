@@ -20,7 +20,8 @@ export type EventoCorre =
   | "instagram_clicked"
   | "correio_viewed"
   | "correio_published"
-  | "correio_reported";
+  | "correio_reported"
+  | "correio_commented";
 
 type Props = Record<string, string | number | boolean | null>;
 const PROIBIDOS = ["cpf", "email", "e-mail", "telefone", "whatsapp", "nome", "token", "instagram", "codigo"];

@@ -5,6 +5,7 @@ import { API_CORRE, linkInstagram, linkWhatsapp, mensagemDeErro } from "@/lib/ve
 import { rastrearCorre } from "@/lib/vem-correr-comigo/analytics";
 import type { MeuPerfil, Recado } from "@/lib/vem-correr-comigo/tipos";
 import { Avatar } from "./Cartoes";
+import Comentarios from "./Comentarios";
 import FotoPerfil from "./FotoPerfil";
 import { Confirmar, Modal, type Pergunta } from "./Paineis";
 import { MENSAGENS, SessaoExpirada, enviarJson, pedir } from "./api";
@@ -145,6 +146,8 @@ export default function Correio({ perfil, onSessao, onAviso }: Props) {
                       </button>
                     )}
                   </div>
+
+                  <Comentarios recado={r.id} total={r.comentarios ?? 0} onSessao={onSessao} onAviso={onAviso} onPergunta={setPergunta} />
                 </article>
               );
             })}

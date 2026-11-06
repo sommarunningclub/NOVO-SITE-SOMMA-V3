@@ -87,6 +87,7 @@ const TEXTO_NOTIFICACAO: Record<string, (n: Notificacao) => string> = {
   novo_integrante: (n) => `${n.dados.nome} entrou no seu grupo.`,
   saida: (n) => (n.dados.desfeito ? `${n.dados.nome} saiu e o grupo foi desfeito. Você está disponível de novo.` : `${n.dados.nome} saiu do grupo.`),
   grupo_completo: () => "Seu grupo está completo!",
+  recado_comentado: () => "Comentaram no seu recado do Correio Elegante.",
 };
 
 export function Notificacoes({ lista, onFechar }: { lista: Notificacao[]; onFechar: () => void }) {

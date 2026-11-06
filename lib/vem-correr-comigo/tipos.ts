@@ -79,8 +79,20 @@ export interface Recado {
   /** Autor do recado ou Insider (moderação). */
   pode_apagar?: boolean;
   denunciei: boolean;
+  comentarios?: number;
   /** null = anônimo. */
   autor: { codigo: string; nome: string; foto: number | null; instagram: string | null; whatsapp: string | null } | null;
+}
+
+export interface Comentario {
+  id: string;
+  texto: string;
+  /** Só a primeira letra do nome: o comentário é anônimo. */
+  inicial: string;
+  criado_em: string;
+  meu: boolean;
+  pode_apagar: boolean;
+  denunciei: boolean;
 }
 
 export interface ResultadoAcao {

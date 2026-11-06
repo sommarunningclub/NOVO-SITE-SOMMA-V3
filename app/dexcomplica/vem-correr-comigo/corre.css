@@ -466,3 +466,19 @@ a.cr-grupo-membros__pessoa:focus-visible .cr-grupo-membros__ig { text-decoration
 }
 .cr-recado__acoes .cr-link { min-height: 28px; padding: 2px 0; font-size: 13px; font-weight: 500; }
 @media (min-width: 640px) { .cr-correio__novo { width: auto; } }
+
+/* Comentários do Correio */
+.cr-coms { padding: 0 16px 14px; }
+.cr-coms__abrir { min-height: 44px; padding: 0; border: 0; background: none; color: var(--tinta); font: inherit; font-weight: 800; font-size: 14.5px; cursor: pointer; }
+.cr-coms__painel { display: grid; gap: 10px; padding-top: 6px; border-top: 2px solid rgba(14, 14, 14, 0.12); }
+.cr-coms__lista { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.cr-com { display: flex; gap: 10px; align-items: flex-start; min-width: 0; }
+.cr-com__inicial { flex: none; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: var(--tinta); color: #fff; font-family: var(--f-fun); font-size: 16px; line-height: 1; }
+.cr-com__corpo { flex: 1; min-width: 0; }
+.cr-com__corpo p { margin: 0; font-size: 15px; line-height: 1.38; color: var(--tinta); white-space: pre-wrap; overflow-wrap: anywhere; }
+.cr-com__acoes { display: flex; gap: 12px; align-items: center; min-height: 26px; font-size: 12.5px; color: #5a554f; }
+.cr-com__acoes .cr-link { min-height: 26px; padding: 0; font-size: 12.5px; font-weight: 500; }
+.cr-coms__form { display: flex; gap: 8px; align-items: center; }
+.cr-coms__form .cr-input { flex: 1; min-width: 0; min-height: 46px; border: 2px solid rgba(14, 14, 14, 0.18); }
+.cr-coms__form .lr-btn { flex: none; min-height: 46px; }
+.cr-coms__nota { margin: 0; font-size: 12.5px; line-height: 1.35; color: #5a554f; }

@@ -402,6 +402,62 @@ const t = (nome, cond, extra) => { if (cond) { ok++; console.log("  ✓", nome);
 
   }
 
+  console.log("Comentários anônimos");
+  {
+    const k1 = await pessoa("Beatriz Autora", "feminino", "6km"), k2 = await pessoa("Carlos Comenta", "masculino", "6km"), k3 = await pessoa("Dora Terceira", "feminino", "6km"), k4 = await pessoa("Eduardo Quarto", "masculino", "6km"), k5 = await pessoa("Fabio Quinto", "masculino", "6km"), ksem = await pessoa("Sem Perfil", "feminino", "6km");
+    await perfil(k1, 4, { instagram: "beatriz.autora", whatsapp: "61977770001", whatsapp_publico: true }); await perfil(k2, 4, { instagram: "carlos.comenta", whatsapp: "61977770002", whatsapp_publico: true }); await perfil(k3, 4); await perfil(k4, 4); await perfil(k5, 4);
+    const pub = (p, d) => call("dex_corre_correio_publicar", { p_slug: SLUG, ...eu(p), p_dados: JSON.stringify(d) });
+    const com = (p, r, x) => call("dex_corre_correio_comentar", { p_slug: SLUG, ...eu(p), p_recado: r, p_texto: x });
+    const lista = (p, r, l = 50, o = 0) => call("dex_corre_correio_comentarios_lista", { p_slug: SLUG, ...eu(p), p_recado: r, p_limite: l, p_offset: o });
+    const apagaC = (p, c) => call("dex_corre_correio_comentario_apagar", { ...eu(p), p_comentario: c });
+    const denC = (p, c) => call("dex_corre_correio_comentario_denunciar", { ...eu(p), p_comentario: c });
+    const rec = await pub(k1, { para: "Alguém", mensagem: "Recado anônimo para comentar", identificado: false });
+    t("sem perfil não comenta", (await com(ksem, rec.id, "oi")).erro === "perfil");
+    t("sem perfil não lê", (await lista(ksem, rec.id)).erro === "perfil");
+    t("recusa comentário vazio", (await com(k2, rec.id, "   ")).erro === "comentario_texto");
+    t("recusa comentário longo", (await com(k2, rec.id, "x".repeat(201))).erro === "comentario_texto");
+    t("recusa telefone no comentário", (await com(k2, rec.id, "liga 61 97777-0001")).erro === "contato_no_texto");
+    t("recusa recado inexistente", (await com(k2, "00000000-0000-0000-0000-000000000000", "oi")).erro === "nao_encontrado");
+    const c1 = await com(k2, rec.id, "Que recado lindo");
+    t("comenta", c1.ok === true);
+    t("clique repetido não duplica", (await com(k2, rec.id, "Que recado lindo")).repetido === true);
+    const cDono = await com(k1, rec.id, "Obrigada");
+    const l1 = await lista(k3, rec.id);
+    const j = JSON.stringify(l1);
+    t("mostra só a inicial", l1.itens[0].inicial === "C" && l1.itens[1].inicial === "B");
+    t("sem nome de quem comentou", !j.includes("Carlos") && !j.includes("Comenta") && !j.includes("Beatriz"));
+    t("sem contato, código ou foto", !j.includes("carlos.comenta") && !j.includes("61977770002") && !j.includes("codigo") && !j.includes("foto") && !j.includes("pelotao"));
+    t("sem identificador de perfil", !j.includes("perfil_id") && !JSON.stringify(Object.keys(l1.itens[0])).includes("autor"));
+    t("comentário do autor do recado não o entrega", Object.keys(l1.itens[1]).sort().join() === Object.keys(l1.itens[0]).sort().join() && l1.itens[1].meu === false);
+    t("autor se reconhece só para si", (await lista(k2, rec.id)).itens[0].meu === true && l1.itens[0].meu === false);
+    const notifs = (await estado(k1)).notificacoes.filter((x) => x.tipo === "recado_comentado");
+    t("avisa o autor do recado sem dizer quem", notifs.length === 1 && JSON.stringify(notifs[0].dados) === "{}");
+    t("não avisa quando o autor comenta no próprio", notifs.length === 1);
+    t("mural conta os comentários", (await call("dex_corre_correio_mural", { p_slug: SLUG, ...eu(k3), p_limite: 50, p_offset: 0 })).itens.find((i) => i.id === rec.id).comentarios === 2);
+    t("terceiro não apaga", (await apagaC(k3, c1.id)).erro === "nao_encontrado");
+    const c2x = await com(k3, rec.id, "Vou apagar");
+    t("autor do comentário apaga", (await apagaC(k3, c2x.id)).ok === true);
+    const c3x = await com(k3, rec.id, "Comentário ruim");
+    t("autor do recado vê opção de apagar", (await lista(k1, rec.id)).itens.find((i) => i.id === c3x.id).pode_apagar === true);
+    t("autor do recado apaga comentário", (await apagaC(k1, c3x.id)).ok === true);
+    t("não denuncia o próprio", (await denC(k2, c1.id)).erro === "proprio");
+    await denC(k3, c1.id); await denC(k3, c1.id);
+    t("uma denúncia por pessoa", (await db.query(`select count(*)::int c from dex_corre_correio_comentario_denuncias where comentario_id=$1`, [c1.id])).rows[0].c === 1);
+    t("mostra denúncia enviada", (await lista(k3, rec.id)).itens.find((i) => i.id === c1.id).denunciei === true);
+    await denC(k4, c1.id);
+    t("duas denúncias não ocultam", !!(await lista(k3, rec.id)).itens.find((i) => i.id === c1.id));
+    t("terceira denúncia oculta", (await denC(k5, c1.id)).ocultado === true && !(await lista(k3, rec.id)).itens.find((i) => i.id === c1.id));
+    for (let i = 0; i < 20; i++) await com(k4, rec.id, "comentário " + i);
+    t("limite de 20 por hora", (await com(k4, rec.id, "mais um")).erro === "limite_comentarios");
+    const pa = await lista(k3, rec.id, 5, 0), pb = await lista(k3, rec.id, 5, 5);
+    t("pagina sem repetir", pa.itens.length === 5 && pa.itens[0].id !== pb.itens[0].id);
+    await db.query(`update evento_participantes set status='cancelado' where id=$1`, [k2.part]);
+    await db.query(`update evento_participantes set status='inscrito' where id=$1`, [k2.part]);
+    await call("dex_corre_correio_apagar", { ...eu(k1), p_recado: rec.id });
+    t("recado apagado fecha os comentários", (await lista(k3, rec.id)).erro === "nao_encontrado" && (await com(k3, rec.id, "oi")).erro === "nao_encontrado");
+    t("anon sem acesso aos comentários", (await db.query(`select has_table_privilege('anon', 'public.dex_corre_correio_comentarios', 'select') x`)).rows[0].x === false);
+  }
+
   console.log("Números");
   const nums = (await estado(d4)).numeros;
   const { rows: [real] } = await db.query(`select count(distinct m.perfil_id)::int c from dex_corre_membros m join dex_corre_grupos g on g.id=m.grupo_id where m.saiu_em is null and g.status='ativo'`);
