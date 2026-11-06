@@ -108,6 +108,16 @@ async function main() {
       const m = url.pathname.match(/^\/rest\/v1\/rpc\/(\w+)$/);
       if (m) {
         const fn = m[1]; const args = corpo.length ? JSON.parse(corpo.toString()) : {};
+        // Só neste banco de mentira: CPF desconhecido vira inscrito de teste, para
+        // dar para olhar a página com qualquer CPF válido. Fica em memória.
+        if (fn === "dex_corre_entrar" && !process.env.SEM_VISITANTE) {
+          await emFila(async () => {
+            const { rows } = await db.query(`select 1 from evento_participantes where cpf = $1`, [args.p_cpf]);
+            if (rows.length) return;
+            const { rows: [c] } = await db.query(`insert into cadastro_site (cpf, nome, email, sexo) values ($1, 'Visitante Local', 'visitante@exemplo.test', 'masculino') returning id`, [args.p_cpf]);
+            await db.query(`insert into evento_participantes (evento_id, pessoa_id, cpf, nome_completo, email, pelotao, ticket_code) values ($1,$2,$3,'Visitante Local','visitante@exemplo.test','4km','DLR-VISITA')`, [ev.id, c.id, args.p_cpf]);
+          });
+        }
         const sig = await assinatura(fn);
         const nomes = Object.keys(args);
         const valores = nomes.map((n) => {

@@ -30,7 +30,7 @@ npm i --no-save @electric-sql/pglite
 scripts/dex-corre-local/iniciar.sh      # http://localhost:3108/dexcomplica/vem-correr-comigo
 ```
 
-Banco em memória com a migration real e inscritos fictícios, listados em `http://localhost:54399/inscritos`. CPF real não existe nesse banco. Não envia e-mail.
+Banco em memória com a migration real e inscritos fictícios, listados em `http://localhost:54399/inscritos`. Qualquer CPF válido vira inscrito de teste em memória, só nesse banco. Não envia e-mail.
 
 ## Testes
 
@@ -55,4 +55,5 @@ Depois, PR + merge na `main`. Nenhuma variável de ambiente nova. Upstash recome
 
 - 06/11 18h23: inspeção. 699 inscritos, todos com e-mail, sem CPF duplicado, 17 e-mails repetidos, percursos 4/6/8 km, sexo preenchido para todos.
 - 06/11 18h50: migration, API, telas e testes. Fluxo completo aprovado em tamanho de celular.
+- 06/11 19h00: local aceita qualquer CPF válido como inscrito de teste (só no banco de mentira).
 - 06/11 18h52: verificação por e-mail removida a pedido do Alex; acesso só com CPF. Banco 107/107, navegador 33/33.
