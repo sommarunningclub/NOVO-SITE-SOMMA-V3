@@ -4,6 +4,7 @@ import { useState } from "react";
 import { API_CORRE, MENSAGENS } from "@/lib/vem-correr-comigo/regras";
 import { mascararCpf, soDigitos } from "@/lib/dexcomplica-love-run/schema";
 import { rastrearCorre } from "@/lib/vem-correr-comigo/analytics";
+import { armarTrilhaNoGesto } from "./trilha";
 
 /** Entrada pelo CPF da inscrição. */
 export default function Acesso({ onEntrou, compartilhado }: { onEntrou: () => void; compartilhado: boolean }) {
@@ -15,6 +16,8 @@ export default function Acesso({ onEntrou, compartilhado }: { onEntrou: () => vo
     e.preventDefault();
     if (enviando) return;
     if (soDigitos(cpf).length !== 11) return setErro("Digite os 11 números do CPF.");
+    // No mesmo gesto do clique: sem isso o browser bloqueia o autoplay do Spotify.
+    armarTrilhaNoGesto();
     setErro("");
     setEnviando(true);
     rastrearCorre("access_started");
@@ -37,13 +40,13 @@ export default function Acesso({ onEntrou, compartilhado }: { onEntrou: () => vo
 
   return (
     <section className="cr-acesso">
-      <p className="lr-eyebrow lr-eyebrow--claro">Exclusivo para inscritos</p>
+      <p className="lr-eyebrow lr-eyebrow--claro">Inscritos e Insiders</p>
       <h1 className="cr-titulo">Bora descomplicar seu corre?</h1>
       <form className="cr-form" onSubmit={entrar} noValidate>
         <p className="cr-lead">
           {compartilhado
             ? "Alguém te chamou para o corre. Entre com seu CPF para ver."
-            : "Entre com seu CPF e descubra quem vai correr com você."}
+            : "Entre com o CPF da inscrição ou do Insider e descubra quem vai correr com você."}
         </p>
         <label className="cr-campo">
           <span>Digite seu CPF</span>
@@ -58,7 +61,11 @@ export default function Acesso({ onEntrou, compartilhado }: { onEntrou: () => vo
           />
         </label>
         {erro ? <p className="cr-erro" role="alert">{erro}</p> : null}
-        <button className="lr-btn lr-btn--vermelho lr-btn--bloco" disabled={enviando}>
+        <button
+          className="lr-btn lr-btn--vermelho lr-btn--bloco"
+          disabled={enviando}
+          onPointerDown={armarTrilhaNoGesto}
+        >
           {enviando ? "Conferindo…" : "Entrar no meu corre"}
         </button>
       </form>

@@ -83,41 +83,71 @@ export default function Correio({ perfil, onSessao, onAviso }: Props) {
       ) : (
         <>
           <div className="cr-mural">
-            {itens.map((r, i) => (
-              <article key={r.id} className={`cr-recado cr-recado--${i % 3}`}>
-                {r.foto ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img className="cr-recado__foto" src={`${API_CORRE}/correio/foto/${r.id}`} alt="Foto do recado" loading="lazy" decoding="async" />
-                ) : null}
-                <p className="cr-recado__para"><span>Para</span> {r.para}</p>
-                <p className="cr-recado__texto">{r.mensagem}</p>
-                <footer className="cr-recado__de">
-                  {r.autor ? (
-                    <>
-                      <Avatar p={r.autor} tamanho="p" />
-                      <div>
-                        <strong>{r.autor.nome}</strong>
-                        <span className="cr-recado__contatos">
-                          {r.autor.instagram ? <a href={linkInstagram(r.autor.instagram)} target="_blank" rel="noopener noreferrer">@{r.autor.instagram}</a> : null}
-                          {r.autor.whatsapp ? <a href={linkWhatsapp(r.autor.whatsapp)} target="_blank" rel="noopener noreferrer" onClick={() => rastrearCorre("whatsapp_clicked", { origem: "correio" })}>Chamar no WhatsApp</a> : null}
-                        </span>
-                      </div>
-                    </>
-                  ) : (
-                    <strong className="cr-recado__anonimo">Alguém do corre ♥</strong>
-                  )}
-                </footer>
-                <div className="cr-recado__acoes">
-                  {r.meu ? (
-                    <button className="cr-link cr-link--tinta" disabled={ocupado} onClick={() => setPergunta({ titulo: "Apagar este recado?", texto: "Ele sai do mural na hora.", botao: "Apagar recado", onSim: () => agir("apagar", r.id) })}>Apagar</button>
-                  ) : r.denunciei ? (
-                    <span>Denúncia enviada</span>
-                  ) : (
-                    <button className="cr-link cr-link--tinta" disabled={ocupado} onClick={() => setPergunta({ titulo: "Denunciar este recado?", texto: "Use para recado ofensivo, com dados de alguém ou foto sem autorização.", botao: "Denunciar", onSim: () => agir("denunciar", r.id) })}>Denunciar</button>
-                  )}
-                </div>
-              </article>
-            ))}
+            {itens.map((r, i) => {
+              const podeApagar = r.pode_apagar ?? r.meu;
+              return (
+                <article key={r.id} className={`cr-recado${r.foto ? " cr-recado--com-foto" : ""} cr-recado--${i % 3}`}>
+                  <header className="cr-recado__topo">
+                    {r.autor ? (
+                      <>
+                        <Avatar p={r.autor} tamanho="p" />
+                        <div className="cr-recado__quem">
+                          <strong>{r.autor.nome}</strong>
+                          <span className="cr-recado__contatos">
+                            {r.autor.instagram ? <a href={linkInstagram(r.autor.instagram)} target="_blank" rel="noopener noreferrer">@{r.autor.instagram}</a> : null}
+                            {r.autor.whatsapp ? <a href={linkWhatsapp(r.autor.whatsapp)} target="_blank" rel="noopener noreferrer" onClick={() => rastrearCorre("whatsapp_clicked", { origem: "correio" })}>WhatsApp</a> : null}
+                          </span>
+                        </div>
+                      </>
+                    ) : (
+                      <strong className="cr-recado__anonimo">Alguém do corre ♥</strong>
+                    )}
+                  </header>
+
+                  {r.foto ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img className="cr-recado__foto" src={`${API_CORRE}/correio/foto/${r.id}`} alt="Foto do recado" loading="lazy" decoding="async" />
+                  ) : null}
+
+                  <div className="cr-recado__corpo">
+                    <p className="cr-recado__para"><span>Para</span> {r.para}</p>
+                    <p className="cr-recado__texto">{r.mensagem}</p>
+                  </div>
+
+                  <div className="cr-recado__acoes">
+                    {podeApagar ? (
+                      <button
+                        className="cr-link cr-link--tinta"
+                        disabled={ocupado}
+                        onClick={() => setPergunta({
+                          titulo: "Apagar este recado?",
+                          texto: "Ele sai do mural na hora.",
+                          botao: "Apagar recado",
+                          onSim: () => agir("apagar", r.id),
+                        })}
+                      >
+                        Apagar
+                      </button>
+                    ) : r.denunciei ? (
+                      <span>Denúncia enviada</span>
+                    ) : (
+                      <button
+                        className="cr-link cr-link--tinta"
+                        disabled={ocupado}
+                        onClick={() => setPergunta({
+                          titulo: "Denunciar este recado?",
+                          texto: "Use para recado ofensivo, com dados de alguém ou foto sem autorização.",
+                          botao: "Denunciar",
+                          onSim: () => agir("denunciar", r.id),
+                        })}
+                      >
+                        Denunciar
+                      </button>
+                    )}
+                  </div>
+                </article>
+              );
+            })}
           </div>
           {itens.length < total ? <button className="lr-btn lr-btn--branco lr-btn--p cr-mais" onClick={verMais}>Ver mais</button> : null}
         </>
@@ -180,10 +210,11 @@ function FormRecado({ perfil, onPublicado, onSessao }: { perfil: MeuPerfil; onPu
         <textarea className="cr-input cr-textarea" maxLength={MAX} rows={4} value={mensagem} onChange={(e) => setMensagem(e.target.value)} />
         <small>{mensagem.length}/{MAX}. Sem telefone ou documento de ninguém.</small>
       </label>
-      <div className="cr-campo">
-        <span>Foto (opcional)</span>
-        <FotoPerfil atual={null} onPronta={setFoto} />
-        <small>Use uma foto sua ou de quem autorizou.</small>
+      <div className="cr-campo cr-campo--foto-mural">
+        <span>Anexar imagem ao mural</span>
+        <p className="cr-campo__dica">Aparece pública no feed, como no Instagram — para todo mundo do Love Run ver.</p>
+        <FotoPerfil atual={null} onPronta={setFoto} imediato rotuloEscolher="Anexar imagem" />
+        <small>Use uma foto sua ou de quem autorizou. JPEG, PNG ou WebP.</small>
       </div>
 
       <label className="cr-chave">

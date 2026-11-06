@@ -20,18 +20,17 @@ const t = (nome, cond, extra) => { if (cond) { ok++; console.log("  ✓", nome);
   const raiz = path.resolve(__dirname, "..");
   await db.exec(fs.readFileSync(path.join(__dirname, "dex-corre-local/base.sql"), "utf8"));
   const { rows: [{ id: EV }] } = await db.query(`insert into eventos (titulo, slug, pelotoes) values ('Love Run', $1, '{4km,6km,8km}') returning id`, [SLUG]);
-  const mig = fs.readFileSync(path.join(raiz, "supabase/migrations/20261106190000_dex_corre_comunidade.sql"), "utf8");
-  await db.exec(mig);
-  await db.exec(mig); // idempotente
-  const migCorreio = fs.readFileSync(path.join(raiz, "supabase/migrations/20261106210000_dex_corre_correio.sql"), "utf8");
-  await db.exec(migCorreio);
-  await db.exec(migCorreio);
+  const pastaMig = path.join(raiz, "supabase/migrations");
+  const migs = fs.readdirSync(pastaMig).filter((n) => n.includes("_dex_corre_")).sort();
+  for (const f of migs) await db.exec(fs.readFileSync(path.join(pastaMig, f), "utf8"));
+  for (const f of migs) await db.exec(fs.readFileSync(path.join(pastaMig, f), "utf8")); // idempotente
+  const mig = fs.readFileSync(path.join(pastaMig, "20261106190000_dex_corre_comunidade.sql"), "utf8");
 
   let n = 0;
   const pessoa = async (nome, sexo, pelotao = "4km", extra = {}) => {
     n++;
     const cpf = String(10000000000 + n);
-    const { rows: [c] } = await db.query(`insert into cadastro_site (cpf, nome, email, sexo) values ($1,$2,$3,$4) returning id`, [cpf, nome, `${n}@exemplo.test`, sexo]);
+    const { rows: [c] } = await db.query(`insert into cadastro_site (cpf, nome_completo, email, sexo) values ($1,$2,$3,$4) returning id`, [cpf, nome, `${n}@exemplo.test`, sexo]);
     const { rows: [p] } = await db.query(
       `insert into evento_participantes (evento_id, pessoa_id, cpf, nome_completo, email, pelotao, status, metadata) values ($1,$2,$3,$4,$5,$6,$7,$8) returning id`,
       [EV, c.id, cpf, nome, `${n}@exemplo.test`, pelotao, extra.status || "inscrito", JSON.stringify(extra.metadata || {})]);
@@ -68,13 +67,25 @@ const t = (nome, cond, extra) => { if (cond) { ok++; console.log("  ✓", nome);
   t("inscrição cancelada não entra", (await call("dex_corre_entrar", { p_slug: SLUG, p_cpf: cancelada.cpf })) === null);
   t("sessão de vaga cancelada é inválida", (await call("dex_corre_sessao_valida", eu(cancelada))) === false);
   const dup = await pessoa("Duplicada Um", "feminino");
-  const { rows: [c2] } = await db.query(`insert into cadastro_site (cpf, nome) values ($1,'Duplicada Dois') returning id`, [dup.cpf]);
+  const { rows: [c2] } = await db.query(`insert into cadastro_site (cpf, nome_completo) values ($1,'Duplicada Dois') returning id`, [dup.cpf]);
   await db.query(`insert into evento_participantes (evento_id, pessoa_id, cpf, nome_completo, pelotao) values ($1,$2,$3,'Duplicada Dois','4km')`, [EV, c2.id, dup.cpf]);
   t("CPF com duas vagas não escolhe nenhuma", (await call("dex_corre_entrar", { p_slug: SLUG, p_cpf: dup.cpf })) === null);
   const { rows: [outro] } = await db.query(`insert into eventos (titulo, slug) values ('Outro', 'outro-evento') returning id`);
-  const { rows: [c3] } = await db.query(`insert into cadastro_site (cpf, nome) values ('88888888888','Outro Evento') returning id`);
+  const { rows: [c3] } = await db.query(`insert into cadastro_site (cpf, nome_completo) values ('88888888888','Outro Evento') returning id`);
   await db.query(`insert into evento_participantes (evento_id, pessoa_id, cpf, nome_completo, pelotao) values ($1,$2,'88888888888','Outro Evento','4km')`, [outro.id, c3.id]);
   t("inscrição de outro evento não entra", (await call("dex_corre_entrar", { p_slug: SLUG, p_cpf: "88888888888" })) === null);
+
+  await db.query(`insert into dados_insiders (nome, cpf, email, sexo, ativo) values ('Insider Ok', '39053344705', 'i@exemplo.test', 'feminino', true)`);
+  await db.query(`insert into dados_insiders (nome, cpf, ativo) values ('Insider Off', '15360946070', false)`);
+  // Como em produção: sem default, quem cria a vaga tem que gerar o token do ingresso.
+  await db.exec(`alter table evento_participantes alter column ticket_token drop default`);
+  const entIns = await call("dex_corre_entrar", { p_slug: SLUG, p_cpf: "39053344705" });
+  await db.exec(`alter table evento_participantes alter column ticket_token set default gen_random_uuid()::text`);
+  t("vaga do insider nasce com token e código de ingresso", (await db.query(`select length(ticket_token) l, ticket_code c from evento_participantes where id=$1`, [entIns.participacao_id])).rows.every((r) => r.l === 64 && /^DLR-[0-9A-F]{6}$/.test(r.c)));
+  t("insider ativo entra sem inscrição no evento", Boolean(entIns?.participacao_id));
+  t("insider inativo não entra", (await call("dex_corre_entrar", { p_slug: SLUG, p_cpf: "15360946070" })) === null);
+  const entIns2 = await call("dex_corre_entrar", { p_slug: SLUG, p_cpf: "39053344705" });
+  t("insider reentra na mesma vaga", entIns2?.participacao_id === entIns.participacao_id);
 
   t("acesso fica registrado para a métrica", (await call("dex_corre_metricas", { p_slug: SLUG })).autenticados >= 1);
 
@@ -281,7 +292,7 @@ const t = (nome, cond, extra) => { if (cond) { ok++; console.log("  ✓", nome);
   const tr1 = await pessoa("Vai Transferir", "masculino", "6km"), tr2 = await pessoa("Fica No Grupo", "feminino", "6km"), novo = await pessoa("Temporario", "feminino", "6km");
   await perfil(tr1, 4); await perfil(tr2, 4);
   r = await quer(tr1, tr2);
-  const { rows: [nc] } = await db.query(`insert into cadastro_site (cpf, nome, sexo) values ('77777777777','Novo Titular','feminino') returning id`);
+  const { rows: [nc] } = await db.query(`insert into cadastro_site (cpf, nome_completo, sexo) values ('77777777777','Novo Titular','feminino') returning id`);
   await db.query(`update evento_participantes set pessoa_id=$1, cpf='77777777777', nome_completo='Novo Titular', metadata='{"sexo":"feminino"}' where id=$2`, [nc.id, tr1.part]);
   t("sessão de quem transferiu cai", (await call("dex_corre_sessao_valida", eu(tr1))) === false);
   t("CPF antigo não entra mais", (await call("dex_corre_entrar", { p_slug: SLUG, p_cpf: tr1.cpf })) === null);
@@ -356,6 +367,8 @@ const t = (nome, cond, extra) => { if (cond) { ok++; console.log("  ✓", nome);
   t("clique repetido não duplica", (await publicar(c2, { para: "A", mensagem: "sem insta", identificado: true })).repetido === true);
   t("foto só com sessão válida", (await call("dex_corre_correio_foto", { ...eu(c2), p_recado: anon.id })) === "correio/x.jpg" && (await call("dex_corre_correio_foto", { ...eu(cancelada), p_recado: anon.id })) === null);
   t("não apaga recado de outra pessoa", (await call("dex_corre_correio_apagar", { ...eu(c2), p_recado: anon.id })).erro === "nao_encontrado");
+  t("autor pode apagar o próprio no mural", achar(await mural(c1), anon.id).pode_apagar === true);
+  t("outro não vê opção de apagar", achar(await mural(c2), anon.id).pode_apagar === false);
   t("não denuncia o próprio", (await call("dex_corre_correio_denunciar", { ...eu(c1), p_recado: anon.id })).erro === "proprio");
   await call("dex_corre_correio_denunciar", { ...eu(c2), p_recado: anon.id });
   await call("dex_corre_correio_denunciar", { ...eu(c2), p_recado: anon.id });
@@ -366,6 +379,19 @@ const t = (nome, cond, extra) => { if (cond) { ok++; console.log("  ✓", nome);
   t("foto de recado oculto não abre", (await call("dex_corre_correio_foto", { ...eu(c2), p_recado: anon.id })) === null);
   const del = await call("dex_corre_correio_apagar", { ...eu(c1), p_recado: assin.id });
   t("autor apaga o próprio", del.ok === true && !achar(await mural(c2), assin.id));
+  const semFoto = await publicar(c1, { para: "ComFoto", mensagem: "mesmo texto duas vezes" });
+  const comFoto = await publicar(c1, { para: "ComFoto", mensagem: "mesmo texto duas vezes", foto_path: "correio/nova.jpg" });
+  t("republicar com foto preenche a imagem que faltava", comFoto.foto_salva === true && achar(await mural(c2), semFoto.id).foto === true);
+  const alvoMod = await publicar(c2, { para: "Moderação", mensagem: "recado para insider apagar" });
+  const { rows: [cadIns] } = await db.query(`insert into cadastro_site (cpf, nome_completo, email, sexo) values ('39053344705', 'Moderador Insider', 'mod@exemplo.test', 'feminino') returning id`);
+  const { rows: [partIns] } = await db.query(
+    `insert into evento_participantes (evento_id, pessoa_id, cpf, nome_completo, email, pelotao, status) values ($1,$2,'39053344705','Moderador Insider','mod@exemplo.test','6km','inscrito') returning id`,
+    [EV, cadIns.id]
+  );
+  const mod = { part: partIns.id, pes: Number(cadIns.id) };
+  await perfil(mod, 3);
+  t("insider vê opção de apagar recado alheio", achar(await mural(mod), alvoMod.id).pode_apagar === true);
+  t("insider apaga recado de outra pessoa", (await call("dex_corre_correio_apagar", { ...eu(mod), p_recado: alvoMod.id })).ok === true && !achar(await mural(c2), alvoMod.id));
   const lim = await pessoa("Correio Limite", "feminino", "8km"); await perfil(lim, 4);
   for (let i = 0; i < 5; i++) await publicar(lim, { para: "A", mensagem: "recado " + i });
   t("limite de 5 recados por hora", (await publicar(lim, { para: "A", mensagem: "recado 6" })).erro === "limite_recados");

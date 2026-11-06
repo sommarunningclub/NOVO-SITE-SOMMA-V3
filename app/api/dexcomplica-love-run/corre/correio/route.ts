@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
       if (error) throw new Error(error.message);
     }
 
-    const r = await rpc<{ ok: boolean; erro?: string; repetido?: boolean }>("dex_corre_correio_publicar", {
+    const r = await rpc<{ ok: boolean; erro?: string; repetido?: boolean; foto_salva?: boolean }>("dex_corre_correio_publicar", {
       p_slug: SLUG,
       ...quem(s),
       p_dados: {
@@ -58,8 +58,10 @@ export async function POST(request: NextRequest) {
         foto_path: caminho,
       },
     });
-    // Recusado ou repetido: a foto enviada agora não ficou ligada a nenhum recado.
-    if (caminho && (!r.ok || r.repetido)) await supabase.storage.from(BUCKET_FOTOS).remove([caminho]);
+    // Recusado, ou repetido sem aproveitar a foto: tira o arquivo órfão do Storage.
+    if (caminho && (!r.ok || (r.repetido && !r.foto_salva))) {
+      await supabase.storage.from(BUCKET_FOTOS).remove([caminho]);
+    }
     return NextResponse.json(r, { status: r.ok ? 200 : 409 });
   } catch (e) {
     return falha("correio", e);

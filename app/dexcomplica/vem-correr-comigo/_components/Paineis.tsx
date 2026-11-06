@@ -2,10 +2,11 @@
 
 import { useEffect, useRef } from "react";
 import type { Cartao, Estado, Grupo, Notificacao } from "@/lib/vem-correr-comigo/tipos";
+import { rastrearCorre } from "@/lib/vem-correr-comigo/analytics";
+import { linkInstagram, nomePreferencia } from "@/lib/vem-correr-comigo/regras";
 import { Avatar, Contatos, nomeGrupo } from "./Cartoes";
 import ChatGrupo from "./ChatGrupo";
 import { MENSAGENS, rotuloKm } from "./api";
-import { nomePreferencia } from "@/lib/vem-correr-comigo/regras";
 
 export function Modal({ titulo, onFechar, children }: { titulo: string; onFechar: () => void; children: React.ReactNode }) {
   const caixa = useRef<HTMLDivElement>(null);
@@ -126,15 +127,37 @@ export function Destino({ perfil, grupo, proprio, ocupado, podeEntrar, onQuero, 
             </span>
           </p>
           <ul className={`cr-grupo-membros cr-grupo-membros--${Math.min(grupo.membros.length, 4)}`}>
-            {grupo.membros.map((m) => (
-              <li key={m.codigo}>
-                <Avatar p={m} tamanho="m" />
-                <strong>{m.nome.split(" ")[0]}</strong>
-                {(m.instagram || m.whatsapp) ? (
-                  <span className="cr-grupo-membros__contatos"><Contatos p={m} /></span>
-                ) : null}
-              </li>
-            ))}
+            {grupo.membros.map((m) => {
+              const ig = m.instagram ? linkInstagram(m.instagram) : null;
+              const corpo = (
+                <>
+                  <Avatar p={m} tamanho="m" />
+                  <strong>{m.nome.split(" ")[0]}</strong>
+                  {m.instagram ? <span className="cr-grupo-membros__ig">@{m.instagram}</span> : null}
+                </>
+              );
+              return (
+                <li key={m.codigo}>
+                  {ig ? (
+                    <a
+                      className="cr-grupo-membros__pessoa"
+                      href={ig}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={`Abrir Instagram de ${m.nome}`}
+                      onClick={() => rastrearCorre("instagram_clicked", { origem: "grupo" })}
+                    >
+                      {corpo}
+                    </a>
+                  ) : (
+                    <div className="cr-grupo-membros__pessoa">{corpo}</div>
+                  )}
+                  {m.whatsapp ? (
+                    <span className="cr-grupo-membros__contatos"><Contatos p={{ ...m, instagram: null }} /></span>
+                  ) : null}
+                </li>
+              );
+            })}
           </ul>
         </div>
       ) : null}

@@ -1,23 +1,29 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
-const PLAYLIST = "1WcGzf4bGvcyfo2znZTyxl";
-/** Compacto (152) + autoplay: o player oficial do Spotify. */
-const EMBED =
-  `https://open.spotify.com/embed/playlist/${PLAYLIST}` +
-  `?utm_source=generator&theme=0&autoplay=1`;
+import { armarTrilhaNoGesto, trilhaArmada } from "./trilha";
 
 /**
- * Mini player flutuante. O iframe fica montado o tempo todo para a música
- * continuar mesmo com o painel recolhido; o gesto do login ajuda o autoplay.
+ * Mini player. O áudio mora no host `#cr-trilha-host` (criado no gesto do login);
+ * aqui só controlamos o painel visual.
  */
 export default function PlayerSom() {
   const [aberto, setAberto] = useState(false);
-  const [pronto, setPronto] = useState(false);
+  const [viva, setViva] = useState(false);
 
   useEffect(() => {
-    setPronto(true);
+    if (trilhaArmada()) {
+      setViva(true);
+      return;
+    }
+    // Sessão já logada: o 1º toque na página arma o autoplay.
+    const armar = () => {
+      armarTrilhaNoGesto();
+      setViva(true);
+      window.removeEventListener("pointerdown", armar, true);
+    };
+    window.addEventListener("pointerdown", armar, true);
+    return () => window.removeEventListener("pointerdown", armar, true);
   }, []);
 
   return (
@@ -25,30 +31,20 @@ export default function PlayerSom() {
       <button
         type="button"
         className="cr-som__pill"
-        onClick={() => setAberto((v) => !v)}
+        onClick={() => {
+          armarTrilhaNoGesto();
+          setViva(true);
+          setAberto((v) => !v);
+        }}
         aria-expanded={aberto}
-        aria-controls="cr-som-caixa"
+        aria-controls="cr-trilha-host"
       >
         <span className="cr-som__eq" aria-hidden="true"><i /><i /><i /></span>
-        {aberto ? "Fechar" : "Trilha"}
+        {aberto ? "Fechar" : viva ? "Trilha" : "Tocar"}
       </button>
-
-      <div className="cr-som__caixa" id="cr-som-caixa" aria-hidden={!aberto}>
-        {pronto ? (
-          <iframe
-            data-testid="embed-iframe"
-            title="Playlist da comunidade"
-            src={EMBED}
-            width="100%"
-            height="152"
-            frameBorder="0"
-            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-            allowFullScreen
-            loading="eager"
-            tabIndex={aberto ? 0 : -1}
-          />
-        ) : null}
-      </div>
+      {aberto ? (
+        <p className="cr-som__nota">Controles do Spotify</p>
+      ) : null}
     </aside>
   );
 }

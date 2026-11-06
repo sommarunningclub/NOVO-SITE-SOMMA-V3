@@ -2,14 +2,38 @@
 .lr-root:has(.cr-root) { background: #fff; color: var(--tinta); }
 .cr-root { min-height: 100dvh; background: #fff; color: var(--tinta); padding-bottom: calc(72px + env(safe-area-inset-bottom)); }
 
-/* Mini player Spotify — canto, compacto; iframe sempre vivo p/ autoplay */
+/* Host do Spotify: fora da vista, tocando (criado no clique do login). */
+.cr-som-host {
+  position: fixed;
+  right: max(12px, env(safe-area-inset-right));
+  bottom: max(56px, calc(12px + env(safe-area-inset-bottom) + 44px));
+  z-index: 34;
+  width: min(340px, calc(100vw - 24px));
+  height: 152px;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #121212;
+  box-shadow: 0 16px 40px rgba(14, 14, 14, 0.4);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(8px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.cr-som-host iframe { display: block; width: 100%; height: 152px; border: 0; }
+.cr-som.is-aberto ~ .cr-som-host,
+body:has(.cr-som.is-aberto) .cr-som-host {
+  opacity: 1;
+  pointer-events: auto;
+  transform: none;
+}
+
+/* Mini controle no canto */
 .cr-som {
   position: fixed;
   right: max(12px, env(safe-area-inset-right));
   bottom: max(12px, env(safe-area-inset-bottom));
   z-index: 35;
-  display: flex; flex-direction: column; align-items: flex-end; gap: 8px;
-  width: min(340px, calc(100vw - 24px));
+  display: flex; flex-direction: column; align-items: flex-end; gap: 6px;
   pointer-events: none;
 }
 .cr-som > * { pointer-events: auto; }
@@ -19,6 +43,7 @@
   background: #121212; color: #fff; font: inherit; font-weight: 800; font-size: 13px;
   box-shadow: 0 10px 28px rgba(14, 14, 14, 0.35); cursor: pointer;
 }
+.cr-som__nota { margin: 0; font-size: 11.5px; color: var(--cinza); background: #fff; padding: 4px 8px; border-radius: 8px; }
 .cr-som__eq { display: flex; align-items: flex-end; gap: 2px; height: 14px; }
 .cr-som__eq i {
   display: block; width: 3px; border-radius: 2px; background: #1db954;
@@ -28,18 +53,6 @@
 .cr-som__eq i:nth-child(2) { height: 12px; animation-delay: 0.12s; }
 .cr-som__eq i:nth-child(3) { height: 8px; animation-delay: 0.24s; }
 @keyframes cr-eq { from { transform: scaleY(0.4); } to { transform: scaleY(1); } }
-.cr-som__caixa {
-  width: 100%;
-  border-radius: 14px; overflow: hidden;
-  background: #121212;
-  box-shadow: 0 16px 40px rgba(14, 14, 14, 0.4);
-}
-.cr-som__caixa iframe { display: block; width: 100%; height: 152px; border: 0; border-radius: 14px; }
-/* Recolhido: fora da vista, sem display:none — o áudio do Spotify segue. */
-.cr-som:not(.is-aberto) .cr-som__caixa {
-  position: fixed; right: -420px; bottom: 0; width: 300px;
-  opacity: 0; pointer-events: none;
-}
 .cr-topo { position: sticky; top: 0; z-index: 20; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px var(--gutter); background: rgba(255, 255, 255, 0.94); border-bottom: 1px solid rgba(14, 14, 14, 0.1); backdrop-filter: blur(8px); }
 .cr-topo__marcas { display: flex; align-items: center; gap: 8px; color: var(--tinta); text-decoration: none; opacity: 1; }
 .cr-topo__marcas img:first-child { height: 17px; width: auto; }
@@ -95,7 +108,7 @@
 
 /* Foto */
 .cr-foto { display: grid; gap: 12px; }
-.cr-foto__atual { display: flex; align-items: center; gap: 16px; }
+.cr-foto__atual { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
 .cr-foto__botao { position: relative; overflow: hidden; cursor: pointer; }
 .cr-foto__botao input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
 .cr-foto__editor { display: grid; gap: 12px; justify-items: center; }
@@ -103,6 +116,24 @@
 .cr-foto__janela img { position: absolute; left: 50%; top: 50%; max-width: none; user-select: none; pointer-events: none; }
 .cr-foto__zoom { display: flex; align-items: center; gap: 10px; width: 260px; font-size: 14px; color: var(--tinta); }
 .cr-foto__zoom input { flex: 1; accent-color: var(--vermelho); }
+.cr-foto__aguardando { margin: 0; font-size: 13.5px; color: #5a554f; }
+.cr-foto--mural .cr-foto__janela,
+.cr-foto--mural .cr-avatar--mural {
+  width: min(100%, 280px);
+  height: auto;
+  aspect-ratio: 1;
+  border-radius: 12px;
+  font-size: 48px;
+}
+.cr-foto--mural .cr-foto__atual { flex-direction: column; align-items: stretch; }
+.cr-foto--mural .cr-avatar--mural {
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: #111;
+  border: 0;
+}
+.cr-foto--mural .cr-avatar--mural img { width: 100%; height: 100%; object-fit: cover; }
 
 /* Avatar */
 .cr-avatar { flex: none; display: grid; place-items: center; overflow: hidden; border-radius: 50%; background: var(--vermelho); color: #fff; font-family: var(--f-fun); border: 3px solid #fff; box-shadow: 0 0 0 1px rgba(14, 14, 14, 0.08); }
@@ -140,6 +171,11 @@
 .cr-meu__grupo ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
 .cr-meu__grupo li { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 14px; background: rgba(14, 14, 14, 0.09); }
 .cr-meu__grupo .cr-avatar { border-color: var(--tinta); }
+.cr-meu__pessoa {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 10px;
+  color: inherit; text-decoration: none; min-width: 0;
+}
+.cr-meu__pessoa .cr-meu__ig { margin: 0; color: var(--vermelho); font-weight: 700; }
 .cr-meu__contatos { display: flex; flex-wrap: wrap; gap: 8px 12px; margin-left: auto; font-size: 14px; }
 .cr-meu__contatos a { color: var(--tinta); font-weight: 700; }
 .cr-meu__acoes { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 16px; }
@@ -217,8 +253,18 @@
   display: grid; justify-items: center; gap: 6px;
   padding: 8px 4px; text-align: center;
 }
+.cr-grupo-membros__pessoa {
+  display: grid; justify-items: center; gap: 6px;
+  width: 100%; color: inherit; text-decoration: none;
+}
+a.cr-grupo-membros__pessoa:hover .cr-grupo-membros__ig,
+a.cr-grupo-membros__pessoa:focus-visible .cr-grupo-membros__ig { text-decoration: underline; }
 .cr-grupo-membros li strong {
   font-size: 13.5px; font-weight: 800; line-height: 1.2;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;
+}
+.cr-grupo-membros__ig {
+  font-size: 11.5px; font-weight: 700; line-height: 1.2; color: var(--vermelho);
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;
 }
 .cr-grupo-membros__contatos {
@@ -333,26 +379,90 @@
 .cr-aba { min-height: 46px; border: 0; border-radius: 99px; background: none; color: #fff; font: inherit; font-weight: 800; font-size: 15px; cursor: pointer; }
 .cr-aba.is-on { background: var(--vermelho); }
 
-/* Correio Elegante */
+/* Correio Elegante — feed em coluna única, foco na mensagem */
 .cr-correio { padding-top: 12px; }
 .cr-correio__novo { margin: 12px 0 22px; }
 .cr-textarea { min-height: 120px; padding: 12px 16px; resize: vertical; line-height: 1.4; }
-.cr-mural { display: grid; gap: 14px; }
-.cr-recado { position: relative; display: grid; gap: 10px; padding: 18px; border-radius: 6px 22px 22px 22px; background: var(--papel); color: var(--tinta); min-width: 0; }
-.cr-recado.cr-card--esqueleto { min-height: 180px; background: var(--tinta-2); }
-.cr-recado--1 { background: #ffd9e2; }
-.cr-recado--2 { background: var(--amarelo); }
-.cr-recado__foto { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 14px; display: block; }
-.cr-recado__para { margin: 0; font-family: var(--f-display); text-transform: uppercase; font-size: 26px; line-height: 1.15; overflow-wrap: anywhere; }
-.cr-recado__para span { display: block; font-family: var(--f-copy); font-weight: 800; font-size: 12px; letter-spacing: 0.14em; color: var(--vermelho-forte); }
-.cr-recado__texto { margin: 0; font-size: 17px; line-height: 1.42; white-space: pre-wrap; overflow-wrap: anywhere; }
-.cr-recado__de { display: flex; align-items: center; gap: 10px; padding-top: 10px; border-top: 2px solid rgba(14, 14, 14, 0.14); font-size: 14.5px; min-width: 0; }
-.cr-recado__de .cr-avatar { border-color: var(--tinta); }
-.cr-recado__de > div { min-width: 0; }
-.cr-recado__contatos { display: flex; flex-wrap: wrap; gap: 2px 12px; overflow-wrap: anywhere; }
+.cr-campo--foto-mural { padding: 14px; border-radius: 16px; background: rgba(14, 14, 14, 0.04); border: 1px dashed rgba(14, 14, 14, 0.22); }
+.cr-campo--foto-mural > span { font-weight: 800; }
+.cr-campo__dica { margin: 4px 0 12px; font-size: 13.5px; line-height: 1.35; color: #5a554f; }
+.cr-mural {
+  display: grid;
+  gap: 18px;
+  max-width: 480px;
+  margin-inline: auto;
+  width: 100%;
+}
+.cr-recado {
+  position: relative;
+  display: grid;
+  gap: 0;
+  padding: 0;
+  overflow: hidden;
+  border-radius: 18px;
+  background: var(--papel);
+  color: var(--tinta);
+  min-width: 0;
+  box-shadow: 0 1px 0 rgba(14, 14, 14, 0.06);
+}
+.cr-recado.cr-card--esqueleto { min-height: 220px; background: #eceae6; }
+.cr-recado--1 { background: #fff5f7; }
+.cr-recado--2 { background: #fff8e8; }
+.cr-recado__topo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px 10px;
+  min-width: 0;
+}
+.cr-recado__topo .cr-avatar { border-color: var(--tinta); flex-shrink: 0; }
+.cr-recado__quem { min-width: 0; display: grid; gap: 1px; }
+.cr-recado__quem strong { font-size: 14px; line-height: 1.2; }
+.cr-recado__contatos { display: flex; flex-wrap: wrap; gap: 2px 10px; font-size: 12.5px; overflow-wrap: anywhere; }
 .cr-recado__contatos a { color: var(--tinta); font-weight: 700; }
-.cr-recado__anonimo { font-family: var(--f-fun); font-weight: 400; font-size: 17px; color: var(--vermelho-forte); }
-.cr-recado__acoes { display: flex; justify-content: flex-end; min-height: 28px; font-size: 13px; color: #5a554f; }
+.cr-recado__anonimo { font-family: var(--f-fun); font-weight: 400; font-size: 16px; color: var(--vermelho-forte); }
+.cr-recado__foto {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  display: block;
+  background: #111;
+}
+.cr-recado__corpo { padding: 16px 16px 8px; display: grid; gap: 10px; }
+.cr-recado__para {
+  margin: 0;
+  font-family: var(--f-copy);
+  font-weight: 800;
+  font-size: 13px;
+  letter-spacing: 0.02em;
+  color: #5a554f;
+  overflow-wrap: anywhere;
+}
+.cr-recado__para span {
+  display: inline;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 11px;
+  color: var(--vermelho-forte);
+  margin-right: 6px;
+}
+.cr-recado__texto {
+  margin: 0;
+  font-family: var(--f-display);
+  font-size: clamp(22px, 5.2vw, 28px);
+  line-height: 1.22;
+  letter-spacing: -0.01em;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.cr-recado--com-foto .cr-recado__texto { font-size: clamp(18px, 4.2vw, 22px); }
+.cr-recado__acoes {
+  display: flex;
+  justify-content: flex-end;
+  min-height: 36px;
+  padding: 4px 14px 12px;
+  font-size: 13px;
+  color: #5a554f;
+}
 .cr-recado__acoes .cr-link { min-height: 28px; padding: 2px 0; font-size: 13px; font-weight: 500; }
-@media (min-width: 640px) { .cr-mural { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; } .cr-correio__novo { width: auto; } }
-@media (min-width: 960px) { .cr-mural { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (min-width: 640px) { .cr-correio__novo { width: auto; } }

@@ -38,13 +38,22 @@ export default function App({ logado, destino }: { logado: boolean; destino?: { 
   const destinoVisto = useRef(false);
   const celebradas = useRef(new Set<string>());
 
-  const sair = useCallback(() => { setEntrou(false); setEstado(null); }, []);
+  const sair = useCallback(() => {
+    setEntrou(false);
+    setEstado(null);
+    // Mantém a trilha: sair da conta não precisa cortar a música no meio.
+  }, []);
 
-  useEffect(() => { if (window.location.hash === "#correio-elegante") setAba("correio"); }, []);
+  useEffect(() => {
+    // Sempre abre em "Meu corre". Limpa hash antigo do Correio Elegante.
+    if (window.location.hash === "#correio-elegante") {
+      window.history.replaceState(null, "", window.location.pathname);
+    }
+  }, []);
 
   const trocarAba = (nova: "corre" | "correio") => {
     setAba(nova);
-    window.history.replaceState(null, "", nova === "correio" ? "#correio-elegante" : window.location.pathname);
+    if (window.location.hash) window.history.replaceState(null, "", window.location.pathname);
   };
 
   const carregar = useCallback(async () => {
@@ -80,11 +89,13 @@ export default function App({ logado, destino }: { logado: boolean; destino?: { 
   // Conexão feita por outra pessoa: celebra uma vez e marca como lida, então recarregar não repete.
   useEffect(() => {
     if (!estado?.notificacoes || celebrar) return;
-    const nova = estado.notificacoes.find((n) => !n.lida_em && n.dados.celebrar && !celebradas.current.has(n.id));
-    if (!nova) return;
-    celebradas.current.add(nova.id);
-    acao({ tipo: "ler_notificacoes", ids: [nova.id] }).catch(() => {});
-    if (estado.grupo && nova.dados.grupo === estado.grupo.codigo) setCelebrar(nova.dados.celebrar!);
+    const pendentes = estado.notificacoes.filter((n) => !n.lida_em && n.dados.celebrar && !celebradas.current.has(n.id));
+    if (pendentes.length === 0) return;
+    pendentes.forEach((n) => celebradas.current.add(n.id));
+    acao({ tipo: "ler_notificacoes", ids: pendentes.map((n) => n.id) }).catch(() => {});
+    // A lista vem da mais nova para a mais antiga: só o estado atual do grupo merece festa.
+    const atual = pendentes.find((n) => n.dados.grupo === estado.grupo?.codigo);
+    if (atual) setCelebrar(atual.dados.celebrar!);
     setVersao((v) => v + 1);
   }, [estado, celebrar]);
 
@@ -354,7 +365,7 @@ export default function App({ logado, destino }: { logado: boolean; destino?: { 
         />
       ) : null}
       {aviso ? <div className="cr-aviso-flutuante" role="status">{aviso}</div> : null}
-      {entrou && estado?.perfil?.foto != null ? <PlayerSom /> : null}
+      {entrou ? <PlayerSom /> : null}
     </div>
   );
 }

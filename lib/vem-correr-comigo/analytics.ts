@@ -17,6 +17,7 @@ export type EventoCorre =
   | "group_shared"
   | "profile_shared"
   | "whatsapp_clicked"
+  | "instagram_clicked"
   | "correio_viewed"
   | "correio_published"
   | "correio_reported";

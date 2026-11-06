@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
     });
     await esperar();
     if (!r) {
-      return NextResponse.json({ ok: false, error: "Não encontramos inscrição com esse CPF. Confira os números." }, { status: 404 });
+      return NextResponse.json({ ok: false, error: "Não encontramos inscrição nem cadastro de Insider com esse CPF. Confira os números." }, { status: 404 });
     }
 
     const res = NextResponse.json({ ok: true });

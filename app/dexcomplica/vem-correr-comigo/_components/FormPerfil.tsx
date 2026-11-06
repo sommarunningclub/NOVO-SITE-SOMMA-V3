@@ -126,6 +126,12 @@ export default function FormPerfil({ perfil, inscricao, onSalvo, onCancelar }: P
           <p className="lr-eyebrow lr-eyebrow--claro">Seu perfil</p>
           <h1 className="cr-titulo">Oi, {nome.split(" ")[0]}!</h1>
         </>
+      ) : perfil?.foto == null ? (
+        <>
+          <p className="lr-eyebrow lr-eyebrow--claro">Quase lá</p>
+          <h1 className="cr-titulo">Falta sua foto, {nome.split(" ")[0]}</h1>
+          <p className="cr-lead">Seu perfil já está salvo. É só mandar a foto para continuar.</p>
+        </>
       ) : (
         <h2 className="cr-h2">Editar perfil</h2>
       )}

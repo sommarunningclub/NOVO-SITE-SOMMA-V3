@@ -70,7 +70,18 @@ begin
   select id into novo from public.dex_corre_correio
     where perfil_id = a.id and para = para_t and mensagem = msg and status = 'publicado'
       and criado_em > now() - interval '2 minutes';
-  if novo is not null then return jsonb_build_object('ok', true, 'id', novo, 'repetido', true); end if;
+  if novo is not null then
+    -- Mesmo texto de novo: se agora veio foto e o recado antigo não tem, aproveita.
+    if nullif(p_dados->>'foto_path', '') is not null then
+      update public.dex_corre_correio
+        set foto_path = coalesce(foto_path, p_dados->>'foto_path')
+        where id = novo and foto_path is null;
+      if found then
+        return jsonb_build_object('ok', true, 'id', novo, 'repetido', true, 'foto_salva', true);
+      end if;
+    end if;
+    return jsonb_build_object('ok', true, 'id', novo, 'repetido', true);
+  end if;
 
   select count(*) into recentes from public.dex_corre_correio
     where perfil_id = a.id and criado_em > now() - interval '1 hour';

@@ -76,6 +76,8 @@ export interface Recado {
   foto: boolean;
   criado_em: string;
   meu: boolean;
+  /** Autor do recado ou Insider (moderação). */
+  pode_apagar?: boolean;
   denunciei: boolean;
   /** null = anônimo. */
   autor: { codigo: string; nome: string; foto: number | null; instagram: string | null; whatsapp: string | null } | null;

@@ -14,7 +14,7 @@ Registro feito para não depender do histórico do chat. Atualizar a cada etapa.
 
 ## Como funciona
 
-- **Acesso:** `POST /api/dexcomplica-love-run/corre/acesso` confere o CPF e grava um cookie httpOnly assinado, de 5 dias, com a vaga e a pessoa.
+- **Acesso:** `POST /api/dexcomplica-love-run/corre/acesso` confere o CPF (inscrito no Love Run **ou** Insider ativo em `dados_insiders`) e grava um cookie httpOnly assinado, de 5 dias, com a vaga e a pessoa. Insider sem inscrição ganha uma vaga provisionada no evento (`metadata.origem = insider`).
 - **Transferência:** troca o titular na mesma linha de `evento_participantes`, por isso o par vaga + pessoa. Quem transferiu perde a sessão e o perfil sozinho, em `dex_corre__limpar`.
 - **Banco:** só tabelas `dex_corre_*`, sem trigger nem alteração em tabela existente. Toda leitura e escrita passa por funções. RLS ligada sem política e `REVOKE` para anon e authenticated: só a service role, no servidor, acessa.
 - **Grupos:** capacidade = menor preferência entre os integrantes. Limite de 2 homens e 2 mulheres e paridade do quarteto em `dex_corre_config`. Advisory lock por evento em toda escrita, mais índice único de um vínculo ativo por pessoa.
@@ -33,7 +33,7 @@ npm i --no-save @electric-sql/pglite
 scripts/dex-corre-local/iniciar.sh      # http://localhost:3108/dexcomplica/vem-correr-comigo
 ```
 
-Banco em memória com a migration real e inscritos fictícios, listados em `http://localhost:54399/inscritos`. Qualquer CPF válido vira inscrito de teste em memória, só nesse banco. Não envia e-mail.
+Banco local em disco (`scripts/dex-corre-local/.dados` e `.arquivos`): perfil, grupos, chat e fotos sobrevivem a sair/entrar e a reiniciar o `iniciar.sh`. Migration real e inscritos fictícios em `http://localhost:54399/inscritos`. Qualquer CPF válido vira inscrito de teste, só nesse banco. Não envia e-mail.
 
 ## Testes
 
@@ -63,3 +63,4 @@ Depois, PR + merge na `main`. Nenhuma variável de ambiente nova. Upstash recome
 - 06/11 19h00: local aceita qualquer CPF válido como inscrito de teste (só no banco de mentira).
 - 06/11 18h52: verificação por e-mail removida a pedido do Alex; acesso só com CPF. Banco 107/107, navegador 33/33.
 - 06/11 19h10: fundo branco; foto obrigatória; abrir grupo para ver membros; chat público por grupo (enviar/editar/apagar/reagir).
+- 06/11 19h25: Insiders ativos (`dados_insiders`) também entram com CPF; vaga provisionada no Love Run na primeira entrada.

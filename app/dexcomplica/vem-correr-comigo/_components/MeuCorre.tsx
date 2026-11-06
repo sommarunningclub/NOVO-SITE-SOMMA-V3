@@ -1,6 +1,7 @@
 "use client";
 
-import { nomePreferencia } from "@/lib/vem-correr-comigo/regras";
+import { rastrearCorre } from "@/lib/vem-correr-comigo/analytics";
+import { linkInstagram, nomePreferencia } from "@/lib/vem-correr-comigo/regras";
 import type { Estado } from "@/lib/vem-correr-comigo/tipos";
 import { Avatar, Contatos, nomeGrupo } from "./Cartoes";
 import { MENSAGENS, rotuloKm } from "./api";
@@ -55,9 +56,26 @@ export default function MeuCorre({ estado, onEditar, onCompartilharPerfil, onCom
           <ul>
             {g.membros.map((m) => (
               <li key={m.codigo}>
-                <Avatar p={m} tamanho="p" />
-                <span><strong>{m.nome}</strong></span>
-                <span className="cr-meu__contatos"><Contatos p={m} /></span>
+                {m.instagram ? (
+                  <a
+                    className="cr-meu__pessoa"
+                    href={linkInstagram(m.instagram)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`Abrir Instagram de ${m.nome}`}
+                    onClick={() => rastrearCorre("instagram_clicked", { origem: "meu_corre" })}
+                  >
+                    <Avatar p={m} tamanho="p" />
+                    <span><strong>{m.nome}</strong></span>
+                    <span className="cr-meu__ig">@{m.instagram}</span>
+                  </a>
+                ) : (
+                  <>
+                    <Avatar p={m} tamanho="p" />
+                    <span><strong>{m.nome}</strong></span>
+                  </>
+                )}
+                {m.whatsapp ? <span className="cr-meu__contatos"><Contatos p={{ ...m, instagram: null }} /></span> : null}
               </li>
             ))}
           </ul>
