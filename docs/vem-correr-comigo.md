@@ -22,6 +22,7 @@ Registro feito para não depender do histórico do chat. Atualizar a cada etapa.
 - **Fotos:** obrigatórias (faz parte da brincadeira). Bucket privado `dex-corre-fotos`, recorte no aparelho, servidas por `/corre/foto/<codigo>` só com sessão. Sem foto o perfil não entra na vitrine nem conecta.
 - **Grupos abertos:** quem está fora pode abrir dupla/trio/quarteto e ver os membros.
 - **Chat público:** cada grupo tem bate-papo aberto à comunidade (`dex_corre_mensagens` / `dex_corre_reacoes`): enviar, editar, apagar e reagir com emoji. Atualiza por consulta curta.
+- **Comentários do Correio:** anônimos para quem lê; a API devolve só a inicial. O autor fica guardado para a organização agir em caso de denúncia.
 - **Atualização:** consulta a cada 20 s (chat a cada 4 s com o painel aberto). Sem Realtime porque as tabelas são fechadas para o navegador.
 - **Métricas:** `select public.dex_corre_metricas('dexcomplica-love-run')`.
 - **Visual:** fundo branco na página da comunidade.
@@ -56,6 +57,7 @@ Depois, PR + merge na `main`. Nenhuma variável de ambiente nova. Upstash recome
 
 ## Registro
 
+- 06/11 20h30: comentários anônimos no Correio Elegante (migration 20261106233000): só a inicial do nome sai do banco; denúncia, apagar (autor do comentário, autor do recado, Insider) e limite de 20 por hora. Banco 187/187, navegador 13/13, build aprovado.
 - 06/11 19h45: cópia congelada na branch deploy/vem-correr-comigo; entrada de Insider corrigida para o esquema real; banco 157/157, build e teste do build aprovados. Migrations bloqueadas para o agente: rodar scripts/dex-corre-aplicar-migrations.sh. Merge só depois.
 - 06/11: Alex reconfirmou o acesso só com CPF ("logar com CPF e já entrar"). Falta só a autorização para migration e deploy.
 - 06/11 19h05: build de produção passou (compilação, tipos, 91 páginas), numa cópia com fontes simuladas: o carregador de fontes do Next falha neste computador, em layout do admin sem relação com esta página. A Vercel publicou a main normalmente no mesmo dia.
