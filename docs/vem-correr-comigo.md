@@ -53,6 +53,7 @@ Depois, PR + merge na `main`. Nenhuma variável de ambiente nova. Upstash recome
 
 ## Registro
 
+- 06/11 19h05: build de produção passou (compilação, tipos, 91 páginas), numa cópia com fontes simuladas: o carregador de fontes do Next falha neste computador, em layout do admin sem relação com esta página. A Vercel publicou a main normalmente no mesmo dia.
 - 06/11 18h23: inspeção. 699 inscritos, todos com e-mail, sem CPF duplicado, 17 e-mails repetidos, percursos 4/6/8 km, sexo preenchido para todos.
 - 06/11 18h50: migration, API, telas e testes. Fluxo completo aprovado em tamanho de celular.
 - 06/11 19h00: local aceita qualquer CPF válido como inscrito de teste (só no banco de mentira).
