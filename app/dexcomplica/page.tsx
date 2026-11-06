@@ -369,6 +369,20 @@ export default async function LoveRunPage({ searchParams }: { searchParams: Prom
           </div>
         </section>
 
+        {/* ── Vem Correr Comigo ─────────────────────────────────────── */}
+        <section id="vem-correr-comigo" className="lr-sec lr-sec--amarelo" aria-labelledby="t-corre-comigo">
+          <div className="lr-wrap">
+            <p className="lr-eyebrow" data-revelar>Vem correr comigo?</p>
+            <h2 id="t-corre-comigo" className="lr-h2" data-revelar>
+              Já garantiu sua vaga? Agora encontre sua companhia.
+            </h2>
+            <p className="lr-lead" data-revelar>Entre com seu CPF, encontre a galera e descomplique seu corre.</p>
+            <a href="/dexcomplica/vem-correr-comigo" className="lr-btn lr-btn--vermelho lr-btn--g" data-revelar>
+              Vem descomplicar comigo
+            </a>
+          </div>
+        </section>
+
         {/* ── Perguntas ─────────────────────────────────────────────── */}
         <section id="duvidas" className="lr-sec lr-sec--papel" aria-labelledby="t-duvidas">
           <div className="lr-wrap lr-faq">
