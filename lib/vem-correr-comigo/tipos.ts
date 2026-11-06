@@ -69,6 +69,18 @@ export type ItemVitrine =
   | { tipo: "pessoa"; acao: AcaoPessoa; dados: Cartao }
   | { tipo: "grupo"; acao: AcaoGrupo; dados: Grupo };
 
+export interface Recado {
+  id: string;
+  para: string;
+  mensagem: string;
+  foto: boolean;
+  criado_em: string;
+  meu: boolean;
+  denunciei: boolean;
+  /** null = anônimo. */
+  autor: { codigo: string; nome: string; foto: number | null; instagram: string | null; whatsapp: string | null } | null;
+}
+
 export interface ResultadoAcao {
   ok: boolean;
   erro?: string;

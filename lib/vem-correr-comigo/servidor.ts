@@ -46,6 +46,16 @@ export function apagarSessao(res: NextResponse) {
   res.cookies.set(COOKIE, "", { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge: 0 });
 }
 
+/** Confere o conteúdo do arquivo, não o nome nem o tipo que o navegador declarou. */
+export function tipoDaImagem(b: Uint8Array): { mime: string; ext: string } | null {
+  if (b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff) return { mime: "image/jpeg", ext: "jpg" };
+  if (b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4e && b[3] === 0x47) return { mime: "image/png", ext: "png" };
+  const riff = String.fromCharCode(...b.slice(0, 4));
+  const webp = String.fromCharCode(...b.slice(8, 12));
+  if (riff === "RIFF" && webp === "WEBP") return { mime: "image/webp", ext: "webp" };
+  return null;
+}
+
 /** Todas as leituras e escritas passam por funções do banco, nunca por tabela. */
 export async function rpc<T>(funcao: string, args: Record<string, unknown>): Promise<T> {
   const supabase = getServiceSupabase();

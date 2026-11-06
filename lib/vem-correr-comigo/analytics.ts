@@ -16,7 +16,10 @@ export type EventoCorre =
   | "group_completed"
   | "group_shared"
   | "profile_shared"
-  | "whatsapp_clicked";
+  | "whatsapp_clicked"
+  | "correio_viewed"
+  | "correio_published"
+  | "correio_reported";
 
 type Props = Record<string, string | number | boolean | null>;
 const PROIBIDOS = ["cpf", "email", "e-mail", "telefone", "whatsapp", "nome", "token", "instagram", "codigo"];

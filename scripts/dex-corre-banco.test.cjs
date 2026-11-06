@@ -323,6 +323,7 @@ const t = (nome, cond, extra) => { if (cond) { ok++; console.log("  ✓", nome);
   t("abrir grupo de fora mostra membros", (await call("dex_corre_ver_grupo", { ...eu(ch3), p_codigo: cg })).grupo.membros.length === 2);
 
   console.log("Correio Elegante");
+  {
   const c1 = await pessoa("Correio Um", "feminino", "6km"), c2 = await pessoa("Correio Dois", "masculino", "6km"), c3 = await pessoa("Correio Tres", "feminino", "6km"), c4 = await pessoa("Correio Quatro", "masculino", "6km"), c5 = await pessoa("Correio Cinco", "feminino", "6km");
   await perfil(c1, 4, { instagram: "correio.um", whatsapp: "61988880001" }); await perfil(c2, 4); await perfil(c3, 4); await perfil(c4, 4);
   const publicar = (p, d) => call("dex_corre_correio_publicar", { p_slug: SLUG, ...eu(p), p_dados: JSON.stringify(d) });
@@ -372,6 +373,8 @@ const t = (nome, cond, extra) => { if (cond) { ok++; console.log("  ✓", nome);
   t("mural pagina sem repetir", pg1.itens.length === 2 && pg1.itens[0].id !== pg2.itens[0].id && pg1.total >= 4);
   await db.query(`update evento_participantes set status='cancelado' where id=$1`, [c1.part]);
   t("inscrição cancelada tira os recados do mural", !achar(await mural(c2), comWa.id));
+
+  }
 
   console.log("Números");
   const nums = (await estado(d4)).numeros;

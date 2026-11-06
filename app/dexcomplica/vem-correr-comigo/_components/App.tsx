@@ -7,6 +7,7 @@ import { rastrearCorre } from "@/lib/vem-correr-comigo/analytics";
 import type { Cartao, Celebrar, Estado, Grupo, ItemVitrine, ResultadoAcao } from "@/lib/vem-correr-comigo/tipos";
 import Acesso from "./Acesso";
 import Celebracao from "./Celebracao";
+import Correio from "./Correio";
 import FormPerfil from "./FormPerfil";
 import MeuCorre from "./MeuCorre";
 import PlayerSom from "./PlayerSom";
@@ -33,10 +34,18 @@ export default function App({ logado, destino }: { logado: boolean; destino?: { 
   const [painel, setPainel] = useState<"convites" | "notificacoes" | null>(null);
   const [celebrar, setCelebrar] = useState<Celebrar | null>(null);
   const [aberto, setAberto] = useState<DestinoAberto | null>(null);
+  const [aba, setAba] = useState<"corre" | "correio">("corre");
   const destinoVisto = useRef(false);
   const celebradas = useRef(new Set<string>());
 
   const sair = useCallback(() => { setEntrou(false); setEstado(null); }, []);
+
+  useEffect(() => { if (window.location.hash === "#correio-elegante") setAba("correio"); }, []);
+
+  const trocarAba = (nova: "corre" | "correio") => {
+    setAba(nova);
+    window.history.replaceState(null, "", nova === "correio" ? "#correio-elegante" : window.location.pathname);
+  };
 
   const carregar = useCallback(async () => {
     try {
@@ -250,6 +259,15 @@ export default function App({ logado, destino }: { logado: boolean; destino?: { 
             <img src="/dexcomplica-love-run/marca/dex-coracao.png" alt="" className="cr-heroi__mascote" />
           </section>
 
+          <div className="cr-abas" role="tablist" aria-label="Seções">
+            <button role="tab" aria-selected={aba === "corre"} className={`cr-aba${aba === "corre" ? " is-on" : ""}`} onClick={() => trocarAba("corre")}>Meu corre</button>
+            <button role="tab" aria-selected={aba === "correio"} className={`cr-aba${aba === "correio" ? " is-on" : ""}`} onClick={() => trocarAba("correio")}>Correio Elegante</button>
+          </div>
+
+          {aba === "correio" ? (
+            <Correio perfil={estado.perfil} onSessao={sair} onAviso={setAviso} />
+          ) : (
+          <>
           <MeuCorre
             estado={estado}
             onEditar={() => setEditando(true)}
@@ -302,6 +320,8 @@ export default function App({ logado, destino }: { logado: boolean; destino?: { 
               </dl>
             </section>
           ) : null}
+          </>
+          )}
         </main>
       )}
 

@@ -3,19 +3,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
 import { getServiceSupabase } from "@/lib/supabase";
 import { FOTO_MAX_BYTES } from "@/lib/vem-correr-comigo/regras";
-import { BUCKET_FOTOS, falha, lerSessao, quem, rpc, semSessao } from "@/lib/vem-correr-comigo/servidor";
+import { BUCKET_FOTOS, falha, lerSessao, quem, rpc, semSessao, tipoDaImagem } from "@/lib/vem-correr-comigo/servidor";
 
 export const dynamic = "force-dynamic";
-
-/** Confere o conteúdo do arquivo, não o nome nem o tipo que o navegador declarou. */
-function tipoReal(b: Uint8Array): { mime: string; ext: string } | null {
-  if (b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff) return { mime: "image/jpeg", ext: "jpg" };
-  if (b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4e && b[3] === 0x47) return { mime: "image/png", ext: "png" };
-  const riff = String.fromCharCode(...b.slice(0, 4));
-  const webp = String.fromCharCode(...b.slice(8, 12));
-  if (riff === "RIFF" && webp === "WEBP") return { mime: "image/webp", ext: "webp" };
-  return null;
-}
 
 export async function POST(request: NextRequest) {
   const s = await lerSessao();
@@ -30,7 +20,7 @@ export async function POST(request: NextRequest) {
     if (arquivo.size === 0 || arquivo.size > FOTO_MAX_BYTES) return NextResponse.json({ ok: false, erro: "tamanho" }, { status: 413 });
 
     const bytes = new Uint8Array(await arquivo.arrayBuffer());
-    const tipo = tipoReal(bytes);
+    const tipo = tipoDaImagem(bytes);
     if (!tipo) return NextResponse.json({ ok: false, erro: "formato" }, { status: 415 });
 
     const supabase = getServiceSupabase();

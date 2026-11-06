@@ -72,6 +72,11 @@ const ERROS: Record<string, string> = {
   convite_invalido: "Esse convite não vale mais.",
   proprio: "Esse é o seu perfil.",
   nao_encontrado: "Não encontramos esse link.",
+  texto: "Escreva para quem é e a mensagem, com até 280 caracteres.",
+  contato_no_texto: "Não coloque telefone nem documento no recado.",
+  limite_recados: "Você já mandou muitos recados. Tente de novo mais tarde.",
+  formato: "Use uma foto em JPEG, PNG ou WebP.",
+  tamanho: "Essa foto é grande demais. Escolha outra.",
   sem_foto: MENSAGENS.fotoObrigatoria,
   mensagem_invalida: "Essa mensagem não dá mais para alterar.",
 };
