@@ -38,3 +38,7 @@ next-env.d.ts
 # vivem em public/desafio-esteiras-evolve/img/. Nada no código aponta para cá;
 # os originais ficam fora do repo para não pesar no build e no deploy.
 public/desafio-esteiras-evolve/imganes-evolve/
+
+# Banco local do Vem Correr Comigo (PGlite + fotos)
+/scripts/dex-corre-local/.dados/
+/scripts/dex-corre-local/.arquivos/
