@@ -56,6 +56,7 @@ Depois, PR + merge na `main`. Nenhuma variável de ambiente nova. Upstash recome
 
 ## Registro
 
+- 06/11 19h45: cópia congelada na branch deploy/vem-correr-comigo; entrada de Insider corrigida para o esquema real; banco 157/157, build e teste do build aprovados. Migrations bloqueadas para o agente: rodar scripts/dex-corre-aplicar-migrations.sh. Merge só depois.
 - 06/11: Alex reconfirmou o acesso só com CPF ("logar com CPF e já entrar"). Falta só a autorização para migration e deploy.
 - 06/11 19h05: build de produção passou (compilação, tipos, 91 páginas), numa cópia com fontes simuladas: o carregador de fontes do Next falha neste computador, em layout do admin sem relação com esta página. A Vercel publicou a main normalmente no mesmo dia.
 - 06/11 18h23: inspeção. 699 inscritos, todos com e-mail, sem CPF duplicado, 17 e-mails repetidos, percursos 4/6/8 km, sexo preenchido para todos.
