@@ -35,7 +35,10 @@ async function main() {
   await db.exec(fs.readFileSync(path.join(__dirname, "base.sql"), "utf8"));
   const { rows: [ev] } = await db.query(
     `insert into eventos (titulo, slug, data_evento, checkin_status, pelotoes, capacidade) values ('Dexcomplica Love Run', $1, '2026-11-07', 'bloqueado', '{4km,6km,8km}', 700) returning id`, [SLUG]);
-  await db.exec(fs.readFileSync(path.join(raiz, "supabase/migrations/20261106190000_dex_corre_comunidade.sql"), "utf8"));
+  const pasta = path.join(raiz, "supabase/migrations");
+  for (const f of fs.readdirSync(pasta).filter((n) => n.includes("_dex_corre_")).sort()) {
+    await db.exec(fs.readFileSync(path.join(pasta, f), "utf8"));
+  }
 
   const inscritos = [];
   for (let i = 0; i < NOMES.length; i++) {
@@ -61,6 +64,16 @@ async function main() {
   });
   const quer = (i, alvo) => rpc("dex_corre_interesse", { p_slug: SLUG, p_participacao: inscritos[i].participacao, p_pessoa: inscritos[i].pessoa, p_alvo_perfil: alvo, p_alvo_grupo: null });
   const codigo = async (i) => (await db.query(`select codigo from dex_corre_perfis where participacao_id = $1`, [inscritos[i].participacao])).rows[0].codigo;
+  // JPEG mínimo (1×1) só para a semente local: a foto é obrigatória na brincadeira.
+  const jpegFake = Buffer.from("/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAn/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIQAxAAAAGfAP/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAQUCf//EABQRAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQMBAT8Bf//EABQRAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQIBAT8Bf//Z", "base64");
+  const arquivos = new Map();
+  const fotoPara = async (i) => {
+    const part = inscritos[i].participacao;
+    const caminho = `${part}/seed.jpg`;
+    arquivos.set(`dex-corre-fotos/${caminho}`, { corpo: jpegFake, tipo: "image/jpeg" });
+    await db.query(`update dex_corre_perfis set foto_path = $1, foto_versao = 1 where participacao_id = $2 and ativo`, [caminho, part]);
+  };
+
   if (!process.env.SEM_SEMENTE) {
     await perfil(1, 4, { instagram: "pedro.teste" });
     await perfil(2, 3, { instagram: "camila.teste", whatsapp: "61999990002", whatsapp_publico: true });
@@ -69,11 +82,18 @@ async function main() {
     await perfil(11, 4);
     await perfil(4, 4); await perfil(5, 4); await perfil(6, 4); await perfil(7, 4);
     await perfil(8, 4); await perfil(9, 2);
+    for (const i of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]) await fotoPara(i);
     await quer(10, await codigo(11));
     await quer(5, await codigo(4));
     const g = (await db.query(`select g.codigo from dex_corre_grupos g join dex_corre_membros m on m.grupo_id=g.id join dex_corre_perfis p on p.id=m.perfil_id where p.participacao_id=$1`, [inscritos[4].participacao])).rows[0].codigo;
     await rpc("dex_corre_interesse", { p_slug: SLUG, p_participacao: inscritos[6].participacao, p_pessoa: inscritos[6].pessoa, p_alvo_perfil: null, p_alvo_grupo: g });
     await rpc("dex_corre_interesse", { p_slug: SLUG, p_participacao: inscritos[7].participacao, p_pessoa: inscritos[7].pessoa, p_alvo_perfil: null, p_alvo_grupo: g });
+  }
+
+  if (!process.env.SEM_SEMENTE) {
+    const recado = (i, d) => rpc("dex_corre_correio_publicar", { p_slug: SLUG, p_participacao: inscritos[i].participacao, p_pessoa: inscritos[i].pessoa, p_dados: JSON.stringify(d) });
+    await recado(2, { para: "Moço do pelotão de 4 km", mensagem: "Você correu do meu lado no último treino e agora meu coração não baixa a frequência.", identificado: true, mostrar_instagram: true });
+    await recado(5, { para: "Julia", mensagem: "Se o corre terminar no Oscarito, a primeira água é por minha conta.", identificado: false });
   }
 
   const tipos = new Map();
@@ -86,7 +106,6 @@ async function main() {
     return tipos.get(fn);
   };
 
-  const arquivos = new Map();
   let fila = Promise.resolve();
   const emFila = (f) => (fila = fila.then(f, f));
 

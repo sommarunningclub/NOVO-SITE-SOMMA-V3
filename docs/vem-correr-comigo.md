@@ -19,9 +19,12 @@ Registro feito para não depender do histórico do chat. Atualizar a cada etapa.
 - **Banco:** só tabelas `dex_corre_*`, sem trigger nem alteração em tabela existente. Toda leitura e escrita passa por funções. RLS ligada sem política e `REVOKE` para anon e authenticated: só a service role, no servidor, acessa.
 - **Grupos:** capacidade = menor preferência entre os integrantes. Limite de 2 homens e 2 mulheres e paridade do quarteto em `dex_corre_config`. Advisory lock por evento em toda escrita, mais índice único de um vínculo ativo por pessoa.
 - **Gênero:** vem de `metadata.sexo` ou `cadastro_site.sexo`. Só é perguntado se faltar, e não aparece para outras pessoas.
-- **Fotos:** bucket privado `dex-corre-fotos`, recorte no aparelho, servidas por `/corre/foto/<codigo>` só com sessão.
-- **Atualização:** consulta a cada 20 s. Sem Realtime porque as tabelas são fechadas para o navegador.
+- **Fotos:** obrigatórias (faz parte da brincadeira). Bucket privado `dex-corre-fotos`, recorte no aparelho, servidas por `/corre/foto/<codigo>` só com sessão. Sem foto o perfil não entra na vitrine nem conecta.
+- **Grupos abertos:** quem está fora pode abrir dupla/trio/quarteto e ver os membros.
+- **Chat público:** cada grupo tem bate-papo aberto à comunidade (`dex_corre_mensagens` / `dex_corre_reacoes`): enviar, editar, apagar e reagir com emoji. Atualiza por consulta curta.
+- **Atualização:** consulta a cada 20 s (chat a cada 4 s com o painel aberto). Sem Realtime porque as tabelas são fechadas para o navegador.
 - **Métricas:** `select public.dex_corre_metricas('dexcomplica-love-run')`.
+- **Visual:** fundo branco na página da comunidade.
 
 ## Rodar localmente, sem tocar em produção
 
@@ -59,3 +62,4 @@ Depois, PR + merge na `main`. Nenhuma variável de ambiente nova. Upstash recome
 - 06/11 18h50: migration, API, telas e testes. Fluxo completo aprovado em tamanho de celular.
 - 06/11 19h00: local aceita qualquer CPF válido como inscrito de teste (só no banco de mentira).
 - 06/11 18h52: verificação por e-mail removida a pedido do Alex; acesso só com CPF. Banco 107/107, navegador 33/33.
+- 06/11 19h10: fundo branco; foto obrigatória; abrir grupo para ver membros; chat público por grupo (enviar/editar/apagar/reagir).

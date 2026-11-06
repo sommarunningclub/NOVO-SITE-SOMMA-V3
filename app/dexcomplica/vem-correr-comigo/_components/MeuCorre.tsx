@@ -10,11 +10,12 @@ type Props = {
   onEditar: () => void;
   onCompartilharPerfil: () => void;
   onCompartilharGrupo: () => void;
+  onAbrirGrupo: () => void;
   onConvites: () => void;
   onSairDoGrupo: () => void;
 };
 
-export default function MeuCorre({ estado, onEditar, onCompartilharPerfil, onCompartilharGrupo, onConvites, onSairDoGrupo }: Props) {
+export default function MeuCorre({ estado, onEditar, onCompartilharPerfil, onCompartilharGrupo, onAbrirGrupo, onConvites, onSairDoGrupo }: Props) {
   const p = estado.perfil!;
   const g = estado.grupo ?? null;
   const recebidos = estado.convites_recebidos?.length ?? 0;
@@ -71,7 +72,7 @@ export default function MeuCorre({ estado, onEditar, onCompartilharPerfil, onCom
         <button className="lr-btn lr-btn--branco lr-btn--p" onClick={onEditar}>Editar perfil</button>
         {g ? (
           <>
-            <a className="lr-btn lr-btn--branco lr-btn--p" href="#meu-grupo">Ver meu grupo</a>
+            <button className="lr-btn lr-btn--branco lr-btn--p" onClick={onAbrirGrupo}>Ver grupo e bate-papo</button>
             <button className="lr-btn lr-btn--branco lr-btn--p" onClick={onCompartilharGrupo}>Compartilhar grupo</button>
             <button className="cr-link cr-link--tinta" onClick={onSairDoGrupo}>Sair do grupo</button>
           </>

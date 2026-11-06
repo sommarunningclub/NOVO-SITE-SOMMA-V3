@@ -2,7 +2,8 @@
 
 import { useEffect, useRef } from "react";
 import type { Cartao, Estado, Grupo, Notificacao } from "@/lib/vem-correr-comigo/tipos";
-import { Avatar, CartaoGrupo, Contatos, nomeGrupo } from "./Cartoes";
+import { Avatar, Contatos, nomeGrupo } from "./Cartoes";
+import ChatGrupo from "./ChatGrupo";
 import { MENSAGENS, rotuloKm } from "./api";
 import { nomePreferencia } from "@/lib/vem-correr-comigo/regras";
 
@@ -100,9 +101,9 @@ export function Notificacoes({ lista, onFechar }: { lista: Notificacao[]; onFech
   );
 }
 
-export function Destino({ perfil, grupo, proprio, ocupado, onQuero, onFechar }: {
+export function Destino({ perfil, grupo, proprio, ocupado, podeEntrar, onQuero, onFechar, onSessao }: {
   perfil?: Cartao; grupo?: Grupo | null; proprio: boolean; ocupado: boolean;
-  onQuero: () => void; onFechar: () => void;
+  podeEntrar?: boolean; onQuero: () => void; onFechar: () => void; onSessao: () => void;
 }) {
   const alvoCheio = !perfil && grupo?.info.completo;
   return (
@@ -117,17 +118,36 @@ export function Destino({ perfil, grupo, proprio, ocupado, onQuero, onFechar }: 
           <div className="cr-card__contatos"><Contatos p={perfil} /></div>
         </div>
       ) : grupo ? (
-        <CartaoGrupo g={grupo} />
+        <div className="cr-destino cr-destino--grupo">
+          <p className="cr-card__meta">
+            <span className="cr-selo cr-selo--km">{rotuloKm(grupo.pelotao)}</span>
+            <span className={`cr-selo${grupo.info.completo ? " cr-selo--ok" : ""}`}>
+              {grupo.info.completo ? "Completo" : grupo.info.vagas === 1 ? "1 vaga" : `${grupo.info.vagas} vagas`}
+            </span>
+          </p>
+          <ul className={`cr-grupo-membros cr-grupo-membros--${Math.min(grupo.membros.length, 4)}`}>
+            {grupo.membros.map((m) => (
+              <li key={m.codigo}>
+                <Avatar p={m} tamanho="m" />
+                <strong>{m.nome.split(" ")[0]}</strong>
+                {(m.instagram || m.whatsapp) ? (
+                  <span className="cr-grupo-membros__contatos"><Contatos p={m} /></span>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        </div>
       ) : null}
       {proprio ? null : alvoCheio ? (
         <p className="cr-modal__texto">{MENSAGENS.grupoCompleto}</p>
-      ) : (
+      ) : podeEntrar !== false ? (
         <div className="cr-modal__botoes">
           <button className="lr-btn lr-btn--vermelho lr-btn--bloco" disabled={ocupado} onClick={onQuero}>
             {perfil ? "Quero descomplicar com você" : "Quero descomplicar com vocês"}
           </button>
         </div>
-      )}
+      ) : null}
+      {grupo ? <ChatGrupo codigoGrupo={grupo.codigo} onSessao={onSessao} /> : null}
     </Modal>
   );
 }

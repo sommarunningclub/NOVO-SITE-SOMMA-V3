@@ -15,10 +15,11 @@ type Props = {
   versao: number;
   ocupado: boolean;
   onQuero: (item: ItemVitrine) => void;
+  onAbrirGrupo: (item: Extract<ItemVitrine, { tipo: "grupo" }>) => void;
   onSessao: () => void;
 };
 
-export default function Vitrine({ versao, ocupado, onQuero, onSessao }: Props) {
+export default function Vitrine({ versao, ocupado, onQuero, onAbrirGrupo, onSessao }: Props) {
   const [f, setF] = useState<Filtros>(VAZIO);
   const [busca, setBusca] = useState("");
   const [itens, setItens] = useState<ItemVitrine[]>([]);
@@ -105,7 +106,7 @@ export default function Vitrine({ versao, ocupado, onQuero, onSessao }: Props) {
               it.tipo === "pessoa" ? (
                 <CartaoPessoa key={`p${it.dados.codigo}`} p={it.dados} acao={it.acao} ocupado={ocupado} onQuero={() => onQuero(it)} />
               ) : (
-                <CartaoGrupo key={`g${it.dados.codigo}`} g={it.dados} acao={it.acao} ocupado={ocupado} onQuero={() => onQuero(it)} />
+                <CartaoGrupo key={`g${it.dados.codigo}`} g={it.dados} acao={it.acao} ocupado={ocupado} onQuero={() => onQuero(it)} onAbrir={() => onAbrirGrupo(it)} />
               )
             )}
           </div>

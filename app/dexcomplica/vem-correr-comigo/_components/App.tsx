@@ -9,6 +9,7 @@ import Acesso from "./Acesso";
 import Celebracao from "./Celebracao";
 import FormPerfil from "./FormPerfil";
 import MeuCorre from "./MeuCorre";
+import PlayerSom from "./PlayerSom";
 import Vitrine from "./Vitrine";
 import { CartaoGrupo } from "./Cartoes";
 import { Confirmar, Convites, Destino, Modal, Notificacoes, type Pergunta } from "./Paineis";
@@ -18,7 +19,7 @@ import { MENSAGENS, SessaoExpirada, TEXTO_PERFIL, acao, compartilhar, enviarJson
 const ATUALIZAR_MS = 20000;
 
 type Alvo = { perfil?: string; grupo?: string };
-type DestinoAberto = { perfil?: Cartao; grupo?: Grupo | null; proprio: boolean; alvo: Alvo };
+type DestinoAberto = { perfil?: Cartao; grupo?: Grupo | null; proprio: boolean; podeEntrar: boolean; alvo: Alvo };
 
 export default function App({ logado, destino }: { logado: boolean; destino?: { tipo: "perfil" | "grupo"; codigo: string } }) {
   const [entrou, setEntrou] = useState(logado);
@@ -91,6 +92,7 @@ export default function App({ logado, destino }: { logado: boolean; destino?: { 
           perfil: destino.tipo === "perfil" ? r.perfil : undefined,
           grupo: r.grupo,
           proprio: Boolean(r.proprio || r.meu),
+          podeEntrar: !r.proprio && !r.meu && !r.grupo?.info.completo,
           alvo: destino.tipo === "perfil" ? { perfil: destino.codigo } : { grupo: destino.codigo },
         });
       })
@@ -129,6 +131,15 @@ export default function App({ logado, destino }: { logado: boolean; destino?: { 
   }
 
   const interesse = (alvo: Alvo) => executar({ tipo: "interesse", ...alvo });
+
+  function abrirGrupo(g: Grupo, podeEntrar: boolean) {
+    setAberto({
+      grupo: g,
+      proprio: Boolean(estado?.grupo && estado.grupo.codigo === g.codigo),
+      podeEntrar,
+      alvo: { grupo: g.codigo },
+    });
+  }
 
   function quero(it: ItemVitrine) {
     if (it.tipo === "grupo") {
@@ -190,7 +201,7 @@ export default function App({ logado, destino }: { logado: boolean; destino?: { 
       <header className="cr-topo">
         <Link href="/dexcomplica" aria-label="Voltar para o Love Run" className="cr-topo__marcas">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/dexcomplica-love-run/marca/somma-branca.svg" alt="Somma Club" />
+          <img src="/dexcomplica-love-run/marca/somma-preta.svg" alt="Somma Club" />
           <span aria-hidden="true">×</span>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/dexcomplica-love-run/marca/dex-logo.png" alt="Dexcomplica" />
@@ -219,9 +230,13 @@ export default function App({ logado, destino }: { logado: boolean; destino?: { 
             <span className="cr-pulso" aria-label="Carregando" />
           )}
         </div>
-      ) : !estado.perfil ? (
+      ) : !estado.perfil || estado.perfil.foto == null ? (
         <main className="cr-conteudo cr-conteudo--estreito">
-          <FormPerfil perfil={null} inscricao={estado.inscricao} onSalvo={() => { setAviso(MENSAGENS.perfilCriado); carregar(); }} />
+          <FormPerfil
+            perfil={estado.perfil}
+            inscricao={estado.inscricao}
+            onSalvo={() => { setAviso(estado.perfil ? "Foto salva. Agora é só descomplicar." : MENSAGENS.perfilCriado); carregar(); }}
+          />
         </main>
       ) : (
         <main className="cr-conteudo">
@@ -240,6 +255,7 @@ export default function App({ logado, destino }: { logado: boolean; destino?: { 
             onEditar={() => setEditando(true)}
             onCompartilharPerfil={async () => mostrarCompartilhado(await compartilhar({ tipo: "perfil", codigo: estado.perfil!.codigo, texto: TEXTO_PERFIL }))}
             onCompartilharGrupo={compartilharGrupo}
+            onAbrirGrupo={() => estado.grupo && abrirGrupo(estado.grupo, false)}
             onConvites={() => setPainel("convites")}
             onSairDoGrupo={() => setPergunta({
               titulo: "Sair do grupo?",
@@ -249,12 +265,26 @@ export default function App({ logado, destino }: { logado: boolean; destino?: { 
             })}
           />
 
-          <Vitrine versao={versao} ocupado={ocupado} onQuero={quero} onSessao={sair} />
+          <Vitrine
+            versao={versao}
+            ocupado={ocupado}
+            onQuero={quero}
+            onAbrirGrupo={(it) => abrirGrupo(it.dados, it.acao === "entrar")}
+            onSessao={sair}
+          />
 
           {conexoes.length > 0 ? (
             <section className="cr-sec" aria-labelledby="t-conexoes">
               <h2 id="t-conexoes" className="cr-h2">A galera já está descomplicando!</h2>
-              <div className="cr-trilho">{conexoes.map((g) => <CartaoGrupo key={g.codigo} g={g} />)}</div>
+              <div className="cr-trilho">
+                {conexoes.map((g) => (
+                  <CartaoGrupo
+                    key={g.codigo}
+                    g={g}
+                    onAbrir={() => abrirGrupo(g, !estado.grupo && !g.info.completo)}
+                  />
+                ))}
+              </div>
             </section>
           ) : null}
 
@@ -285,7 +315,15 @@ export default function App({ logado, destino }: { logado: boolean; destino?: { 
         <Convites estado={estado} ocupado={ocupado} onResponder={responder} onCancelar={(id) => executar({ tipo: "cancelar", convite: id })} onFechar={() => setPainel(null)} />
       ) : null}
       {painel === "notificacoes" ? <Notificacoes lista={estado?.notificacoes ?? []} onFechar={() => { setPainel(null); carregar(); }} /> : null}
-      {aberto ? <Destino {...aberto} ocupado={ocupado} onQuero={() => interesse(aberto.alvo)} onFechar={() => setAberto(null)} /> : null}
+      {aberto ? (
+        <Destino
+          {...aberto}
+          ocupado={ocupado}
+          onQuero={() => interesse(aberto.alvo)}
+          onFechar={() => setAberto(null)}
+          onSessao={sair}
+        />
+      ) : null}
       {celebrar && estado?.grupo ? (
         <Celebracao
           tipo={celebrar}
@@ -296,6 +334,7 @@ export default function App({ logado, destino }: { logado: boolean; destino?: { 
         />
       ) : null}
       {aviso ? <div className="cr-aviso-flutuante" role="status">{aviso}</div> : null}
+      {entrou && estado?.perfil?.foto != null ? <PlayerSom /> : null}
     </div>
   );
 }

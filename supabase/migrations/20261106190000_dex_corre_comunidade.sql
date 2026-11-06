@@ -120,6 +120,29 @@ create table if not exists public.dex_corre_atividade (
 );
 create index if not exists dex_corre_atividade_evento on public.dex_corre_atividade (evento_id, criado_em desc);
 
+-- Bate-papo público por grupo: qualquer perfil da comunidade lê e escreve.
+create table if not exists public.dex_corre_mensagens (
+  id uuid primary key default gen_random_uuid(),
+  grupo_id uuid not null references public.dex_corre_grupos(id) on delete cascade,
+  autor_id uuid not null references public.dex_corre_perfis(id) on delete cascade,
+  texto text not null check (char_length(btrim(texto)) between 1 and 500),
+  criado_em timestamptz not null default now(),
+  editado_em timestamptz,
+  apagado_em timestamptz
+);
+create index if not exists dex_corre_mensagens_grupo
+  on public.dex_corre_mensagens (grupo_id, criado_em desc);
+
+create table if not exists public.dex_corre_reacoes (
+  id uuid primary key default gen_random_uuid(),
+  mensagem_id uuid not null references public.dex_corre_mensagens(id) on delete cascade,
+  perfil_id uuid not null references public.dex_corre_perfis(id) on delete cascade,
+  emoji text not null check (emoji in ('❤️', '😂', '🔥', '👏', '😮', '😢')),
+  criado_em timestamptz not null default now(),
+  unique (mensagem_id, perfil_id, emoji)
+);
+create index if not exists dex_corre_reacoes_mensagem on public.dex_corre_reacoes (mensagem_id);
+
 -- Perfis que ainda valem: a pessoa continua titular de uma vaga não cancelada.
 create or replace view public.dex_corre_perfis_validos as
   select
@@ -741,6 +764,7 @@ begin
       end as acao
     from public.dex_corre_perfis_validos v
     where v.evento_id = ev and v.id <> a.id and public.dex_corre__grupo_do(v.id) is null
+      and v.foto_path is not null
   ),
   grupos as (
     select
@@ -938,11 +962,13 @@ begin
   perform public.dex_corre__limpar(ev);
   a := public.dex_corre__ator(p_participacao, p_pessoa);
   if a.id is null then return jsonb_build_object('ok', false, 'erro', 'perfil'); end if;
+  if a.foto_path is null then return jsonb_build_object('ok', false, 'erro', 'sem_foto'); end if;
   meu := public.dex_corre__grupo_do(a.id);
 
   if p_alvo_perfil is not null then
     select * into b from public.dex_corre_perfis_validos v where v.codigo = p_alvo_perfil and v.evento_id = ev;
     if b.id is null then return jsonb_build_object('ok', false, 'erro', 'perfil_indisponivel'); end if;
+    if b.foto_path is null then return jsonb_build_object('ok', false, 'erro', 'perfil_indisponivel'); end if;
     if b.id = a.id then return jsonb_build_object('ok', false, 'erro', 'proprio'); end if;
     alvo := public.dex_corre__grupo_do(b.id);
   else
@@ -1063,6 +1089,166 @@ begin
   return jsonb_build_object('ok', true);
 end $$;
 
+-- ─── Chat público do grupo ───────────────────────────────────────────────────
+
+create or replace function public.dex_corre__mensagem_json(
+  p_id uuid, p_autor public.dex_corre_perfis_validos, p_texto text,
+  p_criado timestamptz, p_editado timestamptz, p_apagado timestamptz, p_eu uuid
+) returns jsonb language sql stable as $$
+  select jsonb_build_object(
+    'id', p_id,
+    'texto', case when p_apagado is null then p_texto else '' end,
+    'apagada', p_apagado is not null,
+    'criado_em', p_criado,
+    'editado_em', p_editado,
+    'minha', p_autor.id = p_eu,
+    'autor', public.dex_corre__cartao(p_autor),
+    'reacoes', coalesce((
+      select jsonb_agg(jsonb_build_object(
+        'emoji', r.emoji,
+        'total', r.total,
+        'eu', r.eu
+      ) order by r.total desc, r.emoji)
+      from (
+        select emoji, count(*)::int as total, bool_or(perfil_id = p_eu) as eu
+        from public.dex_corre_reacoes where mensagem_id = p_id
+        group by emoji
+      ) r
+    ), '[]'::jsonb)
+  )
+$$;
+
+create or replace function public.dex_corre_chat_listar(
+  p_participacao uuid, p_pessoa bigint, p_codigo text, p_depois timestamptz default null
+) returns jsonb language plpgsql stable as $$
+declare
+  a public.dex_corre_perfis_validos := public.dex_corre__ator(p_participacao, p_pessoa);
+  g public.dex_corre_grupos;
+begin
+  if a.id is null then return jsonb_build_object('ok', false, 'erro', 'perfil'); end if;
+  if a.foto_path is null then return jsonb_build_object('ok', false, 'erro', 'sem_foto'); end if;
+  select * into g from public.dex_corre_grupos x
+    where x.codigo = p_codigo and x.evento_id = a.evento_id and x.status = 'ativo';
+  if g.id is null then return jsonb_build_object('ok', false, 'erro', 'nao_encontrado'); end if;
+  return jsonb_build_object(
+    'ok', true,
+    'grupo', public.dex_corre__grupo_json(g.id),
+    'mensagens', coalesce((
+      select jsonb_agg(public.dex_corre__mensagem_json(
+        m.id, v, m.texto, m.criado_em, m.editado_em, m.apagado_em, a.id
+      ) order by m.criado_em)
+      from (
+        select * from public.dex_corre_mensagens
+        where grupo_id = g.id and (p_depois is null or criado_em > p_depois)
+        order by criado_em desc
+        limit 80
+      ) m
+      join public.dex_corre_perfis_validos v on v.id = m.autor_id
+    ), '[]'::jsonb)
+  );
+end $$;
+
+create or replace function public.dex_corre_chat_enviar(
+  p_participacao uuid, p_pessoa bigint, p_codigo text, p_texto text
+) returns jsonb language plpgsql as $$
+declare
+  a public.dex_corre_perfis_validos := public.dex_corre__ator(p_participacao, p_pessoa);
+  g public.dex_corre_grupos;
+  t text := btrim(coalesce(p_texto, ''));
+  mid uuid;
+begin
+  if a.id is null then return jsonb_build_object('ok', false, 'erro', 'perfil'); end if;
+  if a.foto_path is null then return jsonb_build_object('ok', false, 'erro', 'sem_foto'); end if;
+  if char_length(t) < 1 or char_length(t) > 500 then
+    return jsonb_build_object('ok', false, 'erro', 'dados');
+  end if;
+  select * into g from public.dex_corre_grupos x
+    where x.codigo = p_codigo and x.evento_id = a.evento_id and x.status = 'ativo';
+  if g.id is null then return jsonb_build_object('ok', false, 'erro', 'nao_encontrado'); end if;
+  insert into public.dex_corre_mensagens (grupo_id, autor_id, texto)
+    values (g.id, a.id, t) returning id into mid;
+  perform public.dex_corre__registrar(a.evento_id, a.id, 'chat_enviado',
+    jsonb_build_object('grupo_id', g.id, 'mensagem', mid));
+  return jsonb_build_object('ok', true, 'mensagem', public.dex_corre__mensagem_json(
+    mid, a, t, now(), null, null, a.id));
+end $$;
+
+create or replace function public.dex_corre_chat_editar(
+  p_participacao uuid, p_pessoa bigint, p_mensagem uuid, p_texto text
+) returns jsonb language plpgsql as $$
+declare
+  a public.dex_corre_perfis_validos := public.dex_corre__ator(p_participacao, p_pessoa);
+  m public.dex_corre_mensagens;
+  t text := btrim(coalesce(p_texto, ''));
+begin
+  if a.id is null then return jsonb_build_object('ok', false, 'erro', 'perfil'); end if;
+  if char_length(t) < 1 or char_length(t) > 500 then
+    return jsonb_build_object('ok', false, 'erro', 'dados');
+  end if;
+  select * into m from public.dex_corre_mensagens where id = p_mensagem for update;
+  if not found or m.autor_id <> a.id or m.apagado_em is not null then
+    return jsonb_build_object('ok', false, 'erro', 'mensagem_invalida');
+  end if;
+  update public.dex_corre_mensagens set texto = t, editado_em = now() where id = m.id;
+  return jsonb_build_object('ok', true, 'mensagem', public.dex_corre__mensagem_json(
+    m.id, a, t, m.criado_em, now(), null, a.id));
+end $$;
+
+create or replace function public.dex_corre_chat_apagar(
+  p_participacao uuid, p_pessoa bigint, p_mensagem uuid
+) returns jsonb language plpgsql as $$
+declare
+  a public.dex_corre_perfis_validos := public.dex_corre__ator(p_participacao, p_pessoa);
+  m public.dex_corre_mensagens;
+begin
+  if a.id is null then return jsonb_build_object('ok', false, 'erro', 'perfil'); end if;
+  select * into m from public.dex_corre_mensagens where id = p_mensagem for update;
+  if not found or m.autor_id <> a.id or m.apagado_em is not null then
+    return jsonb_build_object('ok', false, 'erro', 'mensagem_invalida');
+  end if;
+  update public.dex_corre_mensagens set apagado_em = now(), texto = '·' where id = m.id;
+  delete from public.dex_corre_reacoes where mensagem_id = m.id;
+  return jsonb_build_object('ok', true, 'id', m.id);
+end $$;
+
+create or replace function public.dex_corre_chat_reagir(
+  p_participacao uuid, p_pessoa bigint, p_mensagem uuid, p_emoji text
+) returns jsonb language plpgsql as $$
+declare
+  a public.dex_corre_perfis_validos := public.dex_corre__ator(p_participacao, p_pessoa);
+  m public.dex_corre_mensagens;
+  v public.dex_corre_perfis_validos;
+  rid uuid;
+begin
+  if a.id is null then return jsonb_build_object('ok', false, 'erro', 'perfil'); end if;
+  if a.foto_path is null then return jsonb_build_object('ok', false, 'erro', 'sem_foto'); end if;
+  if p_emoji is null or p_emoji not in ('❤️', '😂', '🔥', '👏', '😮', '😢') then
+    return jsonb_build_object('ok', false, 'erro', 'dados');
+  end if;
+  select * into m from public.dex_corre_mensagens where id = p_mensagem;
+  if not found or m.apagado_em is not null then
+    return jsonb_build_object('ok', false, 'erro', 'mensagem_invalida');
+  end if;
+  -- Só grupos do mesmo evento; qualquer inscrito com perfil pode reagir (chat público).
+  if not exists (
+    select 1 from public.dex_corre_grupos g
+    where g.id = m.grupo_id and g.evento_id = a.evento_id and g.status = 'ativo'
+  ) then
+    return jsonb_build_object('ok', false, 'erro', 'nao_encontrado');
+  end if;
+  select id into rid from public.dex_corre_reacoes
+    where mensagem_id = m.id and perfil_id = a.id and emoji = p_emoji;
+  if rid is not null then
+    delete from public.dex_corre_reacoes where id = rid;
+  else
+    insert into public.dex_corre_reacoes (mensagem_id, perfil_id, emoji)
+      values (m.id, a.id, p_emoji);
+  end if;
+  select * into v from public.dex_corre_perfis_validos where id = m.autor_id;
+  return jsonb_build_object('ok', true, 'mensagem', public.dex_corre__mensagem_json(
+    m.id, v, m.texto, m.criado_em, m.editado_em, m.apagado_em, a.id));
+end $$;
+
 -- ─── Métricas (para a gestão; sem painel nesta versão) ──────────────────────
 
 create or replace function public.dex_corre_metricas(p_slug text)
@@ -1101,16 +1287,20 @@ alter table public.dex_corre_membros enable row level security;
 alter table public.dex_corre_convites enable row level security;
 alter table public.dex_corre_notificacoes enable row level security;
 alter table public.dex_corre_atividade enable row level security;
+alter table public.dex_corre_mensagens enable row level security;
+alter table public.dex_corre_reacoes enable row level security;
 
 revoke all on
   public.dex_corre_config, public.dex_corre_perfis, public.dex_corre_grupos, public.dex_corre_membros,
   public.dex_corre_convites, public.dex_corre_notificacoes, public.dex_corre_atividade,
+  public.dex_corre_mensagens, public.dex_corre_reacoes,
   public.dex_corre_perfis_validos
 from public, anon, authenticated;
 
 grant all on
   public.dex_corre_config, public.dex_corre_perfis, public.dex_corre_grupos, public.dex_corre_membros,
   public.dex_corre_convites, public.dex_corre_notificacoes, public.dex_corre_atividade,
+  public.dex_corre_mensagens, public.dex_corre_reacoes,
   public.dex_corre_perfis_validos
 to service_role;
 

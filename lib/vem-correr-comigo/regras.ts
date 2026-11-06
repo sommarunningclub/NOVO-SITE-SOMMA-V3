@@ -43,7 +43,7 @@ export const perfilSchema = z.object({
 export const OPCOES_GRUPO = [
   { valor: 2, nome: "Dupla", frase: "Quero encontrar uma pessoa para descomplicar comigo.", detalhe: "Até 2 pessoas. A conexão só acontece com aprovação." },
   { valor: 3, nome: "Trio", frase: "Quero descomplicar com até mais duas pessoas.", detalhe: "Até 3 pessoas. Quem for compatível e quiser pode entrar direto." },
-  { valor: 4, nome: "Quarteto", frase: "Quero descomplicar com até mais três pessoas.", detalhe: "Até 4 pessoas. Quem for compatível e quiser pode entrar direto." },
+  { valor: 4, nome: "Quarteto", frase: "Quero correr de 4.", detalhe: "Até 4 pessoas. Quem for compatível e quiser pode entrar direto." },
 ] as const;
 
 export const nomePreferencia = (n: number) => OPCOES_GRUPO.find((o) => o.valor === n)?.nome ?? "";
@@ -57,6 +57,7 @@ export const MENSAGENS = {
   distancia: "Essa galera vai correr outra distância.",
   semResultado: "Ainda não encontramos ninguém com esses filtros.",
   rede: "Não conseguimos concluir agora. Tente novamente.",
+  fotoObrigatoria: "A foto é obrigatória. Faz parte da brincadeira!",
 } as const;
 
 const ERROS: Record<string, string> = {
@@ -71,6 +72,8 @@ const ERROS: Record<string, string> = {
   convite_invalido: "Esse convite não vale mais.",
   proprio: "Esse é o seu perfil.",
   nao_encontrado: "Não encontramos esse link.",
+  sem_foto: MENSAGENS.fotoObrigatoria,
+  mensagem_invalida: "Essa mensagem não dá mais para alterar.",
 };
 
 export const mensagemDeErro = (codigo?: string) => (codigo && ERROS[codigo]) || MENSAGENS.rede;

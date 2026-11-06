@@ -72,20 +72,25 @@ const ROTULO_GRUPO: Partial<Record<AcaoGrupo, string>> = {
 
 export const nomeGrupo = (total: number) => (total === 2 ? "Dupla" : total === 3 ? "Trio" : total === 4 ? "Quarteto" : "Grupo");
 
-export function CartaoGrupo({ g, acao, onQuero, ocupado }: { g: Grupo; acao?: AcaoGrupo; onQuero?: () => void; ocupado?: boolean }) {
+export function CartaoGrupo({ g, acao, onQuero, onAbrir, ocupado }: {
+  g: Grupo; acao?: AcaoGrupo; onQuero?: () => void; onAbrir?: () => void; ocupado?: boolean;
+}) {
   return (
     <article className={`cr-card cr-card--grupo${g.info.completo ? " is-completo" : ""}`}>
-      <div className="cr-pilha">
-        {g.membros.map((m) => <Avatar key={m.codigo} p={m} />)}
-      </div>
-      <h3>{nomeGrupo(g.info.total)}</h3>
-      <p className="cr-card__nomes">{g.membros.map((m) => m.nome.split(" ")[0]).join(", ")}</p>
-      <p className="cr-card__meta">
-        <span className="cr-selo cr-selo--km">{rotuloKm(g.pelotao)}</span>
-        <span className={`cr-selo${g.info.completo ? " cr-selo--ok" : ""}`}>
-          {g.info.completo ? "Completo" : g.info.vagas === 1 ? "1 vaga" : `${g.info.vagas} vagas`}
-        </span>
-      </p>
+      <button type="button" className="cr-card__abrir" onClick={onAbrir} disabled={!onAbrir} aria-label={`Abrir ${nomeGrupo(g.info.total)} e ver quem está dentro`}>
+        <div className="cr-pilha">
+          {g.membros.map((m) => <Avatar key={m.codigo} p={m} />)}
+        </div>
+        <h3>{nomeGrupo(g.info.total)}</h3>
+        <p className="cr-card__nomes">{g.membros.map((m) => m.nome.split(" ")[0]).join(", ")}</p>
+        <p className="cr-card__meta">
+          <span className="cr-selo cr-selo--km">{rotuloKm(g.pelotao)}</span>
+          <span className={`cr-selo${g.info.completo ? " cr-selo--ok" : ""}`}>
+            {g.info.completo ? "Completo" : g.info.vagas === 1 ? "1 vaga" : `${g.info.vagas} vagas`}
+          </span>
+        </p>
+        {onAbrir ? <span className="cr-card__ver">Ver quem está dentro</span> : null}
+      </button>
       {acao === "entrar" && onQuero ? (
         <button className="lr-btn lr-btn--vermelho lr-btn--p lr-btn--bloco" onClick={onQuero} disabled={ocupado}>Quero descomplicar com vocês</button>
       ) : acao ? (
