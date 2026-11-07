@@ -82,3 +82,7 @@ A pedido do Alex, qualquer inscrito pode correr com qualquer outro, seja qual fo
 ## 07/11/2026: fechado
 
 O Love Run aconteceu e o Alex mandou fechar as páginas abaixo de /dexcomplica. O Vem Correr Comigo, o ingresso, a transferência e a agenda redirecionam para a LP, e as APIs desses fluxos também (next.config.mjs). A LP continua no ar, com a mensagem "O Love Run já aconteceu" e sem os atalhos de ingresso e agenda (`EVENTO_REALIZADO` em lib/dexcomplica-love-run/event.config.ts). O banco não foi alterado.
+
+## 07/11/2026: LP fora do ar
+
+Depois de fechar as subpáginas, o Alex mandou tirar a LP do ar. /dexcomplica, tudo abaixo dela e as APIs /api/dexcomplica-love-run/* redirecionam para a home (next.config.mjs). As imagens em /dexcomplica-love-run/... continuam, porque os e-mails apontam para elas.
