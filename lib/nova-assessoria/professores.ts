@@ -71,11 +71,18 @@ export function professorPorSlug(slug: string | null | undefined): ProfessorBora
   return PROFESSORES_BORA.find((p) => p.slug === slug) ?? null;
 }
 
-/** Páginas que registram visita e contato: a de /assessoria e uma por professor. */
-export type PaginaBora = "assessoria" | `bio-${string}`;
+/**
+ * Páginas que registram visita e contato: /assessoria, uma por professor e a
+ * LP do corre BORA com SOMMA (/boracomsomma), que entra no mesmo rodízio de
+ * /assessoria mas aparece separada no admin.
+ */
+export type PaginaBora = "assessoria" | "boracomsomma" | `bio-${string}`;
+
+/** Páginas cujo contato passa pelo rodízio (as outras são de um professor só). */
+export const PAGINAS_RODIZIO = ["assessoria", "boracomsomma"] as const;
 
 export function paginaValida(pagina: unknown): pagina is PaginaBora {
-  if (pagina === "assessoria") return true;
+  if (pagina === "assessoria" || pagina === "boracomsomma") return true;
   if (typeof pagina !== "string" || !pagina.startsWith("bio-")) return false;
   return professorPorSlug(pagina.slice(4)) !== null;
 }

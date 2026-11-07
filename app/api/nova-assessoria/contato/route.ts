@@ -5,6 +5,7 @@ import {
   PROFESSORES_BORA,
   linkDoWhatsapp,
   paginaValida,
+  PAGINAS_RODIZIO,
   professorPorSlug,
   type ProfessorBora,
 } from "@/lib/nova-assessoria/professores";
@@ -62,7 +63,7 @@ async function professorJaRecebido(
     .from("nova_assessoria_eventos")
     .select("professor")
     .eq("tipo", "contato")
-    .eq("pagina", "assessoria")
+    .in("pagina", [...PAGINAS_RODIZIO])
     .gte("criado_em", desde)
     .or(filtros.join(","))
     .order("criado_em", { ascending: false })
