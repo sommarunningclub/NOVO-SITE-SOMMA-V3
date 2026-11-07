@@ -78,3 +78,7 @@ A pedido do Alex, qualquer inscrito pode correr com qualquer outro, seja qual fo
 - O cartão do grupo mostra as distâncias dos membros ("4 e 8 km") e o painel do grupo mostra o KM de cada pessoa. O filtro acha o grupo por qualquer membro.
 - A vitrine mostra primeiro quem dá para chamar e, dentro disso, quem corre a mesma distância.
 - A regra de composição por gênero e o tamanho do grupo não mudaram.
+
+## 07/11/2026: fechado
+
+O Love Run aconteceu e o Alex mandou fechar as páginas abaixo de /dexcomplica. O Vem Correr Comigo, o ingresso, a transferência e a agenda redirecionam para a LP, e as APIs desses fluxos também (next.config.mjs). A LP continua no ar, com a mensagem "O Love Run já aconteceu" e sem os atalhos de ingresso e agenda (`EVENTO_REALIZADO` em lib/dexcomplica-love-run/event.config.ts). O banco não foi alterado.

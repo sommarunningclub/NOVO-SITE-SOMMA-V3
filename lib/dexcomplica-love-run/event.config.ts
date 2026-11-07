@@ -30,6 +30,12 @@ export const EVENTO_SLUG =
 export const MODO_TESTE = EVENTO_SLUG !== EVENTO_SLUG_OFICIAL;
 /** Endereço público da LP (o slug do banco continua `dexcomplica-love-run`). */
 export const EVENTO_PATH = "/dexcomplica";
+/**
+ * O corre aconteceu em 07/11/2026. Com isto ligado, a LP some com o acesso ao
+ * ingresso, a agenda e o Vem Correr Comigo, e as páginas abaixo de
+ * /dexcomplica redirecionam para a LP (next.config.mjs).
+ */
+export const EVENTO_REALIZADO = true;
 export const SITE_URL = "https://sommaclub.com.br";
 export const EVENTO_URL = `${SITE_URL}${EVENTO_PATH}`;
 export const CAMINHO_TRANSFERIDO = `${EVENTO_PATH}/transferido`;

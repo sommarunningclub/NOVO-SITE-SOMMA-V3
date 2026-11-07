@@ -14,6 +14,7 @@ import {
   POLITICA_PRIVACIDADE,
   TREINAO,
   urlComoChegar,
+  EVENTO_REALIZADO,
 } from "@/lib/dexcomplica-love-run/event.config";
 import { contarInscritos, getEvento } from "@/lib/dexcomplica-love-run/db";
 import { estadoDaInscricao, liberado, pelotoesValidos, rotuloPelotao } from "@/lib/dexcomplica-love-run/estado";
@@ -223,7 +224,7 @@ export default async function LoveRunPage({ searchParams }: { searchParams: Prom
               <a href="#inscricao" className="lr-btn lr-btn--vermelho" data-rastrear="cta:corre">
                 Quero garantir minha vaga
               </a>
-              <AdicionarAgenda origem="corre" />
+              {EVENTO_REALIZADO ? null : <AdicionarAgenda origem="corre" />}
             </div>
           </div>
         </section>
@@ -366,20 +367,6 @@ export default async function LoveRunPage({ searchParams }: { searchParams: Prom
               </ul>
             </div>
             <Inscricao estado={estado} pelotoes={pelotoes.map((p) => ({ valor: p, rotulo: rotuloPelotao(p) }))} />
-          </div>
-        </section>
-
-        {/* ── Vem Correr Comigo ─────────────────────────────────────── */}
-        <section id="vem-correr-comigo" className="lr-sec lr-sec--amarelo" aria-labelledby="t-corre-comigo">
-          <div className="lr-wrap">
-            <p className="lr-eyebrow" data-revelar>Vem correr comigo?</p>
-            <h2 id="t-corre-comigo" className="lr-h2" data-revelar>
-              Já garantiu sua vaga? Agora encontre sua companhia.
-            </h2>
-            <p className="lr-lead" data-revelar>Entre com seu CPF, encontre a galera e descomplique seu corre.</p>
-            <a href="/dexcomplica/vem-correr-comigo" className="lr-btn lr-btn--vermelho lr-btn--g" data-revelar>
-              Vem descomplicar comigo
-            </a>
           </div>
         </section>
 
