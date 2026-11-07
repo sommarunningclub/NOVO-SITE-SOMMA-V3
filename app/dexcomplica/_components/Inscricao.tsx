@@ -3,7 +3,7 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { EstadoInscricao } from "@/lib/dexcomplica-love-run/event.config";
-import { CAMINHO_TRANSFERIDO, INSTAGRAM_SOMMA, POLITICA_PRIVACIDADE } from "@/lib/dexcomplica-love-run/event.config";
+import { CAMINHO_TRANSFERIDO, EVENTO_REALIZADO, INSTAGRAM_SOMMA, POLITICA_PRIVACIDADE } from "@/lib/dexcomplica-love-run/event.config";
 import { camposComErro, inscricaoSchema, mascararCpf, mascararTelefone, recuperarSchema, SEXO_ROTULO, SEXOS, sugestaoEmail } from "@/lib/dexcomplica-love-run/schema";
 import { rastrear } from "@/lib/dexcomplica-love-run/analytics";
 import { TERMO_IMAGEM_URL } from "@/lib/aceites/termos";
@@ -44,7 +44,7 @@ export default function Inscricao({ estado, pelotoes }: { estado: EstadoInscrica
   // Link "Abrir meu ingresso" dos e-mails para a base (…#meu-ingresso): no
   // aparelho da inscrição abre o ingresso; em outro, o perfil (CPF + e-mail).
   useEffect(() => {
-    if (window.location.hash !== "#meu-ingresso") return;
+    if (EVENTO_REALIZADO || window.location.hash !== "#meu-ingresso") return;
     let caminho: string | null = null;
     try {
       caminho = localStorage.getItem("love-run:ingresso");
@@ -69,6 +69,7 @@ export default function Inscricao({ estado, pelotoes }: { estado: EstadoInscrica
         <Formulario fase={fase} setFase={setFase} pelotoes={pelotoes} />
       )}
 
+      {EVENTO_REALIZADO ? null : (
       <div className="lr-recuperar" id="meu-ingresso">
         <button
           type="button"
@@ -81,6 +82,7 @@ export default function Inscricao({ estado, pelotoes }: { estado: EstadoInscrica
         </button>
         {recuperando ? <Perfil pelotoes={pelotoes} /> : null}
       </div>
+      )}
     </div>
   );
 }
@@ -399,7 +401,9 @@ function Fechado({ estado }: { estado: Exclude<EstadoInscricao, "abertas"> }) {
   const textos = {
     em_breve: ["As inscrições abrem em breve.", "Estamos fechando os últimos detalhes do corre. Fique de olho no @somma.club para não perder a abertura."],
     esgotado: ["As vagas acabaram.", "Obrigado pelo carinho! Se você já se inscreveu, acesse seu ingresso logo abaixo."],
-    encerradas: ["Inscrições encerradas.", "Se você já se inscreveu, acesse seu ingresso logo abaixo."],
+    encerradas: EVENTO_REALIZADO
+      ? ["O Love Run já aconteceu.", "Obrigado a todo mundo que correu com a gente. Fique de olho no @somma.club para o próximo corre."]
+      : ["Inscrições encerradas.", "Se você já se inscreveu, acesse seu ingresso logo abaixo."],
   } as const;
   const [titulo, texto] = textos[estado];
   return (
@@ -407,7 +411,7 @@ function Fechado({ estado }: { estado: Exclude<EstadoInscricao, "abertas"> }) {
       <p className="lr-estado__selo">{estado === "em_breve" ? "Em breve" : estado === "esgotado" ? "Esgotado" : "Encerrado"}</p>
       <h3>{titulo}</h3>
       <p>{texto}</p>
-      {estado === "em_breve" ? (
+      {estado === "em_breve" || EVENTO_REALIZADO ? (
         <a className="lr-btn lr-btn--branco lr-btn--p" href={INSTAGRAM_SOMMA} target="_blank" rel="noopener noreferrer">
           Seguir @somma.club
         </a>

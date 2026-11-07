@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { ReciboTransferencia } from "@/lib/dexcomplica-love-run/transferencia";
+import { EVENTO_REALIZADO } from "@/lib/dexcomplica-love-run/event.config";
 
 /**
  * Atalho "Meu ingresso" neste aparelho. Guarda só o caminho do ingresso (que
@@ -30,6 +31,7 @@ export function esquecerIngresso() {
 export function useMeuIngresso(): string | null {
   const [caminho, setCaminho] = useState<string | null>(null);
   useEffect(() => {
+    if (EVENTO_REALIZADO) return;
     try {
       const v = localStorage.getItem(CHAVE);
       if (v && /^\/dexcomplica\/ingresso\/[A-Za-z0-9_-]{40,60}$/.test(v)) setCaminho(v);

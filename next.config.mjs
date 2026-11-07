@@ -13,8 +13,25 @@ const nextConfig = {
       // /dexcomplica. Só as páginas redirecionam: as imagens continuam em
       // /dexcomplica-love-run/... (public), então nada de curinga aqui.
       { source: "/dexcomplica-love-run", destination: "/dexcomplica", permanent: false },
-      { source: "/dexcomplica-love-run/ingresso/:token", destination: "/dexcomplica/ingresso/:token", permanent: false },
-      { source: "/dexcomplica-love-run/agenda.ics", destination: "/dexcomplica/agenda.ics", permanent: false },
+      // O Love Run aconteceu em 07/11/2026 e o Alex mandou fechar tudo abaixo
+      // de /dexcomplica: ingresso, transferência, agenda e Vem Correr Comigo
+      // voltam para a LP, e as APIs desses fluxos param de responder. A LP e
+      // /dexcomplica/acesso (tela de senha) continuam. Para religar, apagar
+      // estas linhas e EVENTO_REALIZADO em lib/dexcomplica-love-run/event.config.ts.
+      ...[
+        "/dexcomplica-love-run/ingresso/:token",
+        "/dexcomplica-love-run/agenda.ics",
+        "/dexcomplica/ingresso/:path*",
+        "/dexcomplica/transferido",
+        "/dexcomplica/agenda.ics",
+        "/dexcomplica/vem-correr-comigo",
+        "/dexcomplica/vem-correr-comigo/:path*",
+        "/api/dexcomplica-love-run/corre/:path*",
+        "/api/dexcomplica-love-run/recuperar",
+        "/api/dexcomplica-love-run/transferir",
+        "/api/dexcomplica-love-run/perfil",
+        "/api/dexcomplica-love-run/whatsapp",
+      ].map((source) => ({ source, destination: "/dexcomplica", permanent: false })),
       {
         source: "/checkout/gabriel-brito",
         destination: "/gabriel-brito",
