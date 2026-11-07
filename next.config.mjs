@@ -3,6 +3,10 @@ const nextConfig = {
   reactStrictMode: true,
   // Fixa a raiz neste projeto (há outros lockfiles no sistema que confundem a deteção automática)
   outputFileTracingRoot: import.meta.dirname,
+  // A imagem do ingresso do BORA com SOMMA lê as fontes Altone do disco.
+  outputFileTracingIncludes: {
+    "/boracomsomma/ingresso/imagem": ["./components/bora/fonts/**"],
+  },
   // O link do Gabriel nasceu em /checkout/gabriel-brito e já circulou assim.
   // Ele agora mora na raiz, junto com os dos outros professores, e o caminho
   // antigo continua levando ao mesmo lugar. Temporário (307) de propósito: o

@@ -1,6 +1,6 @@
 import "server-only";
 import { getServiceSupabase, getSupabase } from "@/lib/supabase";
-import { EVENTO_PADRAO, SLUG } from "./config";
+import { EVENTO_PADRAO, MAPA, SLUG } from "./config";
 
 /**
  * Estado do check-in, lido da linha do evento em `eventos` (slug boracomsomma).
@@ -17,7 +17,7 @@ export type EventoBora = {
   /** hh:mm */
   horario: string;
   local: string;
-  localUrl: string | null;
+  localUrl: string;
   pelotoes: string[];
   estado: EstadoCheckin;
 };
@@ -43,7 +43,7 @@ export function padrao(): EventoBora {
     data: EVENTO_PADRAO.data,
     horario: EVENTO_PADRAO.horario,
     local: `${EVENTO_PADRAO.local}, ${EVENTO_PADRAO.cidade}`,
-    localUrl: null,
+    localUrl: MAPA.url,
     pelotoes: EVENTO_PADRAO.pelotoes,
     estado: "sem-evento",
   };
@@ -61,7 +61,7 @@ function mapear(l: Linha): EventoBora {
     horario: (l.horario_inicio || EVENTO_PADRAO.horario).slice(0, 5),
     // Os locais da gestão vêm com travessão ("Parque da Cidade — Brasília, DF").
     local: (l.local?.trim() || `${EVENTO_PADRAO.local}, ${EVENTO_PADRAO.cidade}`).replace(/\s+[—–]\s+/g, ", "),
-    localUrl: l.local_url?.trim() || null,
+    localUrl: l.local_url?.trim() || MAPA.url,
     pelotoes: pelotoes.length ? pelotoes : EVENTO_PADRAO.pelotoes,
     estado,
   };

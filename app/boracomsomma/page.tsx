@@ -20,6 +20,7 @@ import {
   RUNY,
   URL_LP,
   VIDEOS,
+  MAPA,
   YANN,
 } from "@/lib/boracomsomma/config";
 import { buscarEvento, horarioCurto, partesDaData } from "@/lib/boracomsomma/evento";
@@ -212,16 +213,14 @@ export default async function BoraComSommaPage() {
               </div>
             ))}
           </dl>
-          {evento.localUrl && (
-            <a
-              href={evento.localUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-4 inline-flex items-center gap-2 text-sm text-white/60 hover:text-white"
-            >
-              <MapPin className="h-4 w-4" /> Abrir no mapa
-            </a>
-          )}
+          <a
+            href={evento.localUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-4 inline-flex items-center gap-2 text-sm text-white/60 hover:text-white"
+          >
+            <MapPin className="h-4 w-4" /> Estacionamento 10 no mapa
+          </a>
         </div>
       </section>
 
@@ -563,6 +562,38 @@ export default async function BoraComSommaPage() {
                 }`}
               />
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ───────── Ponto de encontro ───────── */}
+      <section className="border-t border-white/10 py-20 md:py-28">
+        <div className="mx-auto grid max-w-6xl gap-10 px-4 sm:px-6 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
+          <div>
+            <Rotulo>Ponto de encontro</Rotulo>
+            <Titulo className="md:text-6xl">
+              Estacionamento 10, <span className="text-bora">Parque da Cidade</span>
+            </Titulo>
+            <p className="mt-5 text-white/65">
+              {dataExtenso}, concentração a partir das {hora}. Chegue um pouco antes para estacionar com calma e aquecer com a turma.
+            </p>
+            <a
+              href={evento.localUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-7 inline-flex items-center gap-2 rounded-full bg-white px-6 py-3.5 font-bold text-black hover:bg-white/90"
+            >
+              <MapPin className="h-5 w-5" /> Abrir no Google Maps
+            </a>
+          </div>
+          <div className="overflow-hidden rounded-[28px] border border-white/10">
+            <iframe
+              title="Mapa: Estacionamento 10 do Parque da Cidade"
+              src={MAPA.embed}
+              className="h-[320px] w-full grayscale invert-[0.92] hue-rotate-180 sm:h-[420px]"
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+            />
           </div>
         </div>
       </section>
