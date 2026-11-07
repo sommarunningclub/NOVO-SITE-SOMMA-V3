@@ -267,6 +267,7 @@ a.cr-grupo-membros__pessoa:focus-visible .cr-grupo-membros__ig { text-decoration
   font-size: 11.5px; font-weight: 700; line-height: 1.2; color: var(--vermelho);
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;
 }
+.cr-grupo-membros__km { font-size: 12px; font-weight: 700; }
 .cr-grupo-membros__contatos {
   display: flex; flex-direction: column; align-items: center; gap: 2px;
   font-size: 11.5px; line-height: 1.25; max-width: 100%; overflow-wrap: anywhere;

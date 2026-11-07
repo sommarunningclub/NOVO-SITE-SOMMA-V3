@@ -67,3 +67,14 @@ Depois, PR + merge na `main`. Nenhuma variável de ambiente nova. Upstash recome
 - 06/11 18h52: verificação por e-mail removida a pedido do Alex; acesso só com CPF. Banco 107/107, navegador 33/33.
 - 06/11 19h10: fundo branco; foto obrigatória; abrir grupo para ver membros; chat público por grupo (enviar/editar/apagar/reagir).
 - 06/11 19h25: Insiders ativos (`dados_insiders`) também entram com CPF; vaga provisionada no Love Run na primeira entrada.
+
+## 06/11/2026: distância liberada
+
+A pedido do Alex, qualquer inscrito pode correr com qualquer outro, seja qual for o KM. Migration `20261106235000_dex_corre_sem_distancia.sql`.
+
+- Saiu o bloqueio em `dex_corre_interesse`, `dex_corre__responder` e na vitrine. A ação `distancia` deixou de existir.
+- `dex_corre__limpar` não tira mais ninguém do grupo por diferença de pelotão, inclusive quando a gestão troca o pelotão de alguém.
+- Cada pessoa continua com o pelotão da própria inscrição. `dex_corre_grupos.pelotao` ficou só como registro de quem formou o grupo.
+- O cartão do grupo mostra as distâncias dos membros ("4 e 8 km") e o painel do grupo mostra o KM de cada pessoa. O filtro acha o grupo por qualquer membro.
+- A vitrine mostra primeiro quem dá para chamar e, dentro disso, quem corre a mesma distância.
+- A regra de composição por gênero e o tamanho do grupo não mudaram.

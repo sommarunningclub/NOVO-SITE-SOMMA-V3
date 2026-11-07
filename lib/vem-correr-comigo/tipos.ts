@@ -62,8 +62,8 @@ export interface Estado {
   conexoes?: Grupo[];
 }
 
-export type AcaoPessoa = "conectar" | "convidar" | "aceitar" | "aguardando" | "distancia" | "sem_vaga_no_meu";
-export type AcaoGrupo = "entrar" | "meu" | "completo" | "distancia" | "ja_em_grupo" | "incompativel";
+export type AcaoPessoa = "conectar" | "convidar" | "aceitar" | "aguardando" | "sem_vaga_no_meu";
+export type AcaoGrupo = "entrar" | "meu" | "completo" | "ja_em_grupo" | "incompativel";
 
 export type ItemVitrine =
   | { tipo: "pessoa"; acao: AcaoPessoa; dados: Cartao }

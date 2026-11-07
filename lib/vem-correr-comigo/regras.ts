@@ -54,14 +54,12 @@ export const MENSAGENS = {
   conviteEnviado: "Convite enviado! Agora é só esperar.",
   conviteRecebido: "Alguém quer descomplicar com você.",
   grupoCompleto: "Esse grupo já está completo.",
-  distancia: "Essa galera vai correr outra distância.",
   semResultado: "Ainda não encontramos ninguém com esses filtros.",
   rede: "Não conseguimos concluir agora. Tente novamente.",
   fotoObrigatoria: "A foto é obrigatória. Faz parte da brincadeira!",
 } as const;
 
 const ERROS: Record<string, string> = {
-  distancia: MENSAGENS.distancia,
   grupo_completo: MENSAGENS.grupoCompleto,
   ja_em_grupo: "Você já está em um grupo. Saia dele antes de entrar em outro.",
   composicao: "Esse grupo não tem vaga compatível com a composição do evento.",
