@@ -9,29 +9,21 @@ const nextConfig = {
   // permanente fica gravado no navegador do cliente e não se desfaz.
   async redirects() {
     return [
-      // A LP do Love Run nasceu em /dexcomplica-love-run e foi publicada em
-      // /dexcomplica. Só as páginas redirecionam: as imagens continuam em
-      // /dexcomplica-love-run/... (public), então nada de curinga aqui.
-      { source: "/dexcomplica-love-run", destination: "/dexcomplica", permanent: false },
-      // O Love Run aconteceu em 07/11/2026 e o Alex mandou fechar tudo abaixo
-      // de /dexcomplica: ingresso, transferência, agenda e Vem Correr Comigo
-      // voltam para a LP, e as APIs desses fluxos param de responder. A LP e
-      // /dexcomplica/acesso (tela de senha) continuam. Para religar, apagar
-      // estas linhas e EVENTO_REALIZADO em lib/dexcomplica-love-run/event.config.ts.
+      // Dexcomplica Love Run (07/11/2026): fora do ar desde 07/11 a pedido do
+      // Alex. A LP e tudo abaixo dela (ingresso, transferência, agenda, Vem
+      // Correr Comigo, tela de senha) vão para a home, e as APIs desses fluxos
+      // param de responder. As imagens em /dexcomplica-love-run/... (public)
+      // continuam, porque os e-mails já enviados apontam para elas. Para
+      // religar, apagar estas linhas e EVENTO_REALIZADO em
+      // lib/dexcomplica-love-run/event.config.ts. O banco não foi alterado.
       ...[
+        "/dexcomplica",
+        "/dexcomplica/:path*",
+        "/dexcomplica-love-run",
         "/dexcomplica-love-run/ingresso/:token",
         "/dexcomplica-love-run/agenda.ics",
-        "/dexcomplica/ingresso/:path*",
-        "/dexcomplica/transferido",
-        "/dexcomplica/agenda.ics",
-        "/dexcomplica/vem-correr-comigo",
-        "/dexcomplica/vem-correr-comigo/:path*",
-        "/api/dexcomplica-love-run/corre/:path*",
-        "/api/dexcomplica-love-run/recuperar",
-        "/api/dexcomplica-love-run/transferir",
-        "/api/dexcomplica-love-run/perfil",
-        "/api/dexcomplica-love-run/whatsapp",
-      ].map((source) => ({ source, destination: "/dexcomplica", permanent: false })),
+        "/api/dexcomplica-love-run/:path*",
+      ].map((source) => ({ source, destination: "/", permanent: false })),
       {
         source: "/checkout/gabriel-brito",
         destination: "/gabriel-brito",
