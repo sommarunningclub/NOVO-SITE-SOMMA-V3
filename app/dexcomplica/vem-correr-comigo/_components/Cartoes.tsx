@@ -3,7 +3,7 @@
 import { linkInstagram, linkWhatsapp, nomePreferencia } from "@/lib/vem-correr-comigo/regras";
 import { rastrearCorre } from "@/lib/vem-correr-comigo/analytics";
 import type { AcaoGrupo, AcaoPessoa, Cartao, Grupo } from "@/lib/vem-correr-comigo/tipos";
-import { MENSAGENS, rotuloKm, urlFoto } from "./api";
+import { MENSAGENS, rotuloKm, rotuloKmGrupo, urlFoto } from "./api";
 
 export function Avatar({ p, tamanho = "m" }: { p: Pick<Cartao, "codigo" | "nome" | "foto">; tamanho?: "p" | "m" | "g" }) {
   return (
@@ -35,7 +35,6 @@ export function Contatos({ p }: { p: Cartao }) {
 
 const ROTULO_PESSOA: Partial<Record<AcaoPessoa, string>> = {
   aguardando: "Convite enviado",
-  distancia: MENSAGENS.distancia,
   sem_vaga_no_meu: "Não cabe no seu grupo",
 };
 
@@ -65,7 +64,6 @@ export function CartaoPessoa({ p, acao, onQuero, ocupado }: { p: Cartao; acao: A
 const ROTULO_GRUPO: Partial<Record<AcaoGrupo, string>> = {
   meu: "Esse é o seu grupo",
   completo: MENSAGENS.grupoCompleto,
-  distancia: MENSAGENS.distancia,
   ja_em_grupo: "Você já está em um grupo",
   incompativel: "Sem vaga compatível com você",
 };
@@ -84,7 +82,7 @@ export function CartaoGrupo({ g, acao, onQuero, onAbrir, ocupado }: {
         <h3>{nomeGrupo(g.info.total)}</h3>
         <p className="cr-card__nomes">{g.membros.map((m) => m.nome.split(" ")[0]).join(", ")}</p>
         <p className="cr-card__meta">
-          <span className="cr-selo cr-selo--km">{rotuloKm(g.pelotao)}</span>
+          <span className="cr-selo cr-selo--km">{rotuloKmGrupo(g.membros)}</span>
           <span className={`cr-selo${g.info.completo ? " cr-selo--ok" : ""}`}>
             {g.info.completo ? "Completo" : g.info.vagas === 1 ? "1 vaga" : `${g.info.vagas} vagas`}
           </span>

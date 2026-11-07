@@ -6,7 +6,7 @@ import { rastrearCorre } from "@/lib/vem-correr-comigo/analytics";
 import { linkInstagram, nomePreferencia } from "@/lib/vem-correr-comigo/regras";
 import { Avatar, Contatos, nomeGrupo } from "./Cartoes";
 import ChatGrupo from "./ChatGrupo";
-import { MENSAGENS, rotuloKm } from "./api";
+import { MENSAGENS, rotuloKm, rotuloKmGrupo } from "./api";
 
 export function Modal({ titulo, onFechar, children }: { titulo: string; onFechar: () => void; children: React.ReactNode }) {
   const caixa = useRef<HTMLDivElement>(null);
@@ -122,7 +122,7 @@ export function Destino({ perfil, grupo, proprio, ocupado, podeEntrar, onQuero, 
       ) : grupo ? (
         <div className="cr-destino cr-destino--grupo">
           <p className="cr-card__meta">
-            <span className="cr-selo cr-selo--km">{rotuloKm(grupo.pelotao)}</span>
+            <span className="cr-selo cr-selo--km">{rotuloKmGrupo(grupo.membros)}</span>
             <span className={`cr-selo${grupo.info.completo ? " cr-selo--ok" : ""}`}>
               {grupo.info.completo ? "Completo" : grupo.info.vagas === 1 ? "1 vaga" : `${grupo.info.vagas} vagas`}
             </span>
@@ -134,6 +134,7 @@ export function Destino({ perfil, grupo, proprio, ocupado, podeEntrar, onQuero, 
                 <>
                   <Avatar p={m} tamanho="m" />
                   <strong>{m.nome.split(" ")[0]}</strong>
+                  <span className="cr-grupo-membros__km">{rotuloKm(m.pelotao)}</span>
                   {m.instagram ? <span className="cr-grupo-membros__ig">@{m.instagram}</span> : null}
                 </>
               );
