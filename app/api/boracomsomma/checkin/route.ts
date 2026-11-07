@@ -3,6 +3,7 @@ import { getServiceSupabase } from "@/lib/supabase";
 import { registrarAceites } from "@/lib/aceites/registrar";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
 import { buscarEvento } from "@/lib/boracomsomma/evento";
+import { criarTokenIngresso } from "@/lib/boracomsomma/ingresso";
 import { cpfValido, emailValido, nomeValido, sexoValido, telefoneValido } from "@/lib/boracomsomma/validacao";
 
 export const dynamic = "force-dynamic";
@@ -55,7 +56,7 @@ export async function POST(request: NextRequest) {
   const cpfMascarado = `${cpf.slice(0, 3)}.${cpf.slice(3, 6)}.${cpf.slice(6, 9)}-${cpf.slice(9)}`;
   const { data: existentes, error: erroBusca } = await supabase
     .from("checkins")
-    .select("id")
+    .select("id, email")
     .eq("evento_id", evento.id)
     .or(`cpf.eq.${cpf},cpf.eq.${cpfMascarado}`)
     .limit(1);
@@ -64,13 +65,15 @@ export async function POST(request: NextRequest) {
     return erro("Não deu para confirmar agora. Tente de novo em instantes.", 500);
   }
   if (existentes && existentes.length > 0) {
-    return NextResponse.json(
-      { error: "Esse CPF já fez check-in neste corre. Está tudo certo, é só aparecer!", jaInscrito: true },
-      { status: 409 },
-    );
+    // Mesmo CPF e mesmo e-mail: é a própria pessoa voltando. Devolve o ingresso.
+    const anterior = existentes[0];
+    if (String(anterior.email || "").trim().toLowerCase() === email) {
+      return NextResponse.json({ ok: true, jaInscrito: true, token: criarTokenIngresso(anterior.id) });
+    }
+    return erro("Esse CPF já fez check-in neste corre. Para ver o ingresso, use \"Retirar meu ingresso\" com o e-mail do check-in.", 409);
   }
 
-  const { error } = await supabase.from("checkins").insert({
+  const { data: criado, error } = await supabase.from("checkins").insert({
     nome_completo: nome,
     email,
     telefone,
@@ -82,9 +85,9 @@ export async function POST(request: NextRequest) {
     evento_id: evento.id,
     data_hora_checkin: new Date().toISOString(),
     validacao_do_checkin: false,
-  });
-  if (error) {
-    console.error("[boracomsomma] Falha ao gravar check-in:", error.message, error.details);
+  }).select("id").single();
+  if (error || !criado) {
+    console.error("[boracomsomma] Falha ao gravar check-in:", error?.message, error?.details);
     return erro("Não deu para confirmar agora. Tente de novo em instantes.", 500);
   }
 
@@ -97,5 +100,5 @@ export async function POST(request: NextRequest) {
     eventoId: evento.id,
   });
 
-  return NextResponse.json({ ok: true }, { status: 201 });
+  return NextResponse.json({ ok: true, token: criarTokenIngresso(criado.id) }, { status: 201 });
 }

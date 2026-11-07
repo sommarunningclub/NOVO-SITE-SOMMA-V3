@@ -27,6 +27,17 @@ export const EVENTO_PADRAO = {
   pelotoes: ["4km", "6km", "8km"],
 };
 
+/**
+ * Ponto de encontro: Estacionamento 10 do Parque da Cidade. Não há pino oficial
+ * do estacionamento, então o link é uma busca no Google Maps pelo nome, que cai
+ * no lugar certo. Se a gestão preencher `local_url` no evento, vale o dela.
+ */
+const BUSCA_MAPA = "Estacionamento 10, Parque da Cidade Sarah Kubitschek, Brasília - DF";
+export const MAPA = {
+  url: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(BUSCA_MAPA)}`,
+  embed: `https://www.google.com/maps?q=${encodeURIComponent(BUSCA_MAPA)}&z=16&output=embed`,
+};
+
 export const PELOTOES: Record<string, { rotulo: string; descricao: string }> = {
   "4km": { rotulo: "Ritmo iniciante", descricao: "Alterna corrida e caminhada" },
   "6km": { rotulo: "Ritmo moderado", descricao: "Pace aproximado de 6'30\"" },
