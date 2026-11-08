@@ -76,6 +76,7 @@ const nextConfig = {
       "p",
       "privacidade",
       "regulamento",
+      "resgatar",
       "fotos",
       "marca",
     ];
