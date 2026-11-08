@@ -33,6 +33,9 @@ export const EVENTO_PADRAO = {
  * no lugar certo. Se a gestão preencher `local_url` no evento, vale o dela.
  */
 const BUSCA_MAPA = "Estacionamento 10, Parque da Cidade Sarah Kubitschek, Brasília - DF";
+/** Coordenada do Estacionamento 10 devolvida pela Places API (cravada para o mapa não depender de geocodificação). */
+export const GEO = { lat: -15.8026153, lng: -47.9049729 } as const;
+
 export const MAPA = {
   url: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(BUSCA_MAPA)}`,
   embed: `https://www.google.com/maps?q=${encodeURIComponent(BUSCA_MAPA)}&z=16&output=embed`,

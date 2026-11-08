@@ -20,13 +20,13 @@ import {
   RUNY,
   URL_LP,
   VIDEOS,
-  MAPA,
   YANN,
 } from "@/lib/boracomsomma/config";
 import { buscarEvento, horarioCurto, partesDaData } from "@/lib/boracomsomma/evento";
 import { CheckIn } from "./_components/CheckIn";
 import { Contagem } from "./_components/Contagem";
 import { VideoBora } from "./_components/VideoBora";
+import { MapaEncontro } from "./_components/MapaEncontro";
 
 /**
  * /boracomsomma: LP do corre de 14/11/2026, o anúncio oficial da BORA como
@@ -558,7 +558,7 @@ export default async function BoraComSommaPage() {
                 width={400}
                 height={140}
                 className={`h-8 w-auto sm:h-10 ${
-                  p.filtro === "branco" ? "brightness-0 invert" : p.filtro === "inverter" ? "invert" : ""
+                  p.filtro === "branco" ? "brightness-0 invert" : ""
                 }`}
               />
             ))}
@@ -587,13 +587,7 @@ export default async function BoraComSommaPage() {
             </a>
           </div>
           <div className="overflow-hidden rounded-[28px] border border-white/10">
-            <iframe
-              title="Mapa: Estacionamento 10 do Parque da Cidade"
-              src={MAPA.embed}
-              className="h-[320px] w-full grayscale invert-[0.92] hue-rotate-180 sm:h-[420px]"
-              loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
-            />
+            <MapaEncontro className="h-[320px] sm:h-[420px]" />
           </div>
         </div>
       </section>
