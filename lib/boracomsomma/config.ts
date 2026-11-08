@@ -155,7 +155,7 @@ export const PARCEIROS = [
   { nome: "adidas", logo: "/boracomsomma/parceiros/adidas.svg", filtro: "branco" },
   { nome: "Netshoes", logo: "/boracomsomma/parceiros/netshoes.png", filtro: "branco" },
   { nome: "DUX", logo: "/boracomsomma/parceiros/dux.png", filtro: "branco" },
-  { nome: "Liquidz", logo: "/boracomsomma/parceiros/liquidz.png", filtro: "inverter" },
+  { nome: "Liquidz", logo: "/boracomsomma/parceiros/liquidz.svg", filtro: "nenhum" },
   { nome: "Dobro", logo: "/boracomsomma/parceiros/dobro.png", filtro: "nenhum" },
 ] as const;
 
