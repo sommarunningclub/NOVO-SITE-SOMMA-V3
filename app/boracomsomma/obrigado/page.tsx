@@ -11,6 +11,7 @@ import { horarioCurto, partesDaData } from "@/lib/boracomsomma/evento";
 import { lerIngresso } from "@/lib/boracomsomma/ingresso";
 import { AcoesIngresso } from "../_components/AcoesIngresso";
 import { RetirarIngresso } from "../_components/RetirarIngresso";
+import { MapaEncontro } from "../_components/MapaEncontro";
 
 /**
  * /boracomsomma/obrigado?t=<token>: página de obrigado do check-in, com a
@@ -209,13 +210,7 @@ export default async function ObrigadoPage({ searchParams }: { searchParams: Pro
             </ul>
           </div>
           <div className="overflow-hidden rounded-[28px] border border-white/10">
-            <iframe
-              title="Mapa: Estacionamento 10 do Parque da Cidade"
-              src={MAPA.embed}
-              className="h-[340px] w-full grayscale invert-[0.92] hue-rotate-180 sm:h-[440px]"
-              loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
-            />
+            <MapaEncontro className="h-[340px] sm:h-[440px]" />
           </div>
         </div>
       </section>
