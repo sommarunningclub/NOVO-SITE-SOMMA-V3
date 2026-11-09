@@ -26,6 +26,7 @@ import { buscarEvento, horarioCurto, partesDaData } from "@/lib/boracomsomma/eve
 import { CheckIn } from "./_components/CheckIn";
 import { Contagem } from "./_components/Contagem";
 import { VideoBora } from "./_components/VideoBora";
+import { VideoHero } from "./_components/VideoHero";
 import { MapaEncontro } from "./_components/MapaEncontro";
 
 /**
@@ -92,18 +93,8 @@ export default async function BoraComSommaPage() {
       {/* ───────── Abertura ───────── */}
       <section className="relative isolate min-h-[100svh] overflow-hidden lg:min-h-0">
         {/* Celular: o vídeo é o fundo. */}
-        <video
-          className="absolute inset-0 -z-20 h-full w-full object-cover lg:hidden"
-          src="/boracomsomma/videos/hero-loop.mp4"
-          poster="/boracomsomma/videos/hero-loop.jpg"
-          autoPlay
-          muted
-          loop
-          playsInline
-          preload="metadata"
-          aria-hidden="true"
-        />
-        <div className="absolute inset-0 -z-10 bg-gradient-to-b from-black/70 via-black/40 to-black lg:hidden" />
+        <VideoHero className="absolute inset-0 -z-20 h-full w-full scale-105 object-cover blur-[3px] lg:hidden" />
+        <div className="absolute inset-0 -z-10 bg-gradient-to-b from-black/80 via-black/55 to-black lg:hidden" />
         <Image
           src="/bora/pattern-bora-white.webp"
           alt=""
@@ -172,17 +163,7 @@ export default async function BoraComSommaPage() {
           {/* Computador: o vídeo vira um card vertical. */}
           <div className="relative mx-auto hidden w-full max-w-[340px] lg:block">
             <div className="rotate-[2.5deg] overflow-hidden rounded-[32px] border-4 border-bora shadow-[0_30px_120px_-20px_rgba(206,255,0,0.35)]">
-              <video
-                className="aspect-[9/16] w-full object-cover"
-                src="/boracomsomma/videos/hero-loop.mp4"
-                poster="/boracomsomma/videos/hero-loop.jpg"
-                autoPlay
-                muted
-                loop
-                playsInline
-                preload="metadata"
-                aria-hidden="true"
-              />
+              <VideoHero className="aspect-[9/16] w-full object-cover" />
             </div>
             <Image
               src="/bora/sticker-letz-bora-green.webp"
