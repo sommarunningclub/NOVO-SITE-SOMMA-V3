@@ -51,7 +51,7 @@ export const YANN = {
   nome: "Yann Rodrigues",
   instagram: "https://www.instagram.com/yannrodrigues/",
   arroba: "@yannrodrigues",
-  foto: "/boracomsomma/fotos/bora-6.jpg",
+  foto: "/boracomsomma/fotos/yann-rodrigues.jpg",
   fatos: [
     { valor: "2h43", rotulo: "na maratona" },
     { valor: "611 mil", rotulo: "seguidores" },
