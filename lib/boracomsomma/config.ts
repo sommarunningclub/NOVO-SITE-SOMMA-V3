@@ -52,11 +52,6 @@ export const YANN = {
   instagram: "https://www.instagram.com/yannrodrigues/",
   arroba: "@yannrodrigues",
   foto: "/boracomsomma/fotos/yann-rodrigues.jpg",
-  fatos: [
-    { valor: "2h43", rotulo: "na maratona" },
-    { valor: "611 mil", rotulo: "seguidores" },
-    { valor: "BORA", rotulo: "fundador" },
-  ],
   bio: "Maratonista, compositor nas horas vagas, fundador da BORA Assessoria e embaixador adidas e Netshoes.",
 };
 
