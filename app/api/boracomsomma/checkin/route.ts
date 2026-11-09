@@ -1,9 +1,11 @@
-import { NextResponse, type NextRequest } from "next/server";
+import { after, NextResponse, type NextRequest } from "next/server";
 import { getServiceSupabase } from "@/lib/supabase";
 import { registrarAceites } from "@/lib/aceites/registrar";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
 import { buscarEvento } from "@/lib/boracomsomma/evento";
-import { criarTokenIngresso } from "@/lib/boracomsomma/ingresso";
+import { codigoDoIngresso, criarTokenIngresso, qrPngBuffer } from "@/lib/boracomsomma/ingresso";
+import { URL_LP } from "@/lib/boracomsomma/config";
+import { enviarIngresso } from "@/lib/emails/boracomsomma-ingresso";
 import { cpfValido, emailValido, nomeValido, sexoValido, telefoneValido } from "@/lib/boracomsomma/validacao";
 
 export const dynamic = "force-dynamic";
@@ -15,6 +17,11 @@ export const dynamic = "force-dynamic";
  * /api/checkin: é isso que faz a inscrição aparecer no módulo de Check-in da
  * gestão. A diferença é que aqui o servidor confere o evento (status aberto,
  * pelotão existente) em vez de confiar no que a página mandou.
+ *
+ * Depois de gravar, o ingresso vai por e-mail (Resend) em `after()`: a resposta
+ * não espera o envio, e se ele falhar a pessoa continua inscrita e com o
+ * ingresso na tela. Quem refaz o check-in com o mesmo CPF e e-mail não recebe
+ * de novo.
  */
 
 function erro(mensagem: string, status: number) {
@@ -100,5 +107,22 @@ export async function POST(request: NextRequest) {
     eventoId: evento.id,
   });
 
-  return NextResponse.json({ ok: true, token: criarTokenIngresso(criado.id) }, { status: 201 });
+  const token = criarTokenIngresso(criado.id);
+  after(async () => {
+    try {
+      await enviarIngresso({
+        email,
+        nome,
+        codigo: codigoDoIngresso(criado.id),
+        pelotao,
+        url: `${URL_LP}/obrigado?t=${encodeURIComponent(token)}`,
+        qrPng: await qrPngBuffer(criado.id),
+        evento,
+      });
+    } catch (e) {
+      console.error("[boracomsomma] Falha no e-mail do ingresso:", e instanceof Error ? e.message : e);
+    }
+  });
+
+  return NextResponse.json({ ok: true, token }, { status: 201 });
 }
