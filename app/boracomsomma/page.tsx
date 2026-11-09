@@ -257,15 +257,6 @@ export default async function BoraComSommaPage() {
               Yann Rodrigues <span className="text-bora">corre com o SOMMA</span>
             </Titulo>
             <p className="mt-6 max-w-xl text-lg leading-relaxed text-white/75">{YANN.bio}</p>
-            <dl className="mt-8 grid grid-cols-3 gap-3">
-              {YANN.fatos.map((f) => (
-                <div key={f.rotulo} className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
-                  <dt className="sr-only">{f.rotulo}</dt>
-                  <dd className="font-bora text-2xl font-black italic leading-none text-bora sm:text-4xl">{f.valor}</dd>
-                  <p className="mt-2 text-xs font-semibold uppercase tracking-widest text-white/55">{f.rotulo}</p>
-                </div>
-              ))}
-            </dl>
             <div className="mt-8 rounded-3xl bg-bora p-6 text-black sm:p-8">
               <p className="font-bora text-sm font-bold uppercase tracking-[0.2em]">O desafio mais irado</p>
               <p className="mt-3 font-bora text-3xl font-black uppercase italic leading-[0.95] sm:text-4xl">Quem topa esse desafio?</p>
