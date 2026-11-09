@@ -83,3 +83,13 @@ export async function qrPng(checkinId: string): Promise<string> {
     color: { dark: "#000000", light: "#CEFF00" },
   });
 }
+
+/** O mesmo QR em PNG binário, para ir como anexo inline no e-mail. */
+export async function qrPngBuffer(checkinId: string): Promise<Buffer> {
+  return QRCode.toBuffer(`BORACOMSOMMA:${checkinId}`, {
+    margin: 0,
+    width: 360,
+    errorCorrectionLevel: "M",
+    color: { dark: "#000000", light: "#CEFF00" },
+  });
+}
