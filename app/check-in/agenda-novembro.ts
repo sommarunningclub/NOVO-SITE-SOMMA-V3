@@ -9,12 +9,12 @@
  *
  * Textos só com o que o carrossel já promete. Sem travessão na copy.
  *
- * O 28/11 fica como surpresa até o Alex liberar: nem nome, nem parceiro, nem
- * local, nem lâmina no código (o bundle é público). Para revelar, trocar o item
- * por um com identidade própria, como os outros.
+ * O 28/11 ficou como evento surpresa até 09/11/2026, quando o Alex liberou a
+ * State Grid. A identidade 'surpresa' segue disponível para o próximo segredo:
+ * nesse caso nada de nome, parceiro, local ou lâmina no código (o bundle é público).
  */
 
-export type IdentidadeAgenda = 'dex' | 'bora' | 'mu' | 'surpresa'
+export type IdentidadeAgenda = 'dex' | 'bora' | 'mu' | 'sg' | 'surpresa'
 
 export type ItemAgenda = {
   /** yyyy-mm-dd */
@@ -73,10 +73,13 @@ export const AGENDA_NOVEMBRO: ItemAgenda[] = [
   },
   {
     data: '2026-11-28',
-    identidade: 'surpresa',
-    titulo: 'Evento surpresa',
-    subtitulo: 'Revelamos em breve',
-    destaques: [],
+    identidade: 'sg',
+    titulo: 'SOMMA Club ft. State Grid',
+    subtitulo: 'Run Fun',
+    local: 'Parque da Cidade, Estacionamento 13',
+    localDetalhe: 'Em frente à Administração do Parque',
+    lamina: `${BASE}/lamina-28-11.jpg`,
+    destaques: ['Run Fun com a State Grid', 'O último sábado de novembro'],
   },
 ]
 
