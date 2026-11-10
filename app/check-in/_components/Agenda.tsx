@@ -198,6 +198,13 @@ function Ingresso({ item, hoje, onAbrir }: { item: ItemAgenda; hoje: string; onA
 function Marca({ identidade }: { identidade: ItemAgenda['identidade'] }) {
   if (identidade === 'dex') return <img src="/check-in/novembro/dex-coracao.png" alt="" />
   if (identidade === 'mu') return <img src="/check-in/novembro/tampinha-michelob.png" alt="" />
+  // o logo da State Grid tem fundo branco: mora num disco branco, como na lâmina
+  if (identidade === 'sg')
+    return (
+      <span className="ck-disco">
+        <img src="/check-in/novembro/state-grid-logo.jpg" alt="" className="h-[88%] w-[88%] object-contain" />
+      </span>
+    )
   if (identidade === 'bora')
     return (
       <span className="ck-disco">

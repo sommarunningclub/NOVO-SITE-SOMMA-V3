@@ -183,7 +183,11 @@
   .ck-tk-mu .ck-tk-dia b { font-size: 62px; }
 }
 
-/* 28/11 ainda é segredo: ingresso sem identidade, só a data */
+/* State Grid: verde-azulado medido no logo, número no claro da lâmina 06 */
+.ck-tk-sg { --tk: #00807e; --tk-traco: rgba(159, 232, 227, 0.4); }
+.ck-tk-sg .ck-tk-dia b { color: #9fe8e3; }
+
+/* evento ainda em segredo: ingresso sem identidade, só a data */
 .ck-tk-surpresa {
   --tk: linear-gradient(120deg, #2c2c2e 0%, #3a3a3c 45%, #2c2c2e 100%);
   --tk-traco: rgba(255, 255, 255, 0.25);
