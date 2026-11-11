@@ -2,9 +2,8 @@
  * Onde e quando os alunos BORA treinam em Brasília, para a seção "Onde e
  * quando treinar" dos links de professor (sommaclub.com.br/<slug>).
  *
- * O Parque de Águas Claras depende do professor (`AGUAS_CLARAS`); os outros
- * pontos da BORA valem para todos (`PONTOS_BSB`). Passado pelo Alex em
- * 04/11/2026.
+ * A BORA treina só no Noroeste e no Parque da Cidade, e os horários valem
+ * para todos os professores.
  */
 
 export interface Horario {
@@ -15,29 +14,6 @@ export interface Horario {
 export interface PontoBora {
   nome: string;
   horarios: Horario[];
-}
-
-export const AGUAS_CLARAS_NOME = "Brasília - Parque de Águas Claras";
-
-/** Turmas de cada professor no Parque de Águas Claras, pelo slug. `null` = horário a consultar no WhatsApp dele. */
-const AGUAS_CLARAS: Record<string, Horario[] | null> = {
-  joseph: [
-    { dia: "Terça-feira", horario: "Noite" },
-    { dia: "Quinta-feira", horario: "Noite" },
-  ],
-  mateus: [
-    { dia: "Terça-feira", horario: "Noite" },
-    { dia: "Quinta-feira", horario: "Noite" },
-  ],
-  "gabriel-brito": [
-    { dia: "Terça-feira", horario: "Manhã" },
-    { dia: "Quinta-feira", horario: "Manhã" },
-  ],
-  alexandre: null,
-};
-
-export function aguasClarasDoProfessor(slug: string): Horario[] | null {
-  return AGUAS_CLARAS[slug] ?? null;
 }
 
 export const PONTOS_BSB: PontoBora[] = [
