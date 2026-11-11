@@ -15,12 +15,7 @@ import {
   reais,
   type PlanoBora,
 } from "@/lib/nova-assessoria/promo"
-import {
-  AGUAS_CLARAS_NOME,
-  PONTOS_BSB,
-  aguasClarasDoProfessor,
-  type Horario,
-} from "@/lib/nova-assessoria/pontos"
+import { PONTOS_BSB, type Horario } from "@/lib/nova-assessoria/pontos"
 import { CupomDoProfessor } from "./CupomDoProfessor"
 
 /**
@@ -69,41 +64,21 @@ function CartaoDoPlano({ plano, comPromo }: { plano: PlanoBora; comPromo: boolea
 }
 
 /** Um ponto de treino, no formato da lista de unidades da BORA: nome em cima, dia e horário em linhas. */
-function CartaoDoPonto({
-  nome,
-  horarios,
-  destaque,
-  children,
-}: {
-  nome: string
-  horarios: Horario[]
-  destaque?: string
-  children?: React.ReactNode
-}) {
+function CartaoDoPonto({ nome, horarios }: { nome: string; horarios: Horario[] }) {
   return (
-    <li
-      className={`overflow-hidden rounded-3xl border bg-white/[0.03] ${destaque ? "border-bora/70" : "border-white/10"}`}
-    >
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 px-6 py-5">
+    <li className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03]">
+      <div className="border-b border-white/10 px-6 py-5">
         <h3 className="text-xl font-medium">{nome}</h3>
-        {destaque && (
-          <span className="rounded-full bg-bora px-3 py-1 font-bora text-[11px] font-bold uppercase tracking-wider text-black">
-            {destaque}
-          </span>
-        )}
       </div>
       <div className="px-6 py-5">
-        {horarios.length > 0 && (
-          <dl className="grid grid-cols-[auto_1fr] gap-x-8 gap-y-2 text-white/80">
-            {horarios.map((h) => (
-              <div key={h.dia} className="contents">
-                <dt>{h.dia}</dt>
-                <dd className="text-white/60">{h.horario}</dd>
-              </div>
-            ))}
-          </dl>
-        )}
-        {children}
+        <dl className="grid grid-cols-[auto_1fr] gap-x-8 gap-y-2 text-white/80">
+          {horarios.map((h) => (
+            <div key={h.dia} className="contents">
+              <dt>{h.dia}</dt>
+              <dd className="text-white/60">{h.horario}</dd>
+            </div>
+          ))}
+        </dl>
       </div>
     </li>
   )
@@ -117,7 +92,6 @@ export function PaginaDoProfessor({ nome }: { nome: string }) {
   const pagina = `bio-${slug}`
   const cupom = cupomDoProfessor(slug)
   const comPromo = promoValendo() && cupom !== null
-  const aguasClaras = aguasClarasDoProfessor(slug)
 
   return (
     <main className={`${altone.variable} min-h-screen overflow-x-hidden bg-black pb-28 text-white sm:pb-0`}>
@@ -259,26 +233,6 @@ export function PaginaDoProfessor({ nome }: { nome: string }) {
           </h2>
 
           <ul className="mt-10 grid gap-4 md:grid-cols-2">
-            <CartaoDoPonto
-              nome={AGUAS_CLARAS_NOME}
-              horarios={aguasClaras ?? [{ dia: "Horário", horario: "A consultar" }]}
-              destaque={`Com o ${primeiroNome}`}
-            >
-              {!aguasClaras && (
-                <div className="mt-5">
-                  <p className="text-sm leading-relaxed text-white/60">
-                    O {primeiroNome} explica no WhatsApp como funcionam os horários dele.
-                  </p>
-                  <ContatoBora
-                    pagina={pagina}
-                    professor={primeiroNome}
-                    rotulo="Consultar horários"
-                    variante="contorno"
-                    className="mt-4 px-5 py-3 text-sm"
-                  />
-                </div>
-              )}
-            </CartaoDoPonto>
             {PONTOS_BSB.map((ponto) => (
               <CartaoDoPonto key={ponto.nome} nome={ponto.nome} horarios={ponto.horarios} />
             ))}
