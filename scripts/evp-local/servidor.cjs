@@ -25,7 +25,17 @@ async function main() {
   await db.exec(`create table if not exists public.aceites_termos (
     id bigint generated always as identity primary key, tipo text, versao text, origem text, forma text,
     cpf_digits text, nome text, email text, evento_id text, ip text, user_agent text, criado_em timestamptz default now())`);
-  await db.exec(fs.readFileSync(path.join(__dirname, "../../supabase/migrations/20261111190000_evp_plataforma_eventos.sql"), "utf8"));
+  // Base do clube, só com o que a identificação por CPF consulta.
+  await db.exec(`create table if not exists public.cadastro_site (
+    id uuid primary key default gen_random_uuid(), nome_completo text, email text, cpf text, data_nascimento text,
+    whatsapp text, cep text, sexo text, data_de_cadastro timestamptz default now());
+    create table if not exists public.checkins (
+    id uuid primary key default gen_random_uuid(), nome_completo text, email text, telefone text, cpf text, sexo text,
+    data_hora_checkin timestamptz default now())`);
+  const pasta = path.join(__dirname, "../../supabase/migrations");
+  for (const n of fs.readdirSync(pasta).filter((x) => x.includes("_evp_")).sort()) {
+    await db.exec(fs.readFileSync(path.join(pasta, n), "utf8"));
+  }
 
   const corpoDe = (req) =>
     new Promise((ok) => {
@@ -78,6 +88,51 @@ async function main() {
             );
           }
           return json(res, 201);
+        }
+
+        // cadastro_site e checkins: leitura com filtros simples, inserção e atualização por id.
+        const tab = url.pathname.match(/^\/rest\/v1\/(cadastro_site|checkins)$/);
+        if (tab) {
+          const tabela = tab[1];
+          const onde = [];
+          const params = [];
+          let ordem = "";
+          let limite = "";
+          for (const [k, v] of url.searchParams) {
+            if (k === "select") continue;
+            if (k === "limit") { limite = ` limit ${Number(v) || 1}`; continue; }
+            if (k === "order") { const [col, dir] = v.split("."); ordem = ` order by ${col.replace(/[^a-z_]/g, "")} ${dir === "desc" ? "desc" : "asc"}`; continue; }
+            const col = k.replace(/[^a-z_]/g, "");
+            const [op, ...resto] = v.split(".");
+            const val = resto.join(".");
+            if (op === "eq") { params.push(val); onde.push(`${col}::text = $${params.length}`); }
+            else if (op === "ilike") { params.push(val.replace(/\*/g, "%")); onde.push(`${col} ilike $${params.length}`); }
+            else if (op === "in") {
+              const itens = val.replace(/^\(|\)$/g, "").split(",").map((x) => x.replace(/^"|"$/g, ""));
+              onde.push(`${col} in (${itens.map((x) => { params.push(x); return `$${params.length}`; }).join(",")})`);
+            }
+          }
+          const filtro = onde.length ? ` where ${onde.join(" and ")}` : "";
+          if (req.method === "GET") {
+            const { rows } = await db.query(`select * from ${tabela}${filtro}${ordem}${limite}`, params);
+            return json(res, 200, rows);
+          }
+          const corpo = JSON.parse((await corpoDe(req)).toString() || "{}");
+          if (req.method === "POST") {
+            const saida = [];
+            for (const l of Array.isArray(corpo) ? corpo : [corpo]) {
+              const cols = Object.keys(l);
+              const { rows } = await db.query(`insert into ${tabela} (${cols.join(",")}) values (${cols.map((_, i) => `$${i + 1}`).join(",")}) returning *`, cols.map((c) => l[c]));
+              saida.push(rows[0]);
+            }
+            return json(res, 201, saida);
+          }
+          if (req.method === "PATCH") {
+            const cols = Object.keys(corpo);
+            const base = params.length;
+            await db.query(`update ${tabela} set ${cols.map((c, i) => `${c} = $${base + i + 1}`).join(", ")}${filtro}`, [...params, ...cols.map((c) => corpo[c])]);
+            return json(res, 204);
+          }
         }
 
         const obj = url.pathname.match(/^\/storage\/v1\/object\/(public\/)?(.+)$/);

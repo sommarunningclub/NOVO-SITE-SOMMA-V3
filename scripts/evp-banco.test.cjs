@@ -25,8 +25,8 @@ const t = (nome, cond, extra) => {
   const { PGlite } = await import(process.env.PGLITE_PATH || "@electric-sql/pglite");
   const db = new PGlite();
   await db.exec("create role anon; create role authenticated; create role service_role;");
-  const arquivo = path.join(__dirname, "../supabase/migrations/20261111190000_evp_plataforma_eventos.sql");
-  const sql = fs.readFileSync(arquivo, "utf8");
+  const pasta = path.join(__dirname, "../supabase/migrations");
+  const sql = fs.readdirSync(pasta).filter((n) => n.includes("_evp_")).sort().map((n) => fs.readFileSync(path.join(pasta, n), "utf8")).join("\n");
   await db.exec(sql);
   await db.exec(sql); // pode reexecutar
 

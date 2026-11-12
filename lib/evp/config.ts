@@ -42,7 +42,9 @@ export type DistanciaBase = (typeof DISTANCIAS_BASE)[number];
 
 /** Combinações do Desafio Monumental previstas no regulamento. */
 export const DESAFIOS = ["5k+21k", "10k+21k", "5k+42k", "10k+42k"] as const;
-export const DISTANCIAS_INSCRICAO = [...DISTANCIAS_BASE, ...DESAFIOS] as const;
+/** Quem não vai correr a Monumental e só quer participar do encontro. */
+export const SEM_PROVA = "nao_corre" as const;
+export const DISTANCIAS_INSCRICAO = [...DISTANCIAS_BASE, ...DESAFIOS, SEM_PROVA] as const;
 export type DistanciaInscricao = (typeof DISTANCIAS_INSCRICAO)[number];
 
 export const ROTULO_DISTANCIA: Record<DistanciaInscricao, string> = {
@@ -54,6 +56,7 @@ export const ROTULO_DISTANCIA: Record<DistanciaInscricao, string> = {
   "10k+21k": "Desafio Monumental · 10 km + 21 km",
   "5k+42k": "Desafio Monumental · 5 km + 42 km",
   "10k+42k": "Desafio Monumental · 10 km + 42 km",
+  nao_corre: "Não vai correr, só participar",
 };
 
 export const ROTULO_CURTO: Record<DistanciaInscricao, string> = {
@@ -65,10 +68,12 @@ export const ROTULO_CURTO: Record<DistanciaInscricao, string> = {
   "10k+21k": "10 + 21 km",
   "5k+42k": "5 + 42 km",
   "10k+42k": "10 + 42 km",
+  nao_corre: "Não corre",
 };
 
 /** Distância que o mapa e o seletor destacam para cada opção do formulário. */
 export function distanciaPrincipal(d: DistanciaInscricao): DistanciaBase {
+  if (d === SEM_PROVA) return "21k";
   if (d.includes("42k")) return "42k";
   if (d.includes("21k")) return "21k";
   return d as DistanciaBase;

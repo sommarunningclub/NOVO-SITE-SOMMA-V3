@@ -1,7 +1,8 @@
 import { z } from "zod";
 import { isValidCPF } from "@/lib/cpf";
 import { checarCelularBR, normalizarTelefoneBR, TELEFONE_MSG } from "@/lib/telefone";
-import { DISTANCIAS_INSCRICAO } from "./config";
+import { isValidBirthDate } from "@/lib/validation";
+import { DISTANCIAS_INSCRICAO, SEM_PROVA } from "./config";
 
 /**
  * Validação da inscrição. O mesmo schema roda no formulário (para avisar na
@@ -53,9 +54,20 @@ export const etapa1Schema = z.object({
   sexo: z.enum(SEXOS, { message: "Escolha uma opção" }),
 });
 
+/** Data de nascimento e CEP só entram quando o cadastro do clube precisa deles. */
+export const cadastroSchema = z.object({
+  data_nascimento: z.string().trim().refine(isValidBirthDate, { message: "Data inválida: use dia/mês/ano" }),
+  cep: z.string().transform(soDigitos).refine((v) => v.length === 8, { message: "CEP incompleto: são 8 dígitos" }),
+});
+
+const SIM_NAO = ["sim", "nao"] as const;
+
 export const etapa2Schema = z.object({
-  distancia: z.enum(DISTANCIAS_INSCRICAO, { message: "Escolha a distância que você vai correr" }),
-  primeira_vez: z.enum(["sim", "nao"], { message: "Conte se é a sua primeira vez nessa distância" }),
+  tem_assessoria: z.enum(SIM_NAO, { message: "Conte se você já é de alguma assessoria" }),
+  assessoria_nome: z.string().trim().max(80, "Nome muito longo").optional().default(""),
+  vai_correr: z.enum(SIM_NAO, { message: "Conte se você vai correr a Monumental" }),
+  distancia: z.enum(DISTANCIAS_INSCRICAO).optional(),
+  primeira_vez: z.enum(SIM_NAO).optional(),
 });
 
 export const etapa3Schema = z.object({
@@ -64,9 +76,23 @@ export const etapa3Schema = z.object({
   aceite_marketing: z.boolean().optional().default(false),
 });
 
-export const inscricaoSchema = etapa1Schema.extend(etapa2Schema.shape).extend(etapa3Schema.shape);
-export type InscricaoForm = z.input<typeof inscricaoSchema>;
-export type InscricaoDados = z.output<typeof inscricaoSchema>;
+type ComProva = { vai_correr?: "sim" | "nao"; distancia?: string; primeira_vez?: string };
+
+/** Quem vai correr precisa dizer a distância e se é a primeira vez. Quem não vai, não. */
+export function regrasDaProva(v: ComProva, ctx: z.core.$RefinementCtx) {
+  if (v.vai_correr !== "sim") return;
+  if (!v.distancia || v.distancia === SEM_PROVA) {
+    ctx.addIssue({ code: "custom", path: ["distancia"], message: "Escolha a distância que você vai correr" });
+  }
+  if (!v.primeira_vez) {
+    ctx.addIssue({ code: "custom", path: ["primeira_vez"], message: "Conte se é a sua primeira vez nessa distância" });
+  }
+}
+
+const inscricaoBase = etapa1Schema.extend(etapa2Schema.shape).extend(etapa3Schema.shape);
+export const inscricaoSchema = inscricaoBase.superRefine(regrasDaProva);
+export type InscricaoForm = z.input<typeof inscricaoBase> & { data_nascimento?: string; cep?: string };
+export type InscricaoDados = z.output<typeof inscricaoBase>;
 
 const texto = (max: number) => z.string().trim().max(max).nullish();
 
@@ -82,14 +108,16 @@ export const origemSchema = z
   .partial();
 
 /** Corpo que o servidor aceita no POST da inscrição. */
-export const corpoInscricaoSchema = inscricaoSchema.extend({
+export const corpoInscricaoSchema = inscricaoBase
+  .extend({
   idempotency_key: z.string().uuid({ message: "Recarregue a página e tente de novo" }),
   /** Selo emitido pelo servidor quando o formulário abre (anti-robô). */
   selo: z.string().min(10).max(400),
   /** Campo isca: gente não vê, robô preenche. */
   site: z.string().max(0).optional().or(z.literal("")),
   origem: origemSchema.optional(),
-});
+  })
+  .superRefine(regrasDaProva);
 
 /** { campo: mensagem } a partir dos erros do Zod. */
 export function camposComErro(issues: z.core.$ZodIssue[]): Record<string, string> {

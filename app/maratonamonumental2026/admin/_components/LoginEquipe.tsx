@@ -7,7 +7,6 @@ const TITULO = { admin: "Painel do evento", credenciamento: "Credenciamento" } a
 
 export function LoginEquipe({ destino }: { destino: "admin" | "credenciamento" }) {
   const router = useRouter();
-  const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [erro, setErro] = useState("");
   const [enviando, setEnviando] = useState(false);
@@ -21,7 +20,9 @@ export function LoginEquipe({ destino }: { destino: "admin" | "credenciamento" }
       const res = await fetch("/api/evp/equipe/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim(), senha }),
+        // A tela pede só o código de acesso (pedido do Alex em 12/11/2026). Sem
+        // e-mail, a rota confere o código com a senha mestra do ambiente.
+        body: JSON.stringify({ email: "", senha: senha.trim() }),
       });
       const corpo = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) {
@@ -46,28 +47,13 @@ export function LoginEquipe({ destino }: { destino: "admin" | "credenciamento" }
         </h1>
         <div className="mt-6 grid gap-4">
           <label className="mt-campo">
-            <span className="mt-rotulo">E-mail</span>
-            <input
-              className="mt-input"
-              type="email"
-              inputMode="email"
-              autoComplete="username"
-              autoCapitalize="none"
-              spellCheck={false}
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              aria-describedby="login-dica"
-            />
-            <span id="login-dica" className="mt-2 block text-sm" style={{ color: "var(--mt-cinza)", marginBottom: 0 }}>
-              Deixe em branco para usar a senha mestra.
-            </span>
-          </label>
-          <label className="mt-campo">
-            <span className="mt-rotulo">Senha</span>
+            <span className="mt-rotulo">Código de acesso</span>
             <input
               className="mt-input"
               type="password"
+              inputMode="numeric"
               autoComplete="current-password"
+              autoFocus
               required
               value={senha}
               onChange={(e) => setSenha(e.target.value)}

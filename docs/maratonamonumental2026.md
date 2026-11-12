@@ -39,6 +39,36 @@ Quando as vagas acabam, vale a opção "ao lotar": lista de espera (padrão) ou
 encerrar. Com lista de espera e promoção automática, um cancelamento confirma
 na hora o primeiro da fila e manda o e-mail para ele.
 
+## Formulário: CPF primeiro
+
+A inscrição começa só com o CPF, igual à inscrição da home, e usa as mesmas
+rotas (`/api/cadastro-site/identificar` e `/api/cadastro-site/atualizar`).
+
+1. **CPF.** O servidor responde apenas se existe cadastro e qual confirmação
+   pedir. Nenhum nome, e-mail ou telefone sai só com o CPF.
+2. **Já é da base do SOMMA.** A pessoa confirma quem é (data de nascimento ou os
+   4 últimos dígitos do WhatsApp). Acertando, os dados vêm preenchidos e a tela
+   pede só o que falta no cadastro, que é completado junto com a inscrição.
+   Quem não lembra a confirmação preenche os dados à mão; nesse caso o cadastro
+   do clube não é tocado.
+3. **Não é da base.** Cadastro normal: nome, e-mail, WhatsApp, data de
+   nascimento, CEP e sexo. A inscrição no Meeting e o cadastro no clube
+   (`cadastro_site`, com o e-mail de boas-vindas de sempre) são criados juntos.
+4. **Sua prova.** Já é de alguma assessoria (e qual, opcional)? Vai correr a
+   Monumental ou só quer participar? Quem vai correr diz a distância e se é a
+   primeira vez; quem não vai fica com `distancia = 'nao_corre'`.
+
+O painel mostra as três respostas novas (vai correr, assessoria, já era da base)
+nos indicadores, na ficha e no CSV. "Já era da base" é conferido pelo servidor
+na hora da inscrição, não informado pelo formulário.
+
+Migration desta etapa, a rodar antes do deploy:
+
+```
+supabase db query --linked -f supabase/migrations/20261112090000_evp_inscricao_cpf_perfil.sql
+supabase migration repair --linked --status applied 20261112090000
+```
+
 ## Banco de dados
 
 A especificação pedia `events`, `event_registrations` etc. O nome
@@ -174,12 +204,12 @@ cai na página de obrigado, que mostra o ingresso.
 ```
 npm i --no-save @electric-sql/pglite
 
-# 1. Regras do banco, com a migration real, num Postgres em memória (55 testes)
+# 1. Regras do banco, com as migrations reais, num Postgres em memória (55 testes)
 node scripts/evp-banco.test.cjs
 
 # 2. Site local contra o banco de mentira (não toca em produção, não manda e-mail)
 scripts/evp-local/iniciar.sh            # terminal 1: build + start na porta 3120
-node scripts/evp-e2e.mjs                # terminal 2: 93 testes pelas rotas
+node scripts/evp-e2e.mjs                # terminal 2: 103 testes pelas rotas
 node scripts/evp-local/percursos.mjs    # opcional: carrega os GPX no mapa local
 ```
 

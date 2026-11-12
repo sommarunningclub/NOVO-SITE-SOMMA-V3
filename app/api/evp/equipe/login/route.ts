@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
   const corpo = await req.json().catch(() => ({}));
   const email = typeof corpo?.email === "string" ? corpo.email.trim().toLowerCase() : "";
   const senha = typeof corpo?.senha === "string" ? corpo.senha : "";
-  if (!senha) return NextResponse.json({ error: "Informe a senha." }, { status: 422 });
+  if (!senha) return NextResponse.json({ error: "Informe o código de acesso." }, { status: 422 });
 
   try {
     let staffId: string | null = null;
@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
           { status: 401 }
         );
       }
-      if (!senhaMestraCorreta(senha)) return NextResponse.json({ error: "Senha incorreta." }, { status: 401 });
+      if (!senhaMestraCorreta(senha)) return NextResponse.json({ error: "Código de acesso incorreto." }, { status: 401 });
       const m = await rpc<{ id: string; nome: string; papel: Papel } | null>("evp_staff_mestre", { p_slug: SLUG });
       if (!m) return NextResponse.json({ error: "Evento não encontrado. A migration já foi aplicada?" }, { status: 503 });
       staffId = m.id;

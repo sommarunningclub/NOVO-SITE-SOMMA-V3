@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { registrarAceites } from "@/lib/aceites/registrar";
+import { identificar } from "@/lib/cadastro/identificacao";
 import { SLUG } from "@/lib/evp/config";
 import { lerEventoPublico } from "@/lib/evp/db";
 import { avisarPorEmail, conferirSelo, inscrever } from "@/lib/evp/inscricao";
@@ -60,7 +61,15 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const r = await inscrever(dados, { idempotencyKey: idempotency_key, origem });
+    // Já era da base do clube antes desta inscrição? Quem responde é o servidor, não o formulário.
+    let jaMembro = false;
+    try {
+      jaMembro = (await identificar(dados.cpf)).origem === "cadastro";
+    } catch {
+      /* base do clube fora do ar não impede a inscrição */
+    }
+
+    const r = await inscrever(dados, { idempotencyKey: idempotency_key, origem, jaMembro });
 
     if (!r.ok) {
       if (r.motivo === "duplicada") {

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { exigir } from "@/lib/evp/auth";
-import { ROTULO_DISTANCIA, SLUG, type DistanciaInscricao } from "@/lib/evp/config";
+import { ROTULO_DISTANCIA, SEM_PROVA, SLUG, type DistanciaInscricao } from "@/lib/evp/config";
 import { rpc } from "@/lib/evp/db";
 import { cpfMascarado } from "@/lib/evp/schema";
 
@@ -9,6 +9,7 @@ export const dynamic = "force-dynamic";
 type Linha = {
   status: string; codigo: string; nome: string; email: string; telefone: string; cpf_final: string;
   sexo: string; distancia: DistanciaInscricao; primeira_vez: boolean; aceite_marketing: boolean;
+  tem_assessoria: boolean; assessoria_nome: string | null; ja_membro: boolean;
   origem_fonte: string; created_at: string; confirmada_em: string | null; cancelada_em: string | null; checkin_em: string | null;
 };
 
@@ -35,14 +36,17 @@ export async function GET() {
   try {
     const linhas = (await rpc<Linha[]>("evp_admin_participantes", { p_slug: SLUG })) ?? [];
     const cabecalho = [
-      "Status", "Código", "Nome", "E-mail", "WhatsApp", "CPF", "Sexo", "Distância", "Primeira vez na distância",
+      "Status", "Código", "Nome", "E-mail", "WhatsApp", "CPF", "Sexo", "Vai correr", "Distância", "Primeira vez na distância",
+      "Assessoria", "Já era da base SOMMA",
       "Aceita comunicação", "Origem", "Inscrição em", "Confirmada em", "Cancelada em", "Check-in em",
     ];
     const corpo = linhas.map((l) =>
       [
         STATUS[l.status] ?? l.status, l.codigo, l.nome, l.email, l.telefone, cpfMascarado(l.cpf_final),
-        l.sexo === "feminino" ? "Feminino" : "Masculino", ROTULO_DISTANCIA[l.distancia] ?? l.distancia,
-        l.primeira_vez ? "Sim" : "Não", l.aceite_marketing ? "Sim" : "Não", l.origem_fonte,
+        l.sexo === "feminino" ? "Feminino" : "Masculino", l.distancia === SEM_PROVA ? "Não" : "Sim",
+        l.distancia === SEM_PROVA ? "" : (ROTULO_DISTANCIA[l.distancia] ?? l.distancia),
+        l.distancia === SEM_PROVA ? "" : l.primeira_vez ? "Sim" : "Não",
+        l.tem_assessoria ? (l.assessoria_nome || "Sim") : "Não", l.ja_membro ? "Sim" : "Não", l.aceite_marketing ? "Sim" : "Não", l.origem_fonte,
         quando(l.created_at), quando(l.confirmada_em), quando(l.cancelada_em), quando(l.checkin_em),
       ].map(celula).join(";")
     );
