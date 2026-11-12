@@ -83,7 +83,7 @@ export function Painel({ sessao }: { sessao: Sessao }) {
       </header>
 
       <main className="mt-container pt-6" id={`painel-${aba}`} role="tabpanel" aria-labelledby={`aba-${aba}`}>
-        {aba === "painel" && <AbaPainel />}
+        {aba === "painel" && <AbaPainel abrirEvento={() => setAba("evento")} />}
         {aba === "participantes" && <AbaParticipantes />}
         {aba === "evento" && <AbaEvento />}
         {aba === "percursos" && <AbaPercursos />}

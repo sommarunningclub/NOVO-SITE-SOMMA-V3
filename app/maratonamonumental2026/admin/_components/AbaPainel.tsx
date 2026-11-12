@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ROTULO_CURTO, type DistanciaInscricao } from "@/lib/evp/config";
 import type { ModoVagas } from "@/lib/evp/tipos";
 import { Bloco, Carregando, Mensagem, useApi, useSecao, type Aviso, type DadosPainel, type Operacao } from "./api";
+import { ControleInscricoes } from "./ControleInscricoes";
 
 const MODO: Record<ModoVagas, { texto: string; selo: string }> = {
   em_breve: { texto: "Em breve (formulário fechado)", selo: "mt-selo mt-selo--fora" },
@@ -60,7 +61,7 @@ const CHECAGENS: { chave: keyof Operacao; nome: string; falta: string }[] = [
   { chave: "segredo_dados", nome: "Segredo de dados próprio", falta: "Sem EVP_DADOS_SECRET, o CPF é protegido com o segredo de sessão do site. Funciona, mas esse segredo não pode mudar." },
 ];
 
-export function AbaPainel() {
+export function AbaPainel({ abrirEvento }: { abrirEvento: () => void }) {
   const api = useApi();
   const { dados, erro, carregando, recarregar } = useSecao<DadosPainel>("painel");
   const operacao = useSecao<Operacao>("operacao");
@@ -104,9 +105,15 @@ export function AbaPainel() {
 
   return (
     <div className="grid gap-5">
+      <ControleInscricoes
+        status={dados.inscricoes_status ?? "em_breve"}
+        modo={v.modo}
+        aoMudar={() => void recarregar()}
+        abrirEvento={abrirEvento}
+      />
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="mt-rotulo">Inscrições</span>
+          <span className="mt-rotulo">Situação das vagas</span>
           <span className={MODO[v.modo].selo}>{MODO[v.modo].texto}</span>
         </div>
         <div className="flex flex-wrap gap-2">
