@@ -661,7 +661,7 @@ export function Inscricao() {
                                 <input type="radio" value={d} {...distancia(d)} {...campo("distancia")} />
                                 <span className="mt-bolinha" aria-hidden />
                                 <span>
-                                  <span className="block font-semibold">{DISTANCIAS[d].oficial}</span>
+                                  <span className="block font-semibold">{DISTANCIAS[d].numero} km</span>
                                   <span className="block text-[0.78rem] text-[color:var(--mt-cinza)]">{DISTANCIAS[d].dia}, {DISTANCIAS[d].largada}</span>
                                 </span>
                               </label>
