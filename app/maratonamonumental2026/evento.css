@@ -1,0 +1,225 @@
+/* Meeting Técnico | Maratona Monumental de Brasília 2026
+   Tudo aqui vive sob .mt-raiz: nenhuma regra vaza para o resto do site. */
+
+.mt-raiz {
+  --mt-preto: #080808;
+  --mt-carvao: #101010;
+  --mt-grafite: #181818;
+  --mt-linha: rgba(255, 255, 255, 0.12);
+  --mt-linha-forte: rgba(255, 255, 255, 0.24);
+  --mt-branco: #ffffff;
+  --mt-cinza: #a3a3a3;
+  --mt-cinza-fraco: #7c7c7c;
+  --mt-laranja: #ff2c03;
+  --mt-laranja-claro: #ff5a36;
+  --mt-verde: #36d67a;
+  --mt-margem: clamp(1.25rem, 5vw, 4rem);
+  background: var(--mt-preto);
+  color: var(--mt-branco);
+  font-family: var(--font-mt-sans), var(--font-geist-sans), system-ui, sans-serif;
+  min-height: 100dvh;
+  overflow-x: clip;
+}
+
+.mt-raiz ::selection { background: var(--mt-laranja); color: var(--mt-preto); }
+
+.mt-raiz :focus-visible {
+  outline: 2px solid var(--mt-laranja);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* Coluna de grade nunca cresce além da tela por causa de um filho largo (tabela,
+   título grande, botão): o filho encolhe ou quebra linha, a página não. */
+.mt-raiz .grid > * { min-width: 0; }
+.mt-raiz h1, .mt-raiz h2, .mt-raiz h3, .mt-raiz p, .mt-raiz dd { overflow-wrap: break-word; }
+
+.mt-container { width: 100%; max-width: 1320px; margin-inline: auto; padding-inline: var(--mt-margem); }
+
+/* Tipografia: Archivo condensada e pesada nos títulos, Azeret Mono nos dados. */
+.mt-display {
+  font-family: var(--font-mt-sans), sans-serif;
+  font-stretch: 62%;
+  font-variation-settings: "wdth" 62;
+  font-weight: 900;
+  line-height: 0.86;
+  letter-spacing: -0.015em;
+  text-transform: uppercase;
+}
+.mt-titulo {
+  font-family: var(--font-mt-sans), sans-serif;
+  font-stretch: 70%;
+  font-variation-settings: "wdth" 70;
+  font-weight: 850;
+  line-height: 0.95;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  font-size: clamp(1.9rem, 6.2vw, 4.25rem);
+  text-wrap: balance;
+}
+.mt-mono {
+  font-family: var(--font-mt-mono), ui-monospace, monospace;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.mt-rotulo {
+  font-family: var(--font-mt-mono), ui-monospace, monospace;
+  font-size: 0.6875rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--mt-cinza);
+}
+.mt-texto { font-size: clamp(1rem, 1.25vw, 1.125rem); line-height: 1.6; color: #d4d4d4; text-wrap: pretty; }
+
+/* Máscara de título: a linha sobe de dentro dela. */
+.mt-mascara { display: block; overflow: hidden; padding-block: 0.06em; margin-block: -0.06em; }
+.mt-mascara > * { display: block; }
+
+.mt-secao { position: relative; padding-block: clamp(3.25rem, 7vw, 6rem); }
+.mt-secao + .mt-secao { border-top: 1px solid var(--mt-linha); }
+
+/* Marcador de quilômetro: a numeração das seções. */
+.mt-marco {
+  display: inline-flex; align-items: center; gap: 0.75rem;
+  font-family: var(--font-mt-mono), ui-monospace, monospace;
+  font-size: 0.6875rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--mt-cinza);
+}
+.mt-marco::before { content: ""; width: 2.25rem; height: 1px; background: var(--mt-laranja); }
+.mt-marco b { color: var(--mt-laranja); font-weight: 500; }
+
+/* Botões. Texto escuro sobre o laranja: 5,8:1 de contraste (branco daria 3,6:1). */
+.mt-botao {
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.625rem;
+  min-height: 3.25rem; padding: 0.875rem 1.5rem; border-radius: 999px;
+  font-family: var(--font-mt-sans), sans-serif; font-stretch: 78%; font-variation-settings: "wdth" 78;
+  font-weight: 800; font-size: 0.9375rem; letter-spacing: 0.06em; text-transform: uppercase;
+  text-decoration: none; cursor: pointer; border: 1px solid transparent;
+  transition: background-color 0.2s, color 0.2s, border-color 0.2s, transform 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.mt-botao:active { transform: scale(0.98); }
+.mt-botao[disabled], .mt-botao[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; }
+.mt-botao--cheio { background: var(--mt-laranja); color: var(--mt-preto); }
+.mt-botao--cheio:hover:not([disabled]) { background: var(--mt-branco); }
+.mt-botao--linha { border-color: var(--mt-linha-forte); color: var(--mt-branco); background: transparent; }
+.mt-botao--linha:hover:not([disabled]) { border-color: var(--mt-branco); background: rgba(255, 255, 255, 0.06); }
+.mt-botao--pequeno { min-height: 2.75rem; padding: 0.5rem 1.125rem; font-size: 0.8125rem; }
+.mt-seta { transition: transform 0.25s; }
+.mt-botao:hover .mt-seta { transform: translateX(4px); }
+
+/* Estado "em definição": o site diz que ainda não sabe, em vez de inventar. */
+.mt-pendente {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  font-family: var(--font-mt-mono), ui-monospace, monospace; font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--mt-cinza); border: 1px dashed var(--mt-linha-forte); border-radius: 999px; padding: 0.375rem 0.75rem;
+}
+.mt-pendente::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--mt-laranja); animation: mt-pulso 1.8s ease-in-out infinite; }
+@keyframes mt-pulso { 50% { opacity: 0.25; } }
+
+/* Hero: antes do GSAP assumir, os elementos animados ficam ocultos. Se o script
+   não rodar, a animação de segurança mostra tudo depois de 3 s. A classe mt-pre
+   só é posta quando a pessoa não pediu movimento reduzido. */
+.mt-pre [data-hero] { opacity: 0; animation: mt-mostrar 0.01s linear 3s forwards; }
+@keyframes mt-mostrar { to { opacity: 1; } }
+
+/* Linha de percurso: grafismo da página. Não representa o trajeto da prova. */
+.mt-rota { fill: none; stroke: var(--mt-laranja); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+
+/* Campos do formulário: grandes, 16px no mínimo (o iOS dá zoom abaixo disso). */
+.mt-campo { display: block; }
+.mt-campo > span { display: block; margin-bottom: 0.5rem; }
+.mt-input {
+  width: 100%; min-height: 3.5rem; padding: 0.875rem 1rem; border-radius: 12px;
+  background: var(--mt-grafite); border: 1px solid var(--mt-linha-forte); color: var(--mt-branco);
+  font-family: var(--font-geist-sans), system-ui, sans-serif; font-size: 1.0625rem; line-height: 1.3;
+  transition: border-color 0.15s, background-color 0.15s; appearance: none;
+}
+.mt-input::placeholder { color: #6b6b6b; }
+.mt-input:hover { border-color: rgba(255, 255, 255, 0.4); }
+.mt-input:focus { outline: none; border-color: var(--mt-laranja); background: #1d1d1d; box-shadow: 0 0 0 3px rgba(255, 44, 3, 0.25); }
+.mt-input[aria-invalid="true"] { border-color: #ff6b6b; }
+.mt-erro { margin-top: 0.4rem; font-size: 0.875rem; color: #ff8a8a; display: flex; gap: 0.375rem; align-items: flex-start; }
+
+.mt-opcao {
+  display: flex; align-items: center; gap: 0.75rem; min-height: 3.5rem; padding: 0.75rem 1rem; border-radius: 12px;
+  background: var(--mt-grafite); border: 1px solid var(--mt-linha-forte); cursor: pointer; transition: border-color 0.15s, background-color 0.15s;
+  font-size: 1rem;
+}
+.mt-opcao:hover { border-color: rgba(255, 255, 255, 0.4); }
+.mt-opcao:has(input:checked) { border-color: var(--mt-laranja); background: rgba(255, 44, 3, 0.12); }
+.mt-opcao:has(input:focus-visible) { outline: 2px solid var(--mt-laranja); outline-offset: 3px; }
+.mt-opcao input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.mt-opcao .mt-bolinha { flex: none; width: 1.125rem; height: 1.125rem; border-radius: 50%; border: 2px solid var(--mt-cinza-fraco); transition: border-color 0.15s, box-shadow 0.15s; }
+.mt-opcao:has(input:checked) .mt-bolinha { border-color: var(--mt-laranja); box-shadow: inset 0 0 0 3px var(--mt-grafite), inset 0 0 0 9px var(--mt-laranja); }
+
+.mt-check { display: flex; gap: 0.875rem; align-items: flex-start; cursor: pointer; padding: 0.25rem 0; }
+.mt-check input {
+  appearance: none; flex: none; width: 1.5rem; height: 1.5rem; margin-top: 0.125rem; border-radius: 6px;
+  border: 2px solid var(--mt-cinza-fraco); background: var(--mt-grafite); cursor: pointer; transition: background-color 0.15s, border-color 0.15s;
+}
+.mt-check input:checked {
+  background: var(--mt-laranja) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 8.5l3 3 6-7' fill='none' stroke='%23080808' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/80% no-repeat;
+  border-color: var(--mt-laranja);
+}
+.mt-check input[aria-invalid="true"] { border-color: #ff6b6b; }
+.mt-check a { color: var(--mt-branco); text-decoration: underline; text-underline-offset: 3px; }
+
+/* Marcador sobre o Google Maps (OverlayView). */
+.mt-pino {
+  position: absolute; transform: translate(-50%, -50%); display: grid; place-items: center;
+  min-width: 26px; height: 26px; padding: 0 6px; border-radius: 999px; cursor: pointer;
+  background: var(--mt-preto); color: var(--mt-branco); border: 2px solid var(--mt-branco);
+  font: 500 10px/1 var(--font-mt-mono), ui-monospace, monospace; letter-spacing: 0.04em; white-space: nowrap;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+.mt-pino--largada { background: var(--mt-laranja); color: var(--mt-preto); border-color: var(--mt-preto); height: 30px; padding: 0 10px; font-weight: 700; }
+.mt-pino--corte { background: var(--mt-branco); color: var(--mt-preto); border-color: var(--mt-laranja); }
+.mt-pino--ativo { background: var(--mt-laranja); color: var(--mt-preto); border-color: var(--mt-branco); z-index: 5; }
+.mt-pino--corredor {
+  min-width: 0; width: 18px; height: 18px; padding: 0; background: var(--mt-branco); border: 4px solid var(--mt-laranja);
+  box-shadow: 0 0 0 6px rgba(255, 44, 3, 0.28), 0 2px 10px rgba(0, 0, 0, 0.6); z-index: 9; cursor: default; pointer-events: none;
+}
+.mt-pino--regiao { background: rgba(255, 44, 3, 0.18); border: 2px dashed var(--mt-laranja); color: var(--mt-branco); height: 34px; padding: 0 14px; cursor: default; }
+
+/* O ingresso. */
+.mt-ingresso { position: relative; background: #f4f1ea; color: var(--mt-preto); border-radius: 22px; overflow: hidden; }
+.mt-ingresso__picote { position: relative; height: 0; border-top: 2px dashed rgba(8, 8, 8, 0.28); margin-inline: 1.5rem; }
+.mt-ingresso__picote::before, .mt-ingresso__picote::after {
+  content: ""; position: absolute; top: -13px; width: 26px; height: 26px; border-radius: 50%; background: var(--mt-preto);
+}
+.mt-ingresso__picote::before { left: calc(-1.5rem - 13px); }
+.mt-ingresso__picote::after { right: calc(-1.5rem - 13px); }
+
+/* Barra fixa de inscrição no celular. Respeita a área segura do aparelho. */
+.mt-barra-fixa {
+  position: fixed; inset-inline: 0; bottom: 0; z-index: 40;
+  padding: 0.75rem var(--mt-margem) calc(0.75rem + env(safe-area-inset-bottom));
+  background: linear-gradient(to top, rgba(8, 8, 8, 0.96) 60%, rgba(8, 8, 8, 0));
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s;
+}
+.mt-barra-fixa[data-oculta="true"] { transform: translateY(110%); opacity: 0; pointer-events: none; }
+@media (min-width: 1024px) { .mt-barra-fixa { display: none; } }
+/* Espaço no fim da página para a barra fixa não cobrir o rodapé. */
+.mt-fim { padding-bottom: calc(5.5rem + env(safe-area-inset-bottom)); }
+@media (min-width: 1024px) { .mt-fim { padding-bottom: 0; } }
+
+.mt-rolagem-x { overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+.mt-rolagem-x::-webkit-scrollbar { display: none; }
+
+.mt-so-leitor { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  .mt-raiz *, .mt-raiz *::before, .mt-raiz *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+}
+
+/* Painel e credenciamento: mesma pele, densidade de ferramenta. */
+.mt-cartao { background: var(--mt-carvao); border: 1px solid var(--mt-linha); border-radius: 16px; }
+.mt-tabela { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+.mt-tabela th { text-align: left; font: 500 0.6875rem/1 var(--font-mt-mono), ui-monospace, monospace; letter-spacing: 0.14em; text-transform: uppercase; color: var(--mt-cinza); padding: 0.75rem; border-bottom: 1px solid var(--mt-linha-forte); white-space: nowrap; }
+.mt-tabela td { padding: 0.75rem; border-bottom: 1px solid var(--mt-linha); vertical-align: middle; }
+.mt-tabela tbody tr:hover { background: rgba(255, 255, 255, 0.03); }
+.mt-selo { display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.2rem 0.6rem; border-radius: 999px; font: 500 0.6875rem/1.4 var(--font-mt-mono), ui-monospace, monospace; letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap; }
+.mt-selo--ok { background: rgba(54, 214, 122, 0.14); color: var(--mt-verde); }
+.mt-selo--espera { background: rgba(255, 196, 0, 0.14); color: #ffc400; }
+.mt-selo--fora { background: rgba(255, 255, 255, 0.08); color: var(--mt-cinza); }
+.mt-selo--alerta { background: rgba(255, 44, 3, 0.16); color: var(--mt-laranja-claro); }
