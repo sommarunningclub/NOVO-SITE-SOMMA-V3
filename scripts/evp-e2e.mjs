@@ -59,6 +59,8 @@ const pessoa = (extra = {}) => {
     telefone: "(61) 99876-5432",
     cpf: cpf(n),
     sexo: n % 2 ? "feminino" : "masculino",
+    tem_assessoria: "nao",
+    vai_correr: "sim",
     distancia: "21k",
     primeira_vez: "sim",
     aceite_termos: true,
@@ -158,6 +160,29 @@ t("reenvio da mesma requisição não duplica", r1b.status === 200 && r1b.j?.tic
 const dup = await inscrever(pessoa({ cpf: p1.cpf }));
 t("inscrição duplicada: 409 com e-mail mascarado", dup.status === 409 && dup.j?.ja_inscrito === true && /\*/.test(dup.j?.email ?? "") && !dup.j.email.includes("pessoa"), dup.j);
 t("resposta da duplicada não entrega o ingresso", !JSON.stringify(dup.j).includes(r1.j.ticket_token));
+
+console.log("\nCPF primeiro: base do clube, assessoria e quem só quer participar");
+const cpfBase = cpf(7001);
+const cpfBaseFmt = cpfBase.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
+await sql("insert into cadastro_site (nome_completo, email, cpf, data_nascimento, whatsapp, cep, sexo) values ($1,$2,$3,$4,$5,$6,$7)",
+  ["Membro Antigo da Silva", "membro@exemplo.test", cpfBaseFmt, "1990-05-17", "(61) 99123-4567", null, "masculino"]);
+const id1 = await api("/api/cadastro-site/identificar", { metodo: "POST", corpo: { cpf: cpfBase } });
+t("CPF da base: pede confirmação e não entrega nenhum dado", id1.j?.situacao === "confirmar" && id1.j.desafio === "nascimento" && !JSON.stringify(id1.j).includes("Membro"), id1.j);
+t("CPF de fora da base: segue como cadastro novo", (await api("/api/cadastro-site/identificar", { metodo: "POST", corpo: { cpf: cpf(7002) } })).j?.situacao === "novo");
+t("confirmação errada não abre o cadastro", (await api("/api/cadastro-site/identificar", { metodo: "POST", corpo: { cpf: cpfBase, resposta: "01/01/2000" } })).status === 401);
+const id2 = await api("/api/cadastro-site/identificar", { metodo: "POST", corpo: { cpf: cpfBase, resposta: "17/05/1990" } });
+t("confirmação certa devolve os dados e o que falta completar", id2.j?.situacao === "incompleto" && id2.j.dados?.nome_completo === "Membro Antigo da Silva" && id2.j.faltando?.includes("cep") && Boolean(id2.j.token), id2.j);
+const rBase = await inscrever(pessoa({ cpf: cpfBase, nome: "Membro Antigo da Silva", email: "membro@exemplo.test", tem_assessoria: "sim", assessoria_nome: "Assessoria Teste", vai_correr: "nao", distancia: undefined, primeira_vez: undefined }));
+const lBase = (await sql("select distancia, primeira_vez, tem_assessoria, assessoria_nome, ja_membro from evp_registrations where codigo = $1", [rBase.j?.codigo]))[0];
+t("quem não vai correr se inscreve sem distância", rBase.status === 201 && lBase?.distancia === "nao_corre" && lBase.primeira_vez === false, { r: rBase.j, lBase });
+t("assessoria gravada e pessoa marcada como já da base", lBase?.tem_assessoria === true && lBase.assessoria_nome === "Assessoria Teste" && lBase.ja_membro === true, lBase);
+t("inscrito de fora da base fica marcado como cadastro novo", (await sql("select ja_membro from evp_registrations where codigo = $1", [r1.j.codigo]))[0].ja_membro === false);
+const semDist = await inscrever(pessoa({ distancia: undefined, primeira_vez: undefined }));
+t("quem vai correr precisa dizer a distância", semDist.status === 422 && Boolean(semDist.j?.campos?.distancia) && Boolean(semDist.j?.campos?.primeira_vez), semDist.j);
+t("sem resposta sobre assessoria: 422", (await inscrever(pessoa({ tem_assessoria: undefined }))).status === 422);
+const at = await api("/api/cadastro-site/atualizar", { metodo: "POST", corpo: { token: id2.j.token, nome_completo: "Membro Antigo da Silva", email: "membro@exemplo.test", data_nascimento: "17/05/1990", whatsapp: "(61) 99123-4567", cep: "70000-000", sexo: "masculino" } });
+t("complemento do cadastro grava o que faltava", at.status === 200 && (await sql("select cep from cadastro_site where cpf = $1", [cpfBaseFmt]))[0].cep === "70000-000", at.j);
+await api("/api/evp/admin/participante", { metodo: "POST", cookie: admin, corpo: { id: (await sql("select id from evp_registrations where codigo = $1", [rBase.j.codigo]))[0].id, acao: "cancelar", motivo: "teste" } });
 
 console.log("\nConfirmação e ingresso");
 const conf = await api(`/maratonamonumental2026/obrigado?t=${r1.j.ticket_token}`);

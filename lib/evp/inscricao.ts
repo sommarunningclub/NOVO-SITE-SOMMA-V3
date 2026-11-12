@@ -1,6 +1,6 @@
 import "server-only";
 import { createSignedToken, verifySignedToken } from "@/lib/auth/session-token";
-import { SLUG } from "./config";
+import { SEM_PROVA, SLUG } from "./config";
 import { cifrarCpf, hmacCpf, novoCodigo, novoToken } from "./cripto";
 import { lerIngresso, rpc } from "./db";
 import { enviarConfirmacao, type MotivoEmail } from "./email";
@@ -75,8 +75,9 @@ export type ResultadoInscricao = RespostaBanco;
 
 export async function inscrever(
   dados: InscricaoDados,
-  extra: { idempotencyKey: string; origem?: Origem | null }
+  extra: { idempotencyKey: string; origem?: Origem | null; jaMembro?: boolean }
 ): Promise<ResultadoInscricao> {
+  const corre = dados.vai_correr === "sim" && dados.distancia && dados.distancia !== SEM_PROVA;
   const base = {
     nome: dados.nome,
     nome_busca: normalizarBusca(dados.nome),
@@ -86,8 +87,11 @@ export async function inscrever(
     cpf_hmac: hmacCpf(SLUG, dados.cpf),
     cpf_final: dados.cpf.slice(-2),
     sexo: dados.sexo,
-    distancia: dados.distancia,
-    primeira_vez: dados.primeira_vez === "sim",
+    distancia: corre ? dados.distancia : SEM_PROVA,
+    primeira_vez: corre ? dados.primeira_vez === "sim" : false,
+    tem_assessoria: dados.tem_assessoria === "sim",
+    assessoria_nome: dados.tem_assessoria === "sim" ? dados.assessoria_nome : "",
+    ja_membro: extra.jaMembro === true,
     aceite_marketing: dados.aceite_marketing === true,
     origem: limparOrigem(extra.origem),
     origem_fonte: fonteDaOrigem(extra.origem),

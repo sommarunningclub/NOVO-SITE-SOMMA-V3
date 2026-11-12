@@ -18,6 +18,10 @@ export type DadosPainel = {
   por_distancia: Record<string, number>;
   por_sexo: Record<string, number>;
   primeira_vez: { sim: number; nao: number };
+  // Chegam com a migration de 12/11/2026; antes dela o painel mostra zero.
+  vai_correr?: { sim: number; nao: number };
+  assessoria?: { sim: number; nao: number };
+  base_somma?: { sim: number; nao: number };
   por_origem: { origem: string; visitas: number; inicios_form: number; inscricoes: number }[];
   funil: { visitas: number; inicios_form: number; inscricoes: number; conversao: number | null };
   por_dia: { dia: string; n: number }[];
@@ -44,6 +48,9 @@ export type Participante = {
   distancia: DistanciaInscricao;
   primeira_vez: boolean;
   aceite_marketing: boolean;
+  tem_assessoria?: boolean;
+  assessoria_nome?: string | null;
+  ja_membro?: boolean;
   origem_fonte: string;
   created_at: string;
   confirmada_em: string | null;

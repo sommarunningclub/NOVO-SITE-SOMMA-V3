@@ -188,7 +188,9 @@ export function FichaParticipante({ id, fechar, mudou }: { id: string; fechar: (
                 ) : null}
               </Dado>
               <Dado rotulo="Sexo">{SEXO_ROTULO[ficha.sexo]}</Dado>
-              <Dado rotulo="Distância">{ROTULO_DISTANCIA[ficha.distancia]}</Dado>
+              <Dado rotulo="Maratona Monumental">{ROTULO_DISTANCIA[ficha.distancia]}</Dado>
+              <Dado rotulo="Assessoria">{ficha.tem_assessoria ? ficha.assessoria_nome || "Sim" : "Não"}</Dado>
+              <Dado rotulo="Base do SOMMA">{ficha.ja_membro ? "Já era da base" : "Cadastro novo"}</Dado>
               <Dado rotulo="Origem">{ficha.origem_fonte}</Dado>
               <Dado rotulo="Inscrição em">{dataHora(ficha.created_at)}</Dado>
               <Dado rotulo="Termos aceitos em">{dataHora(ficha.aceite_termos_em)}</Dado>

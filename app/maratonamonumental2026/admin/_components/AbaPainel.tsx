@@ -144,6 +144,18 @@ export function AbaPainel() {
         <Bloco titulo="Primeira vez na distância"><Barras itens={primeira} /></Bloco>
       </div>
 
+      <div className="grid gap-5 lg:grid-cols-3">
+        <Bloco titulo="Vai correr a Monumental">
+          <Barras itens={[{ rotulo: "Vai correr", n: dados.vai_correr?.sim ?? 0 }, { rotulo: "Só quer participar", n: dados.vai_correr?.nao ?? 0 }]} />
+        </Bloco>
+        <Bloco titulo="Já é de assessoria">
+          <Barras itens={[{ rotulo: "Sim", n: dados.assessoria?.sim ?? 0 }, { rotulo: "Não", n: dados.assessoria?.nao ?? 0 }]} />
+        </Bloco>
+        <Bloco titulo="Base do SOMMA Club">
+          <Barras itens={[{ rotulo: "Já era da base", n: dados.base_somma?.sim ?? 0 }, { rotulo: "Cadastro novo", n: dados.base_somma?.nao ?? 0 }]} />
+        </Bloco>
+      </div>
+
       <div className="grid gap-5 lg:grid-cols-2">
         <Bloco titulo="Conversão da página" descricao="Visitas e inícios de formulário contados pelo próprio site, sem dado pessoal.">
           <ol className="grid gap-3">
