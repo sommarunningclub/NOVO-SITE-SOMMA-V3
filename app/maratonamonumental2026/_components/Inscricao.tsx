@@ -106,6 +106,8 @@ export function Inscricao() {
   const [resposta, setResposta] = useState("");
   const [erroCpf, setErroCpf] = useState("");
   const [visiveis, setVisiveis] = useState<Campo[]>(PESSOAIS);
+  // Desafio Monumental: pergunta à parte. "nenhum" = vai correr só a distância escolhida.
+  const [combo, setCombo] = useState<(typeof DESAFIOS)[number] | "nenhum">("nenhum");
   const cpfIdentificado = useRef("");
   const tokenCadastro = useRef<string | null>(null);
 
@@ -130,6 +132,9 @@ export function Inscricao() {
   const aberto = vagas.modo === "aberta" || vagas.modo === "lista_espera";
   const espera = vagas.modo === "lista_espera";
   const corre = valores.vai_correr === "sim";
+  // O que vai para a inscrição: a combinação do Desafio, se houver; senão, a distância.
+  const distanciaFinal: DistanciaInscricao | undefined = combo !== "nenhum" ? combo : valores.distancia;
+  const desafiosPossiveis = DESAFIOS.filter((d) => valores.distancia && d.split("+").includes(valores.distancia));
 
   useEffect(() => {
     chave.current = crypto.randomUUID();
@@ -137,7 +142,9 @@ export function Inscricao() {
 
   // A distância escolhida no seletor ou no mapa já chega marcada aqui.
   useEffect(() => {
-    if (distanciaForm && distanciaForm !== SEM_PROVA && getValues("distancia") !== distanciaForm) setValue("distancia", distanciaForm, { shouldValidate: false });
+    if (distanciaForm && distanciaForm !== SEM_PROVA && !distanciaForm.includes("+") && getValues("distancia") !== distanciaForm) {
+      setValue("distancia", distanciaForm, { shouldValidate: false });
+    }
   }, [distanciaForm, getValues, setValue]);
 
   // Troca de etapa: o bloco entra pelo lado para onde a pessoa está indo.
@@ -358,6 +365,7 @@ export function Inscricao() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...getValues(),
+          distancia: distanciaFinal,
           cpf: dados.cpf, telefone: dados.telefone, email: dados.email, nome: dados.nome,
           idempotency_key: chave.current,
           selo: selo.current?.valor ?? "",
@@ -371,7 +379,7 @@ export function Inscricao() {
       };
 
       if (r.ok && j.ok && j.ticket_token) {
-        medir(j.status === "lista_espera" ? "evp_waitlist_join" : "evp_sign_up", { distancia: corre ? (dados.distancia ?? "") : SEM_PROVA }, "inscricao");
+        medir(j.status === "lista_espera" ? "evp_waitlist_join" : "evp_sign_up", { distancia: corre ? (distanciaFinal ?? "") : SEM_PROVA }, "inscricao");
         router.prefetch(`${CAMINHO}/obrigado?t=${encodeURIComponent(j.ticket_token)}`);
         const cadastro = sincronizarCadastro(dados);
         const falta = ESPERA_MS - (Date.now() - inicioEspera.current);
@@ -425,7 +433,14 @@ export function Inscricao() {
   const radio = (c: "tem_assessoria" | "vai_correr" | "primeira_vez" | "sexo") => register(c, { onChange: () => clearErrors(c) });
   // O valor vem do evento: o register guarda um só onChange para todos os rádios do mesmo nome.
   const distancia = (_d: DistanciaInscricao) =>
-    register("distancia", { onChange: (e) => { clearErrors("distancia"); escolherNoFormulario(e.target.value as DistanciaInscricao); } });
+    register("distancia", {
+      onChange: (e) => {
+        clearErrors("distancia");
+        // Trocou a distância: a combinação escolhida antes pode não servir mais.
+        setCombo("nenhum");
+        escolherNoFormulario(e.target.value as DistanciaInscricao);
+      },
+    });
 
   return (
     <Secao id="inscricao" marco="07" rotulo="Inscrições">
@@ -667,18 +682,30 @@ export function Inscricao() {
                               </label>
                             ))}
                           </div>
-                          <p className="mt-rotulo mb-3 mt-5">Desafio Monumental (duas provas)</p>
-                          <div className="grid gap-3 sm:grid-cols-2">
-                            {DESAFIOS.map((d) => (
-                              <label key={d} className="mt-opcao">
-                                <input type="radio" value={d} {...distancia(d)} />
-                                <span className="mt-bolinha" aria-hidden />
-                                {ROTULO_DISTANCIA[d].replace("Desafio Monumental · ", "")}
-                              </label>
-                            ))}
-                          </div>
                           <Erro id="erro-distancia" texto={errors.distancia?.message} />
                         </fieldset>
+                        {valores.distancia && (
+                          <fieldset>
+                            <legend className="mt-rotulo mb-1">Vai fazer o Desafio Monumental (duas provas)?</legend>
+                            <p className="mb-3 text-[0.85rem] leading-relaxed text-[color:var(--mt-cinza)]">
+                              É a modalidade de quem corre uma prova no sábado e outra no domingo.
+                            </p>
+                            <div className="grid gap-3 sm:grid-cols-2">
+                              {desafiosPossiveis.map((d) => (
+                                <label key={d} className="mt-opcao">
+                                  <input type="radio" name="desafio" value={d} checked={combo === d} onChange={() => setCombo(d)} />
+                                  <span className="mt-bolinha" aria-hidden />
+                                  {ROTULO_DISTANCIA[d].replace("Desafio Monumental · ", "")}
+                                </label>
+                              ))}
+                              <label className="mt-opcao sm:col-span-2">
+                                <input type="radio" name="desafio" value="nenhum" checked={combo === "nenhum"} onChange={() => setCombo("nenhum")} />
+                                <span className="mt-bolinha" aria-hidden />
+                                Nenhuma das opções acima
+                              </label>
+                            </div>
+                          </fieldset>
+                        )}
                         <fieldset>
                           <legend className="mt-rotulo mb-3">É a primeira vez que você corre essa distância?</legend>
                           <div className="grid grid-cols-2 gap-3">
@@ -707,7 +734,7 @@ export function Inscricao() {
                         { r: "E-mail", v: valores.email, e: 1 },
                         { r: "WhatsApp", v: valores.telefone, e: 1 },
                         { r: "Assessoria", v: valores.tem_assessoria === "sim" ? (valores.assessoria_nome?.trim() || "Sim") : "Não", e: 2 },
-                        { r: "Maratona Monumental", v: corre && valores.distancia ? ROTULO_DISTANCIA[valores.distancia] : "Não vou correr, só participar", e: 2 },
+                        { r: "Maratona Monumental", v: corre && distanciaFinal ? ROTULO_DISTANCIA[distanciaFinal] : "Não vou correr, só participar", e: 2 },
                         ...(corre ? [{ r: "Primeira vez na distância", v: valores.primeira_vez === "sim" ? "Sim" : "Não", e: 2 }] : []),
                       ].map((l) => (
                         <div key={l.r} className="flex items-center justify-between gap-3 px-4 py-3">
