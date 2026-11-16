@@ -79,6 +79,12 @@ const nextConfig = {
       "resgatar",
       "fotos",
       "marca",
+      // comunidade e jogos (15/11/2026)
+      "sommacomigo",
+      "meu-corre",
+      "c",
+      "jogo",
+      "jogos",
     ];
     return {
       beforeFiles: [
