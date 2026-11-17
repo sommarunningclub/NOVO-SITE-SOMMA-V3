@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import {
   Search, LogOut, Users, ClipboardList, CheckSquare,
   MessageCircle, Check, X, ShieldCheck, ChevronRight,
-  ArrowLeft, Loader2, RefreshCw, Lock, ChevronDown,
+  ArrowLeft, Loader2, RefreshCw, Lock, ChevronDown, Mail,
   Trophy, Dices, Filter, Clock, Repeat, Plus, Eye, EyeOff, UserCircle, Pencil, Trash2,
 } from 'lucide-react'
 import PerfilInsiderView from '@/components/insider/PerfilInsider'
@@ -139,26 +139,74 @@ function LoginScreen({ onLogin }: { onLogin: (insider: Insider) => void }) {
   const [loading, setLoading] = useState(false)
   const [erro, setErro] = useState('')
   // Depois do CPF: 'setup' no primeiro acesso (cadastrar o Google Authenticator)
-  // ou 'verify' nos seguintes (só o código).
-  const [etapa, setEtapa] = useState<'cpf' | 'setup' | 'verify'>('cpf')
+  // ou 'verify' nos seguintes (só o código). 'email' é a alternativa para quem
+  // está sem o app: o código chega no e-mail do cadastro de Insider.
+  const [etapa, setEtapa] = useState<'cpf' | 'setup' | 'verify' | 'email'>('cpf')
   const [nome, setNome] = useState('')
   const [cadastro, setCadastro] = useState<CadastroMfa | null>(null)
   const [codigo, setCodigo] = useState('')
   const [copiado, setCopiado] = useState(false)
+  const [emailMascarado, setEmailMascarado] = useState('')
+  const [enviandoEmail, setEnviandoEmail] = useState(false)
+  const [reenviarEm, setReenviarEm] = useState(0)
+  const [aviso, setAviso] = useState('')
+
+  useEffect(() => {
+    if (reenviarEm <= 0) return
+    const t = setTimeout(() => setReenviarEm(s => s - 1), 1000)
+    return () => clearTimeout(t)
+  }, [reenviarEm])
 
   function voltarParaCpf() {
     setEtapa('cpf')
     setCadastro(null)
     setCodigo('')
     setCopiado(false)
+    setEmailMascarado('')
+    setAviso('')
+  }
+
+  function voltarParaAutenticador() {
+    setErro('')
+    setAviso('')
+    setCodigo('')
+    setEtapa(cadastro ? 'setup' : 'verify')
+  }
+
+  async function pedirCodigoEmail() {
+    if (enviandoEmail) return
+    setErro('')
+    setAviso('')
+    setEnviandoEmail(true)
+    try {
+      const res = await insiderFetch('/api/insider/mfa/email', { method: 'POST' })
+      const data = await res.json()
+      if (!res.ok) {
+        setErro(data.error || 'Não foi possível enviar o código.')
+        if (data.esperar) setReenviarEm(data.esperar)
+        if (data.reiniciar) voltarParaCpf()
+        return
+      }
+      setEmailMascarado(data.email || '')
+      setReenviarEm(data.reenviarEm || 60)
+      setCodigo('')
+      setEtapa('email')
+      setAviso(`Código enviado. Ele vale por ${data.validadeMin || 10} minutos.`)
+    } catch {
+      setErro('Erro de conexão. Tente novamente.')
+    } finally {
+      setEnviandoEmail(false)
+    }
   }
 
   async function enviarCodigo(valor: string) {
     if (valor.length !== 6 || loading) return
     setErro('')
+    setAviso('')
     setLoading(true)
     try {
-      const res = await insiderFetch('/api/insider/mfa', {
+      const rota = etapa === 'email' ? '/api/insider/mfa/email/confirmar' : '/api/insider/mfa'
+      const res = await insiderFetch(rota, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ codigo: valor }),
@@ -230,7 +278,7 @@ function LoginScreen({ onLogin }: { onLogin: (insider: Insider) => void }) {
       maxLength={6}
       autoFocus
       disabled={loading}
-      aria-label="Código de 6 dígitos do Google Authenticator"
+      aria-label={etapa === 'email' ? 'Código de 6 dígitos recebido por e-mail' : 'Código de 6 dígitos do Google Authenticator'}
       className="w-full bg-zinc-900/80 backdrop-blur-sm border-2 border-zinc-700 focus:border-[#ff2c03] text-white placeholder:text-zinc-700 rounded-xl px-4 py-3.5 text-2xl tracking-[0.5em] text-center outline-none transition-all font-mono disabled:opacity-60"
     />
   )
@@ -250,6 +298,18 @@ function LoginScreen({ onLogin }: { onLogin: (insider: Insider) => void }) {
     >
       {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShieldCheck className="w-4 h-4" />}
       {loading ? 'Verificando...' : 'Confirmar código'}
+    </button>
+  )
+
+  const linkEmail = (
+    <button
+      type="button"
+      onClick={pedirCodigoEmail}
+      disabled={enviandoEmail || loading}
+      className="w-full border border-zinc-800 hover:border-zinc-600 text-zinc-300 hover:text-white text-xs py-2.5 rounded-xl flex items-center justify-center gap-2 transition-colors disabled:opacity-60"
+    >
+      {enviandoEmail ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Mail className="w-3.5 h-3.5" />}
+      {enviandoEmail ? 'Enviando...' : 'Problema com o app? Receber código por e-mail'}
     </button>
   )
 
@@ -390,6 +450,7 @@ function LoginScreen({ onLogin }: { onLogin: (insider: Insider) => void }) {
 
             {caixaErro}
             {botaoConfirmar}
+            {linkEmail}
             {botaoVoltar}
           </form>
         )}
@@ -408,9 +469,52 @@ function LoginScreen({ onLogin }: { onLogin: (insider: Insider) => void }) {
             {campoCodigo}
             {caixaErro}
             {botaoConfirmar}
+            {linkEmail}
             {botaoVoltar}
             <p className="text-center text-[11px] text-zinc-600">
-              Trocou de celular ou perdeu o app? Fale com a coordenação para liberar um novo cadastro.
+              Trocou de celular de vez? Fale com a coordenação para liberar um novo cadastro do app.
+            </p>
+          </form>
+        )}
+
+        {etapa === 'email' && (
+          <form
+            onSubmit={e => { e.preventDefault(); enviarCodigo(codigo) }}
+            className="space-y-4"
+          >
+            <div className="text-center">
+              <p className="text-white text-sm font-semibold">Olá, {nome}</p>
+              <p className="text-zinc-400 text-xs mt-1 leading-relaxed">
+                Enviamos um código de 6 números para{' '}
+                <strong className="text-zinc-200">{emailMascarado || 'o seu e-mail cadastrado'}</strong>.
+                Confira também a caixa de spam.
+              </p>
+            </div>
+            {campoCodigo}
+            {aviso && !erro && (
+              <p className="text-center text-[11px] text-green-400">{aviso}</p>
+            )}
+            {caixaErro}
+            {botaoConfirmar}
+            <button
+              type="button"
+              onClick={pedirCodigoEmail}
+              disabled={enviandoEmail || loading || reenviarEm > 0}
+              className="w-full border border-zinc-800 hover:border-zinc-600 text-zinc-300 hover:text-white text-xs py-2.5 rounded-xl flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:hover:border-zinc-800 disabled:hover:text-zinc-300"
+            >
+              {enviandoEmail ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Mail className="w-3.5 h-3.5" />}
+              {enviandoEmail ? 'Enviando...' : reenviarEm > 0 ? `Reenviar código em ${reenviarEm} s` : 'Reenviar código'}
+            </button>
+            <button
+              type="button"
+              onClick={voltarParaAutenticador}
+              className="w-full text-zinc-500 hover:text-zinc-300 text-xs py-2 flex items-center justify-center gap-1.5 transition-colors"
+            >
+              <ShieldCheck className="w-3.5 h-3.5" /> Usar o Google Authenticator
+            </button>
+            {botaoVoltar}
+            <p className="text-center text-[11px] text-zinc-600">
+              O e-mail não chegou ou está errado? Fale com a coordenação.
             </p>
           </form>
         )}
