@@ -5,6 +5,7 @@ import { SLUG } from "@/lib/evp/config";
 import { lerEventoPublico } from "@/lib/evp/db";
 import { avisarPorEmail, conferirSelo, inscrever } from "@/lib/evp/inscricao";
 import { camposComErro, corpoInscricaoSchema, emailMascarado } from "@/lib/evp/schema";
+import { vagasPublicas } from "@/lib/evp/tipos";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
@@ -84,10 +85,10 @@ export async function POST(req: NextRequest) {
         );
       }
       if (r.motivo === "lotado") {
-        return NextResponse.json({ error: "As vagas acabaram.", lotado: true, vagas: r.vagas }, { status: 409 });
+        return NextResponse.json({ error: "As vagas acabaram.", lotado: true, vagas: vagasPublicas(r.vagas) }, { status: 409 });
       }
       if (r.motivo === "fechada") {
-        return NextResponse.json({ error: "As inscrições não estão abertas.", fechada: true, vagas: r.vagas }, { status: 409 });
+        return NextResponse.json({ error: "As inscrições não estão abertas.", fechada: true, vagas: vagasPublicas(r.vagas) }, { status: 409 });
       }
       if (r.motivo === "chave_em_uso") {
         return NextResponse.json({ error: "Recarregue a página e tente de novo." }, { status: 409 });
@@ -117,7 +118,7 @@ export async function POST(req: NextRequest) {
         posicao_fila: ins.posicao_fila,
         ticket_token: ins.ticket_token,
         email_enviado: emailEnviado,
-        vagas: r.vagas ?? null,
+        vagas: r.vagas ? vagasPublicas(r.vagas) : null,
       },
       { status: r.repetida ? 200 : 201 }
     );

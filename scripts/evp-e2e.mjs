@@ -125,9 +125,13 @@ const abre = await api("/api/evp/admin/evento", {
   corpo: { starts_at: "2026-11-18T22:30:00.000Z", ends_at: "2026-11-19T00:30:00.000Z", local_nome: "Espaço de Teste", endereco: "Rua de Teste, 100, Brasília", capacidade: 3, valor_centavos: 0, inscricoes_status: "aberta", ao_lotar: "lista_espera", promover_automatico: true },
 });
 t("abre com tudo configurado", abre.status === 200 && abre.j?.vagas?.modo === "aberta", abre.j);
+const vagasAdmin = async () => (await api("/api/evp/admin/dados?secao=painel", { cookie: admin })).j?.dados?.vagas;
 const vg = await api("/api/evp/evento");
-t("vagas públicas vêm do banco", vg.j?.vagas?.vagas_livres === 3 && vg.j?.vagas?.capacidade === 3, vg.j);
+t("situação pública vem do banco", vg.j?.vagas?.modo === "aberta", vg.j);
+t("API pública não mostra quantas vagas existem", vg.j?.vagas?.capacidade === null && vg.j?.vagas?.vagas_livres === null && vg.j?.vagas?.confirmadas === 0, vg.j);
+t("painel mostra o número real de vagas", (await vagasAdmin())?.vagas_livres === 3 && (await vagasAdmin())?.capacidade === 3);
 const pg2 = await api("/maratonamonumental2026");
+t("página não mostra nem embute o número de vagas", !/vagas dispon|vagas no total|"capacidade":3|"vagas_livres":3/.test(pg2.texto));
 t("página atualiza sozinha com local e data", /Espaço de Teste/.test(pg2.texto) && /18 de novembro/.test(pg2.texto));
 t("dados estruturados aparecem com data e local confirmados", /"@type":"Event"/.test(pg2.texto));
 const ics = await api("/maratonamonumental2026/agenda.ics");
@@ -194,11 +198,11 @@ t("token inventado não abre ingresso", /Ingresso não encontrado/.test((await a
 
 console.log("\nÚltima vaga e lista de espera");
 await inscrever(pessoa());
-t("resta uma vaga", (await api("/api/evp/evento")).j.vagas.vagas_livres === 1);
+t("resta uma vaga", (await vagasAdmin()).vagas_livres === 1);
 const [a, b] = await Promise.all([inscrever(pessoa()), inscrever(pessoa())]);
 const st = [a.j?.status, b.j?.status].sort();
 t("duas inscrições concorrentes pela última vaga: uma confirma, a outra entra na fila", st[0] === "confirmada" && st[1] === "lista_espera", st);
-const v = (await api("/api/evp/evento")).j.vagas;
+const v = await vagasAdmin();
 t("confirmadas não passam da capacidade", v.confirmadas === 3 && v.vagas_livres === 0 && v.fila === 1 && v.modo === "lista_espera", v);
 const naFila = a.j.status === "lista_espera" ? a.j : b.j;
 const dentro = a.j.status === "confirmada" ? a.j : b.j;

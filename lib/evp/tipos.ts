@@ -84,3 +84,13 @@ export type Ingresso = InscricaoPublica & {
 
 export type Papel = "admin" | "operador";
 export type Sessao = { id: string; nome: string; papel: Papel; mestre: boolean };
+
+/**
+ * O que a página pública pode saber das vagas: só a situação (em breve, aberta,
+ * lista de espera, esgotada, encerrada). Capacidade, confirmadas e vagas livres
+ * ficam no servidor e no painel. Pedido do Alex em 18/11/2026: o público não vê
+ * quantas vagas existem.
+ */
+export function vagasPublicas(v: Vagas): Vagas {
+  return { modo: v.modo, capacidade: null, confirmadas: 0, vagas_livres: null, fila: 0 };
+}

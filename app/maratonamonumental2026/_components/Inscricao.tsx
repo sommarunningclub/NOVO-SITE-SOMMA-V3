@@ -454,13 +454,7 @@ export function Inscricao() {
               da Monumental.
             </p>
             {aberto && (
-              <dl data-sobe className="mt-8 grid max-w-[26rem] grid-cols-2 gap-px overflow-hidden rounded-2xl border border-[color:var(--mt-linha)] bg-[color:var(--mt-linha)]">
-                <div className="bg-[color:var(--mt-preto)] p-4">
-                  <dt className="mt-rotulo">Vagas</dt>
-                  <dd className="mt-mono mt-2 text-[1.25rem] tracking-normal" aria-live="polite">
-                    {espera ? "Lista de espera" : `${vagas.vagas_livres} de ${vagas.capacidade}`}
-                  </dd>
-                </div>
+              <dl data-sobe className="mt-8 max-w-[14rem] overflow-hidden rounded-2xl border border-[color:var(--mt-linha)]">
                 <div className="bg-[color:var(--mt-preto)] p-4">
                   <dt className="mt-rotulo">Inscrição</dt>
                   <dd className="mt-mono mt-2 text-[1.25rem] tracking-normal">{valor ?? "Em breve"}</dd>
