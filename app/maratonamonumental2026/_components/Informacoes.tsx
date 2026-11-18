@@ -7,9 +7,9 @@ import { MapaLocal } from "./MapaLocal";
 import { Secao, Titulo } from "./Secao";
 
 
-function Celula({ rotulo, valor, pendente }: { rotulo: string; valor: string | null; pendente: string }) {
+function Celula({ rotulo, valor, pendente, className = "" }: { rotulo: string; valor: string | null; pendente: string; className?: string }) {
   return (
-    <div data-sobe className="bg-[color:var(--mt-preto)] p-5 sm:p-6">
+    <div data-sobe className={`bg-[color:var(--mt-preto)] p-5 sm:p-6 ${className}`}>
       <dt className="mt-rotulo">{rotulo}</dt>
       <dd className="mt-2.5 text-[1.1rem] font-semibold leading-snug">
         {valor ?? <span className="mt-pendente">{pendente}</span>}
@@ -18,17 +18,8 @@ function Celula({ rotulo, valor, pendente }: { rotulo: string; valor: string | n
   );
 }
 
-function textoDasVagas(v: ReturnType<typeof useEvento>["vagas"]): string | null {
-  if (v.capacidade === null) return null;
-  if (v.modo === "encerrada") return "Inscrições encerradas";
-  if (v.modo === "em_breve") return `${v.capacidade} vagas no total`;
-  if (v.modo === "esgotada") return "Vagas esgotadas";
-  if (v.modo === "lista_espera") return "Vagas preenchidas, lista de espera aberta";
-  return `${v.vagas_livres} de ${v.capacidade} vagas disponíveis`;
-}
-
 export function Informacoes() {
-  const { evento, vagas } = useEvento();
+  const { evento } = useEvento();
   const rota = linkComoChegar(evento);
   const temMapa = evento.lat !== null && evento.lng !== null;
 
@@ -40,9 +31,8 @@ export function Informacoes() {
         <Celula rotulo="Data" valor={dataLonga(evento.starts_at)} pendente="Em breve" />
         <Celula rotulo="Horário" valor={horario(evento.starts_at, evento.ends_at)} pendente="Em breve" />
         <Celula rotulo="Local" valor={evento.local_nome} pendente="Local em definição" />
-        <Celula rotulo="Endereço" valor={evento.endereco} pendente="Em definição" />
-        <Celula rotulo="Vagas" valor={textoDasVagas(vagas)} pendente="Em breve" />
-        <Celula rotulo="Inscrição" valor={rotuloValor(evento.valor_centavos)} pendente="Em breve" />
+        <Celula rotulo="Endereço" valor={evento.endereco} pendente="Em definição" className="lg:col-span-2" />
+        <Celula rotulo="Inscrição" valor={rotuloValor(evento.valor_centavos)} pendente="Em breve" className="sm:col-span-2 lg:col-span-1" />
       </dl>
 
       <div className="mt-3 grid gap-3 lg:grid-cols-12">

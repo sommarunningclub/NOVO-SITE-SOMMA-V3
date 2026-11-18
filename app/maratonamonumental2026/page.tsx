@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { CAMINHO, NOME_EVENTO, PROVA, URL_LP } from "@/lib/evp/config";
 import { EVENTO_VAZIO, lerEventoPublico } from "@/lib/evp/db";
-import type { EventoPublico } from "@/lib/evp/tipos";
+import { vagasPublicas, type EventoPublico } from "@/lib/evp/tipos";
 import { Conduzem } from "./_components/Conduzem";
 import { EventoProvider } from "./_components/Contexto";
 import { Essencial } from "./_components/Essencial";
@@ -99,7 +99,9 @@ function dadosEstruturados(ev: EventoPublico): string | null {
 const PRE = `try{if(!window.matchMedia('(prefers-reduced-motion: reduce)').matches)document.documentElement.classList.add('mt-pre')}catch(e){}`;
 
 export default async function Pagina() {
-  const evento = (await lerEventoPublico()) ?? EVENTO_VAZIO;
+  const lido = (await lerEventoPublico()) ?? EVENTO_VAZIO;
+  // Nada de capacidade nem de vagas livres no que vai para o navegador.
+  const evento: EventoPublico = { ...lido, vagas: vagasPublicas(lido.vagas) };
   const ld = dadosEstruturados(evento);
 
   return (
