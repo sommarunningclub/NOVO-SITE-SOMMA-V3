@@ -236,3 +236,7 @@ pelo texto das funções.
   cobrança: com valor acima de zero, a forma de pagamento precisa ser combinada.
 - Espelho das inscrições na gestão (`checkins`, `cadastro_site`).
 - Conferência dos traçados contra os PDFs oficiais de 2026 (é trabalho de olho).
+
+## Vagas na página
+
+Desde 18/11/2026 a página não mostra quantas vagas existem: a página, o código-fonte dela e as APIs públicas recebem só a situação das inscrições. Os números ficam no painel. Ao lotar, a regra configurada no painel é encerrar o formulário.
