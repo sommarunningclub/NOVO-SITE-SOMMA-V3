@@ -85,6 +85,8 @@ const nextConfig = {
       "c",
       "jogo",
       "jogos",
+      // ranking ao vivo do Desafio Michelob Ultra (20/11/2026)
+      "ranking",
     ];
     return {
       beforeFiles: [
